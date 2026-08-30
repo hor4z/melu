@@ -128,11 +128,11 @@ type Entregas struct{ r *Repos }
 
 func (r *Repos) Entregas() *Entregas { return &Entregas{r: r} }
 
-const entCols = `e.id, e.asignacion_id, e.aprendiz_id, p.nombre, e.estado, e.respuestas, e.artefactos, e.puntajes, e.entregada_at, e.updated_at`
+const entCols = `e.id, e.asignacion_id, e.aprendiz_id, p.nombre, e.estado, e.respuestas, e.artefactos, e.pasos, e.puntajes, e.entregada_at, e.updated_at`
 
 func scanEnt(row pgx.CollectableRow) (domain.Entrega, error) {
 	var e domain.Entrega
-	return e, row.Scan(&e.ID, &e.AsignacionID, &e.AprendizID, &e.Aprendiz, &e.Estado, &e.Respuestas, &e.Artefactos, &e.Puntajes, &e.EntregadaAt, &e.UpdatedAt)
+	return e, row.Scan(&e.ID, &e.AsignacionID, &e.AprendizID, &e.Aprendiz, &e.Estado, &e.Respuestas, &e.Artefactos, &e.Pasos, &e.Puntajes, &e.EntregadaAt, &e.UpdatedAt)
 }
 
 func (x *Entregas) Abrir(ctx context.Context, asignacionID, aprendizID string) (*domain.Entrega, error) {
@@ -151,8 +151,8 @@ func (x *Entregas) Abrir(ctx context.Context, asignacionID, aprendizID string) (
 }
 
 func (x *Entregas) Guardar(ctx context.Context, e domain.Entrega) error {
-	_, err := x.r.db.Exec(ctx, `update entrega set estado=$2, respuestas=$3, puntajes=$4, entregada_at=$5, updated_at=now() where id=$1`,
-		e.ID, e.Estado, e.Respuestas, e.Puntajes, e.EntregadaAt)
+	_, err := x.r.db.Exec(ctx, `update entrega set estado=$2, respuestas=$3, puntajes=$4, entregada_at=$5, pasos=$6, updated_at=now() where id=$1`,
+		e.ID, e.Estado, e.Respuestas, e.Puntajes, e.EntregadaAt, e.Pasos)
 	return err
 }
 

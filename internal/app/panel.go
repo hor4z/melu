@@ -105,7 +105,7 @@ func (s *Servicios) PanelDocente(ctx context.Context, p domain.Persona) (*Panel,
 			out.ParaMirar++
 		}
 		min, ok := minutos(h)
-		ac := aciertos(h.Documento, h.Respuestas)
+		ac := aciertos(h.Documento, h.Respuestas, h.Pasos)
 		if ok {
 			sumMin += min
 			nMin++
@@ -213,7 +213,7 @@ func (s *Servicios) senales(porAprendiz map[string][]Hecho, mediana float64, rec
 				continue
 			}
 			entregadas++
-			ac := aciertos(h.Documento, h.Respuestas)
+			ac := aciertos(h.Documento, h.Respuestas, h.Pasos)
 			min, ok := minutos(h)
 			if ac >= 0 && ac < 0.5 {
 				fallos++
@@ -267,7 +267,7 @@ func (s *Servicios) MiProgreso(ctx context.Context, p domain.Persona) (*Progreso
 	dias := map[string]bool{}
 	for _, h := range hechos {
 		min, _ := minutos(h)
-		ac := aciertos(h.Documento, h.Respuestas)
+		ac := aciertos(h.Documento, h.Respuestas, h.Pasos)
 		if h.Estado == "en_curso" {
 			out.EnCurso++
 		} else {
@@ -313,8 +313,31 @@ func minutos(h Hecho) (float64, bool) {
 	return round1(m), true
 }
 
-// aciertos compara las respuestas a bloques "chequeo" con su opción correcta. -1 si no hay chequeos.
-func aciertos(doc, resp json.RawMessage) float64 {
+// aciertos usa lo que el runner ya evaluó paso a paso; si no hay pasos (datos viejos),
+// compara las respuestas a bloques de opciones con su opción correcta. -1 si no hay nada que medir.
+func aciertos(doc, resp, pasos json.RawMessage) float64 {
+	var ps map[string]struct {
+		OK *bool `json:"ok"`
+	}
+	if len(pasos) > 0 && json.Unmarshal(pasos, &ps) == nil && len(ps) > 0 {
+		var total, ok float64
+		for _, v := range ps {
+			if v.OK == nil {
+				continue
+			}
+			total++
+			if *v.OK {
+				ok++
+			}
+		}
+		if total > 0 {
+			return ok / total
+		}
+	}
+	return aciertosDeChequeos(doc, resp)
+}
+
+func aciertosDeChequeos(doc, resp json.RawMessage) float64 {
 	var d struct {
 		Fases []struct {
 			Bloques []struct {
@@ -331,7 +354,7 @@ func aciertos(doc, resp json.RawMessage) float64 {
 	var total, ok float64
 	for _, f := range d.Fases {
 		for _, b := range f.Bloques {
-			if b.Tipo != "chequeo" || b.Correcta == nil {
+			if (b.Tipo != "chequeo" && b.Tipo != "opciones") || b.Correcta == nil {
 				continue
 			}
 			total++

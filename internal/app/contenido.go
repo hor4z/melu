@@ -228,7 +228,7 @@ func (s *Servicios) AbrirMision(ctx context.Context, p domain.Persona, asignacio
 	return &Mision{Asignacion: *a, Entrega: *e}, nil
 }
 
-func (s *Servicios) GuardarRespuestas(ctx context.Context, p domain.Persona, entregaID string, respuestas json.RawMessage, entregar bool) (*domain.Entrega, error) {
+func (s *Servicios) GuardarRespuestas(ctx context.Context, p domain.Persona, entregaID string, respuestas, pasos json.RawMessage, entregar bool) (*domain.Entrega, error) {
 	e, err := s.Entregas.PorID(ctx, entregaID)
 	if err != nil {
 		return nil, err
@@ -237,6 +237,9 @@ func (s *Servicios) GuardarRespuestas(ctx context.Context, p domain.Persona, ent
 		return nil, domain.ErrNoAutorizado
 	}
 	e.Respuestas = respuestas
+	if len(pasos) > 0 {
+		e.Pasos = pasos
+	}
 	verbo := "respuesta.guardada"
 	if entregar && e.Estado == "en_curso" {
 		now := time.Now()

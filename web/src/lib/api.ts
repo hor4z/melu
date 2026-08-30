@@ -32,15 +32,32 @@ export type Lente = { clave: string; nombre: string; descripcion: string; fases:
 export type Yo = { persona: Persona; modo: 'guia' | 'aprendiz' | 'nuevo'; espacios: Espacio[]; membresias: Membresia[] }
 export type AuthOpciones = { google: boolean; dev: boolean }
 
-export type TipoBloque = 'parrafo' | 'titulo' | 'lista' | 'destacado' | 'pregunta' | 'chequeo' | 'evidencia' | 'autoreporte'
+export type TipoBloque =
+  | 'parrafo' | 'titulo' | 'lista' | 'destacado'
+  | 'pregunta' | 'opciones' | 'chequeo' | 'varias' | 'numerico' | 'completar' | 'ordenar' | 'emparejar'
+  | 'evidencia' | 'autoreporte'
+
 export type Bloque = {
   id: string
   tipo: TipoBloque
   texto: string
-  opciones?: string[]      // chequeo
-  correcta?: number        // chequeo
+  opciones?: string[]          // opciones / varias
+  correcta?: number            // opciones (y el viejo chequeo)
+  correctas?: number[]         // varias
+  respuesta?: number           // numerico
+  tolerancia?: number          // numerico
+  unidad?: string              // numerico
+  huecos?: string[]            // completar: lo que va en cada {{hueco}}
+  items?: string[]             // ordenar: en el orden correcto
+  pares?: { izq: string; der: string }[]  // emparejar
+  explicacion?: string         // se muestra después de responder
+  pista?: string               // se puede pedir antes
   kind?: 'foto' | 'audio' | 'archivo'  // evidencia
 }
+
+/** Lo que pasó en cada bloque: la señal que vale, más rica que la respuesta final. */
+export type PasoResultado = { intentos: number; ok: boolean | null; ms: number }
+export type Pasos = Record<string, PasoResultado>
 export type FaseDoc = { clave: string; nombre: string; pide?: string; bloques: Bloque[] }
 export type Documento = { fases: FaseDoc[] }
 export type Composicion = {
@@ -57,11 +74,12 @@ export type Asignacion = {
   documento?: Documento; rubrica?: Criterio[]; abre: string; cierra: string | null
   entregas: number; entregasTotales: number; grupoNombre?: string; miEstado: 'en_curso' | 'entregada' | 'corregida' | null
 }
-export type Respuestas = Record<string, string | number>
+export type ValorRespuesta = string | number | number[] | string[]
+export type Respuestas = Record<string, ValorRespuesta>
 export type Puntaje = { id: string; nivel: number }
 export type Entrega = {
   id: string; asignacionId: string; aprendizId: string; aprendiz?: string
-  estado: 'en_curso' | 'entregada' | 'corregida'; respuestas: Respuestas; artefactos: unknown[]; puntajes: Puntaje[]
+  estado: 'en_curso' | 'entregada' | 'corregida'; respuestas: Respuestas; artefactos: unknown[]; pasos: Pasos; puntajes: Puntaje[]
   entregadaAt: string | null; updatedAt: string
 }
 export type Sala = { grupo: Grupo; misiones: Asignacion[] }

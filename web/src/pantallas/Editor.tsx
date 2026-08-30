@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, ChevronLeft, Eye, EyeOff, GripVertical, LayoutTemplate, Plus, Send, X } from 'lucide-react'
-import { Button, Eyebrow, Icon, Text } from '@/kit'
+import { Button, Eyebrow, Icon, Text, cn } from '@/kit'
 import { api, nuevoId, type Actividad, type Bloque, type Criterio, type Grupo, type Lente, type TipoBloque } from '../lib/api'
-import { ESCENARIOS, EXPERIENCIAS, SOCIAL, TIPOS_BLOQUE } from '../lib/composicion'
+import { ES_INTERACTIVO, ESCENARIOS, EXPERIENCIAS, SOCIAL, TIPOS_BLOQUE } from '../lib/composicion'
 import { ChipsComposicion, Rotulo } from '../bloques/Chips'
-import { BloqueRunner } from '../bloques/Bloque'
+import { BloqueInteractivo, BloqueLectura, partirHuecos } from '../bloques/Interactivo'
 import { Modal } from '../bloques/Modal'
 import { Portada } from '../bloques/Portada'
 
@@ -97,7 +97,12 @@ function EditorCargado({ inicial }: { inicial: Actividad }) {
           <div className="p-5 sm:p-8">
             {f?.pide && !preview && <Text size="sm" variant="muted" className="mb-4">Esta fase pide: {f.pide}</Text>}
             {preview ? (
-              <div className="flex flex-col gap-4">{f?.bloques.map((b) => <BloqueRunner key={b.id} b={b} r={{}} onChange={() => {}} soloLectura />)}{f?.bloques.length === 0 && <Text variant="muted">Esta fase está vacía.</Text>}</div>
+              <div className="flex flex-col gap-5">
+                {f?.bloques.map((b) => ES_INTERACTIVO(b.tipo)
+                  ? <div key={b.id} className="flex flex-col gap-3">{b.tipo !== 'completar' && <p className="font-display text-xl font-semibold tracking-tight">{b.texto}</p>}<BloqueInteractivo b={b} valor={undefined} onChange={() => {}} estado="editando" /></div>
+                  : <BloqueLectura key={b.id} b={b} />)}
+                {f?.bloques.length === 0 && <Text variant="muted">Esta fase está vacía.</Text>}
+              </div>
             ) : (
               <div className="flex flex-col">
                 {f?.bloques.map((b, i) => (
@@ -171,7 +176,11 @@ function DropZone({ idx, onDropAt }: { idx: number; onDropAt: (id: string, desti
   return <div onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)} onDrop={(e) => { e.preventDefault(); setOver(false); const id = e.dataTransfer.getData('text/bloque'); if (id) onDropAt(id, idx) }} className={`h-2 rounded transition-colors ${over ? 'bg-brand-text' : ''}`} />
 }
 
-const CATEGORIAS: [string, TipoBloque[]][] = [['Texto', ['parrafo', 'titulo', 'lista', 'destacado']], ['Actividad', ['pregunta', 'chequeo', 'autoreporte']], ['Evidencia', ['evidencia']]]
+const CATEGORIAS: [string, TipoBloque[]][] = [
+  ['Texto', ['parrafo', 'titulo', 'lista', 'destacado']],
+  ['Se corrige solo', ['opciones', 'varias', 'numerico', 'completar', 'ordenar', 'emparejar']],
+  ['Lo mira el docente', ['pregunta', 'evidencia', 'autoreporte']],
+]
 
 function BloqueEditor({ b, idx, conFoco, esPrimero, esUltimo, onChange, onEnter, onBorrar, onMover, onDrop, onPegar, onFoco }: {
   b: Bloque; idx: number; conFoco: boolean; esPrimero: boolean; esUltimo: boolean
@@ -205,7 +214,7 @@ function BloqueEditor({ b, idx, conFoco, esPrimero, esUltimo, onChange, onEnter,
   const elegir = (tipo: TipoBloque) => { setMenu(null); onChange({ ...nuevoBloque(tipo), id: b.id }, true); ref.current?.focus() }
   const filtro = (menu ?? '').toLowerCase()
   const t = TIPOS_BLOQUE[b.tipo]
-  const clases: Record<TipoBloque, string> = { parrafo: 'text-base', titulo: 'font-display text-2xl font-semibold tracking-tight', lista: 'text-base', destacado: 'text-base font-medium text-brand-text', pregunta: 'font-medium', chequeo: 'font-medium', evidencia: 'font-medium', autoreporte: 'font-medium' }
+  const clases: Partial<Record<TipoBloque, string>> = { titulo: 'font-display text-2xl font-semibold tracking-tight', destacado: 'text-base font-medium text-accent' }
   const marco = t.semantico ? 'rounded-xl border border-line bg-canvas p-3' : b.tipo === 'destacado' ? 'rounded-md border-l-4 border-brand-text bg-teal px-4 py-2' : ''
 
   return (
@@ -218,20 +227,8 @@ function BloqueEditor({ b, idx, conFoco, esPrimero, esUltimo, onChange, onEnter,
       <div className={`relative min-w-0 flex-1 ${marco}`}>
         {t.semantico && <div className="mb-1 flex items-center justify-between"><Rotulo>{t.nombre}{b.tipo === 'evidencia' && ` · ${b.kind}`}</Rotulo><span className="flex opacity-0 group-hover:opacity-100"><button type="button" onClick={() => onMover(-1)} disabled={esPrimero} className="rounded p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Subir"><Icon icon={ArrowUp} size="xs" /></button><button type="button" onClick={() => onMover(1)} disabled={esUltimo} className="rounded p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Bajar"><Icon icon={ArrowDown} size="xs" /></button><button type="button" onClick={onBorrar} className="rounded p-0.5 text-ink-subtle hover:text-danger" aria-label="Borrar"><Icon icon={X} size="xs" /></button></span></div>}
         <textarea ref={ref} value={menu !== null ? '/' + menu : b.texto} rows={1} onChange={(e) => onInput(e.target.value)} onKeyDown={onKey} onPaste={onPaste} aria-label={t.nombre} placeholder={b.tipo === 'lista' ? 'Un ítem por línea' : b.tipo === 'parrafo' ? 'Escribí, o "/" para elegir un bloque' : t.pista}
-          className={`w-full resize-none bg-transparent leading-relaxed outline-none placeholder:text-ink-subtle ${clases[b.tipo]}`} />
-        {b.tipo === 'chequeo' && (
-          <div className="mt-2 flex flex-col gap-1.5">
-            {(b.opciones ?? []).map((o, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <input type="radio" name={`c-${b.id}`} checked={b.correcta === i} onChange={() => onChange({ correcta: i }, true)} aria-label="Correcta" title="Marcar como correcta" />
-                <input value={o} onChange={(e) => onChange({ opciones: (b.opciones ?? []).map((x, j) => (j === i ? e.target.value : x)) })} placeholder={`Opción ${i + 1}`} className="flex-1 rounded-md border border-line bg-surface px-2 py-1 text-sm" />
-                <button type="button" onClick={() => onChange({ opciones: (b.opciones ?? []).filter((_, j) => j !== i) }, true)} className="text-ink-subtle hover:text-danger" aria-label="Quitar opción"><Icon icon={X} size="xs" /></button>
-              </div>
-            ))}
-            <button type="button" onClick={() => onChange({ opciones: [...(b.opciones ?? []), ''] }, true)} className="self-start text-xs font-semibold text-brand-text">+ opción</button>
-          </div>
-        )}
-        {b.tipo === 'evidencia' && <div className="mt-2 flex gap-1">{(['foto', 'audio', 'archivo'] as const).map((k) => <button key={k} type="button" onClick={() => onChange({ kind: k }, true)} className={`rounded-md border px-2 py-0.5 text-xs font-medium ${b.kind === k ? 'border-ink bg-ink text-white' : 'border-line'}`}>{k}</button>)}</div>}
+          className={`w-full resize-none bg-transparent leading-relaxed outline-none placeholder:text-ink-subtle ${clases[b.tipo] ?? (t.semantico ? 'font-medium' : 'text-base')}`} />
+        <DetalleBloque b={b} onChange={onChange} />
         {menu !== null && (
           <div className="absolute left-0 top-full z-20 mt-1 w-80 rounded-xl border border-line bg-surface p-1.5 shadow-lg" role="menu">
             {CATEGORIAS.map(([cat, tipos]) => { const vis = tipos.filter((k) => !filtro || TIPOS_BLOQUE[k].nombre.toLowerCase().includes(filtro) || k.includes(filtro)); if (!vis.length) return null; return (
@@ -243,6 +240,79 @@ function BloqueEditor({ b, idx, conFoco, esPrimero, esUltimo, onChange, onEnter,
         )}
       </div>
     </div>
+  )
+}
+
+const filaChica = 'flex-1 rounded-md border border-line bg-surface px-2 py-1 text-sm'
+
+/** Los campos propios de cada tipo: opciones, respuesta, pares, huecos, y la explicación. */
+function DetalleBloque({ b, onChange }: { b: Bloque; onChange: (p: Partial<Bloque>, snapshot?: boolean) => void }) {
+  const t = TIPOS_BLOQUE[b.tipo]
+  const lista = (campo: 'opciones' | 'items', etiqueta: string, extra?: (o: string, i: number) => React.ReactNode) => (
+    <div className="mt-2 flex flex-col gap-1.5">
+      {((b[campo] as string[]) ?? []).map((o, i) => (
+        <div key={i} className="flex items-center gap-2">
+          {extra?.(o, i)}
+          <input value={o} onChange={(e) => onChange({ [campo]: ((b[campo] as string[]) ?? []).map((x, j) => (j === i ? e.target.value : x)) })} placeholder={`${etiqueta} ${i + 1}`} className={filaChica} />
+          <button type="button" onClick={() => onChange({ [campo]: ((b[campo] as string[]) ?? []).filter((_, j) => j !== i) }, true)} className="text-ink-subtle hover:text-danger" aria-label="Quitar"><Icon icon={X} size="xs" /></button>
+        </div>
+      ))}
+      <button type="button" onClick={() => onChange({ [campo]: [...((b[campo] as string[]) ?? []), ''] }, true)} className="self-start text-xs font-semibold text-accent">+ {etiqueta.toLowerCase()}</button>
+    </div>
+  )
+  return (
+    <>
+      {(b.tipo === 'opciones' || b.tipo === 'chequeo') && lista('opciones', 'Opción', (_, i) => (
+        <input type="radio" name={`c-${b.id}`} checked={b.correcta === i} onChange={() => onChange({ correcta: i }, true)} aria-label="Correcta" title="La correcta" />
+      ))}
+      {b.tipo === 'varias' && lista('opciones', 'Opción', (_, i) => (
+        <input type="checkbox" checked={(b.correctas ?? []).includes(i)} aria-label="Correcta" title="Cuenta como correcta"
+          onChange={() => onChange({ correctas: (b.correctas ?? []).includes(i) ? (b.correctas ?? []).filter((x) => x !== i) : [...(b.correctas ?? []), i] }, true)} />
+      ))}
+      {b.tipo === 'ordenar' && <><p className="mt-2 text-xs text-ink-subtle">En el orden correcto. Al chico le llegan mezclados.</p>{lista('items', 'Ítem')}</>}
+      {b.tipo === 'numerico' && (
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+          <label className="flex items-center gap-1.5">Respuesta<input type="number" value={b.respuesta ?? ''} onChange={(e) => onChange({ respuesta: e.target.value === '' ? undefined : Number(e.target.value) })} className="w-24 rounded-md border border-line bg-surface px-2 py-1" /></label>
+          <label className="flex items-center gap-1.5">± <input type="number" value={b.tolerancia ?? 0} onChange={(e) => onChange({ tolerancia: Number(e.target.value) })} className="w-20 rounded-md border border-line bg-surface px-2 py-1" /></label>
+          <label className="flex items-center gap-1.5">Unidad<input value={b.unidad ?? ''} onChange={(e) => onChange({ unidad: e.target.value })} placeholder="cm" className="w-20 rounded-md border border-line bg-surface px-2 py-1" /></label>
+        </div>
+      )}
+      {b.tipo === 'completar' && (
+        <div className="mt-2 flex flex-col gap-1.5">
+          <p className="text-xs text-ink-subtle">Escribí la frase con los huecos entre llaves dobles. Acá va lo que se espera en cada uno.</p>
+          {partirHuecos(b.texto).filter((x) => x.hueco).map((h, i) => (
+            <div key={i} className="flex items-center gap-2 text-sm">
+              <span className="w-24 shrink-0 truncate text-ink-subtle">{h.texto || `hueco ${i + 1}`}</span>
+              <input value={b.huecos?.[i] ?? ''} onChange={(e) => { const c = [...(b.huecos ?? [])]; c[i] = e.target.value; onChange({ huecos: c }) }} placeholder="Respuesta" className={filaChica} />
+            </div>
+          ))}
+        </div>
+      )}
+      {b.tipo === 'emparejar' && (
+        <div className="mt-2 flex flex-col gap-1.5">
+          {(b.pares ?? []).map((p, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input value={p.izq} onChange={(e) => onChange({ pares: (b.pares ?? []).map((x, j) => (j === i ? { ...x, izq: e.target.value } : x)) })} placeholder="Esto" className={filaChica} />
+              <span className="text-ink-subtle">↔</span>
+              <input value={p.der} onChange={(e) => onChange({ pares: (b.pares ?? []).map((x, j) => (j === i ? { ...x, der: e.target.value } : x)) })} placeholder="va con esto" className={filaChica} />
+              <button type="button" onClick={() => onChange({ pares: (b.pares ?? []).filter((_, j) => j !== i) }, true)} className="text-ink-subtle hover:text-danger" aria-label="Quitar"><Icon icon={X} size="xs" /></button>
+            </div>
+          ))}
+          <button type="button" onClick={() => onChange({ pares: [...(b.pares ?? []), { izq: '', der: '' }] }, true)} className="self-start text-xs font-semibold text-accent">+ par</button>
+        </div>
+      )}
+      {b.tipo === 'evidencia' && (
+        <div className="mt-2 flex gap-1">{(['foto', 'audio', 'archivo'] as const).map((k) => (
+          <button key={k} type="button" onClick={() => onChange({ kind: k }, true)} className={cn('rounded-md border px-2 py-0.5 text-xs font-medium', b.kind === k ? 'border-ink bg-solid text-on-solid' : 'border-line')}>{k}</button>
+        ))}</div>
+      )}
+      {t?.corrige && (
+        <div className="mt-3 flex flex-col gap-1.5 border-t border-line pt-2">
+          <input value={b.pista ?? ''} onChange={(e) => onChange({ pista: e.target.value })} placeholder="Pista (opcional): se pide antes de responder" className="w-full bg-transparent text-sm outline-none placeholder:text-ink-subtle" />
+          <input value={b.explicacion ?? ''} onChange={(e) => onChange({ explicacion: e.target.value })} placeholder="Explicación: se muestra después de responder" className="w-full bg-transparent text-sm outline-none placeholder:text-ink-subtle" />
+        </div>
+      )}
+    </>
   )
 }
 

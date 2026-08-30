@@ -45,14 +45,18 @@ export function App() {
 
   if (yo.data.modo === 'aprendiz') {
     return (
-      <ShellAprendiz yo={yo.data}>
-        <Routes>
-          <Route path="/hoy" element={<Hoy yo={yo.data} />} />
-          <Route path="/mision/:id" element={<MisionPantalla />} />
-          <Route path="/progreso" element={<Progreso />} />
-          <Route path="*" element={<Navigate to="/hoy" replace />} />
-        </Routes>
-      </ShellAprendiz>
+      <Routes>
+        <Route path="/mision/:id" element={<MisionPantalla />} />
+        <Route path="*" element={
+          <ShellAprendiz yo={yo.data}>
+            <Routes>
+              <Route path="/hoy" element={<Hoy yo={yo.data} />} />
+              <Route path="/progreso" element={<Progreso />} />
+              <Route path="*" element={<Navigate to="/hoy" replace />} />
+            </Routes>
+          </ShellAprendiz>
+        } />
+      </Routes>
     )
   }
 

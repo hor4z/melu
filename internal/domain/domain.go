@@ -121,6 +121,7 @@ type Entrega struct {
 	Estado       string          `json:"estado"`
 	Respuestas   json.RawMessage `json:"respuestas"`
 	Artefactos   json.RawMessage `json:"artefactos"`
+	Pasos        json.RawMessage `json:"pasos"`
 	Puntajes     json.RawMessage `json:"puntajes"`
 	EntregadaAt  *time.Time      `json:"entregadaAt"`
 	UpdatedAt    time.Time       `json:"updatedAt"`
@@ -136,6 +137,6 @@ type Hecho struct {
 	EntregaID, AsignacionID, AprendizID, Aprendiz, GrupoID, Grupo, Titulo, Estado string
 	Experiencia                                                                   string
 	Abierta, Entregada                                                            *time.Time
-	Respuestas, Documento                                                         json.RawMessage
+	Respuestas, Documento, Pasos                                                  json.RawMessage
 	Actualizada                                                                   time.Time
 }

@@ -16,15 +16,26 @@ export const EVIDENCIAS: Record<string, string> = {
   observacion: 'Rúbrica de observación', coevaluacion: 'Coevaluación', autoreporte: 'Autoreporte',
 }
 
-export const TIPOS_BLOQUE: Record<string, { nombre: string; pista: string; semantico: boolean }> = {
+export const TIPOS_BLOQUE: Record<string, { nombre: string; pista: string; semantico: boolean; corrige?: boolean }> = {
   parrafo:     { nombre: 'Texto',        pista: 'Consigna, contexto, explicación', semantico: false },
   titulo:      { nombre: 'Título',       pista: 'Separa partes dentro de una fase', semantico: false },
   lista:       { nombre: 'Lista',        pista: 'Pasos o materiales, uno por línea', semantico: false },
   destacado:   { nombre: 'Destacado',    pista: 'Algo que no se puede pasar por alto', semantico: false },
-  pregunta:    { nombre: 'Pregunta',     pista: 'El chico responde escribiendo', semantico: true },
-  chequeo:     { nombre: 'Chequeo',      pista: 'Opciones, una correcta', semantico: true },
+  opciones:    { nombre: 'Opciones',     pista: 'Varias tarjetas, una correcta', semantico: true, corrige: true },
+  varias:      { nombre: 'Varias correctas', pista: 'Tarjetas donde más de una vale', semantico: true, corrige: true },
+  numerico:    { nombre: 'Número',       pista: 'Responde con un número, con tolerancia', semantico: true, corrige: true },
+  completar:   { nombre: 'Completar',    pista: 'Una frase con huecos entre {{ }}', semantico: true, corrige: true },
+  ordenar:     { nombre: 'Ordenar',      pista: 'Poner pasos o valores en orden', semantico: true, corrige: true },
+  emparejar:   { nombre: 'Emparejar',    pista: 'Unir cada cosa con su par', semantico: true, corrige: true },
+  pregunta:    { nombre: 'Pregunta',     pista: 'Responde escribiendo; la mira el docente', semantico: true },
   evidencia:   { nombre: 'Evidencia',    pista: 'Pide foto, audio o archivo', semantico: true },
   autoreporte: { nombre: 'Autoreporte',  pista: 'Escala de 1 a 5, nunca se califica', semantico: true },
+  chequeo:     { nombre: 'Opciones',     pista: 'Varias tarjetas, una correcta', semantico: true, corrige: true },
 }
+
+/** Los que el sistema puede corregir solo, en el momento. */
+export const CORRIGE_SOLO = (t: string) => Boolean(TIPOS_BLOQUE[t]?.corrige)
+/** Los que ocupan una pantalla propia en el modo paso a paso. */
+export const ES_INTERACTIVO = (t: string) => Boolean(TIPOS_BLOQUE[t]?.semantico)
 
 export const nombreDe = (cat: Record<string, string>, k?: string) => (k ? cat[k] ?? k : undefined)

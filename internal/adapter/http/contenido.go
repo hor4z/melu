@@ -59,13 +59,14 @@ func (s *Server) mision(w http.ResponseWriter, r *http.Request, p domain.Persona
 func (s *Server) guardarEntrega(w http.ResponseWriter, r *http.Request, p domain.Persona) {
 	var in struct {
 		Respuestas json.RawMessage `json:"respuestas"`
+		Pasos      json.RawMessage `json:"pasos"`
 		Entregar   bool            `json:"entregar"`
 	}
 	json.NewDecoder(r.Body).Decode(&in)
 	if in.Respuestas == nil {
 		in.Respuestas = json.RawMessage(`{}`)
 	}
-	e, err := s.svc.GuardarRespuestas(r.Context(), p, r.PathValue("id"), in.Respuestas, in.Entregar)
+	e, err := s.svc.GuardarRespuestas(r.Context(), p, r.PathValue("id"), in.Respuestas, in.Pasos, in.Entregar)
 	if err != nil {
 		fallo(w, err)
 		return

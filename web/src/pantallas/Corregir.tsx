@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft } from 'lucide-react'
-import { Avatar, Button, Icon, Text } from '@/kit'
+import { Avatar, Button, Chip, Icon, Text } from '@/kit'
 import { api, type Asignacion, type Entrega, type Puntaje } from '../lib/api'
-import { BloqueRunner } from '../bloques/Bloque'
+import { BloqueInteractivo } from '../bloques/Interactivo'
 import { Rotulo } from '../bloques/Chips'
+import { ES_INTERACTIVO } from '../lib/composicion'
 import { Vacio } from '../bloques/Modal'
 
 // Una entrega a la vez, la rúbrica como botonera. Pensada para el pulgar.
@@ -24,7 +25,7 @@ export function Corregir() {
   const listas = entregas.filter((e) => e.estado !== 'en_curso')
   const actual = listas.find((e) => e.id === sel) ?? listas.find((e) => e.estado === 'entregada') ?? listas[0]
   const rubrica = a.rubrica ?? []
-  const respondidos = (a.documento?.fases ?? []).flatMap((f) => f.bloques.filter((b) => ['pregunta', 'chequeo', 'evidencia', 'autoreporte'].includes(b.tipo)).map((b) => ({ ...b, fase: f.nombre })))
+  const respondidos = (a.documento?.fases ?? []).flatMap((f) => f.bloques.filter((b) => ES_INTERACTIVO(b.tipo)).map((b) => ({ ...b, fase: f.nombre })))
 
   return (
     <div className="flex flex-col gap-6">
@@ -48,7 +49,16 @@ export function Corregir() {
           <div className="flex flex-col gap-6">
             <section className="flex flex-col gap-4">
               <h2 className="text-xl font-semibold">{actual.aprendiz}</h2>
-              {respondidos.map((b) => <div key={b.id} className="flex flex-col gap-1"><Rotulo>{b.fase}</Rotulo><BloqueRunner b={b} r={actual.respuestas} onChange={() => {}} soloLectura /></div>)}
+              {respondidos.map((b) => { const p = actual.pasos?.[b.id]; return (
+                <div key={b.id} className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <Rotulo>{b.fase}</Rotulo>
+                    {p && p.ok !== null && <Chip size="sm" color={p.ok ? 'success' : 'danger'}>{p.ok ? 'Bien' : 'Se trabó'}{p.intentos > 1 && ` · ${p.intentos} intentos`}{p.ms ? ` · ${p.ms}s` : ''}</Chip>}
+                  </div>
+                  {b.tipo !== 'completar' && <p className="font-medium">{b.texto}</p>}
+                  <BloqueInteractivo b={b} valor={actual.respuestas?.[b.id]} onChange={() => {}} estado="revision" revelar />
+                </div>
+              )})}
             </section>
             {rubrica.length > 0 && (
               <section className="flex flex-col gap-4 rounded-lg border border-line bg-surface p-5">
