@@ -1,5 +1,6 @@
-import { createContext, useContext, type ComponentPropsWithoutRef, type ReactNode } from 'react'
-import { FloatingFocusManager, FloatingOverlay, FloatingPortal, useClick, useDismiss, useFloating, useInteractions, useRole } from '@floating-ui/react'
+import { createContext, useContext, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from 'react'
+import { FloatingFocusManager, FloatingNode, FloatingOverlay, useClick, useDismiss, useFloating, useFloatingNodeId, useInteractions, useRole } from '@floating-ui/react'
+import { Portal } from './portal'
 import { X } from 'lucide-react'
 import { cn, Slot, useControllableState } from './lib'
 import { Icon } from './icon'
@@ -14,6 +15,7 @@ type Ctx = {
   getFloatingProps: (u?: Record<string, unknown>) => Record<string, unknown>
   tituloId: string
   descId: string
+  nodeId: string | undefined
 }
 const DialogCtx = createContext<Ctx | null>(null)
 const useDialogCtx = () => {
@@ -33,15 +35,36 @@ export interface DialogProps {
 
 export function Dialog({ children, open, defaultOpen = false, onOpenChange, purpose = 'info' }: DialogProps) {
   const [abierto, setAbierto] = useControllableState({ value: open, defaultValue: defaultOpen, onChange: onOpenChange })
-  const { refs, context } = useFloating({ open: abierto, onOpenChange: setAbierto })
+  const nodeId = useFloatingNodeId()
+  const { refs, context } = useFloating({ nodeId, open: abierto, onOpenChange: setAbierto })
+
+  // Un modal controlado desde afuera no tiene disparador al que devolverle el foco.
+  // Mientras está cerrado vamos anotando quién tiene el foco; al cerrarse, se lo devolvemos.
+  // (No sirve leerlo al abrir: para entonces floating-ui ya movió el foco adentro.)
+  const previo = useRef<HTMLElement | null>(null)
+  const eraAbierto = useRef(abierto)
+  // Este efecto va primero a propósito: tiene que leer `previo` antes de que el de abajo lo pise.
+  useEffect(() => {
+    const seCerro = eraAbierto.current && !abierto
+    eraAbierto.current = abierto
+    if (!seCerro) return
+    const el = previo.current
+    if (el?.isConnected) requestAnimationFrame(() => el.focus({ preventScroll: true }))
+  }, [abierto])
+  useEffect(() => {
+    if (abierto) return
+    const anotar = () => { previo.current = document.activeElement as HTMLElement | null }
+    document.addEventListener('focusin', anotar)
+    return () => document.removeEventListener('focusin', anotar)
+  }, [abierto])
   const { getReferenceProps, getFloatingProps } = useInteractions([
     useClick(context),
-    useDismiss(context, { outsidePress: purpose === 'info', escapeKey: purpose !== 'required' }),
+    useDismiss(context, { outsidePress: purpose === 'info', escapeKey: purpose !== 'required', bubbles: false, outsidePressEvent: 'mousedown' }),
     useRole(context),
   ])
   const base = context.floatingId
   return (
-    <DialogCtx.Provider value={{ abierto, setAbierto, refs, context, getReferenceProps, getFloatingProps, tituloId: `${base}-t`, descId: `${base}-d` }}>
+    <DialogCtx.Provider value={{ abierto, setAbierto, refs, context, getReferenceProps, getFloatingProps, tituloId: `${base}-t`, descId: `${base}-d`, nodeId }}>
       {children}
     </DialogCtx.Provider>
   )
@@ -59,9 +82,10 @@ export function DialogContent({ className, children, size = 'md', ...props }: Co
   const d = useDialogCtx()
   if (!d.abierto) return null
   return (
-    <FloatingPortal>
+    <FloatingNode id={d.nodeId}>
+    <Portal>
       <FloatingOverlay lockScroll data-state="open" className="kit-fade z-50 grid place-items-center bg-[var(--overlay)] p-4">
-        <FloatingFocusManager context={d.context} returnFocus>
+        <FloatingFocusManager context={d.context} returnFocus={false} initialFocus={0}>
           <div ref={d.refs.setFloating} aria-labelledby={d.tituloId} aria-describedby={d.descId} data-state="open"
             className={cn('kit-pop flex max-h-[85dvh] w-full flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg outline-none', ANCHOS[size], className)}
             {...d.getFloatingProps(props as Record<string, unknown>)}>
@@ -69,7 +93,8 @@ export function DialogContent({ className, children, size = 'md', ...props }: Co
           </div>
         </FloatingFocusManager>
       </FloatingOverlay>
-    </FloatingPortal>
+    </Portal>
+    </FloatingNode>
   )
 }
 

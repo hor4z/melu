@@ -305,6 +305,15 @@ export function Kit() {
                   <DialogBody>
                     <Card variant="yellow" padding="md"><Eyebrow>Código</Eyebrow><Text mono size="xl" weight="bold" className="tracking-[0.3em]">DEMO4A</Text></Card>
                     <Field label="O mandá el link por email" className="mt-4"><Input placeholder="alguien@escuela.edu" startIcon={<Icon icon={Mail} size="sm" />} /></Field>
+                    <Field label="Grupo" description="Un select adentro del modal: Escape cierra solo la lista." className="mt-4">
+                      <Select defaultValue="a">
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="a">4° A · Matemática</SelectItem>
+                          <SelectItem value="b">Taller de robótica</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </Field>
                   </DialogBody>
                   <DialogFooter><Button variant="ghost" asChild><button type="button">Cancelar</button></Button><Button>Enviar</Button></DialogFooter>
                 </DialogContent>

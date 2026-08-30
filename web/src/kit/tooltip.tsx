@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react'
-import { FloatingPortal, autoUpdate, flip, offset, shift, useDismiss, useFloating, useFocus, useHover, useInteractions, useRole, type Placement } from '@floating-ui/react'
+import { FloatingNode, autoUpdate, flip, offset, shift, useDismiss, useFloating, useFloatingNodeId, useFocus, useHover, useInteractions, useRole, type Placement } from '@floating-ui/react'
+import { Portal } from './portal'
 import { cn, Slot } from './lib'
 
 type Ctx = {
@@ -8,6 +9,7 @@ type Ctx = {
   floatingStyles: React.CSSProperties
   getReferenceProps: (u?: Record<string, unknown>) => Record<string, unknown>
   getFloatingProps: (u?: Record<string, unknown>) => Record<string, unknown>
+  nodeId: string | undefined
 }
 const TooltipCtx = createContext<Ctx | null>(null)
 const useTooltipCtx = () => {
@@ -18,17 +20,18 @@ const useTooltipCtx = () => {
 
 export function Tooltip({ children, placement = 'top', delay = 200 }: { children: ReactNode; placement?: Placement; delay?: number }) {
   const [abierto, setAbierto] = useState(false)
+  const nodeId = useFloatingNodeId()
   const { refs, floatingStyles, context } = useFloating({
-    open: abierto, onOpenChange: setAbierto, placement, whileElementsMounted: autoUpdate,
+    nodeId, open: abierto, onOpenChange: setAbierto, placement, whileElementsMounted: autoUpdate,
     middleware: [offset(6), flip({ padding: 8 }), shift({ padding: 8 })],
   })
   const { getReferenceProps, getFloatingProps } = useInteractions([
     useHover(context, { move: false, delay: { open: delay, close: 0 } }),
     useFocus(context),
-    useDismiss(context),
+    useDismiss(context, { bubbles: false }),
     useRole(context, { role: 'tooltip' }),
   ])
-  return <TooltipCtx.Provider value={{ abierto, refs, floatingStyles, getReferenceProps, getFloatingProps }}>{children}</TooltipCtx.Provider>
+  return <TooltipCtx.Provider value={{ abierto, refs, floatingStyles, getReferenceProps, getFloatingProps, nodeId }}>{children}</TooltipCtx.Provider>
 }
 
 export function TooltipTrigger({ children, asChild = true, ...props }: ComponentPropsWithoutRef<'span'> & { asChild?: boolean }) {
@@ -41,12 +44,14 @@ export function TooltipContent({ className, children, ...props }: ComponentProps
   const t = useTooltipCtx()
   if (!t.abierto) return null
   return (
-    <FloatingPortal>
+    <FloatingNode id={t.nodeId}>
+    <Portal>
       <div ref={t.refs.setFloating} style={t.floatingStyles} data-state="open"
         className={cn('kit-fade z-50 max-w-xs rounded-md bg-ink px-2.5 py-1.5 text-xs font-medium text-white shadow-md', className)}
         {...t.getFloatingProps(props as Record<string, unknown>)}>
         {children}
       </div>
-    </FloatingPortal>
+    </Portal>
+    </FloatingNode>
   )
 }

@@ -1,9 +1,10 @@
 import { createContext, useContext, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import {
-  FloatingFocusManager, FloatingList, FloatingPortal, autoUpdate, flip, offset, shift, size as sizeMw,
-  useClick, useDismiss, useFloating, useInteractions, useListItem, useListNavigation, useRole, useTypeahead,
+  FloatingFocusManager, FloatingList, FloatingNode, autoUpdate, flip, offset, shift, size as sizeMw,
+  useClick, useDismiss, useFloating, useFloatingNodeId, useInteractions, useListItem, useListNavigation, useRole, useTypeahead,
   type Placement,
 } from '@floating-ui/react'
+import { Portal } from './portal'
 import { Check, MoreHorizontal, MoreVertical } from 'lucide-react'
 import { cn, Slot, useControllableState } from './lib'
 import { Icon } from './icon'
@@ -22,6 +23,7 @@ type Ctx = {
   getFloatingProps: (u?: Record<string, unknown>) => Record<string, unknown>
   elementsRef: React.RefObject<(HTMLElement | null)[]>
   labelsRef: React.RefObject<(string | null)[]>
+  nodeId: string | undefined
 }
 const MenuCtx = createContext<Ctx | null>(null)
 const useMenuCtx = () => {
@@ -43,9 +45,10 @@ export function DropdownMenu({ children, open, defaultOpen = false, onOpenChange
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const elementsRef = useRef<(HTMLElement | null)[]>([])
   const labelsRef = useRef<(string | null)[]>([])
+  const nodeId = useFloatingNodeId()
 
   const { refs, floatingStyles, context, isPositioned } = useFloating({
-    open: abierto, onOpenChange: setAbierto, placement, whileElementsMounted: autoUpdate,
+    nodeId, open: abierto, onOpenChange: setAbierto, placement, whileElementsMounted: autoUpdate,
     middleware: [
       offset(6), flip({ padding: 8 }), shift({ padding: 8 }),
       sizeMw({ padding: 8, apply({ availableHeight, elements }) { elements.floating.style.maxHeight = `${Math.max(160, availableHeight)}px` } }),
@@ -53,14 +56,15 @@ export function DropdownMenu({ children, open, defaultOpen = false, onOpenChange
   })
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
     useClick(context),
-    useDismiss(context),
+    // `bubbles: false`: cerrar este menú no debe cerrar también el modal que lo contiene.
+    useDismiss(context, { bubbles: false }),
     useRole(context, { role: 'menu' }),
     useListNavigation(context, { listRef: elementsRef, activeIndex, onNavigate: setActiveIndex, loop: true }),
     useTypeahead(context, { listRef: labelsRef, activeIndex, onMatch: setActiveIndex, enabled: abierto }),
   ])
 
   return (
-    <MenuCtx.Provider value={{ abierto, setAbierto, activeIndex, getItemProps, refs, floatingStyles, context, posicionado: isPositioned, getReferenceProps, getFloatingProps, elementsRef, labelsRef }}>
+    <MenuCtx.Provider value={{ abierto, setAbierto, activeIndex, getItemProps, refs, floatingStyles, context, posicionado: isPositioned, getReferenceProps, getFloatingProps, elementsRef, labelsRef, nodeId }}>
       {children}
     </MenuCtx.Provider>
   )
@@ -78,7 +82,8 @@ export function DropdownMenuContent({ className, children, minWidth = 200, ...pr
   const m = useMenuCtx()
   if (!m.abierto) return null
   return (
-    <FloatingPortal>
+    <FloatingNode id={m.nodeId}>
+    <Portal>
       <FloatingFocusManager context={m.context} modal={false} initialFocus={-1} returnFocus disabled={!m.posicionado}>
         <div ref={m.refs.setFloating} style={{ ...m.floatingStyles, minWidth, visibility: m.posicionado ? undefined : 'hidden' }} data-state="open"
           className={cn('kit-pop z-50 overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-lg outline-none', className)}
@@ -86,7 +91,8 @@ export function DropdownMenuContent({ className, children, minWidth = 200, ...pr
           <FloatingList elementsRef={m.elementsRef} labelsRef={m.labelsRef}>{children}</FloatingList>
         </div>
       </FloatingFocusManager>
-    </FloatingPortal>
+    </Portal>
+    </FloatingNode>
   )
 }
 

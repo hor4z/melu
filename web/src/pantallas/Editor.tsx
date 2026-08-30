@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, ChevronLeft, Eye, EyeOff, GripVertical, LayoutTemplate, Plus, Send, X } from 'lucide-react'
-import { Button, Card, Eyebrow, Icon, Kbd, Text, cn } from '@/kit'
+import { Button, Card, Chip, Eyebrow, Icon, Kbd, Popover, PopoverAnchor, PopoverContent, PopoverTrigger, Text, Toggle, cn } from '@/kit'
 import { api, nuevoId, type Actividad, type Bloque, type Criterio, type Grupo, type Lente, type TipoBloque } from '../lib/api'
 import { ES_INTERACTIVO, ESCENARIOS, EXPERIENCIAS, SOCIAL, TIPOS_BLOQUE } from '../lib/composicion'
 import { ChipsComposicion, Rotulo } from '../bloques/Chips'
@@ -157,17 +157,20 @@ function Elegir(p: ElegirProps) {
   const [open, setOpen] = useState(false)
   const activos = p.multi ? p.valores : p.valor ? [p.valor] : []
   return (
-    <div className="relative">
-      <button type="button" disabled={p.disabled} onClick={() => setOpen((o) => !o)} className="flex flex-wrap items-center gap-1 rounded px-1.5 py-0.5 text-left hover:bg-hover disabled:hover:bg-transparent">
-        {activos.length === 0 && <span className="text-ink-subtle">Elegir…</span>}
-        {activos.map((k) => <span key={k} className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium">{p.opciones[k] ?? k}</span>)}
-      </button>
-      {open && (
-        <div className="absolute left-0 top-full z-20 mt-1 flex w-80 flex-wrap gap-1 rounded-xl border border-line bg-surface p-2 shadow-lg" onMouseLeave={() => setOpen(false)}>
-          {Object.entries(p.opciones).map(([k, l]) => <button key={k} type="button" onClick={() => { if (p.multi) p.onToggle(k); else { p.onPick(k); setOpen(false) } }} className={`rounded-md border px-2 py-1 text-xs font-medium ${activos.includes(k) ? 'border-ink bg-ink text-white' : 'border-line hover:border-ink'}`}>{l}</button>)}
-        </div>
-      )}
-    </div>
+    <Popover open={open} onOpenChange={setOpen} role="listbox">
+      <PopoverTrigger>
+        <button type="button" disabled={p.disabled} className="flex flex-wrap items-center gap-1 rounded px-1.5 py-0.5 text-left outline-none hover:bg-hover focus-visible:ring-3 focus-visible:ring-focus/30 disabled:hover:bg-transparent">
+          {activos.length === 0 && <span className="text-ink-subtle">Elegir…</span>}
+          {activos.map((k) => <Chip key={k} size="sm">{p.opciones[k] ?? k}</Chip>)}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="flex w-80 flex-wrap gap-1 p-2">
+        {Object.entries(p.opciones).map(([k, l]) => (
+          <Toggle key={k} size="sm" variant="outline" pressed={activos.includes(k)}
+            onPressedChange={() => { if (p.multi) p.onToggle(k); else { p.onPick(k); setOpen(false) } }}>{l}</Toggle>
+        ))}
+      </PopoverContent>
+    </Popover>
   )
 }
 
@@ -224,21 +227,41 @@ function BloqueEditor({ b, idx, conFoco, esPrimero, esUltimo, onChange, onEnter,
         <button type="button" onClick={() => setMenu(menu === null ? '' : null)} className="rounded p-1 text-ink-subtle hover:bg-hover" aria-label="Cambiar tipo" title={t.nombre}><Icon icon={Plus} size="sm" /></button>
         <span draggable onDragStart={(e) => { e.dataTransfer.setData('text/bloque', b.id); e.dataTransfer.effectAllowed = 'move' }} className="cursor-grab rounded p-1 text-ink-subtle hover:bg-hover active:cursor-grabbing" aria-label="Arrastrar"><Icon icon={GripVertical} size="sm" /></span>
       </div>
+      <Popover open={menu !== null} onOpenChange={(o) => !o && setMenu(null)} placement="bottom-start" role="menu">
       <div className={`relative min-w-0 flex-1 ${marco}`}>
         {t.semantico && <div className="mb-1 flex items-center justify-between"><Rotulo>{t.nombre}{b.tipo === 'evidencia' && ` · ${b.kind}`}</Rotulo><span className="flex opacity-0 group-hover:opacity-100"><button type="button" onClick={() => onMover(-1)} disabled={esPrimero} className="rounded p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Subir"><Icon icon={ArrowUp} size="xs" /></button><button type="button" onClick={() => onMover(1)} disabled={esUltimo} className="rounded p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Bajar"><Icon icon={ArrowDown} size="xs" /></button><button type="button" onClick={onBorrar} className="rounded p-0.5 text-ink-subtle hover:text-danger" aria-label="Borrar"><Icon icon={X} size="xs" /></button></span></div>}
-        <textarea ref={ref} value={menu !== null ? '/' + menu : b.texto} rows={1} onChange={(e) => onInput(e.target.value)} onKeyDown={onKey} onPaste={onPaste} aria-label={t.nombre} placeholder={b.tipo === 'lista' ? 'Un ítem por línea' : b.tipo === 'parrafo' ? 'Escribí, o "/" para elegir un bloque' : t.pista}
-          className={`w-full resize-none bg-transparent leading-relaxed outline-none placeholder:text-ink-subtle ${clases[b.tipo] ?? (t.semantico ? 'font-medium' : 'text-base')}`} />
+        <PopoverAnchor>
+          <textarea ref={ref} value={menu !== null ? '/' + menu : b.texto} rows={1} onChange={(e) => onInput(e.target.value)} onKeyDown={onKey} onPaste={onPaste} aria-label={t.nombre} placeholder={b.tipo === 'lista' ? 'Un ítem por línea' : b.tipo === 'parrafo' ? 'Escribí, o "/" para elegir un bloque' : t.pista}
+            className={`w-full resize-none bg-transparent leading-relaxed outline-none placeholder:text-ink-subtle ${clases[b.tipo] ?? (t.semantico ? 'font-medium' : 'text-base')}`} />
+        </PopoverAnchor>
         <DetalleBloque b={b} onChange={onChange} />
-        {menu !== null && (
-          <div className="absolute left-0 top-full z-20 mt-1 w-80 rounded-xl border border-line bg-surface p-1.5 shadow-lg" role="menu">
-            {CATEGORIAS.map(([cat, tipos]) => { const vis = tipos.filter((k) => !filtro || TIPOS_BLOQUE[k].nombre.toLowerCase().includes(filtro) || k.includes(filtro)); if (!vis.length) return null; return (
-              <div key={cat}><div className="px-2 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-ink-subtle">{cat}</div>
-                {vis.map((k) => <button key={k} type="button" role="menuitem" onClick={() => elegir(k)} className="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left hover:bg-hover"><span className="grid size-8 shrink-0 place-items-center rounded-md border border-line bg-canvas text-xs font-bold">{TIPOS_BLOQUE[k].nombre[0]}</span><span><span className="block text-sm font-medium">{TIPOS_BLOQUE[k].nombre}</span><span className="block text-xs text-ink-muted">{TIPOS_BLOQUE[k].pista}</span></span></button>)}
-              </div>
-            )})}
-          </div>
-        )}
       </div>
+      {/* Va en un portal: si no, el menú lo recorta la tarjeta del editor. Y el foco se queda en el textarea. */}
+      <PopoverContent manageFocus={false} className="w-80 p-1.5">
+        {CATEGORIAS.map(([cat, tipos]) => {
+          const vis = tipos.filter((k) => !filtro || TIPOS_BLOQUE[k].nombre.toLowerCase().includes(filtro) || k.includes(filtro))
+          if (!vis.length) return null
+          return (
+            <div key={cat}>
+              <div className="px-2 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-ink-subtle">{cat}</div>
+              {vis.map((k) => (
+                <button key={k} type="button" role="menuitem" onMouseDown={(e) => { e.preventDefault(); elegir(k) }}
+                  className="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left hover:bg-hover">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-md border border-line bg-canvas text-xs font-bold">{TIPOS_BLOQUE[k].nombre[0]}</span>
+                  <span>
+                    <span className="block text-sm font-medium">{TIPOS_BLOQUE[k].nombre}</span>
+                    <span className="block text-xs text-ink-muted">{TIPOS_BLOQUE[k].pista}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )
+        })}
+        {CATEGORIAS.every(([, tipos]) => !tipos.some((k) => !filtro || TIPOS_BLOQUE[k].nombre.toLowerCase().includes(filtro) || k.includes(filtro))) && (
+          <p className="px-3 py-2 text-sm text-ink-muted">Ningún bloque coincide con «{filtro}».</p>
+        )}
+      </PopoverContent>
+      </Popover>
     </div>
   )
 }

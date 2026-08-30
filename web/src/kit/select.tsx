@@ -1,8 +1,9 @@
 import { Children, createContext, isValidElement, useContext, useMemo, useRef, useState, type ComponentPropsWithoutRef, type ReactElement, type ReactNode } from 'react'
 import {
-  FloatingFocusManager, FloatingList, FloatingPortal, autoUpdate, flip, offset, shift, size as sizeMw,
-  useClick, useDismiss, useFloating, useInteractions, useListItem, useListNavigation, useRole, useTypeahead,
+  FloatingFocusManager, FloatingList, FloatingNode, autoUpdate, flip, offset, shift, size as sizeMw,
+  useClick, useDismiss, useFloating, useFloatingNodeId, useInteractions, useListItem, useListNavigation, useRole, useTypeahead,
 } from '@floating-ui/react'
+import { Portal } from './portal'
 import { Check, ChevronDown, Search } from 'lucide-react'
 import { cn, useControllableState } from './lib'
 import { Icon } from './icon'
@@ -29,6 +30,7 @@ type Ctx = {
   getItemProps: (u?: Record<string, unknown>) => Record<string, unknown>
   elementsRef: React.RefObject<(HTMLElement | null)[]>
   labelsRef: React.RefObject<(string | null)[]>
+  nodeId: string | undefined
 }
 const SelectCtx = createContext<Ctx | null>(null)
 const useSelectCtx = () => {
@@ -70,10 +72,11 @@ export function Select({ children, value, defaultValue = '', onValueChange, disa
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const elementsRef = useRef<(HTMLElement | null)[]>([])
   const labelsRef = useRef<(string | null)[]>([])
+  const nodeId = useFloatingNodeId()
   const etiquetas = useMemo(() => { const m = new Map<string, ReactNode>(); recolectar(children, m); return m }, [children])
 
   const { refs, floatingStyles, context, isPositioned } = useFloating({
-    open: abierto, onOpenChange: (o) => { setAbierto(o); if (!o) setBusqueda('') }, placement: 'bottom-start', whileElementsMounted: autoUpdate,
+    nodeId, open: abierto, onOpenChange: (o) => { setAbierto(o); if (!o) setBusqueda('') }, placement: 'bottom-start', whileElementsMounted: autoUpdate,
     middleware: [
       offset(6), flip({ padding: 8 }), shift({ padding: 8 }),
       sizeMw({ padding: 8, apply({ rects, availableHeight, elements }) {
@@ -84,14 +87,14 @@ export function Select({ children, value, defaultValue = '', onValueChange, disa
   })
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
     useClick(context, { enabled: !disabled }),
-    useDismiss(context),
+    useDismiss(context, { bubbles: false }),
     useRole(context, { role: 'listbox' }),
     useListNavigation(context, { listRef: elementsRef, activeIndex, onNavigate: setActiveIndex, loop: true, virtual: false }),
     useTypeahead(context, { listRef: labelsRef, activeIndex, onMatch: setActiveIndex, enabled: abierto }),
   ])
 
   return (
-    <SelectCtx.Provider value={{ value: val, setValue: setVal, abierto, setAbierto, etiquetas, busqueda, setBusqueda, activeIndex, disabled, size, invalid, refs, floatingStyles, context, posicionado: isPositioned, getReferenceProps, getFloatingProps, getItemProps, elementsRef, labelsRef }}>
+    <SelectCtx.Provider value={{ value: val, setValue: setVal, abierto, setAbierto, etiquetas, busqueda, setBusqueda, activeIndex, disabled, size, invalid, refs, floatingStyles, context, posicionado: isPositioned, getReferenceProps, getFloatingProps, getItemProps, elementsRef, labelsRef, nodeId }}>
       {children}
     </SelectCtx.Provider>
   )
@@ -129,7 +132,8 @@ export function SelectContent({ className, children, searchable, searchPlacehold
   const q = s.busqueda.toLowerCase()
   const vacio = q.length > 0 && ![...s.etiquetas.values()].some((e) => textoDe(e).toLowerCase().includes(q))
   return (
-    <FloatingPortal>
+    <FloatingNode id={s.nodeId}>
+    <Portal>
       <FloatingFocusManager context={s.context} modal={false} initialFocus={searchable ? 0 : -1} returnFocus disabled={!s.posicionado}>
         <div ref={s.refs.setFloating} style={{ ...s.floatingStyles, visibility: s.posicionado ? undefined : 'hidden' }} data-state="open"
           className={cn('kit-pop z-50 flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg outline-none', className)}
@@ -147,7 +151,8 @@ export function SelectContent({ className, children, searchable, searchPlacehold
           {vacio && <p className="px-3 pb-3 pt-1 text-sm text-ink-muted">{emptyText}</p>}
         </div>
       </FloatingFocusManager>
-    </FloatingPortal>
+    </Portal>
+    </FloatingNode>
   )
 }
 
@@ -158,12 +163,17 @@ export interface SelectItemProps extends Omit<ComponentPropsWithoutRef<'div'>, '
   disabled?: boolean
 }
 
-export function SelectItem({ value, className, children, icon, description, disabled, ...props }: SelectItemProps) {
+export function SelectItem(props: SelectItemProps) {
   const s = useSelectCtx()
-  const texto = textoDe(children)
-  const oculto = s.busqueda && !`${texto} ${textoDe(description)}`.toLowerCase().includes(s.busqueda.toLowerCase())
-  const { ref, index } = useListItem({ label: disabled || oculto ? null : texto })
-  if (oculto) return null
+  const texto = textoDe(props.children)
+  const oculto = Boolean(s.busqueda) && !`${texto} ${textoDe(props.description)}`.toLowerCase().includes(s.busqueda.toLowerCase())
+  // Un ítem filtrado no se monta: si se registrara en la lista, las flechas saltarían a la nada.
+  return oculto ? null : <SelectItemVisible {...props} texto={texto} />
+}
+
+function SelectItemVisible({ value, className, children, icon, description, disabled, texto, ...props }: SelectItemProps & { texto: string }) {
+  const s = useSelectCtx()
+  const { ref, index } = useListItem({ label: disabled ? null : texto })
   const activo = s.activeIndex === index
   const elegido = s.value === value
   return (
