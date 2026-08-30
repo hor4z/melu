@@ -41,7 +41,8 @@ export function Juego(p: Props) {
 }
 
 // ---------- Clasificar: cada cosa a su caja ----------
-const TINTES = ['bg-teal', 'bg-yellow', 'bg-blue', 'bg-lilac', 'bg-orange', 'bg-cyan', 'bg-green', 'bg-pink']
+// El color de cada caja es una marca chica, no el fondo entero: el sistema es blanco y tinta.
+const MARCAS = ['bg-teal-500', 'bg-orange-500', 'bg-purple-500', 'bg-cyan-500']
 
 function Clasificar({ b, valor, onChange, estado, revelar }: Props) {
   const items = useMemo(() => itemsDeClasificar(b), [b])
@@ -54,14 +55,14 @@ function Clasificar({ b, valor, onChange, estado, revelar }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex min-h-14 flex-wrap items-start gap-2 rounded-xl border-2 border-dashed border-line-strong bg-muted p-3">
+      <div className="flex min-h-14 flex-wrap items-start gap-2 rounded-xl border border-dashed border-line-strong bg-muted p-3">
         {sueltos.length === 0 && <Text size="sm" variant="muted">Ya clasificaste todo.</Text>}
         {sueltos.map((i) => (
           <button key={i} type="button" disabled={bloqueado} draggable={!bloqueado}
             onDragStart={(e) => { e.dataTransfer.setData('text/item', String(i)); setTomado(i) }}
             onClick={() => setTomado(tomado === i ? null : i)}
-            className={cn('rounded-lg border-2 bg-surface px-3 py-2 text-sm font-medium transition-colors',
-              tomado === i ? 'border-ink bg-accent-subtle' : 'border-line hover:border-ink')}>
+            className={cn('rounded-md border bg-surface px-3 py-2 text-sm font-medium transition-transform',
+              tomado === i ? 'border-ink shadow-sm scale-105' : 'border-line hover:border-ink')}>
             {items[i].texto}
           </button>
         ))}
@@ -73,23 +74,25 @@ function Clasificar({ b, valor, onChange, estado, revelar }: Props) {
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); const i = Number(e.dataTransfer.getData('text/item')); if (!Number.isNaN(i)) soltar(i, ci) }}
             onClick={() => tomado !== null && soltar(tomado, ci)}
-            className={cn('flex min-h-28 flex-col gap-2 rounded-xl p-3 transition-colors', TINTES[ci % TINTES.length],
-              tomado !== null && !bloqueado && 'ring-2 ring-ink cursor-pointer')}>
-            <span className="text-sm font-bold">{c.nombre}</span>
+            className={cn('flex min-h-28 flex-col gap-2 rounded-xl border border-line bg-surface p-3 transition-colors',
+              tomado !== null && !bloqueado && 'kit-glow cursor-pointer border-ink')}>
+            <span className="flex items-center gap-2 text-sm font-bold">
+              <span className={cn('size-2.5 rounded-full', MARCAS[ci % MARCAS.length])} aria-hidden="true" />{c.nombre}
+            </span>
             <div className="flex flex-wrap gap-1.5">
               {items.map((it, i) => asignado[i] === ci && (
                 <button key={i} type="button" disabled={bloqueado} onClick={(e) => { e.stopPropagation(); soltar(i, -1) }}
-                  className={cn('rounded-md border-2 bg-white/80 px-2 py-1 text-xs font-medium',
-                    estado === 'editando' ? 'border-transparent' : it.categoria === ci ? 'border-success' : 'border-danger')}>
+                  className={cn('kit-reveal rounded-md border bg-muted px-2 py-1 text-xs font-medium',
+                    estado === 'editando' ? 'border-line' : it.categoria === ci ? 'border-success bg-success-subtle kit-correcto' : 'border-danger bg-danger-subtle')}>
                   {it.texto}
-                  {revelar && it.categoria !== ci && <span className="ml-1 text-success">→ {b.categorias?.[it.categoria]?.nombre}</span>}
+                  {revelar && it.categoria !== ci && <span className="ml-1 font-semibold text-success">→ {b.categorias?.[it.categoria]?.nombre}</span>}
                 </button>
               ))}
             </div>
           </div>
         ))}
       </div>
-      {tomado !== null && <Text size="sm" variant="muted">Tocá la caja donde va «{items[tomado].texto}».</Text>}
+      {tomado !== null && <Text size="sm" variant="muted" className="kit-nudge">Tocá la caja donde va «{items[tomado].texto}».</Text>}
     </div>
   )
 }
@@ -133,11 +136,14 @@ function Memoria({ b, valor, onChange, estado }: Props) {
           const visible = hallada || dadas.includes(i) || estado !== 'editando'
           return (
             <button key={i} type="button" onClick={() => dar(i)} disabled={estado !== 'editando' || hallada}
-              className={cn('grid min-h-20 place-items-center rounded-xl border-2 p-3 text-center text-sm font-medium transition-colors',
-                hallada ? 'border-success bg-success-subtle'
-                  : visible ? (fallo && dadas.includes(i) ? 'border-danger bg-danger-subtle' : 'border-ink bg-accent-subtle')
+              style={{ perspective: 600 }}
+              className={cn('grid min-h-20 place-items-center rounded-md border p-3 text-center text-sm font-medium transition-colors',
+                hallada ? 'border-success bg-success-subtle kit-correcto'
+                  : visible ? (fallo && dadas.includes(i) ? 'border-danger bg-danger-subtle kit-error' : 'border-ink bg-accent-subtle')
                     : 'border-line bg-muted hover:border-ink')}>
-              {visible ? c.texto : <Logomark size={26} className="text-ink-subtle opacity-40" />}
+              <span key={visible ? 'cara' : 'dorso'} className="kit-flip">
+                {visible ? c.texto : <Logomark size={26} className="text-ink-subtle opacity-40" />}
+              </span>
             </button>
           )
         })}
@@ -171,17 +177,17 @@ function Contrarreloj({ b, valor, onChange, estado }: Props) {
 
   if (!corriendo && i === 0 && estado === 'editando') {
     return (
-      <div className="flex flex-col items-center gap-4 rounded-xl border-2 border-line bg-surface p-8 text-center">
+      <div className="kit-reveal flex flex-col items-center gap-4 rounded-xl border border-line bg-surface p-8 text-center">
         <Icon icon={Timer} size={40} color="accent" />
         <div><Text weight="semibold">{qs.length} preguntas en {total} segundos</Text><Text size="sm" variant="muted">Una por vez. Si se acaba el tiempo, cuenta lo que hayas respondido.</Text></div>
-        <Button size="lg" className="rounded-full" onClick={() => setCorriendo(true)}>Empezar</Button>
+        <Button size="lg" onClick={() => setCorriendo(true)}>Empezar</Button>
       </div>
     )
   }
 
   if (terminado) {
     return (
-      <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-line bg-surface p-8 text-center">
+      <div className="kit-rise flex flex-col items-center gap-3 rounded-xl border border-line bg-surface p-8 text-center">
         <Icon icon={Trophy} size={40} color={aciertos === qs.length ? 'success' : 'muted'} />
         <Text weight="semibold" size="lg">{aciertos} de {qs.length}</Text>
         <div className="flex flex-wrap justify-center gap-2">
@@ -208,11 +214,11 @@ function Contrarreloj({ b, valor, onChange, estado }: Props) {
         <Text size="sm" mono weight="semibold">{restan}s</Text>
         <Text size="sm" variant="muted">{i + 1}/{qs.length}</Text>
       </div>
-      <p className="font-display text-xl font-semibold tracking-tight">{q.texto}</p>
+      <p key={i} className="kit-reveal font-display text-xl font-semibold tracking-tight">{q.texto}</p>
       <div className="grid gap-2.5 sm:grid-cols-2">
         {q.opciones.map((o, k) => (
           <button key={k} type="button" onClick={() => responder(k)}
-            className="rounded-xl border-2 border-line bg-surface px-4 py-3.5 text-left transition-colors hover:border-ink">{o}</button>
+            className={cn('kit-reveal rounded-md border border-line bg-surface px-4 py-3.5 text-left transition-colors hover:border-ink', ['', 'kit-retraso-1', 'kit-retraso-2', 'kit-retraso-3'][k] ?? '')}>{o}</button>
         ))}
       </div>
     </div>

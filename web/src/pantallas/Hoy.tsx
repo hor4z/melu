@@ -32,7 +32,7 @@ export function Hoy({ yo }: { yo: Yo }) {
             <h2 className="font-display text-2xl font-semibold">{proxima.titulo}</h2>
             <ChipsComposicion c={proxima.composicion} compacto />
             <Text size="sm" variant="muted">{proxima.grupoNombre}. Se guarda solo mientras trabajás: podés parar y volver.</Text>
-            <div className="mt-auto pt-2"><Button size="lg" className="rounded-full" onClick={() => nav(`/mision/${proxima.id}`)} endIcon={<Icon icon={ArrowRight} size="sm" />}>{proxima.miEstado === 'en_curso' ? 'Continuar' : 'Empezar'}</Button></div>
+            <div className="mt-auto pt-2"><Button size="lg" onClick={() => nav(`/mision/${proxima.id}`)} endIcon={<Icon icon={ArrowRight} size="sm" />}>{proxima.miEstado === 'en_curso' ? 'Continuar' : 'Empezar'}</Button></div>
           </div>
         </Card>
       )}

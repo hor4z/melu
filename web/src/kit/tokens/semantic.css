@@ -1,7 +1,7 @@
 /**
  * Semantic tokens — la capa de roles. Los componentes se estilan SOLO contra esto.
  * Claro, blanco, tintes suaves. El botón primario es tinta oscura, como en Innovamat.
- * El lado del aprendiz cambia a tintes cálidos con [data-mode="aprendiz"].
+ * Un solo tema para toda la app: docente y aprendiz ven los mismos colores.
  */
 :root {
   color-scheme: light;
@@ -74,13 +74,3 @@
   --shadow-card: 0 1px 2px rgba(34, 47, 45, 0.04), 0 12px 24px -16px rgba(34, 47, 45, 0.16);
 }
 
-/* El aprendiz vive en un mundo más cálido. */
-[data-mode="aprendiz"] {
-  --bg: #fffdf7;
-  --surface-muted: var(--color-tint-yellow);
-  --accent-subtle: var(--color-tint-orange);
-  --accent-text: var(--color-orange-500);
-  --brand: var(--color-orange-500);
-  --focus: var(--color-orange-500);
-  --ring: 0 0 0 3px rgba(204, 102, 0, 0.3);
-}

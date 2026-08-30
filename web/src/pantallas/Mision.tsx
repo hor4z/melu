@@ -98,7 +98,7 @@ function Runner({ m }: { m: Mision }) {
   if (terminado) {
     const corregida = m.entrega.estado === 'corregida'
     return (
-      <div className="mx-auto flex max-w-lg flex-col items-center gap-6 py-12 text-center">
+      <div className="kit-rise mx-auto flex max-w-lg flex-col items-center gap-6 py-12 text-center">
         <ProgressRing value={respondidos.length ? aciertos / respondidos.length : 1} size={120}>
           {respondidos.length ? `${aciertos}/${respondidos.length}` : '✓'}
         </ProgressRing>
@@ -160,7 +160,7 @@ function Runner({ m }: { m: Mision }) {
       </header>
 
       <div className="min-h-0 flex-1">
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-5 pb-40 pt-4">
+        <div key={i} className="kit-reveal mx-auto flex w-full max-w-2xl flex-col gap-6 px-5 pb-40 pt-4">
           {i === 0 && (
             <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-4">
               <Portada titulo={m.asignacion.titulo} className="size-16 shrink-0 rounded-xl" size={40} />
@@ -172,7 +172,7 @@ function Runner({ m }: { m: Mision }) {
           {paso.lectura.map((lb) => <BloqueLectura key={lb.id} b={lb} />)}
 
           {b && (
-            <div className="flex flex-col gap-5">
+            <div className={cn('flex flex-col gap-5', estado === 'incorrecto' && 'kit-error')}>
               {b.tipo !== 'completar' && <p className="font-display text-2xl font-semibold leading-snug tracking-tight text-balance">{b.texto}</p>}
               <BloqueInteractivo b={b} valor={valor} onChange={setValor} estado={estado} revelar={revelar} />
               {b.pista && !revelado && (
@@ -204,18 +204,18 @@ function Runner({ m }: { m: Mision }) {
           <div className="flex items-center gap-2">
             {estado === 'incorrecto' && intentos < 2 && (
               <>
-                <Button size="lg" className="flex-1 rounded-full" onClick={reintentar}>Volver a intentar</Button>
-                <Button size="lg" variant="ghost" className="rounded-full" onClick={rendirse}>Ver la respuesta</Button>
+                <Button size="lg" className="flex-1" onClick={reintentar}>Volver a intentar</Button>
+                <Button size="lg" variant="ghost" onClick={rendirse}>Ver la respuesta</Button>
               </>
             )}
             {estado === 'editando' && (
-              <Button size="lg" block className="rounded-full" disabled={!listo}
+              <Button size="lg" block disabled={!listo}
                 onClick={() => (corrige ? comprobar() : (registrar(null), avanzar()))} endIcon={corrige ? undefined : <Icon icon={ArrowRight} size="sm" />}>
                 {corrige ? 'Comprobar' : i === pasos.length - 1 ? 'Entregar' : 'Continuar'}
               </Button>
             )}
             {(estado === 'correcto' || estado === 'revision' || (estado === 'incorrecto' && intentos >= 2)) && (
-              <Button size="lg" block className="rounded-full" onClick={avanzar} endIcon={<Icon icon={ArrowRight} size="sm" />}>
+              <Button size="lg" block onClick={avanzar} endIcon={<Icon icon={ArrowRight} size="sm" />}>
                 {i === pasos.length - 1 ? 'Entregar' : 'Continuar'}
               </Button>
             )}
