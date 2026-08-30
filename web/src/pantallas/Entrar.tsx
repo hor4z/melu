@@ -9,12 +9,11 @@ export function Entrar() {
   const { codigo } = useParams()
   const opciones = useQuery({ queryKey: ['auth-opciones'], queryFn: () => api.get<AuthOpciones>('/api/auth/opciones') })
   const [email, setEmail] = useState('')
-  const [nombre, setNombre] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const entrarDev = async () => {
     setError(null)
-    try { await api.post('/api/auth/dev', { email, nombre }); await qc.invalidateQueries({ queryKey: ['yo'] }) }
+    try { await api.post('/api/auth/dev', { email }); await qc.invalidateQueries({ queryKey: ['yo'] }) }
     catch { setError('No se pudo entrar. Revisá el email.') }
   }
 
@@ -46,7 +45,6 @@ export function Entrar() {
             <form className="flex flex-col gap-3 rounded-xl border border-dashed border-line-strong bg-canvas p-4" onSubmit={(e) => { e.preventDefault(); entrarDev() }}>
               <Text size="sm" variant="muted">Entrada de desarrollo: simula Google con cualquier email. Probá con dos cuentas distintas para ser docente y estudiante.</Text>
               <label className="flex flex-col gap-1 text-sm font-medium">Email<Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
-              <label className="flex flex-col gap-1 text-sm font-medium">Nombre <span className="font-normal text-ink-subtle">(opcional)</span><Input value={nombre} onChange={(e) => setNombre(e.target.value)} /></label>
               {error && <Text size="sm" variant="danger">{error}</Text>}
               <Button type="submit" variant={opciones.data.google ? 'secondary' : 'primary'}>Entrar</Button>
             </form>

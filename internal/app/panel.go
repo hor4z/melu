@@ -82,7 +82,7 @@ func (s *Servicios) PanelDocente(ctx context.Context, p domain.Persona) (*Panel,
 	if err != nil {
 		return nil, err
 	}
-	out := &Panel{Espacios: len(esp), Grupos: len(grupos), Senales: []Senal{}, PorTipo: []PorTipo{}, EntregasRecien: []EntregaResumen{}}
+	out := &Panel{Espacios: len(esp), Grupos: len(grupos), Senales: []Senal{}, PorTipo: []PorTipo{}, EntregasRecien: []EntregaResumen{}, SerieSemana: []DiaSerie{}}
 	for _, g := range grupos {
 		out.Aprendices += g.Aprendices
 	}
@@ -173,7 +173,9 @@ func (s *Servicios) PanelDocente(ctx context.Context, p domain.Persona) (*Panel,
 	sort.Slice(out.PorTipo, func(i, j int) bool { return out.PorTipo[i].Entregas > out.PorTipo[j].Entregas })
 
 	recetas, _ := s.Actividades.Recetas(ctx)
-	out.Senales = s.senales(porAprendiz, out.MinutosProm, recetas)
+	if sen := s.senales(porAprendiz, out.MinutosProm, recetas); sen != nil {
+		out.Senales = sen
+	}
 
 	acts, _ := s.Actividades.DeEspacios(ctx, idsDe(esp))
 	out.Checklist = map[string]bool{

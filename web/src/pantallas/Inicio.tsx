@@ -17,6 +17,10 @@ export function Inicio({ yo }: { yo: Yo }) {
   const q = useQuery({ queryKey: ['panel'], queryFn: () => api.get<Panel>('/api/panel') })
   const p = q.data
   if (!p) return null
+  const senales = p.senales ?? []
+  const porTipo = p.porTipo ?? []
+  const recientes = p.entregasRecientes ?? []
+  const serie = p.serieSemana ?? []
   const pasos: [string, string, string, string][] = [
     ['grupo', 'Creá un grupo', 'Un aula, un taller, tres alumnos: gente que aprende junta.', '/grupos'],
     ['invitar', 'Invitá a los chicos', 'Compartí el código o el QR del grupo. Entran con Google.', '/grupos'],
@@ -26,8 +30,8 @@ export function Inicio({ yo }: { yo: Yo }) {
   ]
   const hechos = pasos.filter(([k]) => p.checklist[k]).length
   const primeraVez = hechos < pasos.length
-  const maxSerie = Math.max(1, ...p.serieSemana.map((d) => Math.max(d.abiertas, d.entregadas)))
-  const serieEnt = p.serieSemana.map((d) => d.entregadas)
+  const maxSerie = Math.max(1, ...serie.map((d) => Math.max(d.abiertas, d.entregadas)))
+  const serieEnt = serie.map((d) => d.entregadas)
 
   return (
     <div className="flex flex-col gap-8">
@@ -69,9 +73,9 @@ export function Inicio({ yo }: { yo: Yo }) {
       <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
         <section className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-6">
           <div className="flex items-start justify-between"><div><Eyebrow>Necesitan una mano</Eyebrow><h2 className="mt-1 font-display text-xl font-semibold">Señales y sugerencias</h2></div><Text size="xs" variant="muted">Reglas simples sobre lo que pasó. Nada inferido.</Text></div>
-          {p.senales.length === 0 && <div className="rounded-xl bg-canvas p-6 text-center text-sm text-ink-muted">Sin señales por ahora. Aparecen cuando alguien se traba, tarda mucho, abandona… o vuela.</div>}
+          {senales.length === 0 && <div className="rounded-xl bg-canvas p-6 text-center text-sm text-ink-muted">Sin señales por ahora. Aparecen cuando alguien se traba, tarda mucho, abandona… o vuela.</div>}
           <ul className="flex flex-col gap-3">
-            {p.senales.map((s) => { const t = TIPO[s.tipo]; return (
+            {senales.map((s) => { const t = TIPO[s.tipo]; return (
               <li key={s.aprendizId + s.tipo} className="flex gap-4 rounded-xl border border-line p-4">
                 <span className={`grid size-10 shrink-0 place-items-center rounded-lg ${t.tint}`}><Icon icon={t.icon} size="lg" /></span>
                 <div className="min-w-0 flex-1">
@@ -89,7 +93,7 @@ export function Inicio({ yo }: { yo: Yo }) {
             <Eyebrow>Esta semana</Eyebrow>
             <h2 className="mt-1 font-display text-xl font-semibold">Misiones abiertas y entregadas</h2>
             <div className="mt-5 flex h-36 items-end gap-2">
-              {p.serieSemana.map((d) => (
+              {serie.map((d) => (
                 <div key={d.dia} className="flex flex-1 flex-col items-center gap-1" title={`${d.abiertas} abiertas · ${d.entregadas} entregadas`}>
                   <div className="flex h-28 w-full items-end justify-center gap-1">
                     <div className="w-2.5 rounded-t bg-line" style={{ height: `${(d.abiertas / maxSerie) * 100}%` }} />
@@ -105,19 +109,19 @@ export function Inicio({ yo }: { yo: Yo }) {
           <section className="rounded-2xl border border-line bg-surface p-6">
             <Eyebrow>Por tipo de actividad</Eyebrow>
             <h2 className="mt-1 font-display text-xl font-semibold">Qué les cuesta más</h2>
-            {p.porTipo.length === 0 ? <p className="mt-3 text-sm text-ink-muted">Cuando haya entregas, acá ves tiempo y aciertos por experiencia.</p> : (
+            {porTipo.length === 0 ? <p className="mt-3 text-sm text-ink-muted">Cuando haya entregas, acá ves tiempo y aciertos por experiencia.</p> : (
               <table className="mt-3 w-full text-sm"><thead><tr className="text-left text-xs text-ink-subtle"><th className="pb-2 font-medium">Experiencia</th><th className="pb-2 font-medium text-right">Entregas</th><th className="pb-2 font-medium text-right">Min</th><th className="pb-2 font-medium text-right">Aciertos</th></tr></thead>
-                <tbody>{p.porTipo.map((t) => <tr key={t.experiencia} className="border-t border-line"><td className="py-2 font-medium"><span className="flex items-center gap-2"><Icon icon={Layers} size="sm" color="subtle" />{EXPERIENCIAS[t.experiencia] ?? t.experiencia ?? '—'}</span></td><td className="py-2 text-right tabular-nums">{t.entregas}</td><td className="py-2 text-right tabular-nums">{t.minutosProm || '—'}</td><td className={`py-2 text-right tabular-nums ${t.aciertos >= 0 && t.aciertos < 0.6 ? 'font-semibold text-danger' : ''}`}>{t.aciertos >= 0 ? `${Math.round(t.aciertos * 100)}%` : '—'}</td></tr>)}</tbody></table>
+                <tbody>{porTipo.map((t) => <tr key={t.experiencia} className="border-t border-line"><td className="py-2 font-medium"><span className="flex items-center gap-2"><Icon icon={Layers} size="sm" color="subtle" />{EXPERIENCIAS[t.experiencia] ?? t.experiencia ?? '—'}</span></td><td className="py-2 text-right tabular-nums">{t.entregas}</td><td className="py-2 text-right tabular-nums">{t.minutosProm || '—'}</td><td className={`py-2 text-right tabular-nums ${t.aciertos >= 0 && t.aciertos < 0.6 ? 'font-semibold text-danger' : ''}`}>{t.aciertos >= 0 ? `${Math.round(t.aciertos * 100)}%` : '—'}</td></tr>)}</tbody></table>
             )}
           </section>
         </div>
       </div>
 
-      {p.entregasRecientes.length > 0 && (
+      {recientes.length > 0 && (
         <section className="rounded-2xl border border-line bg-surface p-6">
           <div className="flex items-end justify-between"><div><Eyebrow>Entregas recientes</Eyebrow><h2 className="mt-1 font-display text-xl font-semibold">Lo último que llegó</h2></div></div>
           <ul className="mt-4 divide-y divide-line">
-            {p.entregasRecientes.map((e) => (
+            {recientes.map((e) => (
               <li key={e.entregaId} className="flex flex-wrap items-center gap-4 py-3">
                 <Avatar name={e.aprendiz ?? '?'} size="sm" />
                 <div className="min-w-0 flex-1"><div className="font-medium">{e.aprendiz} <span className="text-ink-muted">· {e.titulo}</span></div><Text size="xs" variant="muted">{e.grupo} · {e.minutos ? `${e.minutos} min` : 'sin tiempo'}{e.aciertos >= 0 && ` · ${Math.round(e.aciertos * 100)}% aciertos`}</Text></div>
