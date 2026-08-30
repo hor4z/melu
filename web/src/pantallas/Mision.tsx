@@ -6,6 +6,7 @@ import { Button, Chip, Eyebrow, Icon, ProgressRing, Text, cn } from '@/kit'
 import { api, type Bloque, type Entrega, type FaseDoc, type Mision, type Pasos, type Respuestas, type ValorRespuesta } from '../lib/api'
 import { CORRIGE_SOLO, ES_INTERACTIVO } from '../lib/composicion'
 import { BloqueInteractivo, BloqueLectura, evaluar, tieneValor, type EstadoPaso } from '../bloques/Interactivo'
+import { puntajeJuego } from '../bloques/Juegos'
 import { Portada } from '../bloques/Portada'
 
 /** Una pantalla: o un bloque interactivo, o un tramo de lectura. */
@@ -133,7 +134,9 @@ function Runner({ m }: { m: Mision }) {
   }
 
   if (!paso) return null
-  const listo = corrige ? tieneValor(valor) : true
+  // Un juego se puede comprobar recién cuando se terminó de jugar.
+  const jugado = b?.tipo === 'juego' ? (() => { const { ok, total } = puntajeJuego(b, valor); return total > 0 && (b.motor === 'memoria' ? ok === total : ((valor as number[])?.filter((x) => x !== undefined && x >= -1).length ?? 0) >= total) })() : true
+  const listo = b?.tipo === 'juego' ? jugado : corrige ? tieneValor(valor) : true
   const revelado = estado !== 'editando'
   // Un primer error no delata la respuesta: todavía le queda un intento.
   const revelar = estado === 'correcto' || estado === 'revision' || (estado === 'incorrecto' && intentos >= 2)

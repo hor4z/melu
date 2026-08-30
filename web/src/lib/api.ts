@@ -35,6 +35,7 @@ export type AuthOpciones = { google: boolean; dev: boolean }
 export type TipoBloque =
   | 'parrafo' | 'titulo' | 'lista' | 'destacado'
   | 'pregunta' | 'opciones' | 'chequeo' | 'varias' | 'numerico' | 'completar' | 'ordenar' | 'emparejar'
+  | 'juego'
   | 'evidencia' | 'autoreporte'
 
 export type Bloque = {
@@ -49,13 +50,20 @@ export type Bloque = {
   unidad?: string              // numerico
   huecos?: string[]            // completar: lo que va en cada {{hueco}}
   items?: string[]             // ordenar: en el orden correcto
-  pares?: { izq: string; der: string }[]  // emparejar
+  pares?: { izq: string; der: string }[]  // emparejar y memoria
+  // ---- juego ----
+  motor?: MotorJuego
+  categorias?: { nombre: string; items: string[] }[]        // clasificar
+  preguntas?: { texto: string; opciones: string[]; correcta: number }[]  // contrarreloj
+  segundos?: number                                         // contrarreloj
   explicacion?: string         // se muestra después de responder
   pista?: string               // se puede pedir antes
   kind?: 'foto' | 'audio' | 'archivo'  // evidencia
 }
 
 /** Lo que pasó en cada bloque: la señal que vale, más rica que la respuesta final. */
+export type MotorJuego = 'clasificar' | 'memoria' | 'contrarreloj'
+
 export type PasoResultado = { intentos: number; ok: boolean | null; ms: number }
 export type Pasos = Record<string, PasoResultado>
 export type FaseDoc = { clave: string; nombre: string; pide?: string; bloques: Bloque[] }

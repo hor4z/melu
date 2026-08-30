@@ -30,6 +30,7 @@ export const TIPOS_BLOQUE: Record<string, { nombre: string; pista: string; seman
   pregunta:    { nombre: 'Pregunta',     pista: 'Responde escribiendo; la mira el docente', semantico: true },
   evidencia:   { nombre: 'Evidencia',    pista: 'Pide foto, audio o archivo', semantico: true },
   autoreporte: { nombre: 'Autoreporte',  pista: 'Escala de 1 a 5, nunca se califica', semantico: true },
+  juego:       { nombre: 'Juego',        pista: 'Una mecánica con tu contenido', semantico: true, corrige: true },
   chequeo:     { nombre: 'Opciones',     pista: 'Varias tarjetas, una correcta', semantico: true, corrige: true },
 }
 
@@ -39,3 +40,10 @@ export const CORRIGE_SOLO = (t: string) => Boolean(TIPOS_BLOQUE[t]?.corrige)
 export const ES_INTERACTIVO = (t: string) => Boolean(TIPOS_BLOQUE[t]?.semantico)
 
 export const nombreDe = (cat: Record<string, string>, k?: string) => (k ? cat[k] ?? k : undefined)
+
+/** Los juegos son mecánicas: elegís una y le cargás tu contenido, como las plantillas de Genially. */
+export const JUEGOS: Record<string, { nombre: string; pista: string; emoji: string }> = {
+  clasificar:   { nombre: 'Clasificar',   pista: 'Arrastrar cada cosa a su caja', emoji: '🗂️' },
+  memoria:      { nombre: 'Memoria',      pista: 'Dar vuelta cartas y encontrar las parejas', emoji: '🃏' },
+  contrarreloj: { nombre: 'Contrarreloj', pista: 'Varias preguntas contra el reloj', emoji: '⏱️' },
+}

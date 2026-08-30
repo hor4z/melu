@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ArrowDown, ArrowUp, Camera, Check, Mic, Paperclip, X } from 'lucide-react'
 import { Chip, Icon, Input, Textarea, cn } from '@/kit'
 import type { Bloque, ValorRespuesta } from '../lib/api'
+import { Juego, puntajeJuego } from './Juegos'
 
 export type EstadoPaso = 'editando' | 'correcto' | 'incorrecto' | 'revision'
 
@@ -40,6 +41,12 @@ export function evaluar(b: Bloque, v: ValorRespuesta | undefined): boolean | nul
     case 'emparejar': {
       const dado = v as number[]
       return (b.pares ?? []).length > 0 && (b.pares ?? []).every((_, i) => dado?.[i] === i)
+    }
+    case 'juego': {
+      const { ok, total } = puntajeJuego(b, v)
+      if (!total) return null
+      // En los juegos con reloj vale el desempeño; en los demás, terminarlo bien.
+      return b.motor === 'contrarreloj' ? ok / total >= 0.7 : ok === total
     }
     default:
       return null
@@ -92,6 +99,7 @@ export function BloqueInteractivo({ revelar = true, ...rest }: Props) {
     case 'emparejar': return <Emparejar {...p} />
     case 'pregunta': return <Abierta {...p} />
     case 'autoreporte': return <Autoreporte {...p} />
+    case 'juego': return <Juego {...p} />
     case 'evidencia': return <Evidencia {...p} />
     default: return null
   }

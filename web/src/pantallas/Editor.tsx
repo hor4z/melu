@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, ChevronLeft, Eye, EyeOff, GripVertical, LayoutTemplate, Plus, Send, X } from 'lucide-react'
 import { Button, Card, Chip, Eyebrow, Icon, Kbd, Popover, PopoverAnchor, PopoverContent, PopoverTrigger, Text, Toggle, cn } from '@/kit'
-import { api, nuevoId, type Actividad, type Bloque, type Criterio, type Grupo, type Lente, type TipoBloque } from '../lib/api'
-import { ES_INTERACTIVO, ESCENARIOS, EXPERIENCIAS, SOCIAL, TIPOS_BLOQUE } from '../lib/composicion'
+import { api, nuevoId, type Actividad, type Bloque, type Criterio, type Grupo, type Lente, type MotorJuego, type TipoBloque } from '../lib/api'
+import { ES_INTERACTIVO, ESCENARIOS, EXPERIENCIAS, JUEGOS, SOCIAL, TIPOS_BLOQUE } from '../lib/composicion'
 import { ChipsComposicion, Rotulo } from '../bloques/Chips'
 import { BloqueInteractivo, BloqueLectura, partirHuecos } from '../bloques/Interactivo'
 import { Modal } from '../bloques/Modal'
@@ -18,7 +18,12 @@ export function Editor() {
   return <EditorCargado key={q.data.id} inicial={q.data} />
 }
 
-const nuevoBloque = (tipo: TipoBloque): Bloque => ({ id: nuevoId(), tipo, texto: '', ...(tipo === 'chequeo' ? { opciones: ['', ''], correcta: 0 } : {}), ...(tipo === 'evidencia' ? { kind: 'foto' as const } : {}) })
+const nuevoBloque = (tipo: TipoBloque): Bloque => ({
+  id: nuevoId(), tipo, texto: '',
+  ...(tipo === 'chequeo' || tipo === 'opciones' ? { opciones: ['', ''], correcta: 0 } : {}),
+  ...(tipo === 'evidencia' ? { kind: 'foto' as const } : {}),
+  ...(tipo === 'juego' ? { motor: 'clasificar' as MotorJuego, categorias: [{ nombre: '', items: [] }, { nombre: '', items: [] }] } : {}),
+})
 
 function EditorCargado({ inicial }: { inicial: Actividad }) {
   const nav = useNavigate()
@@ -182,6 +187,7 @@ function DropZone({ idx, onDropAt }: { idx: number; onDropAt: (id: string, desti
 const CATEGORIAS: [string, TipoBloque[]][] = [
   ['Texto', ['parrafo', 'titulo', 'lista', 'destacado']],
   ['Se corrige solo', ['opciones', 'varias', 'numerico', 'completar', 'ordenar', 'emparejar']],
+  ['Juegos', ['juego']],
   ['Lo mira el docente', ['pregunta', 'evidencia', 'autoreporte']],
 ]
 
@@ -324,6 +330,7 @@ function DetalleBloque({ b, onChange }: { b: Bloque; onChange: (p: Partial<Bloqu
           <button type="button" onClick={() => onChange({ pares: [...(b.pares ?? []), { izq: '', der: '' }] }, true)} className="self-start text-xs font-semibold text-accent">+ par</button>
         </div>
       )}
+      {b.tipo === 'juego' && <ConfigJuego b={b} onChange={onChange} />}
       {b.tipo === 'evidencia' && (
         <div className="mt-2 flex gap-1">{(['foto', 'audio', 'archivo'] as const).map((k) => (
           <button key={k} type="button" onClick={() => onChange({ kind: k }, true)} className={cn('rounded-md border px-2 py-0.5 text-xs font-medium', b.kind === k ? 'border-ink bg-solid text-on-solid' : 'border-line')}>{k}</button>
@@ -336,6 +343,80 @@ function DetalleBloque({ b, onChange }: { b: Bloque; onChange: (p: Partial<Bloqu
         </div>
       )}
     </>
+  )
+}
+
+/** Un juego es una mecánica con tu contenido: primero elegís cuál, después lo cargás. */
+function ConfigJuego({ b, onChange }: { b: Bloque; onChange: (p: Partial<Bloque>, snapshot?: boolean) => void }) {
+  const cats = b.categorias ?? []
+  const qs = b.preguntas ?? []
+  return (
+    <div className="mt-2 flex flex-col gap-3">
+      <div className="flex flex-wrap gap-1.5">
+        {Object.entries(JUEGOS).map(([k, j]) => (
+          <button key={k} type="button" onClick={() => onChange({ motor: k as MotorJuego }, true)}
+            className={cn('flex items-center gap-2 rounded-md border-2 px-3 py-1.5 text-sm font-medium', b.motor === k ? 'border-ink bg-solid text-on-solid' : 'border-line hover:border-ink')}>
+            <span aria-hidden="true">{j.emoji}</span>{j.nombre}
+          </button>
+        ))}
+      </div>
+      {b.motor && <Text size="xs" variant="muted">{JUEGOS[b.motor].pista}</Text>}
+
+      {b.motor === 'clasificar' && (
+        <div className="flex flex-col gap-2">
+          {cats.map((c, i) => (
+            <div key={i} className="flex flex-col gap-1 rounded-lg border border-line bg-canvas p-2">
+              <div className="flex items-center gap-2">
+                <input value={c.nombre} onChange={(e) => onChange({ categorias: cats.map((x, j) => (j === i ? { ...x, nombre: e.target.value } : x)) })} placeholder={`Caja ${i + 1}`} className={cn(filaChica, 'font-medium')} />
+                <button type="button" onClick={() => onChange({ categorias: cats.filter((_, j) => j !== i) }, true)} className="text-ink-subtle hover:text-danger" aria-label="Quitar caja"><Icon icon={X} size="xs" /></button>
+              </div>
+              <textarea value={c.items.join('\n')} rows={3} onChange={(e) => onChange({ categorias: cats.map((x, j) => (j === i ? { ...x, items: e.target.value.split('\n') } : x)) })}
+                placeholder="Lo que va en esta caja, uno por línea" className="w-full resize-none rounded-md border border-line bg-surface px-2 py-1 text-sm outline-none" />
+            </div>
+          ))}
+          <button type="button" onClick={() => onChange({ categorias: [...cats, { nombre: '', items: [] }] }, true)} className="self-start text-xs font-semibold text-accent">+ caja</button>
+        </div>
+      )}
+
+      {b.motor === 'memoria' && (
+        <div className="flex flex-col gap-1.5">
+          <Text size="xs" variant="muted">Cada pareja son dos cartas que se buscan entre sí.</Text>
+          {(b.pares ?? []).map((par, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input value={par.izq} onChange={(e) => onChange({ pares: (b.pares ?? []).map((x, j) => (j === i ? { ...x, izq: e.target.value } : x)) })} placeholder="Una carta" className={filaChica} />
+              <span className="text-ink-subtle">↔</span>
+              <input value={par.der} onChange={(e) => onChange({ pares: (b.pares ?? []).map((x, j) => (j === i ? { ...x, der: e.target.value } : x)) })} placeholder="Su pareja" className={filaChica} />
+              <button type="button" onClick={() => onChange({ pares: (b.pares ?? []).filter((_, j) => j !== i) }, true)} className="text-ink-subtle hover:text-danger" aria-label="Quitar"><Icon icon={X} size="xs" /></button>
+            </div>
+          ))}
+          <button type="button" onClick={() => onChange({ pares: [...(b.pares ?? []), { izq: '', der: '' }] }, true)} className="self-start text-xs font-semibold text-accent">+ pareja</button>
+        </div>
+      )}
+
+      {b.motor === 'contrarreloj' && (
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-2 text-sm">Segundos
+            <input type="number" value={b.segundos ?? 60} onChange={(e) => onChange({ segundos: Number(e.target.value) })} className="w-20 rounded-md border border-line bg-surface px-2 py-1" />
+          </label>
+          {qs.map((q, i) => (
+            <div key={i} className="flex flex-col gap-1 rounded-lg border border-line bg-canvas p-2">
+              <div className="flex items-center gap-2">
+                <input value={q.texto} onChange={(e) => onChange({ preguntas: qs.map((x, j) => (j === i ? { ...x, texto: e.target.value } : x)) })} placeholder={`Pregunta ${i + 1}`} className={cn(filaChica, 'font-medium')} />
+                <button type="button" onClick={() => onChange({ preguntas: qs.filter((_, j) => j !== i) }, true)} className="text-ink-subtle hover:text-danger" aria-label="Quitar pregunta"><Icon icon={X} size="xs" /></button>
+              </div>
+              {q.opciones.map((o, k) => (
+                <div key={k} className="flex items-center gap-2 pl-3">
+                  <input type="radio" name={`q-${b.id}-${i}`} checked={q.correcta === k} onChange={() => onChange({ preguntas: qs.map((x, j) => (j === i ? { ...x, correcta: k } : x)) })} aria-label="La correcta" title="La correcta" />
+                  <input value={o} onChange={(e) => onChange({ preguntas: qs.map((x, j) => (j === i ? { ...x, opciones: x.opciones.map((y, m) => (m === k ? e.target.value : y)) } : x)) })} placeholder={`Opción ${k + 1}`} className={filaChica} />
+                </div>
+              ))}
+              <button type="button" onClick={() => onChange({ preguntas: qs.map((x, j) => (j === i ? { ...x, opciones: [...x.opciones, ''] } : x)) }, true)} className="self-start pl-3 text-xs font-semibold text-accent">+ opción</button>
+            </div>
+          ))}
+          <button type="button" onClick={() => onChange({ preguntas: [...qs, { texto: '', opciones: ['', ''], correcta: 0 }] }, true)} className="self-start text-xs font-semibold text-accent">+ pregunta</button>
+        </div>
+      )}
+    </div>
   )
 }
 
