@@ -18,6 +18,7 @@ import { Lentes } from './pantallas/Lentes'
 import { Hoy } from './pantallas/Hoy'
 import { MisionPantalla } from './pantallas/Mision'
 import { Progreso } from './pantallas/Progreso'
+import { Kit } from './pantallas/Kit'
 
 // Si alguien llega con un código de invitación y ya tiene sesión, se une solo y sigue a Hoy.
 function Unirme() {
@@ -32,6 +33,8 @@ export function App() {
   const yo = useYo()
   const modo = yo.data?.modo
   useEffect(() => { if (modo === 'aprendiz') document.documentElement.dataset.mode = 'aprendiz'; else delete document.documentElement.dataset.mode }, [modo])
+
+  if (window.location.pathname.startsWith('/kit')) return <Kit />
 
   if (yo.isPending) return <div className="grid min-h-screen place-items-center"><Spinner /></div>
   if (!yo.data) return <Routes><Route path="/unirme/:codigo" element={<Entrar />} /><Route path="*" element={<Entrar />} /></Routes>

@@ -13,6 +13,12 @@
   --color-ink: var(--text);
   --color-ink-muted: var(--text-muted);
   --color-ink-subtle: var(--text-subtle);
+  --color-solid: var(--solid);
+  --color-solid-hover: var(--solid-hover);
+  --color-on-solid: var(--solid-foreground);
+  --color-accent: var(--accent-text);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-focus: var(--focus);
   --color-brand: var(--accent);
   --color-brand-hover: var(--accent-hover);
   --color-brand-subtle: var(--accent-subtle);
@@ -49,4 +55,14 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-sans);
 ::selection { background: var(--accent-subtle); }
 h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
 .card-shadow { box-shadow: var(--shadow-card); }
+
+@keyframes kit-in { from { opacity: 0; transform: translateY(-2px) scale(.98) } to { opacity: 1; transform: none } }
+@keyframes kit-out { from { opacity: 1; transform: none } to { opacity: 0; transform: translateY(-2px) scale(.98) } }
+@keyframes kit-fade-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes kit-fade-out { from { opacity: 1 } to { opacity: 0 } }
+[data-state="open"].kit-pop { animation: kit-in 140ms cubic-bezier(.24,1,.4,1) }
+[data-state="closed"].kit-pop { animation: kit-out 110ms ease-in forwards }
+[data-state="open"].kit-fade { animation: kit-fade-in 140ms ease-out }
+[data-state="closed"].kit-fade { animation: kit-fade-out 110ms ease-in forwards }
+@media (prefers-reduced-motion: reduce) { .kit-pop, .kit-fade { animation: none !important } }
 .squiggle { background: linear-gradient(transparent 62%, var(--color-yellow-400) 62%, var(--color-yellow-400) 88%, transparent 88%); }
