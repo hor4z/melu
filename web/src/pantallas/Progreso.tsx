@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Clock, Flame, Target, Trophy } from 'lucide-react'
-import { Button, Chip, DoodleBrote, Eyebrow, Icon, ProgressRing, StatTile, Text } from '@/kit'
+import { Button, Card, Chip, DoodleBrote, Eyebrow, Icon, ProgressRing, StatTile, Text } from '@/kit'
 import { api, type Progreso as P } from '../lib/api'
 import { EXPERIENCIAS } from '../lib/composicion'
 
@@ -24,9 +24,9 @@ export function Progreso() {
         <StatTile label="Aciertos" value={p.aciertos >= 0 ? Math.round(p.aciertos * 100) : '—'} unit={p.aciertos >= 0 ? '%' : undefined} hint="en los chequeos" tint="bg-lilac" icon={<Icon icon={Target} size="lg" />} />
       </section>
       {Object.keys(p.experiencias).length > 0 && (
-        <section className="rounded-2xl border border-line bg-surface p-6"><Eyebrow>Qué tipo de cosas hiciste</Eyebrow><div className="mt-3 flex flex-wrap gap-2">{Object.entries(p.experiencias).map(([k, n]) => <Chip key={k}>{EXPERIENCIAS[k] ?? k} · {n}</Chip>)}</div></section>
+        <Card padding="lg"><Eyebrow>Qué tipo de cosas hiciste</Eyebrow><div className="mt-3 flex flex-wrap gap-2">{Object.entries(p.experiencias).map(([k, n]) => <Chip key={k}>{EXPERIENCIAS[k] ?? k} · {n}</Chip>)}</div></Card>
       )}
-      <section className="rounded-2xl border border-line bg-surface p-6">
+      <Card padding="lg">
         <Eyebrow>Misiones</Eyebrow>
         {p.misiones.length === 0 ? <div className="flex flex-col items-center gap-3 py-8 text-center"><DoodleBrote size={90} className="text-ink" /><Text variant="muted">Todavía no hiciste ninguna. Cuando empieces, acá queda tu historia.</Text></div> : (
           <ul className="mt-3 divide-y divide-line">
@@ -39,7 +39,7 @@ export function Progreso() {
             ))}
           </ul>
         )}
-      </section>
+      </Card>
     </div>
   )
 }

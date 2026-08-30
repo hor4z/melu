@@ -69,18 +69,21 @@ type EntregaResumen struct {
 
 type Hecho = domain.Hecho
 
-func (s *Servicios) PanelDocente(ctx context.Context, p domain.Persona) (*Panel, error) {
+func (s *Servicios) PanelDocente(ctx context.Context, p domain.Persona, espacioID string) (*Panel, error) {
 	esp, err := s.Espacios.DePersona(ctx, p.ID)
 	if err != nil {
 		return nil, err
 	}
-	grupos, err := s.Grupos.DeGuia(ctx, p.ID)
+	grupos, err := s.Grupos.DeGuia(ctx, p.ID, espacioID)
 	if err != nil {
 		return nil, err
 	}
-	hechos, err := s.Panel.HechosDeGuia(ctx, p.ID)
+	hechos, err := s.Panel.HechosDeGuia(ctx, p.ID, espacioID)
 	if err != nil {
 		return nil, err
+	}
+	if espacioID != "" {
+		esp = filtrarEspacios(esp, espacioID)
 	}
 	out := &Panel{Espacios: len(esp), Grupos: len(grupos), Senales: []Senal{}, PorTipo: []PorTipo{}, EntregasRecien: []EntregaResumen{}, SerieSemana: []DiaSerie{}}
 	for _, g := range grupos {
@@ -388,4 +391,13 @@ func tieneCorregidas(hs []Hecho) bool {
 		}
 	}
 	return false
+}
+
+func filtrarEspacios(es []domain.Espacio, id string) []domain.Espacio {
+	for _, e := range es {
+		if e.ID == id {
+			return []domain.Espacio{e}
+		}
+	}
+	return es
 }

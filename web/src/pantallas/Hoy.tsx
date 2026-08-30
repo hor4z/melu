@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowRight } from 'lucide-react'
-import { Button, Chip, DoodleGrupo, Eyebrow, Icon, Input, ProgressRing, Text } from '@/kit'
+import { Button, Card, Chip, DoodleGrupo, EmptyState, Eyebrow, Icon, Input, ProgressRing, Text } from '@/kit'
 import { api, type Asignacion, type Grupo, type Sala, type Yo } from '../lib/api'
 import { ChipsComposicion } from '../bloques/Chips'
 import { Portada } from '../bloques/Portada'
@@ -25,20 +25,20 @@ export function Hoy({ yo }: { yo: Yo }) {
       </header>
 
       {proxima && (
-        <section className="grid overflow-hidden rounded-2xl border border-line bg-surface sm:grid-cols-[220px_1fr]">
+        <Card className="grid overflow-hidden sm:grid-cols-[220px_1fr]">
           <Portada titulo={proxima.titulo} className="h-40 sm:h-auto" size={110} />
           <div className="flex flex-col gap-3 p-6">
             <Eyebrow>{proxima.miEstado === 'en_curso' ? 'Seguí donde estabas' : 'Empezá por acá'}</Eyebrow>
             <h2 className="font-display text-2xl font-semibold">{proxima.titulo}</h2>
             <ChipsComposicion c={proxima.composicion} compacto />
             <Text size="sm" variant="muted">{proxima.grupoNombre}. Se guarda solo mientras trabajás: podés parar y volver.</Text>
-            <div className="mt-auto pt-2"><Button onClick={() => nav(`/mision/${proxima.id}`)} startIcon={<Icon icon={ArrowRight} />}>{proxima.miEstado === 'en_curso' ? 'Continuar' : 'Empezar'}</Button></div>
+            <div className="mt-auto pt-2"><Button size="lg" className="rounded-full" onClick={() => nav(`/mision/${proxima.id}`)} endIcon={<Icon icon={ArrowRight} size="sm" />}>{proxima.miEstado === 'en_curso' ? 'Continuar' : 'Empezar'}</Button></div>
           </div>
-        </section>
+        </Card>
       )}
 
       {q.data?.length === 0 && (
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-line-strong p-10 text-center"><DoodleGrupo size={180} className="text-ink" /><div><div className="font-semibold">Todavía no estás en ningún grupo</div><Text variant="muted">Pedile el código a tu docente y escribilo acá abajo.</Text></div></div>
+        <EmptyState icon={<DoodleGrupo size={160} className="text-ink" />} title="Todavía no estás en ningún grupo" description="Pedile el código a tu docente y escribilo acá abajo." />
       )}
 
       {q.data?.map((s) => (

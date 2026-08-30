@@ -37,8 +37,8 @@ func (r *Repos) Grupos() *Grupos { return &Grupos{r: r} }
 func (g *Grupos) Crear(ctx context.Context, x domain.Grupo, guiaID string) (*domain.Grupo, error) {
 	return g.r.CrearGrupo(ctx, x, guiaID)
 }
-func (g *Grupos) DeGuia(ctx context.Context, id string) ([]domain.Grupo, error) {
-	return g.r.DeGuia(ctx, id)
+func (g *Grupos) DeGuia(ctx context.Context, id, espacioID string) ([]domain.Grupo, error) {
+	return g.r.DeGuia(ctx, id, espacioID)
 }
 func (g *Grupos) PorID(ctx context.Context, id string) (*domain.Grupo, error) {
 	return g.r.PorID(ctx, id)

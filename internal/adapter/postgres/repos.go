@@ -160,8 +160,9 @@ func scanGrupo(row pgx.CollectableRow) (domain.Grupo, error) {
 	return g, row.Scan(&g.ID, &g.EspacioID, &g.Nombre, &g.Codigo, &g.Etiquetas, &g.Aprendices)
 }
 
-func (r *Repos) DeGuia(ctx context.Context, personaID string) ([]domain.Grupo, error) {
-	rows, err := r.db.Query(ctx, `select `+grupoCols+` from grupo g join membresia m on m.grupo_id=g.id where m.persona_id=$1 and m.rol='guia' order by g.created_at desc`, personaID)
+func (r *Repos) DeGuia(ctx context.Context, personaID, espacioID string) ([]domain.Grupo, error) {
+	rows, err := r.db.Query(ctx, `select `+grupoCols+` from grupo g join membresia m on m.grupo_id=g.id
+	  where m.persona_id=$1 and m.rol='guia' and ($2 = '' or g.espacio_id = $2::uuid) order by g.created_at desc`, personaID, espacioID)
 	if err != nil {
 		return nil, err
 	}

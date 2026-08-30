@@ -177,7 +177,7 @@ func (s *Server) crearEspacio(w http.ResponseWriter, r *http.Request, p domain.P
 }
 
 func (s *Server) grupos(w http.ResponseWriter, r *http.Request, p domain.Persona) {
-	g, err := s.svc.Grupos.DeGuia(r.Context(), p.ID)
+	g, err := s.svc.Grupos.DeGuia(r.Context(), p.ID, r.URL.Query().Get("espacio"))
 	if err != nil {
 		fallo(w, err)
 		return

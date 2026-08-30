@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, ChevronLeft, Eye, EyeOff, GripVertical, LayoutTemplate, Plus, Send, X } from 'lucide-react'
-import { Button, Eyebrow, Icon, Text, cn } from '@/kit'
+import { Button, Card, Eyebrow, Icon, Kbd, Text, cn } from '@/kit'
 import { api, nuevoId, type Actividad, type Bloque, type Criterio, type Grupo, type Lente, type TipoBloque } from '../lib/api'
 import { ES_INTERACTIVO, ESCENARIOS, EXPERIENCIAS, SOCIAL, TIPOS_BLOQUE } from '../lib/composicion'
 import { ChipsComposicion, Rotulo } from '../bloques/Chips'
@@ -67,7 +67,7 @@ function EditorCargado({ inicial }: { inicial: Actividad }) {
           <div className="flex items-center gap-3"><Text size="xs" variant="muted">{{ guardado: 'Guardado', editando: 'Editando…', guardando: 'Guardando…' }[estado]} · {totalBloques} bloques</Text><Button size="sm" variant="ghost" startIcon={<Icon icon={preview ? EyeOff : Eye} />} onClick={() => setPreview((v) => !v)}>{preview ? 'Editar' : 'Ver como aprendiz'}</Button></div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+        <Card className="overflow-hidden">
           <Portada titulo={a.titulo} className="h-36" size={96} />
           <div className="flex flex-col gap-4 p-6 sm:p-8">
             <input value={a.titulo} onChange={(e) => cambiar((x) => ({ ...x, titulo: e.target.value }), false)} aria-label="Título" placeholder="Sin título" readOnly={preview}
@@ -82,9 +82,9 @@ function EditorCargado({ inicial }: { inicial: Actividad }) {
             </div>
             {preview && <ChipsComposicion c={a.composicion} />}
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-2xl border border-line bg-surface">
+        <Card>
           <div className="flex flex-wrap items-center gap-1 border-b border-line px-4 pt-2" role="tablist" aria-label="Fases">
             {a.documento.fases.map((ff, i) => (
               <button key={ff.clave} type="button" role="tab" aria-selected={i === fase} onClick={() => setFase(i)} className={`-mb-px flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm ${i === fase ? 'border-ink font-semibold' : 'border-transparent text-ink-muted hover:text-ink'}`}>
@@ -111,36 +111,36 @@ function EditorCargado({ inicial }: { inicial: Actividad }) {
                 ))}
                 <DropZone idx={f?.bloques.length ?? 0} onDropAt={(id, destino) => moverA(id, destino)} />
                 <button type="button" onClick={() => insertar(f?.bloques.length ?? 0)} className="mt-1 flex items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-ink-muted hover:bg-hover">
-                  <Icon icon={Plus} size="sm" /> Escribí acá, o tipeá <kbd className="rounded border border-line bg-muted px-1.5 font-mono text-xs">/</kbd> para elegir un tipo de bloque
+                  <Icon icon={Plus} size="sm" /> Escribí acá, o tipeá <Kbd>/</Kbd> para elegir un tipo de bloque
                 </button>
               </div>
             )}
           </div>
-        </div>
+        </Card>
       </div>
 
       <aside className="flex flex-col gap-5 lg:sticky lg:top-24 lg:self-start">
-        <div className="flex flex-col gap-2 rounded-2xl border border-line bg-surface p-4">
+        <Card padding="sm" className="gap-2">
           <Button block onClick={() => setAsignar(true)} startIcon={<Icon icon={Send} />}>Asignar a un grupo</Button>
           <Button block variant="secondary" loading={plantilla.isPending} onClick={() => plantilla.mutate()} startIcon={<Icon icon={LayoutTemplate} />}>{plantilla.isSuccess ? 'Guardada como plantilla ✓' : 'Guardar como plantilla'}</Button>
           <Text size="xs" variant="muted">Una plantilla aparece en «Nueva actividad» para vos y para los guías de tu espacio.</Text>
-        </div>
-        <section className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4">
+        </Card>
+        <Card padding="sm" className="gap-3">
           <div><Eyebrow>Rúbrica</Eyebrow><Text size="xs" variant="muted">Qué vas a mirar cuando corrijas. Tres niveles por criterio.</Text></div>
           {a.rubrica.map((c, i) => (
-            <div key={c.id} className="flex flex-col gap-2 rounded-xl border border-line bg-canvas p-3">
+            <div key={c.id} className="flex flex-col gap-2 rounded-lg border border-line bg-canvas p-3">
               <textarea value={c.label} rows={2} onChange={(e) => setRubrica(a.rubrica.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} aria-label="Criterio" placeholder="Qué mirás" className="w-full resize-none bg-transparent text-sm font-medium outline-none placeholder:text-ink-subtle" />
               <div className="flex gap-1">{c.niveles.map((n, k) => <input key={k} value={n} aria-label={`Nivel ${k + 1}`} onChange={(e) => setRubrica(a.rubrica.map((x, j) => (j === i ? { ...x, niveles: x.niveles.map((nn, kk) => (kk === k ? e.target.value : nn)) } : x)))} className="min-w-0 flex-1 rounded border border-line bg-surface px-1.5 py-1 text-xs" />)}</div>
               <button type="button" onClick={() => setRubrica(a.rubrica.filter((_, j) => j !== i))} className="self-end text-xs text-ink-subtle hover:text-danger">quitar</button>
             </div>
           ))}
           <Button size="sm" variant="secondary" onClick={() => setRubrica([...a.rubrica, { id: nuevoId(), label: '', niveles: ['Todavía no', 'A veces', 'Siempre'] }])} startIcon={<Icon icon={Plus} />}>Agregar criterio</Button>
-        </section>
-        <section className="rounded-2xl border border-line bg-surface p-4 text-sm text-ink-muted">
+        </Card>
+        <Card padding="sm" className="text-sm text-ink-muted">
           <Eyebrow>Atajos</Eyebrow>
-          <ul className="mt-2 space-y-1"><li><kbd className="rounded border border-line bg-muted px-1 font-mono text-xs">/</kbd> tipo de bloque</li><li><kbd className="rounded border border-line bg-muted px-1 font-mono text-xs">#</kbd> título · <kbd className="rounded border border-line bg-muted px-1 font-mono text-xs">-</kbd> lista · <kbd className="rounded border border-line bg-muted px-1 font-mono text-xs">&gt;</kbd> destacado</li><li><kbd className="rounded border border-line bg-muted px-1 font-mono text-xs">Enter</kbd> nuevo bloque · <kbd className="rounded border border-line bg-muted px-1 font-mono text-xs">⌘Z</kbd> deshacer</li><li>Arrastrá el ⋮⋮ para reordenar. Pegar varias líneas crea varios bloques.</li></ul>
+          <ul className="mt-2 space-y-1"><li><Kbd>/</Kbd> tipo de bloque</li><li><Kbd>#</Kbd> título · <Kbd>-</Kbd> lista · <Kbd>&gt;</Kbd> destacado</li><li><Kbd>Enter</Kbd> nuevo bloque · <Kbd>⌘Z</Kbd> deshacer</li><li>Arrastrá el ⋮⋮ para reordenar. Pegar varias líneas crea varios bloques.</li></ul>
           {lenteNombre && <p className="mt-3">Lente: <span className="font-medium text-ink">{lenteNombre}</span>.</p>}
-        </section>
+        </Card>
       </aside>
 
       <Asignar abierto={asignar} onCerrar={() => setAsignar(false)} actividadId={a.id} onAsignada={(gid) => nav(`/grupos/${gid}`)} />

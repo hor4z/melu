@@ -18,7 +18,7 @@ func (s *Server) rutasPanel() {
 }
 
 func (s *Server) panel(w http.ResponseWriter, r *http.Request, p domain.Persona) {
-	out, err := s.svc.PanelDocente(r.Context(), p)
+	out, err := s.svc.PanelDocente(r.Context(), p, r.URL.Query().Get("espacio"))
 	if err != nil {
 		fallo(w, err)
 		return

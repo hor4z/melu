@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Check, ChevronLeft, Copy, Printer, QrCode } from 'lucide-react'
-import { Avatar, Button, Eyebrow, Icon, Tabs, TabsList, TabsTrigger, Text } from '@/kit'
+import { Avatar, Button, Card, Eyebrow, Icon, Tabs, TabsList, TabsTrigger, Text } from '@/kit'
 import { api, type GrupoDetalle as GD, type Invitacion } from '../lib/api'
 import { ChipsComposicion } from '../bloques/Chips'
 import { Modal, Vacio } from '../bloques/Modal'
@@ -34,22 +34,24 @@ export function GrupoDetalle() {
 
       {tab === 'misiones' && (asignaciones.length === 0
         ? <Vacio titulo="Nada asignado todavía" texto="Elegí una plantilla o componé una actividad y asignala a este grupo. Los chicos la van a ver en «Hoy»." accion={<Button onClick={() => nav('/actividades/nueva')}>Nueva actividad</Button>} />
-        : <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+        : <Card asChild><ul className="divide-y divide-line overflow-hidden">
             {asignaciones.map((a, i) => (
               <li key={a.id} className="flex flex-wrap items-center gap-4 px-5 py-4">
-                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-teal font-bold text-brand-text">{i + 1}</span>
+                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-teal font-bold text-accent">{i + 1}</span>
                 <div className="flex min-w-0 flex-1 flex-col gap-1.5"><span className="font-semibold">{a.titulo}</span><ChipsComposicion c={a.composicion} compacto /></div>
                 <div className="flex items-center gap-4">
-                  <div className="w-32"><div className="mb-1 flex justify-between text-xs text-ink-muted"><span>Entregas</span><span className="tabular-nums">{a.entregas}/{a.entregasTotales}</span></div><div className="h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-brand-text" style={{ width: `${a.entregasTotales ? (a.entregas / a.entregasTotales) * 100 : 0}%` }} /></div></div>
+                  <div className="w-32"><div className="mb-1 flex justify-between text-xs text-ink-muted"><span>Entregas</span><span className="tabular-nums">{a.entregas}/{a.entregasTotales}</span></div><div className="h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-accent" style={{ width: `${a.entregasTotales ? (a.entregas / a.entregasTotales) * 100 : 0}%` }} /></div></div>
                   <Button size="sm" variant={a.entregas > 0 ? 'primary' : 'secondary'} onClick={() => nav(`/corregir/${a.id}`)}>Corregir</Button>
                 </div>
               </li>
             ))}
-          </ul>)}
+          </ul></Card>)}
 
       {tab === 'aprendices' && (aprendices.length === 0
         ? <Vacio titulo="Todavía nadie se unió" texto="Compartí el código o el QR con «Invitar». Entran con Google y listo." accion={<Button onClick={() => setInvitar(true)}>Invitar</Button>} />
-        : <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{aprendices.map((a) => <li key={a.id} className="flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3"><Avatar name={a.nombre} size="sm" />{a.nombre}</li>)}</ul>)}
+        : <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{aprendices.map((a) => (
+            <li key={a.id}><Card padding="sm" className="flex-row items-center gap-3 py-3"><Avatar name={a.nombre} size="sm" />{a.nombre}</Card></li>
+          ))}</ul>)}
 
       <Invitar abierto={invitar} onCerrar={() => setInvitar(false)} grupoId={g.id} />
     </div>

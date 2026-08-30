@@ -27,7 +27,7 @@ type Espacios interface {
 
 type Grupos interface {
 	Crear(ctx context.Context, g domain.Grupo, guiaID string) (*domain.Grupo, error)
-	DeGuia(ctx context.Context, personaID string) ([]domain.Grupo, error)
+	DeGuia(ctx context.Context, personaID, espacioID string) ([]domain.Grupo, error)
 	PorID(ctx context.Context, id string) (*domain.Grupo, error)
 }
 
@@ -69,7 +69,7 @@ type Membresias interface {
 }
 
 type Panel interface {
-	HechosDeGuia(ctx context.Context, guiaID string) ([]domain.Hecho, error)
+	HechosDeGuia(ctx context.Context, guiaID, espacioID string) ([]domain.Hecho, error)
 	HechosDeAprendiz(ctx context.Context, aprendizID string) ([]domain.Hecho, error)
 	HayAsignaciones(ctx context.Context, guiaID string) bool
 }

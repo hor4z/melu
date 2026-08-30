@@ -5,6 +5,7 @@ import { Spinner } from '@/kit'
 import { useYo } from './lib/sesion'
 import { api, type Grupo } from './lib/api'
 import { ShellGuia, ShellAprendiz } from './Shell'
+import { ProveedorEspacio } from './lib/espacio'
 import { Entrar } from './pantallas/Entrar'
 import { Bienvenida } from './pantallas/Bienvenida'
 import { Inicio } from './pantallas/Inicio'
@@ -61,18 +62,20 @@ export function App() {
   }
 
   return (
+    <ProveedorEspacio yo={yo.data}>
     <ShellGuia yo={yo.data}>
       <Routes>
         <Route path="/inicio" element={<Inicio yo={yo.data} />} />
-        <Route path="/grupos" element={<Grupos yo={yo.data} />} />
+        <Route path="/grupos" element={<Grupos />} />
         <Route path="/grupos/:id" element={<GrupoDetalle />} />
-        <Route path="/actividades" element={<Biblioteca yo={yo.data} />} />
-        <Route path="/actividades/nueva" element={<NuevaActividad yo={yo.data} />} />
+        <Route path="/actividades" element={<Biblioteca />} />
+        <Route path="/actividades/nueva" element={<NuevaActividad />} />
         <Route path="/actividades/:id" element={<Editor />} />
         <Route path="/corregir/:id" element={<Corregir />} />
         <Route path="/lentes" element={<Lentes />} />
         <Route path="*" element={<Navigate to="/inicio" replace />} />
       </Routes>
     </ShellGuia>
+    </ProveedorEspacio>
   )
 }

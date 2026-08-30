@@ -51,7 +51,7 @@ func (s *Servicios) Unirme(ctx context.Context, p domain.Persona, codigo string)
 
 // ---- actividades (guía) ----
 
-func (s *Servicios) Biblioteca(ctx context.Context, p domain.Persona) (recetas, mias []domain.Actividad, err error) {
+func (s *Servicios) Biblioteca(ctx context.Context, p domain.Persona, espacioID string) (recetas, mias []domain.Actividad, err error) {
 	recetas, err = s.Actividades.Recetas(ctx)
 	if err != nil {
 		return
@@ -62,7 +62,9 @@ func (s *Servicios) Biblioteca(ctx context.Context, p domain.Persona) (recetas, 
 	}
 	ids := make([]string, 0, len(esp))
 	for _, e := range esp {
-		ids = append(ids, e.ID)
+		if espacioID == "" || e.ID == espacioID {
+			ids = append(ids, e.ID)
+		}
 	}
 	mias, err = s.Actividades.DeEspacios(ctx, ids)
 	return

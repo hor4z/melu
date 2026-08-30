@@ -87,7 +87,7 @@ func (s *Server) puntuar(w http.ResponseWriter, r *http.Request, p domain.Person
 }
 
 func (s *Server) biblioteca(w http.ResponseWriter, r *http.Request, p domain.Persona) {
-	recetas, mias, err := s.svc.Biblioteca(r.Context(), p)
+	recetas, mias, err := s.svc.Biblioteca(r.Context(), p, r.URL.Query().Get("espacio"))
 	if err != nil {
 		fallo(w, err)
 		return

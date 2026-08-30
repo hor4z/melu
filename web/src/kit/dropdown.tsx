@@ -66,11 +66,13 @@ export function DropdownMenu({ children, open, defaultOpen = false, onOpenChange
   )
 }
 
-export function DropdownMenuTrigger({ children, asChild = true, ...props }: ComponentPropsWithoutRef<'button'> & { asChild?: boolean }) {
+export function DropdownMenuTriggerBase({ children, asChild = true, ...props }: ComponentPropsWithoutRef<'button'> & { asChild?: boolean }) {
   const m = useMenuCtx()
   const Cmp = asChild ? Slot : 'button'
   return <Cmp ref={m.refs.setReference} data-state={m.abierto ? 'open' : 'closed'} {...m.getReferenceProps(props as Record<string, unknown>)}>{children}</Cmp>
 }
+
+export const DropdownMenuTrigger = DropdownMenuTriggerBase
 
 export function DropdownMenuContent({ className, children, minWidth = 200, ...props }: ComponentPropsWithoutRef<'div'> & { minWidth?: number }) {
   const m = useMenuCtx()
@@ -142,6 +144,12 @@ export function DropdownMenuGroup({ className, ...props }: ComponentPropsWithout
 export type OpcionMenu = { label: string; icon?: ReactNode; onSelect?: () => void; destructive?: boolean; disabled?: boolean; separatorBefore?: boolean }
 
 /** El menú de tres puntos: el gesto de “más acciones” en una fila o una tarjeta. */
+DropdownMenu.Trigger = DropdownMenuTriggerBase
+DropdownMenu.Content = DropdownMenuContent
+DropdownMenu.Item = DropdownMenuItem
+DropdownMenu.Label = DropdownMenuLabel
+DropdownMenu.Separator = DropdownMenuSeparator
+
 export function MoreMenu({ items, label = 'Más acciones', orientation = 'horizontal', placement = 'bottom-end', size = 'md', variant = 'ghost' }: {
   items: OpcionMenu[]; label?: string; orientation?: 'horizontal' | 'vertical'; placement?: Placement
   size?: 'sm' | 'md' | 'lg'; variant?: 'ghost' | 'outline' | 'subtle'

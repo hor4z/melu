@@ -32,8 +32,9 @@ func scanHecho(row pgx.CollectableRow) (domain.Hecho, error) {
 	return h, err
 }
 
-func (x *Panel) HechosDeGuia(ctx context.Context, guiaID string) ([]domain.Hecho, error) {
-	rows, err := x.r.db.Query(ctx, hechoSQL+` where exists (select 1 from membresia m where m.grupo_id=g.id and m.persona_id=$1 and m.rol='guia') order by e.updated_at desc`, guiaID)
+func (x *Panel) HechosDeGuia(ctx context.Context, guiaID, espacioID string) ([]domain.Hecho, error) {
+	rows, err := x.r.db.Query(ctx, hechoSQL+` where exists (select 1 from membresia m where m.grupo_id=g.id and m.persona_id=$1 and m.rol='guia')
+	  and ($2 = '' or g.espacio_id = $2::uuid) order by e.updated_at desc`, guiaID, espacioID)
 	if err != nil {
 		return nil, err
 	}
