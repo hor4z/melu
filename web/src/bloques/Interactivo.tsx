@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, Camera, Check, Mic, Paperclip, X } from 'lucide-rea
 import { Chip, Icon, Input, Textarea, cn } from '@/kit'
 import type { Bloque, ValorRespuesta } from '../lib/api'
 import { Juego, puntajeJuego } from './Juegos'
+import { Manipulable } from './Manipulables'
 
 export type EstadoPaso = 'editando' | 'correcto' | 'incorrecto' | 'revision'
 
@@ -41,6 +42,11 @@ export function evaluar(b: Bloque, v: ValorRespuesta | undefined): boolean | nul
     case 'emparejar': {
       const dado = v as number[]
       return (b.pares ?? []).length > 0 && (b.pares ?? []).every((_, i) => dado?.[i] === i)
+    }
+    case 'manipulable': {
+      if (b.figura === 'balanza') return (b.coefA ?? 1) * Number(v) + (b.coefB ?? 0) === (b.coefC ?? 0)
+      if (b.respuesta === undefined) return null
+      return Math.abs(Number(v) - b.respuesta) <= (b.tolerancia ?? 0)
     }
     case 'juego': {
       const { ok, total } = puntajeJuego(b, v)
@@ -100,6 +106,7 @@ export function BloqueInteractivo({ revelar = true, ...rest }: Props) {
     case 'pregunta': return <Abierta {...p} />
     case 'autoreporte': return <Autoreporte {...p} />
     case 'juego': return <Juego {...p} />
+    case 'manipulable': return <Manipulable {...p} />
     case 'evidencia': return <Evidencia {...p} />
     default: return null
   }

@@ -35,7 +35,7 @@ export type AuthOpciones = { google: boolean; dev: boolean }
 export type TipoBloque =
   | 'parrafo' | 'titulo' | 'lista' | 'destacado'
   | 'pregunta' | 'opciones' | 'chequeo' | 'varias' | 'numerico' | 'completar' | 'ordenar' | 'emparejar'
-  | 'juego'
+  | 'juego' | 'manipulable'
   | 'evidencia' | 'autoreporte'
 
 export type Bloque = {
@@ -56,6 +56,11 @@ export type Bloque = {
   categorias?: { nombre: string; items: string[] }[]        // clasificar
   preguntas?: { texto: string; opciones: string[]; correcta: number }[]  // contrarreloj
   segundos?: number                                         // contrarreloj
+  // ---- manipulable: figuras que se arrastran ----
+  figura?: FiguraManipulable
+  min?: number; max?: number; paso?: number                 // recta numérica
+  partes?: number                                           // barra de fracción
+  coefA?: number; coefB?: number; coefC?: number            // balanza: a·x + b = c
   explicacion?: string         // se muestra después de responder
   pista?: string               // se puede pedir antes
   kind?: 'foto' | 'audio' | 'archivo'  // evidencia
@@ -63,6 +68,7 @@ export type Bloque = {
 
 /** Lo que pasó en cada bloque: la señal que vale, más rica que la respuesta final. */
 export type MotorJuego = 'clasificar' | 'memoria' | 'contrarreloj'
+export type FiguraManipulable = 'recta' | 'fraccion' | 'balanza'
 
 export type PasoResultado = { intentos: number; ok: boolean | null; ms: number }
 export type Pasos = Record<string, PasoResultado>

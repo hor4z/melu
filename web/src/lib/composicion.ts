@@ -31,6 +31,7 @@ export const TIPOS_BLOQUE: Record<string, { nombre: string; pista: string; seman
   evidencia:   { nombre: 'Evidencia',    pista: 'Pide foto, audio o archivo', semantico: true },
   autoreporte: { nombre: 'Autoreporte',  pista: 'Escala de 1 a 5, nunca se califica', semantico: true },
   juego:       { nombre: 'Juego',        pista: 'Una mecánica con tu contenido', semantico: true, corrige: true },
+  manipulable: { nombre: 'Figura',       pista: 'Una recta, una barra o una balanza que se toca', semantico: true, corrige: true },
   chequeo:     { nombre: 'Opciones',     pista: 'Varias tarjetas, una correcta', semantico: true, corrige: true },
 }
 
@@ -46,4 +47,11 @@ export const JUEGOS: Record<string, { nombre: string; pista: string; emoji: stri
   clasificar:   { nombre: 'Clasificar',   pista: 'Arrastrar cada cosa a su caja', emoji: '🗂️' },
   memoria:      { nombre: 'Memoria',      pista: 'Dar vuelta cartas y encontrar las parejas', emoji: '🃏' },
   contrarreloj: { nombre: 'Contrarreloj', pista: 'Varias preguntas contra el reloj', emoji: '⏱️' },
+}
+
+/** Figuras dibujadas que se manipulan: la idea se entiende moviéndola. */
+export const FIGURAS: Record<string, { nombre: string; pista: string; emoji: string }> = {
+  recta:    { nombre: 'Recta numérica', pista: 'Arrastrar un punto hasta el valor', emoji: '📏' },
+  fraccion: { nombre: 'Barra de fracción', pista: 'Pintar las partes que se piden', emoji: '🟦' },
+  balanza:  { nombre: 'Balanza', pista: 'Equilibrar una ecuación probando valores', emoji: '⚖️' },
 }

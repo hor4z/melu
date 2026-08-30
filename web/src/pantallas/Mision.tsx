@@ -136,7 +136,7 @@ function Runner({ m }: { m: Mision }) {
   if (!paso) return null
   // Un juego se puede comprobar recién cuando se terminó de jugar.
   const jugado = b?.tipo === 'juego' ? (() => { const { ok, total } = puntajeJuego(b, valor); return total > 0 && (b.motor === 'memoria' ? ok === total : ((valor as number[])?.filter((x) => x !== undefined && x >= -1).length ?? 0) >= total) })() : true
-  const listo = b?.tipo === 'juego' ? jugado : corrige ? tieneValor(valor) : true
+  const listo = b?.tipo === 'juego' ? jugado : b?.tipo === 'manipulable' ? typeof valor === 'number' : corrige ? tieneValor(valor) : true
   const revelado = estado !== 'editando'
   // Un primer error no delata la respuesta: todavía le queda un intento.
   const revelar = estado === 'correcto' || estado === 'revision' || (estado === 'incorrecto' && intentos >= 2)
@@ -160,7 +160,7 @@ function Runner({ m }: { m: Mision }) {
       </header>
 
       <div className="min-h-0 flex-1">
-        <div key={i} className="kit-reveal mx-auto flex w-full max-w-2xl flex-col gap-6 px-5 pb-40 pt-4">
+        <div key={i} className="kit-reveal mx-auto flex w-full max-w-2xl flex-col gap-6 px-5 pb-10 pt-4">
           {i === 0 && (
             <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-4">
               <Portada titulo={m.asignacion.titulo} className="size-16 shrink-0 rounded-xl" size={40} />

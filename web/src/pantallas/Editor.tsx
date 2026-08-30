@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, ChevronLeft, Eye, EyeOff, GripVertical, LayoutTemplate, Plus, Send, X } from 'lucide-react'
 import { Button, Card, Chip, Eyebrow, Icon, Kbd, Popover, PopoverAnchor, PopoverContent, PopoverTrigger, Text, Toggle, cn } from '@/kit'
-import { api, nuevoId, type Actividad, type Bloque, type Criterio, type Grupo, type Lente, type MotorJuego, type TipoBloque } from '../lib/api'
-import { ES_INTERACTIVO, ESCENARIOS, EXPERIENCIAS, JUEGOS, SOCIAL, TIPOS_BLOQUE } from '../lib/composicion'
+import { api, nuevoId, type Actividad, type Bloque, type Criterio, type FiguraManipulable, type Grupo, type Lente, type MotorJuego, type TipoBloque } from '../lib/api'
+import { ES_INTERACTIVO, ESCENARIOS, EXPERIENCIAS, FIGURAS, JUEGOS, SOCIAL, TIPOS_BLOQUE } from '../lib/composicion'
 import { ChipsComposicion, Rotulo } from '../bloques/Chips'
 import { BloqueInteractivo, BloqueLectura, partirHuecos } from '../bloques/Interactivo'
 import { Modal } from '../bloques/Modal'
@@ -23,6 +23,7 @@ const nuevoBloque = (tipo: TipoBloque): Bloque => ({
   ...(tipo === 'chequeo' || tipo === 'opciones' ? { opciones: ['', ''], correcta: 0 } : {}),
   ...(tipo === 'evidencia' ? { kind: 'foto' as const } : {}),
   ...(tipo === 'juego' ? { motor: 'clasificar' as MotorJuego, categorias: [{ nombre: '', items: [] }, { nombre: '', items: [] }] } : {}),
+  ...(tipo === 'manipulable' ? { figura: 'recta' as FiguraManipulable, min: 0, max: 5, paso: 0.25, respuesta: 2.5, tolerancia: 0 } : {}),
 })
 
 function EditorCargado({ inicial }: { inicial: Actividad }) {
@@ -187,7 +188,7 @@ function DropZone({ idx, onDropAt }: { idx: number; onDropAt: (id: string, desti
 const CATEGORIAS: [string, TipoBloque[]][] = [
   ['Texto', ['parrafo', 'titulo', 'lista', 'destacado']],
   ['Se corrige solo', ['opciones', 'varias', 'numerico', 'completar', 'ordenar', 'emparejar']],
-  ['Juegos', ['juego']],
+  ['Juegos', ['juego', 'manipulable']],
   ['Lo mira el docente', ['pregunta', 'evidencia', 'autoreporte']],
 ]
 
@@ -331,6 +332,7 @@ function DetalleBloque({ b, onChange }: { b: Bloque; onChange: (p: Partial<Bloqu
         </div>
       )}
       {b.tipo === 'juego' && <ConfigJuego b={b} onChange={onChange} />}
+      {b.tipo === 'manipulable' && <ConfigFigura b={b} onChange={onChange} />}
       {b.tipo === 'evidencia' && (
         <div className="mt-2 flex gap-1">{(['foto', 'audio', 'archivo'] as const).map((k) => (
           <button key={k} type="button" onClick={() => onChange({ kind: k }, true)} className={cn('rounded-md border px-2 py-0.5 text-xs font-medium', b.kind === k ? 'border-ink bg-solid text-on-solid' : 'border-line')}>{k}</button>
@@ -343,6 +345,34 @@ function DetalleBloque({ b, onChange }: { b: Bloque; onChange: (p: Partial<Bloqu
         </div>
       )}
     </>
+  )
+}
+
+/** Las figuras se configuran con pocos números: el rango, las partes o la ecuación. */
+function ConfigFigura({ b, onChange }: { b: Bloque; onChange: (p: Partial<Bloque>, snapshot?: boolean) => void }) {
+  const num = (k: keyof Bloque, etiqueta: string, def?: number) => (
+    <label key={k} className="flex items-center gap-1.5 text-sm">{etiqueta}
+      <input type="number" step="any" value={(b[k] as number) ?? def ?? ''} onChange={(e) => onChange({ [k]: e.target.value === '' ? undefined : Number(e.target.value) })}
+        className="w-20 rounded-md border border-line bg-surface px-2 py-1" />
+    </label>
+  )
+  return (
+    <div className="mt-2 flex flex-col gap-3">
+      <div className="flex flex-wrap gap-1.5">
+        {Object.entries(FIGURAS).map(([k, f]) => (
+          <button key={k} type="button" onClick={() => onChange({ figura: k as FiguraManipulable }, true)}
+            className={cn('flex items-center gap-2 rounded-md border-2 px-3 py-1.5 text-sm font-medium', b.figura === k ? 'border-ink bg-solid text-on-solid' : 'border-line hover:border-ink')}>
+            <span aria-hidden="true">{f.emoji}</span>{f.nombre}
+          </button>
+        ))}
+      </div>
+      {b.figura && <Text size="xs" variant="muted">{FIGURAS[b.figura].pista}</Text>}
+      <div className="flex flex-wrap items-center gap-3">
+        {b.figura === 'recta' && <>{num('min', 'Desde', 0)}{num('max', 'Hasta', 10)}{num('paso', 'Paso', 0.25)}{num('respuesta', 'Respuesta')}{num('tolerancia', '±', 0)}</>}
+        {b.figura === 'fraccion' && <>{num('partes', 'Partes', 4)}{num('respuesta', 'Pintar')}</>}
+        {b.figura === 'balanza' && <><span className="text-sm text-ink-muted">a·x + b = c</span>{num('coefA', 'a', 1)}{num('coefB', 'b', 0)}{num('coefC', 'c', 0)}</>}
+      </div>
+    </div>
   )
 }
 
