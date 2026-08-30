@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router'
-import { Button, DoodleGrupo, DoodleSaluda, Input, Logo, PhotoFrame, Subrayado, Text } from '@/ui'
+import { Button, DoodleGrupo, DoodleSaluda, Input, Logo, Subrayado, Text } from '@/ui'
 import { api, type AuthOpciones } from '../lib/api'
 
 export function Entrar() {
@@ -28,11 +28,7 @@ export function Entrar() {
           <h1 className="max-w-xl font-display text-[56px] font-semibold leading-[1.05] tracking-tight text-balance">Aprender deja <Subrayado>huella</Subrayado>.</h1>
           <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-muted">Componé una actividad, dásela a un grupo y mirá qué pasa. Lo que los chicos hacen con las manos, en el barrio o en la pantalla queda registrado desde el primer día.</p>
         </div>
-        <div className="relative h-56">
-          <PhotoFrame src="/ref/img_home_01.png" alt="" rotate={-3} className="absolute bottom-6 left-0 h-40 w-64" />
-          <PhotoFrame src="/ref/programa-500x417.png" alt="" rotate={2} className="absolute bottom-0 left-60 h-48 w-56" />
-          <PhotoFrame src="/ref/img_home_03.png" alt="" rotate={-1.5} className="absolute bottom-10 right-0 h-40 w-64" />
-        </div>
+        <div className="relative -mx-12 -mb-12 h-64 overflow-hidden"><img src="/ref/img_home_01.png" alt="" className="absolute bottom-0 left-0 w-[115%] max-w-none" /></div>
       </section>
 
       <section className="grid place-items-center p-8">

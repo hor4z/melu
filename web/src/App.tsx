@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Navigate, Route, Routes, useParams } from 'react-router'
+import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { Spinner } from '@/ui'
 import { useYo } from './lib/sesion'
@@ -23,7 +23,8 @@ import { Progreso } from './pantallas/Progreso'
 function Unirme() {
   const { codigo } = useParams()
   const qc = useQueryClient()
-  useEffect(() => { if (codigo) api.post<Grupo>('/api/unirme', { codigo }).finally(() => qc.invalidateQueries({ queryKey: ['yo'] })) }, [codigo, qc])
+  const nav = useNavigate()
+  useEffect(() => { if (codigo) api.post<Grupo>('/api/unirme', { codigo }).finally(async () => { await qc.invalidateQueries({ queryKey: ['yo'] }); nav('/hoy', { replace: true }) }) }, [codigo, qc, nav])
   return <div className="grid min-h-screen place-items-center"><Spinner /></div>
 }
 
@@ -36,7 +37,7 @@ export function App() {
   if (!yo.data) return <Routes><Route path="/unirme/:codigo" element={<Entrar />} /><Route path="*" element={<Entrar />} /></Routes>
 
   const enUnirme = window.location.pathname.startsWith('/unirme/')
-  if (enUnirme) return <Routes><Route path="/unirme/:codigo" element={<Unirme />} /></Routes>
+  if (enUnirme) return <Routes><Route path="/unirme/:codigo" element={<Unirme />} /><Route path="*" element={<Navigate to="/hoy" replace />} /></Routes>
   if (yo.data.modo === 'nuevo') return <Bienvenida yo={yo.data} />
 
   if (yo.data.modo === 'aprendiz') {
