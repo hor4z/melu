@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronLeft } from 'lucide-react'
-import { Button, Icon, Text } from '@/ui'
+import { Button, DoodleGrupo, Icon, Text } from '@/ui'
 import { api, type Entrega, type Mision, type Respuestas } from '../lib/api'
 import { BloqueRunner } from '../bloques/Bloque'
 import { ChipsComposicion, Rotulo } from '../bloques/Chips'
@@ -27,7 +27,7 @@ function Runner({ m }: { m: Mision }) {
 
   const guardar = useMutation({
     mutationFn: (x: { respuestas: Respuestas; entregar: boolean }) => api.put<Entrega>(`/api/entregas/${m.entrega.id}`, x),
-    onSuccess: (e) => { setGuardado(true); setEstado(e.estado); if (e.estado !== 'en_curso') qc.invalidateQueries({ queryKey: ['hoy'] }) },
+    onSuccess: (e, vars) => { setGuardado(true); setEstado(e.estado); if (e.estado !== 'en_curso') { qc.invalidateQueries({ queryKey: ['hoy'] }); if (vars.entregar) setCelebrar(true) } },
   })
   const onChange = (id: string, v: string | number) => {
     setR((prev) => { const next = { ...prev, [id]: v }; setGuardado(false); window.clearTimeout(timer.current); timer.current = window.setTimeout(() => guardar.mutate({ respuestas: next, entregar: false }), 800); return next })
@@ -39,6 +39,10 @@ function Runner({ m }: { m: Mision }) {
   const rubrica = m.asignacion.rubrica ?? []
   const puntajes = m.entrega.puntajes ?? []
 
+  const [celebrar, setCelebrar] = useState(false)
+  if (celebrar) return (
+    <div className="flex flex-col items-center gap-5 py-16 text-center"><DoodleGrupo size={220} className="text-ink" /><div><Rotulo>Entregada</Rotulo><h1 className="mt-1 font-display text-3xl font-semibold">¡Listo, {m.asignacion.titulo}!</h1><Text variant="muted">Tu docente la va a mirar. Cuando tengas devolución, aparece en «Hoy» y en «Mi progreso».</Text></div><div className="flex gap-2"><Button onClick={() => nav('/hoy')}>Volver a Hoy</Button><Button variant="ghost" onClick={() => setCelebrar(false)}>Ver lo que entregué</Button></div></div>
+  )
   return (
     <div className="flex flex-col gap-6">
       <Link to="/hoy" className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> Hoy</Link>
@@ -55,6 +59,7 @@ function Runner({ m }: { m: Mision }) {
         </section>
       )}
 
+      {fases.length > 1 && <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-brand-text transition-all" style={{ width: `${((fase + 1) / fases.length) * 100}%` }} /></div>}
       {fases.length > 1 && (
         <ol className="flex flex-wrap gap-2" aria-label="Fases">
           {fases.map((ff, i) => (

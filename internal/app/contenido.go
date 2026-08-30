@@ -303,3 +303,18 @@ func (s *Servicios) GrupoConDetalle(ctx context.Context, p domain.Persona, id st
 	ap, err := s.Membresias.Aprendices(ctx, g.ID)
 	return g, as, ap, err
 }
+
+// GuardarComoPlantilla duplica la actividad como receta del espacio.
+func (s *Servicios) GuardarComoPlantilla(ctx context.Context, p domain.Persona, id string) (*domain.Actividad, error) {
+	a, err := s.VerActividad(ctx, p, id)
+	if err != nil {
+		return nil, err
+	}
+	r := domain.Actividad{EspacioID: a.EspacioID, Titulo: a.Titulo, EsReceta: true, Composicion: a.Composicion, Documento: a.Documento, Rubrica: a.Rubrica, Autores: []string{p.ID}}
+	out, err := s.Actividades.Crear(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+	_ = s.Eventos.Emitir(ctx, domain.Evento{PersonaID: &p.ID, ActividadID: &out.ID, Verbo: "plantilla.creada", Origen: "observado", Ocurrio: time.Now()})
+	return out, nil
+}

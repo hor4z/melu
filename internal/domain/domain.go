@@ -130,3 +130,12 @@ type Aprendiz struct {
 	ID     string `json:"id"`
 	Nombre string `json:"nombre"`
 }
+
+// Hecho es una entrega con su contexto y tiempos: la fila cruda de la que se derivan las métricas.
+type Hecho struct {
+	EntregaID, AsignacionID, AprendizID, Aprendiz, GrupoID, Grupo, Titulo, Estado string
+	Experiencia                                                                   string
+	Abierta, Entregada                                                            *time.Time
+	Respuestas, Documento                                                         json.RawMessage
+	Actualizada                                                                   time.Time
+}

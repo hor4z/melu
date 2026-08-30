@@ -24,8 +24,8 @@
   --radius-xs: 2px;
   --radius-sm: 4px;
   --radius-md: 4px; /* default control radius */
-  --radius-lg: 8px; /* cards, menus */
-  --radius-xl: 8px; /* containers, dialogs */
+  --radius-lg: 12px; /* menus */
+  --radius-xl: 16px; /* cards, dialogs */
   --radius-2xl: 16px;
   --radius-full: 9999px; /* pills */
 

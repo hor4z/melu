@@ -48,4 +48,5 @@ html, body, #root { min-height: 100%; margin: 0; }
 body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: var(--text-base); line-height: 1.5; -webkit-font-smoothing: antialiased; }
 ::selection { background: var(--accent-subtle); }
 h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
+.card-shadow { box-shadow: var(--shadow-card); }
 .squiggle { background: linear-gradient(transparent 62%, var(--color-yellow-400) 62%, var(--color-yellow-400) 88%, transparent 88%); }

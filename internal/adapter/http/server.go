@@ -22,11 +22,12 @@ type Server struct {
 	google   *google.Cliente // nil = apagado
 	devLogin bool
 	web      fs.FS // build de Vite, puede ser nil en dev
+	baseURL  string
 	mux      *http.ServeMux
 }
 
-func New(svc *app.Servicios, g *google.Cliente, devLogin bool, web fs.FS) *Server {
-	s := &Server{svc: svc, google: g, devLogin: devLogin, web: web, mux: http.NewServeMux()}
+func New(svc *app.Servicios, g *google.Cliente, devLogin bool, web fs.FS, baseURL string) *Server {
+	s := &Server{svc: svc, google: g, devLogin: devLogin, web: web, baseURL: baseURL, mux: http.NewServeMux()}
 	s.rutas()
 	return s
 }
@@ -50,6 +51,7 @@ func (s *Server) rutas() {
 	m.Handle("GET /api/grupos/{id}", s.conSesion(s.grupo))
 
 	s.rutasContenido()
+	s.rutasPanel()
 
 	if s.web != nil {
 		m.Handle("/", spa(s.web))

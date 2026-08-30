@@ -70,3 +70,12 @@ export type Aprendiz = { id: string; nombre: string }
 export type GrupoDetalle = { grupo: Grupo; asignaciones: Asignacion[]; aprendices: Aprendiz[] }
 
 export const nuevoId = () => Math.random().toString(36).slice(2, 10)
+
+// ---- panel y progreso ----
+export type Senal = { aprendizId: string; aprendiz: string; grupoId: string; grupo: string; tipo: 'abandono' | 'errores' | 'lento' | 'brilla'; detalle: string; sugerencia: string; recetaTitulo?: string; recetaId?: string }
+export type PorTipo = { experiencia: string; entregas: number; minutosProm: number; aciertos: number }
+export type DiaSerie = { dia: string; abiertas: number; entregadas: number }
+export type EntregaResumen = { entregaId: string; asignacionId: string; aprendiz?: string; titulo: string; grupo: string; estado: 'en_curso' | 'entregada' | 'corregida'; minutos: number; aciertos: number; cuando: string }
+export type Panel = { espacios: number; grupos: number; aprendices: number; paraMirar: number; minutosProm: number; aciertos: number; serieSemana: DiaSerie[]; senales: Senal[]; porTipo: PorTipo[]; checklist: Record<string, boolean>; entregasRecientes: EntregaResumen[] }
+export type Progreso = { hechas: number; enCurso: number; minutos: number; aciertos: number; racha: number; misiones: EntregaResumen[]; experiencias: Record<string, number> }
+export type Invitacion = { codigo: string; link: string; qr: string; grupo: string }

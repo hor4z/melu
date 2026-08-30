@@ -67,3 +67,9 @@ type Membresias interface {
 	GruposDeAprendiz(ctx context.Context, personaID string) ([]domain.Grupo, error)
 	Aprendices(ctx context.Context, grupoID string) ([]domain.Aprendiz, error)
 }
+
+type Panel interface {
+	HechosDeGuia(ctx context.Context, guiaID string) ([]domain.Hecho, error)
+	HechosDeAprendiz(ctx context.Context, aprendizID string) ([]domain.Hecho, error)
+	HayAsignaciones(ctx context.Context, guiaID string) bool
+}

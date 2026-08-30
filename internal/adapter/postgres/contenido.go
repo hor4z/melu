@@ -26,7 +26,7 @@ func scanAct(row pgx.CollectableRow) (domain.Actividad, error) {
 }
 
 func (x *Actividades) Recetas(ctx context.Context) ([]domain.Actividad, error) {
-	rows, err := x.r.db.Query(ctx, `select `+actCols+` from actividad where es_receta order by created_at`)
+	rows, err := x.r.db.Query(ctx, `select `+actCols+` from actividad where es_receta and espacio_id is null order by created_at`)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (x *Actividades) DeEspacios(ctx context.Context, ids []string) ([]domain.Ac
 	if len(ids) == 0 {
 		return []domain.Actividad{}, nil
 	}
-	rows, err := x.r.db.Query(ctx, `select `+actCols+` from actividad where espacio_id = any($1::uuid[]) and not es_receta order by updated_at desc`, ids)
+	rows, err := x.r.db.Query(ctx, `select `+actCols+` from actividad where espacio_id = any($1::uuid[]) order by es_receta, updated_at desc`, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -60,8 +60,8 @@ func (x *Actividades) Crear(ctx context.Context, a domain.Actividad) (*domain.Ac
 	if a.Composicion == nil {
 		a.Composicion = json.RawMessage(`{}`)
 	}
-	err := x.r.db.QueryRow(ctx, `insert into actividad(espacio_id, titulo, es_receta, composicion, documento, rubrica, autores) values($1,$2,false,$3,$4,$5,$6::uuid[]) returning id, updated_at`,
-		a.EspacioID, a.Titulo, a.Composicion, a.Documento, a.Rubrica, a.Autores).Scan(&a.ID, &a.UpdatedAt)
+	err := x.r.db.QueryRow(ctx, `insert into actividad(espacio_id, titulo, es_receta, composicion, documento, rubrica, autores) values($1,$2,$7,$3,$4,$5,$6::uuid[]) returning id, updated_at`,
+		a.EspacioID, a.Titulo, a.Composicion, a.Documento, a.Rubrica, a.Autores, a.EsReceta).Scan(&a.ID, &a.UpdatedAt)
 	return &a, err
 }
 

@@ -80,7 +80,7 @@
 .button--secondary {
   color: var(--text);
   background: var(--surface);
-  border-color: var(--border-strong);
+  border: 2px solid var(--text);
 }
 
 .button--secondary:hover {

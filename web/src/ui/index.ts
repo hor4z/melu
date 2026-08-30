@@ -197,3 +197,9 @@ export { Toolbar, type ToolbarProps, type ToolbarGroupProps, type ToolbarSeparat
 
 // random
 export { ranco } from "./src/random/generate_color"
+
+// melu — primitivas propias sobre el kit
+export { Logo, Logomark } from "./melu/logo"
+export * from "./melu/doodles"
+export { Eyebrow, Sparkline, StatTile, ProgressRing, PhotoFrame, LevelAccordion, Stepper, Subrayado, Contador, type NivelItem } from "./melu/primitivas"
+export { UserMenu } from "./melu/user_menu"
