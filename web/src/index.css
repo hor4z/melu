@@ -1,5 +1,5 @@
 /* Tokens del kit (primero) y Tailwind solo para layout, leyendo esos tokens. */
-@import "./ui/src/tokens/index.css";
+@import "./kit/tokens/index.css";
 @import "tailwindcss";
 
 @theme inline {

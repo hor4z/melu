@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Clock, Flame, Target, Trophy } from 'lucide-react'
-import { Button, Chip, DoodleBrote, Eyebrow, Icon, ProgressRing, StatTile, Text } from '@/ui'
+import { Button, Chip, DoodleBrote, Eyebrow, Icon, ProgressRing, StatTile, Text } from '@/kit'
 import { api, type Progreso as P } from '../lib/api'
 import { EXPERIENCIAS } from '../lib/composicion'
 
@@ -33,7 +33,7 @@ export function Progreso() {
             {p.misiones.map((m) => (
               <li key={m.entregaId} className="flex flex-wrap items-center gap-3 py-3">
                 <div className="min-w-0 flex-1"><div className="font-medium">{m.titulo}</div><Text size="xs" variant="muted">{m.grupo}{m.minutos ? ` · ${m.minutos} min` : ''}{m.aciertos >= 0 ? ` · ${Math.round(m.aciertos * 100)}% aciertos` : ''}</Text></div>
-                <Chip size="sm" variant={m.estado === 'corregida' ? 'success' : m.estado === 'entregada' ? 'neutral' : 'warning'}>{m.estado === 'corregida' ? 'Con devolución' : m.estado === 'entregada' ? 'Entregada' : 'En curso'}</Chip>
+                <Chip size="sm" color={m.estado === 'corregida' ? 'success' : m.estado === 'entregada' ? 'default' : 'warning'}>{m.estado === 'corregida' ? 'Con devolución' : m.estado === 'entregada' ? 'Entregada' : 'En curso'}</Chip>
                 <Button size="sm" variant="ghost" onClick={() => nav(`/mision/${m.asignacionId}`)}>Abrir</Button>
               </li>
             ))}

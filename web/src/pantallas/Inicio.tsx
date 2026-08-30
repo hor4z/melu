@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Check, Clock, Inbox, Layers, Sparkles, Target, TrendingDown, UserPlus, Users, Zap } from 'lucide-react'
-import { Avatar, Button, Chip, DoodleFoco, Eyebrow, Icon, StatTile, Text } from '@/ui'
+import { Avatar, Button, Chip, DoodleFoco, Eyebrow, Icon, StatTile, Text } from '@/kit'
 import { api, type Panel, type Yo } from '../lib/api'
 import { EXPERIENCIAS } from '../lib/composicion'
 
@@ -125,7 +125,7 @@ export function Inicio({ yo }: { yo: Yo }) {
               <li key={e.entregaId} className="flex flex-wrap items-center gap-4 py-3">
                 <Avatar name={e.aprendiz ?? '?'} size="sm" />
                 <div className="min-w-0 flex-1"><div className="font-medium">{e.aprendiz} <span className="text-ink-muted">· {e.titulo}</span></div><Text size="xs" variant="muted">{e.grupo} · {e.minutos ? `${e.minutos} min` : 'sin tiempo'}{e.aciertos >= 0 && ` · ${Math.round(e.aciertos * 100)}% aciertos`}</Text></div>
-                <Chip size="sm" variant={e.estado === 'corregida' ? 'success' : 'warning'}>{e.estado === 'corregida' ? 'Corregida' : 'Para mirar'}</Chip>
+                <Chip size="sm" color={e.estado === 'corregida' ? 'success' : 'warning'}>{e.estado === 'corregida' ? 'Corregida' : 'Para mirar'}</Chip>
                 <Button size="sm" variant={e.estado === 'corregida' ? 'ghost' : 'primary'} onClick={() => nav(`/corregir/${e.asignacionId}`)}>{e.estado === 'corregida' ? 'Ver' : 'Corregir'}</Button>
               </li>
             ))}

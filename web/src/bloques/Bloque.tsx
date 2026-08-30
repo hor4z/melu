@@ -1,5 +1,5 @@
 import { Camera, Mic, Paperclip } from 'lucide-react'
-import { Icon, Textarea } from '@/ui'
+import { Icon, Textarea } from '@/kit'
 import type { Bloque, Respuestas } from '../lib/api'
 import { Rotulo } from './Chips'
 

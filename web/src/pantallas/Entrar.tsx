@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router'
-import { Button, DoodleGrupo, DoodleSaluda, Input, Logo, Subrayado, Text } from '@/ui'
+import { Button, DoodleGrupo, DoodleSaluda, Input, Logo, Subrayado, Text } from '@/kit'
 import { api, type AuthOpciones } from '../lib/api'
 
 export function Entrar() {

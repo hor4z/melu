@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
-import { Spinner } from '@/ui'
+import { Spinner } from '@/kit'
 import { useYo } from './lib/sesion'
 import { api, type Grupo } from './lib/api'
 import { ShellGuia, ShellAprendiz } from './Shell'

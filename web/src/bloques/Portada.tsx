@@ -1,4 +1,4 @@
-import { DoodleBrote, DoodleCandado, DoodleCocina, DoodleFoco, DoodleLibro, DoodleMapa, DoodlePuente, DoodleRobot } from '@/ui'
+import { DoodleBrote, DoodleCandado, DoodleCocina, DoodleFoco, DoodleLibro, DoodleMapa, DoodlePuente, DoodleRobot } from '@/kit'
 
 // Portada por actividad: tinte + doodle según el título (o un valor por defecto). Sin fotos hasta que haya.
 const MAPA: Record<string, [string, React.ComponentType<{ size?: number; className?: string }>]> = {

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
-import { Button, Icon, Input, Select, Text } from '@/ui'
+import { Button, Icon, Input, NativeSelect, Text } from '@/kit'
 import { api, type Espacio, type Grupo, type Yo } from '../lib/api'
 import { Modal, Vacio } from '../bloques/Modal'
 
@@ -44,7 +44,7 @@ function NuevoGrupo({ abierto, espacios, onCerrar, onListo }: { abierto: boolean
       pie={<><Button variant="ghost" onClick={onCerrar}>Cancelar</Button><Button form="nuevo-grupo" type="submit" loading={crear.isPending}>Crear</Button></>}>
       <form id="nuevo-grupo" className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); crear.mutate() }}>
         <label className="flex flex-col gap-1 text-sm font-medium">Nombre<Input placeholder="Robótica de los sábados" value={nombre} onChange={(e) => setNombre(e.target.value)} required autoFocus /></label>
-        {espacios.length > 1 && <label className="flex flex-col gap-1 text-sm font-medium">Espacio<Select value={espacioId} onChange={(e) => setEspacioId(e.target.value)}>{espacios.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}</Select></label>}
+        {espacios.length > 1 && <label className="flex flex-col gap-1 text-sm font-medium">Espacio<NativeSelect value={espacioId} onChange={(e) => setEspacioId(e.target.value)}>{espacios.map((e) => <option key={e.id} value={e.id}>{e.nombre}</option>)}</NativeSelect></label>}
         {crear.isError && <Text size="sm" variant="danger">No se pudo crear el grupo.</Text>}
       </form>
     </Modal>

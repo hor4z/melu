@@ -32,3 +32,5 @@ export { Popover, PopoverTrigger, PopoverContent, PopoverClose } from './popover
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'
 export { Alert, Separator, Skeleton, Progress, EmptyState, type AlertProps } from './feedback'
 export { Text, Heading, Eyebrow, Kbd, type TextProps, type HeadingProps } from './text'
+export { Logo, Logomark, Sparkline, StatTile, ProgressRing, Stepper, Subrayado, Contador, PhotoFrame, UserMenu } from './melu'
+export * from './doodles'

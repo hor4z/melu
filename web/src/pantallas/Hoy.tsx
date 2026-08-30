@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowRight } from 'lucide-react'
-import { Button, Chip, DoodleGrupo, Eyebrow, Icon, Input, ProgressRing, Text } from '@/ui'
+import { Button, Chip, DoodleGrupo, Eyebrow, Icon, Input, ProgressRing, Text } from '@/kit'
 import { api, type Asignacion, type Grupo, type Sala, type Yo } from '../lib/api'
 import { ChipsComposicion } from '../bloques/Chips'
 import { Portada } from '../bloques/Portada'
@@ -50,7 +50,7 @@ export function Hoy({ yo }: { yo: Yo }) {
               <li key={m.id} className="flex overflow-hidden rounded-xl border border-line bg-surface">
                 <Portada titulo={m.titulo} className="w-24 shrink-0" size={52} />
                 <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
-                  <div className="flex items-start justify-between gap-2"><span className="font-semibold leading-snug">{m.titulo}</span>{m.miEstado === 'corregida' && <Chip variant="success" size="sm">Corregida</Chip>}{m.miEstado === 'entregada' && <Chip size="sm">Entregada</Chip>}</div>
+                  <div className="flex items-start justify-between gap-2"><span className="font-semibold leading-snug">{m.titulo}</span>{m.miEstado === 'corregida' && <Chip color="success" size="sm">Corregida</Chip>}{m.miEstado === 'entregada' && <Chip size="sm">Entregada</Chip>}</div>
                   <ChipsComposicion c={m.composicion} compacto />
                   <div className="mt-auto pt-1"><Button variant={variant} size="sm" onClick={() => nav(`/mision/${m.id}`)}>{label}</Button></div>
                 </div>

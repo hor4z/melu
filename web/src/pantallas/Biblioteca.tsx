@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
-import { Button, Eyebrow, Icon, Text } from '@/ui'
+import { Button, Eyebrow, Icon, Text } from '@/kit'
 import { api, type Actividad, type Yo } from '../lib/api'
 import { ChipsComposicion } from '../bloques/Chips'
 import { Portada } from '../bloques/Portada'

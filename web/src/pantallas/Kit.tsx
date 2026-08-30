@@ -11,7 +11,7 @@ import {
   Select, SelectContent, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue, Separator, Skeleton, Slider,
   Switch, Tabs, TabsContent, TabsList, TabsTrigger, Text, Textarea, Toggle, ToggleGroup, ToggleGroupItem, Tooltip, TooltipContent, TooltipTrigger,
 } from '@/kit'
-import { Logo } from '@/ui'
+import { Logo } from '@/kit'
 
 function Seccion({ id, titulo, nota, children }: { id: string; titulo: string; nota?: string; children: ReactNode }) {
   return (

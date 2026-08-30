@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Bell, BookOpen, Compass, Home, LayoutDashboard, Search, Users } from 'lucide-react'
-import { Icon, Logo, UserMenu } from '@/ui'
+import { Icon, Logo, UserMenu } from '@/kit'
 import { useSalir } from './lib/sesion'
 import { api, type Yo } from './lib/api'
 
@@ -15,7 +15,7 @@ function Campana() {
   const nav = useNavigate()
   return (
     <button type="button" onClick={() => nav('/inicio')} className="relative grid size-9 place-items-center rounded-lg hover:bg-hover" aria-label={`${n} entregas para mirar`}>
-      <Icon icon={Bell} size="lg" color="secondary" />
+      <Icon icon={Bell} size="lg" color="muted" />
       {n > 0 && <span className="absolute -right-0.5 -top-0.5 grid min-w-4.5 place-items-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">{n}</span>}
     </button>
   )

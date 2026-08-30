@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Check, ChevronLeft, Copy, Printer, QrCode } from 'lucide-react'
-import { Avatar, Button, Eyebrow, Icon, Tabs, Text } from '@/ui'
+import { Avatar, Button, Eyebrow, Icon, Tabs, TabsList, TabsTrigger, Text } from '@/kit'
 import { api, type GrupoDetalle as GD, type Invitacion } from '../lib/api'
 import { ChipsComposicion } from '../bloques/Chips'
 import { Modal, Vacio } from '../bloques/Modal'
@@ -26,10 +26,10 @@ export function GrupoDetalle() {
       </header>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <Tabs.List>
-          <Tabs.Trigger value="misiones">Misiones ({asignaciones.length})</Tabs.Trigger>
-          <Tabs.Trigger value="aprendices">Aprendices ({aprendices.length})</Tabs.Trigger>
-        </Tabs.List>
+        <TabsList>
+          <TabsTrigger value="misiones">Misiones ({asignaciones.length})</TabsTrigger>
+          <TabsTrigger value="aprendices">Aprendices ({aprendices.length})</TabsTrigger>
+        </TabsList>
       </Tabs>
 
       {tab === 'misiones' && (asignaciones.length === 0

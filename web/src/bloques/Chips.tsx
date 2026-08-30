@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Chip } from '@/ui'
+import { Chip } from '@/kit'
 import { api, type Composicion, type Lente } from '../lib/api'
 import { ESCENARIOS, EXPERIENCIAS, SOCIAL, nombreDe } from '../lib/composicion'
 
@@ -12,11 +12,11 @@ export function ChipsComposicion({ c, compacto }: { c: Composicion; compacto?: b
   const soc = nombreDe(SOCIAL, c.social)
   return (
     <div className="flex flex-wrap gap-1.5">
-      {exp && <Chip variant="accent" size={size}>{exp}</Chip>}
+      {exp && <Chip color="accent" size={size}>{exp}</Chip>}
       {lente && lente.clave !== 'sin_lente' && <Chip size={size}>{lente.nombre}</Chip>}
       {(c.escenario ?? []).map((e) => { const n = nombreDe(ESCENARIOS, e); return n ? <Chip key={e} size={size}>{n}</Chip> : null })}
       {soc && <Chip size={size}>{soc}</Chip>}
-      {!compacto && (c.disciplinas ?? []).map((d) => <Chip key={d} variant="outline" size={size}>{d}</Chip>)}
+      {!compacto && (c.disciplinas ?? []).map((d) => <Chip key={d} color="outline" size={size}>{d}</Chip>)}
     </div>
   )
 }

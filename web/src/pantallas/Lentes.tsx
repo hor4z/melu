@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight } from 'lucide-react'
-import { Icon, Text } from '@/ui'
+import { Icon, Text } from '@/kit'
 import { api, type Lente } from '../lib/api'
 
 export function Lentes() {

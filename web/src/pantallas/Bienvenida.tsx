@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowRight, Check, Copy } from 'lucide-react'
-import { Button, DoodleGrupo, DoodleSaluda, Icon, Input, Logo, Stepper, Text } from '@/ui'
+import { Button, DoodleGrupo, DoodleSaluda, Icon, Input, Logo, Stepper, Text } from '@/kit'
 import { api, type Actividad, type Espacio, type Grupo, type Invitacion, type Yo } from '../lib/api'
 import { useSalir } from '../lib/sesion'
 import { ChipsComposicion } from '../bloques/Chips'
