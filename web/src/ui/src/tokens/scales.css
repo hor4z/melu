@@ -1,0 +1,85 @@
+/**
+ * Scale tokens — spacing, radii, typography, motion, sizes, elevation.
+ * Radii are generous (references use 8–16px + full pills). Mono is a first-class
+ * voice (iii.dev style) alongside Inter for body.
+ */
+:root {
+  /* ------- spacing ------- */
+  --spacing: 0.25rem; /* base unit (tailwind-compatible) */
+  --space-0: 0;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ------- radii (role-named + numeric) ------- */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 4px; /* default control radius */
+  --radius-lg: 8px; /* cards, menus */
+  --radius-xl: 8px; /* containers, dialogs */
+  --radius-2xl: 16px;
+  --radius-full: 9999px; /* pills */
+
+  /* ------- control sizes (heights) ------- */
+  --control-sm: 28px;
+  --control-md: 34px;
+  --control-lg: 40px;
+
+  /* ------- typography ------- */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Geist Mono", monospace;
+
+  --text-2xs: 0.625rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.4;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.45;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.5;
+  --text-md: 1rem;
+  --text-md--line-height: 1.5;
+  --text-lg: 1.0625rem;
+  --text-lg--line-height: 1.45;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-display: 2.5rem;
+
+  --leading-tight: 1.2;
+  --leading-snug: 1.35;
+  --leading-normal: 1.5;
+  --tracking-tight: -0.02em;
+  --tracking-wide: 0.04em;
+
+  --font-weight-thin: 100;
+  --font-weight-extralight: 200;
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ------- motion ------- */
+  --duration-fast: 125ms;
+  --duration-normal: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.24, 1, 0.4, 1);
+  --transition-colors:
+    color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+
+  /* ------- elevation (subtle, dark-friendly) ------- */
+  --shadow-sm: 0 1px 2px rgb(31 35 40 / 0.06);
+  --shadow-md: 0 4px 12px -2px rgb(31 35 40 / 0.10);
+  --shadow-lg: 0 12px 32px -8px rgb(31 35 40 / 0.18), 0 2px 8px -2px rgb(31 35 40 / 0.08);
+}

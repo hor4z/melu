@@ -1,0 +1,13 @@
+.tooltip {
+  z-index: 1100;
+  max-width: 260px;
+  padding: var(--space-1-5) 10px;
+  background: var(--bg-inverted);
+  color: var(--text-inverted);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+}

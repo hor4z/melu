@@ -1,0 +1,49 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.groupLabel {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+}
+
+.requiredMark {
+  font-weight: var(--font-weight-normal);
+  color: var(--text-subtle);
+}
+
+.groupDescription {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--text-subtle);
+}
+
+.groupError {
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--danger);
+  background: var(--danger-subtle);
+  padding: var(--space-1-5) var(--space-3);
+  border-radius: var(--radius-md);
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+}
+
+.endContent {
+  align-self: center;
+  margin-left: auto;
+  padding-left: var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  line-height: var(--text-xs--line-height);
+  color: var(--text-subtle);
+}

@@ -1,0 +1,85 @@
+/**
+ * Semantic tokens — la capa de roles. Los componentes se estilan SOLO contra esto.
+ * Claro, blanco, tintes suaves. El botón primario es tinta oscura, como en Innovamat.
+ * El lado del aprendiz cambia a tintes cálidos con [data-mode="aprendiz"].
+ */
+:root {
+  color-scheme: light;
+
+  /* ------- superficies ------- */
+  --bg: var(--color-white);
+  --surface: var(--color-white);
+  --surface-raised: var(--color-white);
+  --popover: var(--color-white);
+  --surface-muted: var(--color-mist-100);
+  --surface-hover: rgba(34, 47, 45, 0.04);
+  --surface-active: rgba(34, 47, 45, 0.08);
+  --surface-disabled: var(--color-mist-100);
+  --overlay: rgba(34, 47, 45, 0.45);
+  --bg-inverted: var(--color-ink);
+
+  /* ------- bordes ------- */
+  --border: var(--color-mist-200);
+  --border-strong: var(--color-mist-300);
+  --border-accent: var(--accent);
+
+  /* ------- texto ------- */
+  --text: var(--color-ink);
+  --text-muted: var(--color-ink-2);
+  --text-subtle: var(--color-ink-3);
+  --text-disabled: var(--color-ink-4);
+  --text-inverted: var(--color-white);
+
+  /* ------- acento: la tinta oscura manda en botones; el teal, en rótulos y fondos ------- */
+  --accent: var(--color-ink);
+  --accent-hover: var(--color-ink-hover);
+  --accent-active: var(--color-ink-hover);
+  --accent-foreground: #ffffff;
+  --accent-subtle: var(--color-teal-50);
+  --accent-text: var(--color-teal-500);
+  --brand: var(--color-teal-500);
+
+  --solid: var(--color-ink);
+  --solid-hover: var(--color-ink-hover);
+  --solid-foreground: #ffffff;
+
+  /* ------- estado ------- */
+  --danger: var(--color-red-500);
+  --danger-hover: var(--color-red-600);
+  --danger-active: var(--color-red-600);
+  --danger-foreground: #ffffff;
+  --danger-subtle: #fdeeee;
+  --success: var(--color-green-500);
+  --success-foreground: #ffffff;
+  --success-subtle: var(--color-tint-green);
+  --warning: var(--color-amber-500);
+  --warning-foreground: var(--color-ink);
+  --warning-subtle: var(--color-tint-yellow);
+  --info: var(--color-cyan-500);
+
+  /* ------- tintes ------- */
+  --tint-blue: var(--color-tint-blue);
+  --tint-yellow: var(--color-tint-yellow);
+  --tint-orange: var(--color-tint-orange);
+  --tint-lilac: var(--color-tint-lilac);
+  --tint-cyan: var(--color-tint-cyan);
+  --tint-green: var(--color-tint-green);
+  --tint-pink: var(--color-tint-pink);
+  --tint-teal: var(--color-teal-50);
+
+  /* ------- misc ------- */
+  --on-solid: #ffffff;
+  --focus: var(--color-teal-500);
+  --ring: 0 0 0 3px rgba(16, 117, 110, 0.3);
+}
+
+/* El aprendiz vive en un mundo más cálido. */
+[data-mode="aprendiz"] {
+  --bg: #fffdf7;
+  --surface-muted: var(--color-tint-yellow);
+  --accent-subtle: var(--color-tint-orange);
+  --accent-text: var(--color-orange-500);
+  --brand: var(--color-orange-500);
+  --focus: var(--color-orange-500);
+  --ring: 0 0 0 3px rgba(204, 102, 0, 0.3);
+}

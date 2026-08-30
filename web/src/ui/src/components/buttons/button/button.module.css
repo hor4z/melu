@@ -1,0 +1,205 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  transition:
+    var(--transition-colors),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.button:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.button--sm {
+  height: var(--control-sm);
+  padding-inline: var(--space-3);
+  font-size: var(--text-xs);
+}
+
+.button--md {
+  height: var(--control-md);
+  padding-inline: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.button--lg {
+  height: var(--control-lg);
+  padding-inline: var(--space-5);
+  font-size: var(--text-base);
+}
+
+.button--pill {
+  border-radius: var(--radius-full);
+}
+
+.button--block {
+  display: flex;
+  width: 100%;
+}
+
+.button__icon--left,
+.button__icon--right {
+  display: inline-flex;
+}
+
+/* primary — brand accent (cyan) */
+.button--primary {
+  color: var(--accent-foreground);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.button--primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+/* neutral — high-contrast solid (astryx-style primary) */
+.button--neutral {
+  color: var(--solid-foreground);
+  background: var(--solid);
+  border-color: var(--solid);
+}
+
+.button--neutral:hover {
+  background: var(--solid-hover);
+  border-color: var(--solid-hover);
+}
+
+/* secondary — neutral surface */
+.button--secondary {
+  color: var(--text);
+  background: var(--surface);
+  border-color: var(--border-strong);
+}
+
+.button--secondary:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+/* tertiary — subtle accent tint */
+.button--tertiary {
+  color: var(--accent);
+  background: var(--accent-subtle);
+  border-color: transparent;
+}
+
+.button--tertiary:hover {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+/* outlined */
+.button--outlined {
+  background: transparent;
+  border-style: solid;
+}
+
+.button--primary.button--outlined {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.button--primary.button--outlined:hover {
+  color: var(--accent-hover);
+  border-color: var(--accent-hover);
+  background: var(--accent-subtle);
+}
+
+.button--neutral.button--outlined,
+.button--secondary.button--outlined {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.button--neutral.button--outlined:hover,
+.button--secondary.button--outlined:hover {
+  background: var(--surface-hover);
+}
+
+.button--tertiary.button--outlined {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.button--tertiary.button--outlined:hover {
+  background: var(--accent-subtle);
+}
+
+/* white — for use over imagery */
+.button--white {
+  color: #15110c;
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+.button--white:hover {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.85);
+}
+
+.button--white.button--outlined {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+}
+
+.button--white.button--outlined:hover {
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.85);
+}
+
+/* ghost — transparent, reveals a surface on hover */
+.button--ghost {
+  color: var(--text);
+  background: transparent;
+}
+
+.button--ghost:hover {
+  background: var(--surface-hover);
+}
+
+/* destructive */
+.button--destructive {
+  color: var(--danger-foreground);
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.button--destructive:hover {
+  background: var(--danger-hover);
+  border-color: var(--danger-hover);
+}
+
+.button--destructive.button--outlined {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: transparent;
+}
+
+.button--destructive.button--outlined:hover {
+  background: var(--danger-subtle);
+}
+
+.button--disabled,
+.button--outlined.button--disabled {
+  pointer-events: none;
+  color: var(--text-disabled);
+  background: var(--surface-disabled);
+  border-color: transparent;
+}
+
+.button--loading {
+  pointer-events: none;
+  opacity: 0.85;
+}

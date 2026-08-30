@@ -1,13 +1,51 @@
-/* Astryx manda en tokens y componentes. Tailwind solo para layout, y lee los tokens de Astryx. */
-@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
+/* Tokens del kit (primero) y Tailwind solo para layout, leyendo esos tokens. */
+@import "./ui/src/tokens/index.css";
+@import "tailwindcss";
 
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/preflight.css" layer(base);
-@import "@astryxdesign/core/reset.css";
-@import "@astryxdesign/core/astryx.css";
-@import "@astryxdesign/theme-matcha/theme.css";
-@import "@astryxdesign/core/tailwind-theme.css";
-@import "tailwindcss/utilities.css" layer(utilities);
+@theme inline {
+  --color-*: initial;
+  --color-canvas: var(--bg);
+  --color-surface: var(--surface);
+  --color-muted: var(--surface-muted);
+  --color-hover: var(--surface-hover);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--text);
+  --color-ink-muted: var(--text-muted);
+  --color-ink-subtle: var(--text-subtle);
+  --color-brand: var(--accent);
+  --color-brand-hover: var(--accent-hover);
+  --color-brand-subtle: var(--accent-subtle);
+  --color-brand-text: var(--accent-text);
+  --color-on-brand: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-lilac: var(--tint-lilac);
+  --color-yellow: var(--tint-yellow);
+  --color-orange: var(--tint-orange);
+  --color-blue: var(--tint-blue);
+  --color-cyan: var(--tint-cyan);
+  --color-green: var(--tint-green);
+  --color-pink: var(--tint-pink);
+  --color-teal: var(--tint-teal);
+  --color-cream: var(--tint-yellow);
+  --color-white: #ffffff;
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-display: var(--font-display);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+}
 
-html, body, #root { min-height: 100%; }
-body { background: var(--color-background-body); color: var(--color-text-primary); }
+* { box-sizing: border-box; }
+html, body, #root { min-height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: var(--text-base); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+::selection { background: var(--accent-subtle); }
+h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
+.squiggle { background: linear-gradient(transparent 62%, var(--color-yellow-400) 62%, var(--color-yellow-400) 88%, transparent 88%); }

@@ -1,0 +1,27 @@
+.heading {
+  margin: 0;
+  color: var(--text);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+}
+
+.sm {
+  font-size: var(--text-lg);
+}
+
+.md {
+  font-size: var(--text-xl);
+}
+
+.lg {
+  font-size: var(--text-2xl);
+}
+
+.xl {
+  font-size: var(--text-3xl);
+}
+
+.display {
+  font-size: var(--text-display);
+}

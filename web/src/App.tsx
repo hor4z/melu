@@ -1,5 +1,6 @@
+import { useEffect } from 'react'
 import { Navigate, Route, Routes } from 'react-router'
-import { Spinner } from '@astryxdesign/core/Spinner'
+import { Spinner } from '@/ui'
 import { useYo } from './lib/sesion'
 import { ShellGuia, ShellAprendiz } from './Shell'
 import { Entrar } from './pantallas/Entrar'
@@ -15,7 +16,13 @@ import { MisionPantalla } from './pantallas/Mision'
 
 export function App() {
   const yo = useYo()
-  if (yo.isPending) return <div className="grid min-h-screen place-items-center"><Spinner label="Cargando" /></div>
+  const modo = yo.data?.modo
+  useEffect(() => {
+    if (modo === 'aprendiz') document.documentElement.dataset.mode = 'aprendiz'
+    else delete document.documentElement.dataset.mode
+  }, [modo])
+
+  if (yo.isPending) return <div className="grid min-h-screen place-items-center"><Spinner /></div>
   if (!yo.data) return <Entrar />
   if (yo.data.modo === 'nuevo') return <Bienvenida yo={yo.data} />
 

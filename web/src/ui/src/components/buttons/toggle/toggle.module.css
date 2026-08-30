@@ -1,0 +1,114 @@
+/* single toggle button */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  transition:
+    var(--transition-colors),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.toggle:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.toggle[data-state="on"] {
+  color: var(--accent);
+  background: var(--accent-subtle);
+  border-color: transparent;
+}
+
+.toggle:disabled {
+  pointer-events: none;
+  color: var(--text-disabled);
+  background: var(--surface-disabled);
+  border-color: transparent;
+}
+
+/* segmented group — a track holding item pills */
+.group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-0-5);
+  padding: var(--space-0-5);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  transition: var(--transition-colors);
+}
+
+.item:hover {
+  color: var(--text);
+}
+
+.item:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.item[data-state="on"] {
+  color: var(--text);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+}
+
+/* sizes shared by toggle + item */
+.size-sm .item,
+.toggle.size-sm {
+  height: var(--control-sm);
+  padding-inline: var(--space-3);
+  font-size: var(--text-xs);
+}
+
+.size-md .item,
+.toggle.size-md {
+  height: var(--control-md);
+  padding-inline: var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.size-lg .item,
+.toggle.size-lg {
+  height: var(--control-lg);
+  padding-inline: var(--space-5);
+  font-size: var(--text-base);
+}
+
+/* standalone toggle also needs its own height (size-* is on the element) */
+.toggle.size-sm {
+  height: var(--control-sm);
+}
+.toggle.size-md {
+  height: var(--control-md);
+}
+.toggle.size-lg {
+  height: var(--control-lg);
+}

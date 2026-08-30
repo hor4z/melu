@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@astryxdesign/core/Button'
-import { Text } from '@astryxdesign/core/Text'
-import { TextInput } from '@astryxdesign/core/TextInput'
+import { Button, Input, Text } from '@/ui'
 import { api, type AuthOpciones } from '../lib/api'
 
 export function Entrar() {
@@ -19,39 +17,44 @@ export function Entrar() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <section className="hidden flex-col justify-between bg-accent-bg p-12 text-on-accent lg:flex">
-        <span className="font-heading text-2xl font-bold">melu</span>
-        <div className="max-w-md">
-          <h1 className="font-heading text-5xl font-semibold leading-tight text-balance text-on-accent">Componé una actividad. Dásela a un grupo. Mirá qué pasa.</h1>
-          <p className="mt-6 text-lg text-on-accent opacity-90">Puentes de espagueti, mapas del barrio, piezas impresas en 3D, cuentos con números. Lo que los chicos hacen deja rastro desde el primer día.</p>
+    <div className="grid min-h-screen bg-surface lg:grid-cols-[1.1fr_1fr]">
+      <section className="relative hidden flex-col justify-between overflow-hidden bg-teal p-12 lg:flex">
+        <div className="flex items-center gap-2 text-lg font-semibold"><span className="grid size-8 place-items-center rounded-md bg-brand text-on-brand">m</span> melu</div>
+        <div className="max-w-lg">
+          <h1 className="text-5xl font-semibold leading-[1.08] tracking-tight text-balance">Aprender deja <span className="squiggle">huella</span>.</h1>
+          <p className="mt-5 max-w-md text-lg text-ink-muted">Componé una actividad, dásela a un grupo, mirá qué pasa. Puentes de espagueti, mapas del barrio, piezas impresas en 3D, cuentos con números.</p>
         </div>
-        <p className="text-sm text-on-accent opacity-70">Educabot · experimento</p>
+        <div className="grid grid-cols-4 gap-3">
+          {[['🍝', 'bg-yellow', 'Puente de espagueti'], ['🧭', 'bg-blue', 'Cartógrafos del barrio'], ['🖨️', 'bg-lilac', 'Una pieza para alguien'], ['🍳', 'bg-orange', 'Fracciones en la cocina']].map(([e, t, n]) => (
+            <div key={n} className={`flex flex-col gap-3 rounded-lg ${t} p-4`}><span className="text-3xl">{e}</span><span className="text-xs font-medium leading-snug">{n}</span></div>
+          ))}
+        </div>
       </section>
 
       <section className="grid place-items-center p-8">
         <div className="flex w-full max-w-sm flex-col gap-6">
+          <div className="flex items-center gap-2 text-lg font-semibold lg:hidden"><span className="grid size-8 place-items-center rounded-md bg-brand text-on-brand">m</span> melu</div>
           <div>
-            <h2 className="font-heading text-3xl font-semibold">Entrar</h2>
-            <Text color="secondary">Con tu cuenta de Google. Si enseñás, después creás tu espacio. Si aprendés, ingresás el código de tu grupo.</Text>
+            <h2 className="text-2xl font-semibold tracking-tight">Entrar</h2>
+            <Text variant="muted">Con tu cuenta de Google. Si enseñás, después creás tu espacio. Si aprendés, ingresás el código de tu grupo.</Text>
           </div>
 
           {opciones.data?.google && (
-            <Button label="Continuar con Google" variant="primary" size="lg" onClick={() => { window.location.href = '/api/auth/google' }} />
+            <Button size="lg" block onClick={() => { window.location.href = '/api/auth/google' }}>Continuar con Google</Button>
           )}
 
           {opciones.data?.dev && (
-            <form className="flex flex-col gap-3 rounded-lg border border-dashed border-strong p-4" onSubmit={(e) => { e.preventDefault(); entrarDev() }}>
-              <Text size="sm" color="secondary">Entrada de desarrollo: simula Google con cualquier email. Probá con dos cuentas distintas para ser docente y estudiante.</Text>
-              <TextInput label="Email" type="email" value={email} onChange={setEmail} isRequired />
-              <TextInput label="Nombre" value={nombre} onChange={setNombre} isOptional />
-              {error && <Text size="sm" className="text-error">{error}</Text>}
-              <Button label="Entrar" type="submit" variant={opciones.data.google ? 'secondary' : 'primary'} />
+            <form className="flex flex-col gap-3 rounded-lg border border-dashed border-line-strong bg-muted p-4" onSubmit={(e) => { e.preventDefault(); entrarDev() }}>
+              <Text size="sm" variant="muted">Entrada de desarrollo: simula Google con cualquier email. Probá con dos cuentas distintas para ser docente y estudiante.</Text>
+              <label className="flex flex-col gap-1 text-sm font-medium">Email<Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
+              <label className="flex flex-col gap-1 text-sm font-medium">Nombre <span className="font-normal text-ink-subtle">(opcional)</span><Input value={nombre} onChange={(e) => setNombre(e.target.value)} /></label>
+              {error && <Text size="sm" variant="danger">{error}</Text>}
+              <Button type="submit" variant={opciones.data.google ? 'secondary' : 'primary'}>Entrar</Button>
             </form>
           )}
 
           {opciones.data && !opciones.data.google && !opciones.data.dev && (
-            <Text className="text-error">No hay ninguna forma de entrar configurada. Definí MELU_GOOGLE_CLIENT_ID o MELU_DEV_LOGIN=1.</Text>
+            <Text variant="danger">No hay ninguna forma de entrar configurada. Definí MELU_GOOGLE_CLIENT_ID o MELU_DEV_LOGIN=1.</Text>
           )}
         </div>
       </section>

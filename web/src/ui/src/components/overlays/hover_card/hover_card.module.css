@@ -1,0 +1,30 @@
+.card {
+  z-index: 1100;
+  width: max-content;
+  max-width: 320px;
+  padding: var(--space-4);
+  background: var(--popover);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-sm);
+  animation: hover_card_in var(--duration-fast) var(--ease-standard);
+}
+
+@keyframes hover_card_in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+}

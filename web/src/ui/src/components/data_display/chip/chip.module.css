@@ -1,0 +1,89 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-medium);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+}
+
+.size-sm {
+  height: 20px;
+  padding-inline: var(--space-2);
+  font-size: var(--text-2xs);
+}
+
+.size-md {
+  height: 24px;
+  padding-inline: var(--space-3);
+  font-size: var(--text-xs);
+}
+
+/* variants — subtle tinted fills (alert-style color-mix) */
+.neutral {
+  background: var(--surface-muted);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+.accent {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.success {
+  background: var(--success-subtle);
+  color: var(--success);
+}
+
+.warning {
+  background: var(--warning-subtle);
+  color: var(--warning);
+}
+
+.danger {
+  background: var(--danger-subtle);
+  color: var(--danger);
+}
+
+.outline {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text-muted);
+}
+
+.remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-end: calc(var(--space-1-5) * -1);
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  color: currentColor;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-full);
+  opacity: 0.7;
+  transition:
+    var(--transition-colors),
+    opacity var(--duration-fast) var(--ease-standard);
+}
+
+.size-sm .remove {
+  width: 14px;
+  height: 14px;
+}
+
+.remove:hover {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 14%, transparent);
+}
+
+.remove:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}

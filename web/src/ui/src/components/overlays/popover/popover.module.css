@@ -1,0 +1,7 @@
+.trigger {
+  height: fit-content;
+}
+
+.content {
+  z-index: 1100;
+}
