@@ -18,14 +18,55 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
 export const api = {
   get: <T>(p: string) => req<T>('GET', p),
   post: <T>(p: string, b?: unknown) => req<T>('POST', p, b),
+  put: <T>(p: string, b?: unknown) => req<T>('PUT', p, b),
 }
 
 // ---- tipos que espejan el dominio de Go ----
 export type Persona = { ID: string; Email: string; Nombre: string }
 export type Espacio = { id: string; nombre: string; slug: string; tipo: string }
-export type Membresia = { espacioId: string; grupoId: string | null; rol: 'guia' | 'aprendiz' | 'acompanante' | 'coordinador' }
+export type Rol = 'guia' | 'aprendiz' | 'acompanante' | 'coordinador'
+export type Membresia = { espacioId: string; grupoId: string | null; rol: Rol }
 export type Grupo = { id: string; espacioId: string; nombre: string; codigo: string; etiquetas: Record<string, string>; aprendices: number }
 export type Fase = { clave: string; nombre: string; pide: string }
 export type Lente = { clave: string; nombre: string; descripcion: string; fases: Fase[] }
-export type Yo = { persona: Persona; espacios: Espacio[]; membresias: Membresia[] }
+export type Yo = { persona: Persona; modo: 'guia' | 'aprendiz' | 'nuevo'; espacios: Espacio[]; membresias: Membresia[] }
 export type AuthOpciones = { google: boolean; dev: boolean }
+
+export type TipoBloque = 'parrafo' | 'titulo' | 'lista' | 'destacado' | 'pregunta' | 'chequeo' | 'evidencia' | 'autoreporte'
+export type Bloque = {
+  id: string
+  tipo: TipoBloque
+  texto: string
+  opciones?: string[]      // chequeo
+  correcta?: number        // chequeo
+  kind?: 'foto' | 'audio' | 'archivo'  // evidencia
+}
+export type FaseDoc = { clave: string; nombre: string; pide?: string; bloques: Bloque[] }
+export type Documento = { fases: FaseDoc[] }
+export type Composicion = {
+  experiencia?: string; lente?: string; disciplinas?: string[]
+  escenario?: string[]; social?: string; evidencia?: string[]
+}
+export type Criterio = { id: string; label: string; niveles: string[]; disciplina?: string }
+export type Actividad = {
+  id: string; espacioId: string | null; titulo: string; esReceta: boolean
+  composicion: Composicion; documento: Documento; rubrica: Criterio[]; autores: string[]; updatedAt: string
+}
+export type Asignacion = {
+  id: string; actividadId: string; grupoId: string; titulo: string; composicion: Composicion
+  documento?: Documento; rubrica?: Criterio[]; abre: string; cierra: string | null
+  entregas: number; entregasTotales: number; grupoNombre?: string; miEstado: 'en_curso' | 'entregada' | 'corregida' | null
+}
+export type Respuestas = Record<string, string | number>
+export type Puntaje = { id: string; nivel: number }
+export type Entrega = {
+  id: string; asignacionId: string; aprendizId: string; aprendiz?: string
+  estado: 'en_curso' | 'entregada' | 'corregida'; respuestas: Respuestas; artefactos: unknown[]; puntajes: Puntaje[]
+  entregadaAt: string | null; updatedAt: string
+}
+export type Sala = { grupo: Grupo; misiones: Asignacion[] }
+export type Mision = { asignacion: Asignacion; entrega: Entrega }
+export type Aprendiz = { id: string; nombre: string }
+export type GrupoDetalle = { grupo: Grupo; asignaciones: Asignacion[]; aprendices: Aprendiz[] }
+
+export const nuevoId = () => Math.random().toString(36).slice(2, 10)

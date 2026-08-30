@@ -28,7 +28,7 @@ func (e *Espacios) DePersona(ctx context.Context, id string) ([]domain.Espacio, 
 	return e.r.DePersona(ctx, id)
 }
 func (e *Espacios) Membresias(ctx context.Context, id string) ([]domain.Membresia, error) {
-	return e.r.Membresias(ctx, id)
+	return e.r.membresiasDe(ctx, id)
 }
 
 type Grupos struct{ r *Repos }

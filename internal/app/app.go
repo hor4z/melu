@@ -12,12 +12,16 @@ import (
 )
 
 type Servicios struct {
-	Personas port.Personas
-	Sesiones port.Sesiones
-	Espacios port.Espacios
-	Grupos   port.Grupos
-	Lentes   port.Lentes
-	Eventos  port.Eventos
+	Personas     port.Personas
+	Sesiones     port.Sesiones
+	Espacios     port.Espacios
+	Grupos       port.Grupos
+	Lentes       port.Lentes
+	Eventos      port.Eventos
+	Actividades  port.Actividades
+	Asignaciones port.Asignaciones
+	Entregas     port.Entregas
+	Membresias   port.Membresias
 }
 
 // EntrarConIdentidad resuelve o crea la persona a partir de una identidad externa y abre sesión.

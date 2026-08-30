@@ -122,7 +122,7 @@ func (r *Repos) DePersona(ctx context.Context, personaID string) ([]domain.Espac
 	})
 }
 
-func (r *Repos) Membresias(ctx context.Context, personaID string) ([]domain.Membresia, error) {
+func (r *Repos) membresiasDe(ctx context.Context, personaID string) ([]domain.Membresia, error) {
 	rows, err := r.db.Query(ctx, `select espacio_id, grupo_id, rol from membresia where persona_id=$1`, personaID)
 	if err != nil {
 		return nil, err

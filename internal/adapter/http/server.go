@@ -49,6 +49,8 @@ func (s *Server) rutas() {
 	m.Handle("POST /api/grupos", s.conSesion(s.crearGrupo))
 	m.Handle("GET /api/grupos/{id}", s.conSesion(s.grupo))
 
+	s.rutasContenido()
+
 	if s.web != nil {
 		m.Handle("/", spa(s.web))
 	}
@@ -144,7 +146,7 @@ func (s *Server) conSesion(h func(http.ResponseWriter, *http.Request, domain.Per
 
 // ---- recursos ----
 func (s *Server) yo(w http.ResponseWriter, r *http.Request, p domain.Persona) {
-	c, err := s.svc.Yo(r.Context(), p)
+	c, err := s.svc.Yo2(r.Context(), p)
 	if err != nil {
 		fallo(w, err)
 		return

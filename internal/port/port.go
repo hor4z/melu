@@ -38,3 +38,32 @@ type Lentes interface {
 type Eventos interface {
 	Emitir(ctx context.Context, e domain.Evento) error
 }
+
+type Actividades interface {
+	Recetas(ctx context.Context) ([]domain.Actividad, error)
+	DeEspacios(ctx context.Context, espacioIDs []string) ([]domain.Actividad, error)
+	PorID(ctx context.Context, id string) (*domain.Actividad, error)
+	Crear(ctx context.Context, a domain.Actividad) (*domain.Actividad, error)
+	Guardar(ctx context.Context, a domain.Actividad) error
+}
+
+type Asignaciones interface {
+	Crear(ctx context.Context, a domain.Asignacion) (*domain.Asignacion, error)
+	DeGrupo(ctx context.Context, grupoID string) ([]domain.Asignacion, error)
+	DeAprendiz(ctx context.Context, aprendizID string) ([]domain.Asignacion, error)
+	PorID(ctx context.Context, id string) (*domain.Asignacion, error)
+}
+
+type Entregas interface {
+	Abrir(ctx context.Context, asignacionID, aprendizID string) (*domain.Entrega, error)
+	Guardar(ctx context.Context, e domain.Entrega) error
+	DeAsignacion(ctx context.Context, asignacionID string) ([]domain.Entrega, error)
+	PorID(ctx context.Context, id string) (*domain.Entrega, error)
+}
+
+type Membresias interface {
+	Unir(ctx context.Context, personaID, espacioID, grupoID string, rol domain.Rol) error
+	GrupoPorCodigo(ctx context.Context, codigo string) (*domain.Grupo, error)
+	GruposDeAprendiz(ctx context.Context, personaID string) ([]domain.Grupo, error)
+	Aprendices(ctx context.Context, grupoID string) ([]domain.Aprendiz, error)
+}
