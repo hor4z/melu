@@ -25,11 +25,18 @@ import {
 type Opcion = { valor: string; titulo: string; pie?: string; cuerpo?: ReactNode; fondo?: string }
 type Paso =
   | { tipo: 'contar'; clave: string; capitulo: number; render: ReactNode; cta: string }
-  | { tipo: 'elegir'; clave: string; capitulo: number; titulo: string; bajada?: string; opciones: Opcion[]; columnas: 2 | 4; alto?: boolean }
+  | { tipo: 'elegir'; clave: string; capitulo: number; titulo: string; bajada?: string; opciones: Opcion[]; alto?: boolean }
   | { tipo: 'armando'; clave: string; capitulo: number }
   | { tipo: 'perfil'; clave: string; capitulo: number }
 
 const CAPITULOS = ['Qué es esto', 'Cómo aprendés', 'Tu perfil']
+
+const COLUMNAS: Record<number, string> = {
+  1: 'max-w-sm mx-auto',
+  2: 'sm:grid-cols-2',
+  3: 'sm:grid-cols-2 lg:grid-cols-3',
+  4: 'sm:grid-cols-2 lg:grid-cols-4',
+}
 
 function opcionesDeMuestra(que: ClaveMuestra): Opcion[] {
   return [
@@ -131,7 +138,7 @@ function guion(banda: Banda): Paso[] {
       ),
     },
     {
-      tipo: 'elegir', clave: 'banda', capitulo: 0, columnas: 4, alto: true,
+      tipo: 'elegir', clave: 'banda', capitulo: 0, alto: true,
       titulo: '¿Por dónde andás?',
       bajada: 'Para mostrarte ejemplos que te sirvan y no cosas que todavía no viste.',
       opciones: [
@@ -164,20 +171,20 @@ function guion(banda: Banda): Paso[] {
     { tipo: 'contar', clave: 'wow', capitulo: 0, cta: 'Buscar la mía', render: <PantallaWow que={muestraA} /> },
 
     {
-      tipo: 'elegir', clave: 'canal1', capitulo: 1, columnas: 4, alto: true,
+      tipo: 'elegir', clave: 'canal1', capitulo: 1, alto: true,
       titulo: `${tituloDe(muestraA)}, explicado de cuatro maneras.`,
       bajada: chico ? 'Probá las cuatro. Después tocá «con esta» abajo de la que más te gustó.' : 'Probá las cuatro. Después marcá «con esta» en la que te lo hizo entender más rápido.',
       opciones: opcionesDeMuestra(muestraA),
     },
     {
-      tipo: 'elegir', clave: 'canal2', capitulo: 1, columnas: 4, alto: true,
+      tipo: 'elegir', clave: 'canal2', capitulo: 1, alto: true,
       titulo: 'Otra cosa, las mismas cuatro maneras.',
       bajada: `${tituloDe(muestraB)}. Probalas de nuevo y marcá con cuál lo agarrás.`,
       opciones: opcionesDeMuestra(muestraB),
     },
-    { tipo: 'elegir', clave: 'chispa', capitulo: 1, columnas: 4, titulo: b.chispa.titulo, bajada: b.chispa.bajada, opciones: b.chispa.opciones },
+    { tipo: 'elegir', clave: 'chispa', capitulo: 1, titulo: b.chispa.titulo, bajada: b.chispa.bajada, opciones: b.chispa.opciones },
     {
-      tipo: 'elegir', clave: 'ritmo', capitulo: 1, columnas: 2, alto: true,
+      tipo: 'elegir', clave: 'ritmo', capitulo: 1, alto: true,
       titulo: b.ritmo.titulo, bajada: b.ritmo.bajada,
       opciones: [
         { valor: 'paso', titulo: 'Paso a paso', cuerpo: <PanelPasos pasos={b.ritmo.pasos} /> },
@@ -185,7 +192,7 @@ function guion(banda: Banda): Paso[] {
       ],
     },
     {
-      tipo: 'elegir', clave: 'compania', capitulo: 1, columnas: 4,
+      tipo: 'elegir', clave: 'compania', capitulo: 1,
       titulo: b.trabado,
       bajada: '¿Qué hacés, en general?',
       opciones: [
@@ -196,7 +203,7 @@ function guion(banda: Banda): Paso[] {
       ],
     },
     {
-      tipo: 'elegir', clave: 'andamio', capitulo: 1, columnas: 2,
+      tipo: 'elegir', clave: 'andamio', capitulo: 1,
       titulo: chico ? 'Algo que nunca hiciste.' : 'Algo nuevo que nunca viste.',
       bajada: '¿Cómo preferís arrancar?',
       opciones: [
@@ -205,7 +212,7 @@ function guion(banda: Banda): Paso[] {
       ],
     },
     {
-      tipo: 'elegir', clave: 'dosis', capitulo: 1, columnas: 2,
+      tipo: 'elegir', clave: 'dosis', capitulo: 1,
       titulo: 'Última.',
       bajada: chico ? '¿Cuándo te sale mejor?' : '¿Cuándo te rinde más?',
       opciones: [
@@ -320,7 +327,9 @@ function Pregunta({ paso, elegido, onElegir, conVoz }: {
         </div>
         {paso.bajada && <Text variant="muted" className="text-balance">{paso.bajada}</Text>}
       </div>
-      <div role="radiogroup" className={cn('grid w-full gap-3', paso.columnas === 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2')}>
+      {/* Las columnas son tantas como opciones: con una columna de más, las tarjetas quedan
+          corridas a un lado y la fila se ve rota. */}
+      <div role="radiogroup" className={cn('grid w-full gap-3', COLUMNAS[Math.min(paso.opciones.length, 4)])}>
         {paso.opciones.map((o, k) => {
           const puesto = cn(
             'kit-reveal flex flex-col gap-3 rounded-xl border-2 border-line bg-surface p-4 text-left transition',
