@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 import {
-  Button, Card, DoodleBrote, DoodleFoco, DoodleGrupo, DoodleLibro, DoodleMapa, DoodlePuente, Eyebrow, Heading, Icon, IconButton, Logomark, Personaje, Text, cn,
+  Button, Card, DoodleBrote, DoodleFoco, DoodleGrupo, DoodleMapa, Eyebrow, Heading, Icon, IconButton, Logomark, Personaje, Text, cn,
 } from '@/kit'
 import { api } from '../lib/api'
 import { EJES, POLOS, titular, type PerfilVivo, type Polo } from '../lib/perfil'
@@ -22,7 +22,7 @@ import {
 
 /* ═══════════ el guion ═══════════ */
 
-type Opcion = { valor: string; titulo: string; pie?: string; cuerpo?: ReactNode }
+type Opcion = { valor: string; titulo: string; pie?: string; cuerpo?: ReactNode; fondo?: string }
 type Paso =
   | { tipo: 'contar'; clave: string; capitulo: number; render: ReactNode; cta: string }
   | { tipo: 'elegir'; clave: string; capitulo: number; titulo: string; bajada?: string; opciones: Opcion[]; columnas: 2 | 4; alto?: boolean }
@@ -135,9 +135,9 @@ function guion(banda: Banda): Paso[] {
       titulo: '¿Por dónde andás?',
       bajada: 'Para mostrarte ejemplos que te sirvan y no cosas que todavía no viste.',
       opciones: [
-        { valor: 'chico', titulo: 'Recién empiezo', pie: 'Estoy aprendiendo a leer y a contar', cuerpo: <DoodleBrote size={72} /> },
-        { valor: 'medio', titulo: 'Voy a la primaria', pie: 'Leo bien y ya sé multiplicar', cuerpo: <DoodleLibro size={72} /> },
-        { valor: 'grande', titulo: 'Secundaria o más', pie: 'Me manejo con fracciones y ecuaciones', cuerpo: <DoodlePuente size={72} /> },
+        { valor: 'chico', titulo: 'Recién empiezo', pie: 'Estoy aprendiendo a leer y a contar', fondo: '/tarjetas/recien-empiezo.webp' },
+        { valor: 'medio', titulo: 'Voy a la primaria', pie: 'Leo bien y ya sé multiplicar', fondo: '/tarjetas/primaria.webp' },
+        { valor: 'grande', titulo: 'Secundaria o más', pie: 'Me manejo con fracciones y ecuaciones', fondo: '/tarjetas/secundaria.webp' },
       ],
     },
     {
@@ -343,6 +343,20 @@ function Pregunta({ paso, elegido, onElegir, conVoz }: {
                 Con esta
               </button>
             </div>
+          ) : o.fondo ? (
+            // La imagen ocupa el lugar del dibujo, a sangre en su mitad de la tarjeta. El texto
+            // queda abajo sobre blanco, con la misma tinta y el mismo tamaño que las demás:
+            // sobre una imagen cargada no hay contraste que aguante un texto chico.
+            <button key={o.valor} type="button" role="radio" aria-checked={elegido === o.valor}
+              onClick={() => onElegir(o.valor)}
+              className={cn(puesto, 'gap-0 overflow-hidden p-0',
+                'hover:border-ink/40 hover:shadow-[var(--shadow-card)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus')}>
+              <img src={o.fondo} alt="" aria-hidden="true" className="min-h-0 w-full flex-1 object-cover" />
+              <span className="flex flex-col gap-1 p-4 text-left">
+                <span className="text-[15px] font-medium leading-snug text-ink">{o.titulo}</span>
+                {o.pie && <span className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-subtle">{o.pie}</span>}
+              </span>
+            </button>
           ) : (
             <button key={o.valor} type="button" role="radio" aria-checked={elegido === o.valor}
               onClick={() => onElegir(o.valor)}
