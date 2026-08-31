@@ -38,7 +38,7 @@ type Def = {
 const DEFS: Record<ClaveMuestra, Def> = {
   mitad: {
     titulo: 'La mitad',
-    hablado: 'Si partís la galletita justo por el medio, cada pedazo es la mitad.',
+    hablado: 'Partimos la galletita justo por el medio. Quedan dos pedazos iguales. Cada uno es una mitad.',
     leido: 'Mitad: dos pedazos iguales.',
     consigna: 'Pintá la mitad.',
     ver: 'partes', partes: 2, pintadas: 1, etiqueta: 'la mitad',
@@ -46,7 +46,7 @@ const DEFS: Record<ClaveMuestra, Def> = {
   },
   contar: {
     titulo: 'Tres y dos',
-    hablado: 'Tres manzanas y dos manzanas. Contá todas: una, dos, tres, cuatro, cinco.',
+    hablado: 'Tres bolitas y dos bolitas. Contamos todas juntas: una, dos, tres, cuatro, cinco.',
     leido: '3 + 2 = 5',
     consigna: 'Pintá cinco.',
     ver: 'suma',

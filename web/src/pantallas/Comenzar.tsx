@@ -48,8 +48,8 @@ const POR_BANDA: Record<Banda, {
 }> = {
   chico: {
     chispa: {
-      titulo: 'La misma tarea, empezada de cuatro formas.',
-      bajada: 'Contar los pasos que hay hasta el patio. ¿Cuál te gusta más?',
+      titulo: 'Cuatro maneras de empezar lo mismo.',
+      bajada: 'Contar los pasos que hay hasta el patio. ¿Cuál te dan ganas de abrir?',
       opciones: [
         { valor: 'reto', titulo: '«¿Podés adivinar cuántos pasos son, antes de contarlos?»', pie: 'Un desafío' },
         { valor: 'historia', titulo: '«Un pingüino se perdió y tiene que contar los pasos para volver a casa.»', pie: 'Un cuento' },
@@ -58,8 +58,8 @@ const POR_BANDA: Record<Banda, {
       ],
     },
     ritmo: {
-      titulo: 'Las mismas instrucciones, de dos maneras.',
-      bajada: 'Hacer un sándwich. Marcá la que se entiende mejor.',
+      titulo: 'Lo mismo, explicado de dos maneras.',
+      bajada: 'Cómo hacer un sándwich. Tocá la que se entiende mejor.',
       pasos: ['Sacá dos panes.', 'Poné el queso.', 'Tapá con el otro pan.', 'Cortalo al medio.'],
       mapa: 'Un sándwich es todo lo que quieras, siempre entre dos panes.',
       mapaPie: 'Sabiendo eso, el orden sale solo.',
@@ -166,7 +166,7 @@ function guion(banda: Banda): Paso[] {
     {
       tipo: 'elegir', clave: 'canal1', capitulo: 1, columnas: 4, alto: true,
       titulo: `${tituloDe(muestraA)}, explicado de cuatro maneras.`,
-      bajada: chico ? 'Probá las cuatro. Después marcá «con esta» en la que te gustó más.' : 'Probá las cuatro. Después marcá «con esta» en la que te lo hizo entender más rápido.',
+      bajada: chico ? 'Probá las cuatro. Después tocá «con esta» abajo de la que más te gustó.' : 'Probá las cuatro. Después marcá «con esta» en la que te lo hizo entender más rápido.',
       opciones: opcionesDeMuestra(muestraA),
     },
     {
