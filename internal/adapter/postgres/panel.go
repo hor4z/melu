@@ -18,7 +18,7 @@ select e.id, e.asignacion_id, e.aprendiz_id, p.nombre, g.id, g.nombre, a.titulo,
        coalesce(a.composicion->>'experiencia', ''),
        (select min(v.ocurrio) from evento v where v.persona_id=e.aprendiz_id and v.actividad_id=s.actividad_id and v.verbo='mision.abierta'),
        coalesce(e.entregada_at, (select max(v.ocurrio) from evento v where v.persona_id=e.aprendiz_id and v.actividad_id=s.actividad_id and v.verbo='mision.entregada')),
-       e.respuestas, s.documento_snapshot, e.pasos, e.updated_at
+       e.respuestas, s.documento_snapshot, e.pasos, a.composicion, e.updated_at
 from entrega e
 join asignacion s on s.id=e.asignacion_id
 join actividad a on a.id=s.actividad_id
@@ -28,7 +28,7 @@ join persona p on p.id=e.aprendiz_id
 
 func scanHecho(row pgx.CollectableRow) (domain.Hecho, error) {
 	var h domain.Hecho
-	err := row.Scan(&h.EntregaID, &h.AsignacionID, &h.AprendizID, &h.Aprendiz, &h.GrupoID, &h.Grupo, &h.Titulo, &h.Estado, &h.Experiencia, &h.Abierta, &h.Entregada, &h.Respuestas, &h.Documento, &h.Pasos, &h.Actualizada)
+	err := row.Scan(&h.EntregaID, &h.AsignacionID, &h.AprendizID, &h.Aprendiz, &h.GrupoID, &h.Grupo, &h.Titulo, &h.Estado, &h.Experiencia, &h.Abierta, &h.Entregada, &h.Respuestas, &h.Documento, &h.Pasos, &h.Composicion, &h.Actualizada)
 	return h, err
 }
 

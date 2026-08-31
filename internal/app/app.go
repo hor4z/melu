@@ -23,6 +23,7 @@ type Servicios struct {
 	Entregas     port.Entregas
 	Membresias   port.Membresias
 	Panel        port.Panel
+	Perfiles     port.Perfiles
 }
 
 // EntrarConIdentidad resuelve o crea la persona a partir de una identidad externa y abre sesión.

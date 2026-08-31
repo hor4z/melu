@@ -137,6 +137,18 @@ type Hecho struct {
 	EntregaID, AsignacionID, AprendizID, Aprendiz, GrupoID, Grupo, Titulo, Estado string
 	Experiencia                                                                   string
 	Abierta, Entregada                                                            *time.Time
-	Respuestas, Documento, Pasos                                                  json.RawMessage
+	Respuestas, Documento, Pasos, Composicion                                     json.RawMessage
 	Actualizada                                                                   time.Time
+}
+
+// ---- perfil de aprendizaje ----
+
+// Perfil es una foto de cómo le entra el contenido a alguien, no una etiqueta.
+// Declarado sale del onboarding; lo observado se recalcula siempre de las entregas.
+type Perfil struct {
+	PersonaID   string             `json:"personaId"`
+	Declarado   map[string]float64 `json:"declarado"`
+	Respuestas  json.RawMessage    `json:"respuestas"`
+	Creado      time.Time          `json:"creado"`
+	Actualizado time.Time          `json:"actualizado"`
 }

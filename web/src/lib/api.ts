@@ -29,7 +29,7 @@ export type Membresia = { espacioId: string; grupoId: string | null; rol: Rol }
 export type Grupo = { id: string; espacioId: string; nombre: string; codigo: string; etiquetas: Record<string, string>; aprendices: number }
 export type Fase = { clave: string; nombre: string; pide: string }
 export type Lente = { clave: string; nombre: string; descripcion: string; fases: Fase[] }
-export type Yo = { persona: Persona; modo: 'guia' | 'aprendiz' | 'nuevo'; espacios: Espacio[]; membresias: Membresia[] }
+export type Yo = { persona: Persona; modo: 'guia' | 'aprendiz' | 'nuevo'; espacios: Espacio[]; membresias: Membresia[]; perfil: boolean }
 export type AuthOpciones = { google: boolean; dev: boolean }
 
 export type TipoBloque =

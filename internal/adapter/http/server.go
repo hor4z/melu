@@ -52,6 +52,7 @@ func (s *Server) rutas() {
 
 	s.rutasContenido()
 	s.rutasPanel()
+	s.rutasPerfil()
 
 	if s.web != nil {
 		m.Handle("/", spa(s.web))

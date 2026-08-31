@@ -73,3 +73,9 @@ type Panel interface {
 	HechosDeAprendiz(ctx context.Context, aprendizID string) ([]domain.Hecho, error)
 	HayAsignaciones(ctx context.Context, guiaID string) bool
 }
+
+type Perfiles interface {
+	PorPersona(ctx context.Context, personaID string) (*domain.Perfil, error)
+	Guardar(ctx context.Context, p domain.Perfil) error
+	DeGrupo(ctx context.Context, grupoID string) (map[string]domain.Perfil, error)
+}

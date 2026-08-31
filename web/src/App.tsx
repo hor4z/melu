@@ -20,6 +20,7 @@ import { Hoy } from './pantallas/Hoy'
 import { MisionPantalla } from './pantallas/Mision'
 import { Progreso } from './pantallas/Progreso'
 import { Kit } from './pantallas/Kit'
+import { Comenzar } from './pantallas/Comenzar'
 
 // Si alguien llega con un código de invitación y ya tiene sesión, se une solo y sigue a Hoy.
 function Unirme() {
@@ -45,9 +46,12 @@ export function App() {
   if (yo.data.modo === 'nuevo') return <Bienvenida yo={yo.data} />
 
   if (yo.data.modo === 'aprendiz') {
+    // Primero lo primero: si nunca pasó por el onboarding, arranca ahí.
+    if (!yo.data.perfil) return <Comenzar />
     return (
       <Routes>
         <Route path="/mision/:id" element={<MisionPantalla />} />
+        <Route path="/comenzar" element={<Comenzar />} />
         <Route path="*" element={
           <ShellAprendiz yo={yo.data}>
             <Routes>

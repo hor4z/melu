@@ -15,6 +15,7 @@ type Yo2 struct {
 	Modo       string             `json:"modo"` // guia | aprendiz | nuevo
 	Espacios   []domain.Espacio   `json:"espacios"`
 	Membresias []domain.Membresia `json:"membresias"`
+	Perfil     bool               `json:"perfil"` // ya hizo el onboarding de "cómo aprendo"
 }
 
 func (s *Servicios) Yo2(ctx context.Context, p domain.Persona) (*Yo2, error) {
@@ -33,7 +34,11 @@ func (s *Servicios) Yo2(ctx context.Context, p domain.Persona) (*Yo2, error) {
 			}
 		}
 	}
-	return &Yo2{Persona: p, Modo: modo, Espacios: c.Espacios, Membresias: c.Membresias}, nil
+	tienePerfil := false
+	if _, err := s.Perfiles.PorPersona(ctx, p.ID); err == nil {
+		tienePerfil = true
+	}
+	return &Yo2{Persona: p, Modo: modo, Espacios: c.Espacios, Membresias: c.Membresias, Perfil: tienePerfil}, nil
 }
 
 // Unirme: una persona ya logueada entra a un grupo con su código, como aprendiz.

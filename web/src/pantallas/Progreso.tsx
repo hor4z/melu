@@ -4,10 +4,13 @@ import { Clock, Flame, Target, Trophy } from 'lucide-react'
 import { Button, Card, Chip, DoodleBrote, Eyebrow, Icon, ProgressRing, StatTile, Text } from '@/kit'
 import { api, type Progreso as P } from '../lib/api'
 import { EXPERIENCIAS } from '../lib/composicion'
+import { TarjetaPerfil } from '../bloques/Perfil'
+import type { PerfilVivo } from '../lib/perfil'
 
 export function Progreso() {
   const nav = useNavigate()
   const q = useQuery({ queryKey: ['progreso'], queryFn: () => api.get<P>('/api/mi-progreso') })
+  const perfil = useQuery({ queryKey: ['perfil'], queryFn: () => api.get<PerfilVivo>('/api/perfil') })
   const p = q.data
   if (!p) return null
   const total = p.hechas + p.enCurso
@@ -23,6 +26,7 @@ export function Progreso() {
         <StatTile label="Tiempo" value={p.minutos} unit="min" hint="en total, trabajando" tint="bg-blue" icon={<Icon icon={Clock} size="lg" />} />
         <StatTile label="Aciertos" value={p.aciertos >= 0 ? Math.round(p.aciertos * 100) : '—'} unit={p.aciertos >= 0 ? '%' : undefined} hint="en los chequeos" tint="bg-lilac" icon={<Icon icon={Target} size="lg" />} />
       </section>
+      {perfil.data && <TarjetaPerfil v={perfil.data} titulo="Cómo aprendés, hoy" voz="vos" />}
       {Object.keys(p.experiencias).length > 0 && (
         <Card padding="lg"><Eyebrow>Qué tipo de cosas hiciste</Eyebrow><div className="mt-3 flex flex-wrap gap-2">{Object.entries(p.experiencias).map(([k, n]) => <Chip key={k}>{EXPERIENCIAS[k] ?? k} · {n}</Chip>)}</div></Card>
       )}
