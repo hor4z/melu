@@ -158,8 +158,8 @@ function guion(banda: Banda, yaEntro: boolean): Paso[] {
       bajada: 'Para mostrarte ejemplos que te sirvan y no cosas que todavía no viste.',
       opciones: [
         { valor: 'chico', titulo: 'Recién empiezo', pie: 'Estoy aprendiendo a leer y a contar', cuerpo: <Ilustracion src="/tarjetas/recien-empiezo.webp" /> },
-        { valor: 'medio', titulo: 'Voy a la primaria', pie: 'Leo bien y ya sé multiplicar', cuerpo: <Ilustracion src="/tarjetas/primaria.webp" /> },
-        { valor: 'grande', titulo: 'Secundaria o más', pie: 'Me manejo con fracciones y ecuaciones', cuerpo: <Ilustracion src="/tarjetas/secundaria.webp" /> },
+        { valor: 'medio', titulo: 'Voy a la primaria', pie: 'Leo bien y ya sé multiplicar', cuerpo: <Ilustracion src="/tarjetas/primaria.png" /> },
+        { valor: 'grande', titulo: 'Secundaria o más', pie: 'Me manejo con fracciones y ecuaciones', cuerpo: <Ilustracion src="/tarjetas/secundaria.png" /> },
       ],
     },
     {
