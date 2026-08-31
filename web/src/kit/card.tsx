@@ -14,7 +14,7 @@ const cardVariantes = cva('flex min-w-0 flex-col rounded-xl', {
       ghost: '',
     },
     padding: { none: '', sm: 'p-4', md: 'p-5', lg: 'p-6' },
-    interactive: { true: 'text-left outline-none transition-shadow hover:shadow-[0_0_0_2px_var(--color-ink)] focus-visible:shadow-[0_0_0_2px_var(--color-ink)]' },
+    interactive: { true: 'cursor-pointer text-left outline-none transition-shadow hover:shadow-[0_0_0_2px_var(--color-ink)] focus-visible:shadow-[0_0_0_2px_var(--color-ink)]' },
   },
   defaultVariants: { variant: 'default', padding: 'none' },
 })

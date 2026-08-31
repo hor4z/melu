@@ -97,3 +97,24 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; text-wra
   .kit-pop, .kit-fade, .kit-reveal, .kit-correcto, .kit-error, .kit-nudge, .kit-glow, .kit-rise, .kit-flip { animation: none !important }
 }
 .squiggle { background: linear-gradient(transparent 62%, var(--color-yellow-400) 62%, var(--color-yellow-400) 88%, transparent 88%); }
+
+/* --------------------------------------------------------------------------
+   El cursor. En Tailwind v4 el preflight deja los <button> con el cursor por
+   defecto del navegador, que es la flecha: nada se siente clickeable al pasar
+   por encima. Se resuelve una vez acá, sobre los roles, en vez de acordarse
+   de ponerlo en cada componente nuevo.
+   -------------------------------------------------------------------------- */
+@layer base {
+  button,
+  summary,
+  select,
+  [role="button"], [role="radio"], [role="checkbox"], [role="switch"], [role="tab"],
+  [role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"], [role="option"],
+  label:has(> input[type="checkbox"]), label:has(> input[type="radio"]) {
+    cursor: pointer;
+  }
+  /* Después, para que gane sobre lo de arriba con la misma especificidad. */
+  :disabled, [aria-disabled="true"], [data-disabled] {
+    cursor: not-allowed;
+  }
+}
