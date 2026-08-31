@@ -46,7 +46,7 @@ function Ilustracion({ src }: { src: string }) {
     <span className="flex items-center justify-center p-1">
       {/* El alto es la única perilla: subirlo o bajarlo mueve las tres a la vez, porque las
           imágenes están normalizadas por su caja de tinta. */}
-      <img src={src} alt="" aria-hidden="true" className="max-h-40 w-auto select-none" draggable={false} />
+      <img src={src} alt="" aria-hidden="true" className="max-h-56 w-auto select-none" draggable={false} />
     </span>
   )
 }
