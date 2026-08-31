@@ -7,7 +7,6 @@ import { api, nuevoId, type Actividad, type Bloque, type Criterio, type FiguraMa
 import { ES_INTERACTIVO, ESCENARIOS, EXPERIENCIAS, FIGURAS, JUEGOS, SOCIAL, TIPOS_BLOQUE } from '../lib/composicion'
 import { ChipsComposicion, Rotulo } from '../bloques/Chips'
 import { BloqueInteractivo, BloqueLectura, partirHuecos } from '../bloques/Interactivo'
-import { Programar } from '../bloques/Programar'
 import { Modal } from '../bloques/Modal'
 import { Portada } from '../bloques/Portada'
 
@@ -454,29 +453,19 @@ function ConfigJuego({ b, onChange }: { b: Bloque; onChange: (p: Partial<Bloque>
 function Asignar({ abierto, onCerrar, actividadId, onAsignada }: { abierto: boolean; onCerrar: () => void; actividadId: string; onAsignada: (grupoId: string) => void }) {
   const grupos = useQuery({ queryKey: ['grupos'], queryFn: () => api.get<Grupo[]>('/api/grupos'), enabled: abierto })
   const [listo, setListo] = useState<string | null>(null)
-  const [programar, setProgramar] = useState<string | null>(null)
   const asignar = useMutation({ mutationFn: (grupoId: string) => api.post(`/api/actividades/${actividadId}/asignar`, { grupoId }), onSuccess: (_, gid) => setListo(gid) })
   const gruposLista = useMemo(() => grupos.data ?? [], [grupos.data])
   return (
-    <Modal abierto={abierto} onCerrar={onCerrar} titulo="Asignar a un grupo" descripcion="Asignada ahora, los chicos la ven en «Hoy». Programada para más adelante, les aparece cuando abre. Se congela una copia: si editás después, lo asignado no cambia." pie={<>{listo && <Button onClick={() => onAsignada(listo)}>Ir al grupo</Button>}<Button variant="ghost" onClick={onCerrar}>Cerrar</Button></>}>
+    <Modal abierto={abierto} onCerrar={onCerrar} titulo="Asignar a un grupo" descripcion="Los chicos la ven en «Hoy». Se congela una copia: si editás después, lo asignado no cambia." pie={<>{listo && <Button onClick={() => onAsignada(listo)}>Ir al grupo</Button>}<Button variant="ghost" onClick={onCerrar}>Cerrar</Button></>}>
       <div className="flex flex-col gap-2">
         {gruposLista.length === 0 && <Text variant="muted">Todavía no tenés grupos.</Text>}
         {gruposLista.map((g) => (
           <div key={g.id} className="flex items-center justify-between rounded-xl border border-line px-4 py-3">
             <div><div className="font-medium">{g.nombre}</div><Text size="xs" variant="muted">{g.aprendices} aprendices · código {g.codigo}</Text></div>
-            {listo === g.id ? <Text size="sm" className="font-semibold text-success">Asignada ✓</Text> : (
-              <div className="flex items-center gap-1">
-                <Button size="sm" onClick={() => asignar.mutate(g.id)} loading={asignar.isPending && asignar.variables === g.id}>Asignar ahora</Button>
-                <Button size="sm" variant="ghost" onClick={() => setProgramar(g.id)}>Programar…</Button>
-              </div>
-            )}
+            {listo === g.id ? <Text size="sm" className="font-semibold text-success">Asignada ✓</Text> : <Button size="sm" onClick={() => asignar.mutate(g.id)} loading={asignar.isPending && asignar.variables === g.id}>Asignar</Button>}
           </div>
         ))}
       </div>
-      {programar && (
-        <Programar abierto onCerrar={() => setProgramar(null)} actividadId={actividadId} grupoIdInicial={programar}
-          onListo={() => { setProgramar(null); setListo(programar) }} />
-      )}
     </Modal>
   )
 }

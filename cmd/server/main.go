@@ -48,8 +48,7 @@ func main() {
 	svc := &app.Servicios{
 		Personas: repos, Sesiones: repos.Sesiones(), Espacios: repos.Espacios(),
 		Grupos: repos.Grupos(), Lentes: repos, Eventos: repos,
-		Actividades: repos.Actividades(), Asignaciones: repos.Asignaciones(), Entregas: repos.Entregas(), Membresias: repos.Membresias(), Panel: repos.Panel(), Perfiles: repos.Perfiles(),
-		Series: repos.Series(), Programacion: repos.Programacion(), Zona: zona,
+		Actividades: repos.Actividades(), Asignaciones: repos.Asignaciones(), Entregas: repos.Entregas(), Membresias: repos.Membresias(), Panel: repos.Panel(), Perfiles: repos.Perfiles(), Zona: zona,
 	}
 
 	g, err := google.Nuevo(ctx, cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.BaseURL+"/api/auth/google/callback")

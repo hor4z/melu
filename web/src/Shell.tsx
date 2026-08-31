@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell, BookOpen, Check, ChevronsUpDown, Compass, Home, LayoutDashboard, Plus, School, Search, Users, CalendarClock } from 'lucide-react'
+import { Bell, BookOpen, Check, ChevronsUpDown, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
 import {
   Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
   Field, Icon, Input, Logo, Text, UserMenu, cn,
@@ -100,8 +100,7 @@ export function ShellGuia({ yo, children }: { yo: Yo; children: ReactNode }) {
           <nav className="mt-3 flex flex-col gap-0.5 px-3">
             <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-ink-subtle">Enseñar</p>
             <NavLink to="/inicio" className={item}><Icon icon={LayoutDashboard} size="lg" /> Inicio</NavLink>
-            <NavLink to="/programacion" className={item}><Icon icon={CalendarClock} size="lg" /> Programación</NavLink>
-          <NavLink to="/grupos" className={item}><Icon icon={Users} size="lg" /> Grupos</NavLink>
+            <NavLink to="/grupos" className={item}><Icon icon={Users} size="lg" /> Grupos</NavLink>
             <NavLink to="/actividades" className={item}><Icon icon={BookOpen} size="lg" /> Actividades</NavLink>
             <NavLink to="/lentes" className={item}><Icon icon={Compass} size="lg" /> Lentes</NavLink>
           </nav>

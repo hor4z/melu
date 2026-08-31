@@ -13,9 +13,8 @@ type Config struct {
 	GoogleClientID     string
 	GoogleClientSecret string
 	DevLogin           bool
-	// Zona: la única cosa del servidor que necesita saber en qué huso vive la escuela. Se usa
-	// para expandir una repetición ("los martes a las 10" no son instantes sin una zona) y para
-	// saber dónde empieza el día en el panel.
+	// Zona: dónde vive la escuela. Hace falta para saber dónde empieza el día, porque
+	// truncar un instante trunca en UTC y en Argentina eso pone el borde a las 21:00.
 	Zona string
 }
 

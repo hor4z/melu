@@ -19,7 +19,6 @@ export const api = {
   get: <T>(p: string) => req<T>('GET', p),
   post: <T>(p: string, b?: unknown) => req<T>('POST', p, b),
   put: <T>(p: string, b?: unknown) => req<T>('PUT', p, b),
-  del: <T>(p: string) => req<T>('DELETE', p),
 }
 
 // ---- tipos que espejan el dominio de Go ----
@@ -86,7 +85,7 @@ export type Actividad = {
 }
 export type Asignacion = {
   id: string; actividadId: string; grupoId: string; titulo: string; composicion: Composicion
-  documento?: Documento; rubrica?: Criterio[]; abre: string; cierra: string | null; serieId: string | null
+  documento?: Documento; rubrica?: Criterio[]; abre: string; cierra: string | null
   entregas: number; entregasTotales: number; grupoNombre?: string; miEstado: 'en_curso' | 'entregada' | 'corregida' | null
 }
 export type ValorRespuesta = string | number | number[] | string[]
@@ -97,19 +96,6 @@ export type Entrega = {
   estado: 'en_curso' | 'entregada' | 'corregida'; respuestas: Respuestas; artefactos: unknown[]; pasos: Pasos; puntajes: Puntaje[]
   entregadaAt: string | null; updatedAt: string
 }
-/** Lo que devuelve /api/hoy: tres cubetas, no una lista plana. Lo atrasado va aparte porque es
- *  lo que le va a doler, y lo que todavía no abrió porque no se puede empezar. */
-export type Agenda = { atrasadas: Asignacion[]; salas: Sala[]; proximas: Asignacion[] }
-
-export type Programado = {
-  asignacionId: string; actividadId: string; titulo: string
-  grupoId: string; grupo: string; composicion: Composicion
-  abre: string; cierra: string | null; serieId: string | null
-  entregas: number; totales: number; sinCorregir: number
-}
-export type ReglaSerie = { id: string; dias: number[]; hora: string; plazo: number | null; desde: string; hasta: string }
-export type Programacion = { desde: string; hasta: string; items: Programado[]; series: Record<string, ReglaSerie> }
-
 export type Sala = { grupo: Grupo; misiones: Asignacion[] }
 export type Mision = { asignacion: Asignacion; entrega: Entrega }
 export type Aprendiz = { id: string; nombre: string }

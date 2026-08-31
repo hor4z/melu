@@ -3,7 +3,6 @@ package http
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"melu/internal/app"
 	"melu/internal/domain"
@@ -132,17 +131,10 @@ func (s *Server) guardarActividad(w http.ResponseWriter, r *http.Request, p doma
 
 func (s *Server) asignar(w http.ResponseWriter, r *http.Request, p domain.Persona) {
 	var in struct {
-		GrupoID string             `json:"grupoId"`
-		Abre    *time.Time         `json:"abre"`
-		Cierra  *time.Time         `json:"cierra"`
-		Repetir *domain.Repeticion `json:"repetir"`
+		GrupoID string `json:"grupoId"`
 	}
 	json.NewDecoder(r.Body).Decode(&in)
-	var abre time.Time // cero = ahora, que es lo que hacía siempre
-	if in.Abre != nil {
-		abre = *in.Abre
-	}
-	a, err := s.svc.Asignar(r.Context(), p, r.PathValue("id"), in.GrupoID, abre, in.Cierra, in.Repetir)
+	a, err := s.svc.Asignar(r.Context(), p, r.PathValue("id"), in.GrupoID)
 	if err != nil {
 		fallo(w, err)
 		return

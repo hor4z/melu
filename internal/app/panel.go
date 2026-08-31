@@ -90,8 +90,8 @@ func (s *Servicios) PanelDocente(ctx context.Context, p domain.Persona, espacioI
 		out.Aprendices += g.Aprendices
 	}
 
-	// serie de la semana. Antes acá había Truncate(24h), que trunca en UTC: en Argentina el
-	// «día» empezaba a las 21:00 y las barras salían corridas.
+	// serie de la semana. Truncate(24h) trunca en UTC, así que en Argentina el «día» empezaba
+	// a las 21:00 y estas barras salían corridas.
 	z := s.zona()
 	hoy := inicioDelDia(time.Now(), z)
 	dias := map[string]*DiaSerie{}

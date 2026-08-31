@@ -24,11 +24,22 @@ type Servicios struct {
 	Membresias   port.Membresias
 	Panel        port.Panel
 	Perfiles     port.Perfiles
-	Series       port.Series
-	Programacion port.Programacion
-	// Zona: dónde vive la escuela. Solo hace falta para expandir repeticiones y para saber
-	// dónde empieza el día. Si es nil se usa la del proceso.
+	// Zona: si es nil se usa la del proceso.
 	Zona *time.Location
+}
+
+func (s *Servicios) zona() *time.Location {
+	if s.Zona != nil {
+		return s.Zona
+	}
+	return time.Local
+}
+
+// inicioDelDia da el arranque del día local. Existe porque `Truncate(24*time.Hour)` trunca en
+// UTC: en Argentina el «día» empezaba a las 21:00 y las barras del panel salían corridas.
+func inicioDelDia(t time.Time, z *time.Location) time.Time {
+	t = t.In(z)
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, z)
 }
 
 // EntrarConIdentidad resuelve o crea la persona a partir de una identidad externa y abre sesión.
