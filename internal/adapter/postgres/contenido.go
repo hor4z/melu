@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 
@@ -76,19 +77,38 @@ type Asignaciones struct{ r *Repos }
 
 func (r *Repos) Asignaciones() *Asignaciones { return &Asignaciones{r: r} }
 
+// Crear no cambió de firma: `domain.Asignacion` ya traía Abre y Cierra desde 0001, solo que
+// nadie las llenaba. El coalesce hace que no pasar fecha siga significando «ahora», así que las
+// llamadas que no programan se comportan igual que antes.
 func (x *Asignaciones) Crear(ctx context.Context, a domain.Asignacion) (*domain.Asignacion, error) {
-	err := x.r.db.QueryRow(ctx, `insert into asignacion(actividad_id, grupo_id, documento_snapshot, rubrica_snapshot) values($1,$2,$3,$4) returning id, abre`,
-		a.ActividadID, a.GrupoID, a.Documento, a.Rubrica).Scan(&a.ID, &a.Abre)
+	var abre *time.Time
+	if !a.Abre.IsZero() {
+		abre = &a.Abre
+	}
+	err := x.r.db.QueryRow(ctx, `insert into asignacion(actividad_id, grupo_id, documento_snapshot, rubrica_snapshot, abre, cierra, serie_id)
+	  values($1,$2,$3,$4, coalesce($5, now()), $6, $7) returning id, abre`,
+		a.ActividadID, a.GrupoID, a.Documento, a.Rubrica, abre, a.Cierra, a.SerieID).Scan(&a.ID, &a.Abre)
 	return &a, err
 }
 
-const asigCols = `s.id, s.actividad_id, s.grupo_id, a.titulo, a.composicion, s.abre, s.cierra,
+func (x *Asignaciones) Reprogramar(ctx context.Context, id string, abre time.Time, cierra *time.Time) error {
+	t, err := x.r.db.Exec(ctx, `update asignacion set abre=$2, cierra=$3 where id=$1`, id, abre, cierra)
+	if err != nil {
+		return err
+	}
+	if t.RowsAffected() == 0 {
+		return domain.ErrNoEncontrado
+	}
+	return nil
+}
+
+const asigCols = `s.id, s.actividad_id, s.grupo_id, a.titulo, a.composicion, s.abre, s.cierra, s.serie_id,
   (select count(*) from entrega e where e.asignacion_id=s.id and e.estado<>'en_curso'),
   (select count(*) from membresia m where m.grupo_id=s.grupo_id and m.rol='aprendiz')`
 
 func scanAsig(row pgx.CollectableRow) (domain.Asignacion, error) {
 	var a domain.Asignacion
-	return a, row.Scan(&a.ID, &a.ActividadID, &a.GrupoID, &a.Titulo, &a.Composicion, &a.Abre, &a.Cierra, &a.Entregas, &a.EntregasTotales)
+	return a, row.Scan(&a.ID, &a.ActividadID, &a.GrupoID, &a.Titulo, &a.Composicion, &a.Abre, &a.Cierra, &a.SerieID, &a.Entregas, &a.EntregasTotales)
 }
 
 func (x *Asignaciones) DeGrupo(ctx context.Context, grupoID string) ([]domain.Asignacion, error) {
@@ -99,24 +119,27 @@ func (x *Asignaciones) DeGrupo(ctx context.Context, grupoID string) ([]domain.As
 	return pgx.CollectRows(rows, scanAsig)
 }
 
-func (x *Asignaciones) DeAprendiz(ctx context.Context, aprendizID string) ([]domain.Asignacion, error) {
+// DeAprendiz ya no filtra por vencimiento. El filtro que estaba acá hacía dos daños silenciosos:
+// lo vencido sin entregar desaparecía sin aviso, y lo que abre mañana no llegaba nunca al
+// cliente. Ahora agrupa el caso de uso, que es quien sabe qué significa «atrasado».
+func (x *Asignaciones) DeAprendiz(ctx context.Context, aprendizID string, hasta time.Time) ([]domain.Asignacion, error) {
 	rows, err := x.r.db.Query(ctx, `select `+asigCols+`, g.nombre, (select e.estado from entrega e where e.asignacion_id=s.id and e.aprendiz_id=$1)
 	  from asignacion s join actividad a on a.id=s.actividad_id join grupo g on g.id=s.grupo_id
 	  join membresia m on m.grupo_id=s.grupo_id and m.persona_id=$1 and m.rol='aprendiz'
-	  where s.abre<=now() and (s.cierra is null or s.cierra>now()) order by s.abre desc`, aprendizID)
+	  where s.abre <= $2 order by s.abre desc`, aprendizID, hasta)
 	if err != nil {
 		return nil, err
 	}
 	return pgx.CollectRows(rows, func(row pgx.CollectableRow) (domain.Asignacion, error) {
 		var a domain.Asignacion
-		return a, row.Scan(&a.ID, &a.ActividadID, &a.GrupoID, &a.Titulo, &a.Composicion, &a.Abre, &a.Cierra, &a.Entregas, &a.EntregasTotales, &a.GrupoNombre, &a.MiEstado)
+		return a, row.Scan(&a.ID, &a.ActividadID, &a.GrupoID, &a.Titulo, &a.Composicion, &a.Abre, &a.Cierra, &a.SerieID, &a.Entregas, &a.EntregasTotales, &a.GrupoNombre, &a.MiEstado)
 	})
 }
 
 func (x *Asignaciones) PorID(ctx context.Context, id string) (*domain.Asignacion, error) {
 	var a domain.Asignacion
 	err := x.r.db.QueryRow(ctx, `select `+asigCols+`, s.documento_snapshot, s.rubrica_snapshot, g.nombre from asignacion s join actividad a on a.id=s.actividad_id join grupo g on g.id=s.grupo_id where s.id=$1`, id).
-		Scan(&a.ID, &a.ActividadID, &a.GrupoID, &a.Titulo, &a.Composicion, &a.Abre, &a.Cierra, &a.Entregas, &a.EntregasTotales, &a.Documento, &a.Rubrica, &a.GrupoNombre)
+		Scan(&a.ID, &a.ActividadID, &a.GrupoID, &a.Titulo, &a.Composicion, &a.Abre, &a.Cierra, &a.SerieID, &a.Entregas, &a.EntregasTotales, &a.Documento, &a.Rubrica, &a.GrupoNombre)
 	if err != nil {
 		return nil, noRows(err)
 	}

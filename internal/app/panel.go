@@ -90,8 +90,10 @@ func (s *Servicios) PanelDocente(ctx context.Context, p domain.Persona, espacioI
 		out.Aprendices += g.Aprendices
 	}
 
-	// serie de la semana
-	hoy := time.Now().Truncate(24 * time.Hour)
+	// serie de la semana. Antes acá había Truncate(24h), que trunca en UTC: en Argentina el
+	// «día» empezaba a las 21:00 y las barras salían corridas.
+	z := s.zona()
+	hoy := inicioDelDia(time.Now(), z)
 	dias := map[string]*DiaSerie{}
 	for i := 6; i >= 0; i-- {
 		d := hoy.AddDate(0, 0, -i)
@@ -118,12 +120,12 @@ func (s *Servicios) PanelDocente(ctx context.Context, p domain.Persona, espacioI
 			nAc++
 		}
 		if h.Abierta != nil {
-			if d, okd := dias[h.Abierta.Format("2006-01-02")]; okd {
+			if d, okd := dias[h.Abierta.In(z).Format("2006-01-02")]; okd {
 				d.Abiertas++
 			}
 		}
 		if h.Entregada != nil {
-			if d, okd := dias[h.Entregada.Format("2006-01-02")]; okd {
+			if d, okd := dias[h.Entregada.In(z).Format("2006-01-02")]; okd {
 				d.Entregadas++
 			}
 		}
@@ -265,6 +267,7 @@ func (s *Servicios) MiProgreso(ctx context.Context, p domain.Persona) (*Progreso
 	if err != nil {
 		return nil, err
 	}
+	z := s.zona()
 	out := &Progreso{Misiones: []EntregaResumen{}, Experiencia: map[string]int{}}
 	var sumAc, nAc float64
 	dias := map[string]bool{}
@@ -282,7 +285,7 @@ func (s *Servicios) MiProgreso(ctx context.Context, p domain.Persona) (*Progreso
 				nAc++
 			}
 			if h.Entregada != nil {
-				dias[h.Entregada.Format("2006-01-02")] = true
+				dias[h.Entregada.In(z).Format("2006-01-02")] = true
 			}
 		}
 		cu := h.Actualizada
@@ -297,7 +300,7 @@ func (s *Servicios) MiProgreso(ctx context.Context, p domain.Persona) (*Progreso
 	} else {
 		out.Aciertos = -1
 	}
-	for d := time.Now(); dias[d.Format("2006-01-02")]; d = d.AddDate(0, 0, -1) {
+	for d := time.Now().In(z); dias[d.Format("2006-01-02")]; d = d.AddDate(0, 0, -1) {
 		out.Racha++
 	}
 	return out, nil

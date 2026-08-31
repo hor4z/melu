@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"melu/internal/adapter/google"
 	httpadapter "melu/internal/adapter/http"
@@ -37,11 +38,18 @@ func main() {
 		}
 	}
 
+	zona, err := time.LoadLocation(cfg.Zona)
+	if err != nil {
+		slog.Warn("zona horaria desconocida, se usa la del proceso", "zona", cfg.Zona, "err", err)
+		zona = time.Local
+	}
+
 	repos := postgres.New(db)
 	svc := &app.Servicios{
 		Personas: repos, Sesiones: repos.Sesiones(), Espacios: repos.Espacios(),
 		Grupos: repos.Grupos(), Lentes: repos, Eventos: repos,
 		Actividades: repos.Actividades(), Asignaciones: repos.Asignaciones(), Entregas: repos.Entregas(), Membresias: repos.Membresias(), Panel: repos.Panel(), Perfiles: repos.Perfiles(),
+		Series: repos.Series(), Programacion: repos.Programacion(), Zona: zona,
 	}
 
 	g, err := google.Nuevo(ctx, cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.BaseURL+"/api/auth/google/callback")

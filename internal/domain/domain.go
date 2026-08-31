@@ -106,6 +106,7 @@ type Asignacion struct {
 	Rubrica         json.RawMessage `json:"rubrica,omitempty"`
 	Abre            time.Time       `json:"abre"`
 	Cierra          *time.Time      `json:"cierra"`
+	SerieID         *string         `json:"serieId"`
 	Entregas        int             `json:"entregas"`
 	EntregasTotales int             `json:"entregasTotales"`
 	// solo para el aprendiz
@@ -151,4 +152,37 @@ type Perfil struct {
 	Respuestas  json.RawMessage    `json:"respuestas"`
 	Creado      time.Time          `json:"creado"`
 	Actualizado time.Time          `json:"actualizado"`
+}
+
+// ---- programación ----
+
+// Repeticion es la regla de una serie: qué días de la semana, a qué hora, hasta cuándo.
+// No guarda contenido: el qué está en la actividad y el para quién en cada asignación, así que
+// cambiar una fecha suelta de la serie no necesita ninguna regla de precedencia.
+type Repeticion struct {
+	ID    string `json:"id,omitempty"`
+	Dias  []int  `json:"dias"`  // 0=domingo .. 6=sábado, igual que time.Weekday
+	Hora  string `json:"hora"`  // "10:00", hora de pared
+	Plazo *int   `json:"plazo"` // días hasta el vencimiento; nil = sin vencimiento
+	Desde string `json:"desde"` // YYYY-MM-DD
+	Hasta string `json:"hasta"` // YYYY-MM-DD
+}
+
+func (r Repeticion) Repite() bool { return len(r.Dias) > 0 }
+
+// Programado es una asignación con su contexto de programación: lo que ve el docente en la
+// pantalla de programación. `SinCorregir` es la respuesta a «¿me quedó algo sin cerrar?».
+type Programado struct {
+	AsignacionID string          `json:"asignacionId"`
+	ActividadID  string          `json:"actividadId"`
+	Titulo       string          `json:"titulo"`
+	GrupoID      string          `json:"grupoId"`
+	Grupo        string          `json:"grupo"`
+	Composicion  json.RawMessage `json:"composicion"`
+	Abre         time.Time       `json:"abre"`
+	Cierra       *time.Time      `json:"cierra"`
+	SerieID      *string         `json:"serieId"`
+	Entregas     int             `json:"entregas"`
+	Totales      int             `json:"totales"`
+	SinCorregir  int             `json:"sinCorregir"`
 }

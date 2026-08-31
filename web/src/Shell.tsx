@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell, BookOpen, Check, ChevronsUpDown, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
+import { Bell, BookOpen, Check, ChevronsUpDown, Compass, Home, LayoutDashboard, Plus, School, Search, Users, CalendarClock } from 'lucide-react'
 import {
   Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
   Field, Icon, Input, Logo, Text, UserMenu, cn,
@@ -100,7 +100,8 @@ export function ShellGuia({ yo, children }: { yo: Yo; children: ReactNode }) {
           <nav className="mt-3 flex flex-col gap-0.5 px-3">
             <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-ink-subtle">Enseñar</p>
             <NavLink to="/inicio" className={item}><Icon icon={LayoutDashboard} size="lg" /> Inicio</NavLink>
-            <NavLink to="/grupos" className={item}><Icon icon={Users} size="lg" /> Grupos</NavLink>
+            <NavLink to="/programacion" className={item}><Icon icon={CalendarClock} size="lg" /> Programación</NavLink>
+          <NavLink to="/grupos" className={item}><Icon icon={Users} size="lg" /> Grupos</NavLink>
             <NavLink to="/actividades" className={item}><Icon icon={BookOpen} size="lg" /> Actividades</NavLink>
             <NavLink to="/lentes" className={item}><Icon icon={Compass} size="lg" /> Lentes</NavLink>
           </nav>
@@ -157,9 +158,12 @@ export function ShellAprendiz({ yo, children }: { yo: Yo; children: ReactNode })
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-5">
           <div className="flex items-center gap-6">
             <Logo />
+            {/* El texto se cae abajo de sm: el logo, los enlaces y el menú de cuenta no entran
+                en 375 px con las etiquetas puestas, y el desborde empujaba el menú fuera de la
+                pantalla. Los iconos se distinguen y el activo ya tiene fondo. */}
             <nav className="flex gap-1">
-              <NavLink to="/hoy" className={item}><Icon icon={Home} size="md" /> Hoy</NavLink>
-              <NavLink to="/progreso" className={item}><Icon icon={Compass} size="md" /> Mi progreso</NavLink>
+              <NavLink to="/hoy" className={item}><Icon icon={Home} size="md" /> <span className="hidden sm:inline">Hoy</span></NavLink>
+              <NavLink to="/progreso" className={item}><Icon icon={Compass} size="md" /> <span className="hidden sm:inline">Mi progreso</span></NavLink>
             </nav>
           </div>
           <UserMenu nombre={yo.persona.Nombre} email={yo.persona.Email} subtitulo="Aprendiz" onSalir={salir} />

@@ -2,6 +2,7 @@ package port
 
 import (
 	"context"
+	"time"
 
 	"melu/internal/domain"
 )
@@ -50,8 +51,29 @@ type Actividades interface {
 type Asignaciones interface {
 	Crear(ctx context.Context, a domain.Asignacion) (*domain.Asignacion, error)
 	DeGrupo(ctx context.Context, grupoID string) ([]domain.Asignacion, error)
-	DeAprendiz(ctx context.Context, aprendizID string) ([]domain.Asignacion, error)
+	// DeAprendiz trae todo lo que abre hasta `hasta`, sin filtrar por vencimiento: quién decide
+	// qué está atrasado, abierto o por venir es el caso de uso, no el SQL. Antes el filtro vivía
+	// acá y hacía desaparecer en silencio lo vencido sin entregar.
+	DeAprendiz(ctx context.Context, aprendizID string, hasta time.Time) ([]domain.Asignacion, error)
 	PorID(ctx context.Context, id string) (*domain.Asignacion, error)
+	Reprogramar(ctx context.Context, id string, abre time.Time, cierra *time.Time) error
+}
+
+type Series interface {
+	Crear(ctx context.Context, r domain.Repeticion) (string, error)
+	PorID(ctx context.Context, id string) (*domain.Repeticion, error)
+	Acortar(ctx context.Context, id string, hasta time.Time) error
+}
+
+type Programacion interface {
+	// DeGuia trae las asignaciones de los grupos donde la persona es guía, en un rango, con
+	// entregas, total de aprendices y cuántas quedaron sin corregir.
+	DeGuia(ctx context.Context, guiaID, espacioID string, desde, hasta time.Time) ([]domain.Programado, error)
+	SerieDeAsignacion(ctx context.Context, asignacionID string) (grupoID string, err error)
+	// BorrarFuturasDeSerie borra las ocurrencias desde una fecha que no tengan ninguna entrega.
+	// Las que ya tienen trabajo hecho no se tocan nunca: se informa cuántas quedaron.
+	BorrarFuturasDeSerie(ctx context.Context, serieID string, desde time.Time) (borradas, conservadas int, err error)
+	EspaciosDeSerie(ctx context.Context, serieID string) ([]string, error)
 }
 
 type Entregas interface {

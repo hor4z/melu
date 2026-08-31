@@ -21,6 +21,7 @@ import { MisionPantalla } from './pantallas/Mision'
 import { Progreso } from './pantallas/Progreso'
 import { Kit } from './pantallas/Kit'
 import { Comenzar } from './pantallas/Comenzar'
+import { Programacion } from './pantallas/Programacion'
 
 // Si alguien llega con un código de invitación y ya tiene sesión, se une solo y sigue a Hoy.
 function Unirme() {
@@ -78,6 +79,7 @@ export function App() {
     <ShellGuia yo={yo.data}>
       <Routes>
         <Route path="/inicio" element={<Inicio yo={yo.data} />} />
+        <Route path="/programacion" element={<Programacion />} />
         <Route path="/grupos" element={<Grupos />} />
         <Route path="/grupos/:id" element={<GrupoDetalle />} />
         <Route path="/actividades" element={<Biblioteca />} />

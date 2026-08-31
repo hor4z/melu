@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"sort"
 	"time"
 
 	"melu/internal/domain"
@@ -166,7 +167,16 @@ func (s *Servicios) GuardarActividad(ctx context.Context, p domain.Persona, a do
 
 // ---- asignar ----
 
-func (s *Servicios) Asignar(ctx context.Context, p domain.Persona, actividadID, grupoID string) (*domain.Asignacion, error) {
+// Asignar pone una actividad a disposición de un grupo, opcionalmente con fecha de aparición,
+// fecha de entrega y repetición. Sin fechas se comporta igual que antes: `abre` cae en now() y
+// no vence. Con repetición crea una ocurrencia por fecha, todas con el mismo serie_id.
+//
+// Devuelve una lista porque repetir es el caso interesante: doce martes son doce asignaciones,
+// cada una con su propia entrega. Tiene que ser así: `entrega` tiene unique (asignacion_id,
+// aprendiz_id), o sea que una sola asignación repetida haría que el trabajo del segundo martes
+// pisara el del primero.
+func (s *Servicios) Asignar(ctx context.Context, p domain.Persona, actividadID, grupoID string,
+	abre time.Time, cierra *time.Time, rep *domain.Repeticion) ([]domain.Asignacion, error) {
 	a, err := s.VerActividad(ctx, p, actividadID)
 	if err != nil {
 		return nil, err
@@ -178,12 +188,54 @@ func (s *Servicios) Asignar(ctx context.Context, p domain.Persona, actividadID, 
 	if !s.esMiembro(ctx, p.ID, g.EspacioID, domain.RolGuia, domain.RolCoordinador) {
 		return nil, domain.ErrNoAutorizado
 	}
-	as, err := s.Asignaciones.Crear(ctx, domain.Asignacion{ActividadID: a.ID, GrupoID: g.ID, Documento: a.Documento, Rubrica: a.Rubrica})
+	if cierra != nil && !abre.IsZero() && cierra.Before(abre) {
+		return nil, domain.ErrInvalido
+	}
+
+	// sin repetición: una sola, como siempre
+	if rep == nil || !rep.Repite() {
+		as, err := s.Asignaciones.Crear(ctx, domain.Asignacion{ActividadID: a.ID, GrupoID: g.ID, Documento: a.Documento, Rubrica: a.Rubrica, Abre: abre, Cierra: cierra})
+		if err != nil {
+			return nil, err
+		}
+		s.avisarAsignada(ctx, p, g, a, []domain.Asignacion{*as}, nil)
+		return []domain.Asignacion{*as}, nil
+	}
+
+	fechas, err := expandir(*rep, s.zona())
 	if err != nil {
 		return nil, err
 	}
-	_ = s.Eventos.Emitir(ctx, domain.Evento{PersonaID: &p.ID, GrupoID: &g.ID, ActividadID: &a.ID, Verbo: "actividad.asignada", Payload: map[string]any{"asignacionId": as.ID}, Origen: "observado", Ocurrio: time.Now()})
-	return as, nil
+	serieID, err := s.Series.Crear(ctx, *rep)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]domain.Asignacion, 0, len(fechas))
+	for _, f := range fechas {
+		var c *time.Time
+		if rep.Plazo != nil {
+			v := f.AddDate(0, 0, *rep.Plazo)
+			c = &v
+		}
+		as, err := s.Asignaciones.Crear(ctx, domain.Asignacion{ActividadID: a.ID, GrupoID: g.ID, Documento: a.Documento, Rubrica: a.Rubrica, Abre: f, Cierra: c, SerieID: &serieID})
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, *as)
+	}
+	s.avisarAsignada(ctx, p, g, a, out, &serieID)
+	return out, nil
+}
+
+// avisarAsignada emite un evento por acto, no por fila: una serie de doce es un clic, y doce
+// filas en el log contaminarían el índice (verbo, ocurrio) y los buckets por día del panel.
+func (s *Servicios) avisarAsignada(ctx context.Context, p domain.Persona, g *domain.Grupo, a *domain.Actividad, as []domain.Asignacion, serieID *string) {
+	payload := map[string]any{"asignacionId": as[0].ID, "abre": as[0].Abre, "cierra": as[0].Cierra, "ocurrencias": len(as)}
+	if serieID != nil {
+		payload["serieId"] = *serieID
+	}
+	_ = s.Eventos.Emitir(ctx, domain.Evento{PersonaID: &p.ID, GrupoID: &g.ID, ActividadID: &a.ID,
+		Verbo: "actividad.asignada", Payload: payload, Origen: "observado", Ocurrio: time.Now()})
 }
 
 // ---- hacer (aprendiz) ----
@@ -193,26 +245,51 @@ type Sala struct {
 	Misiones []domain.Asignacion `json:"misiones"`
 }
 
-func (s *Servicios) Hoy(ctx context.Context, p domain.Persona) ([]Sala, error) {
+// Hoy es la pantalla del que ejecuta, no del que planifica. Por eso no es un calendario: son
+// tres cubetas ordenadas por urgencia. Lo atrasado va primero porque es lo que le va a doler,
+// y lo que todavía no abrió va aparte porque no se puede empezar.
+type Agenda struct {
+	Atrasadas []domain.Asignacion `json:"atrasadas"`
+	Salas     []Sala              `json:"salas"`
+	Proximas  []domain.Asignacion `json:"proximas"`
+}
+
+func (s *Servicios) Hoy(ctx context.Context, p domain.Persona) (*Agenda, error) {
 	grupos, err := s.Membresias.GruposDeAprendiz(ctx, p.ID)
 	if err != nil {
 		return nil, err
 	}
-	asig, err := s.Asignaciones.DeAprendiz(ctx, p.ID)
+	z := s.zona()
+	ahora := time.Now()
+	asig, err := s.Asignaciones.DeAprendiz(ctx, p.ID, ahora.AddDate(0, 0, diasDeAnticipo))
 	if err != nil {
 		return nil, err
 	}
-	salas := make([]Sala, 0, len(grupos))
-	for _, g := range grupos {
-		sala := Sala{Grupo: g, Misiones: []domain.Asignacion{}}
-		for _, a := range asig {
-			if a.GrupoID == g.ID {
-				sala.Misiones = append(sala.Misiones, a)
-			}
+
+	out := &Agenda{Atrasadas: []domain.Asignacion{}, Salas: make([]Sala, 0, len(grupos)), Proximas: []domain.Asignacion{}}
+	abiertas := map[string][]domain.Asignacion{}
+	for _, a := range asig {
+		hecha := a.MiEstado != nil && (*a.MiEstado == "entregada" || *a.MiEstado == "corregida")
+		switch {
+		case a.Abre.After(ahora):
+			out.Proximas = append(out.Proximas, a)
+		case a.Cierra != nil && a.Cierra.Before(ahora) && !hecha:
+			out.Atrasadas = append(out.Atrasadas, a)
+		default:
+			abiertas[a.GrupoID] = append(abiertas[a.GrupoID], a)
 		}
-		salas = append(salas, sala)
 	}
-	return salas, nil
+	ordenarPorUrgencia(out.Atrasadas, ahora, z)
+	sort.SliceStable(out.Proximas, func(i, j int) bool { return out.Proximas[i].Abre.Before(out.Proximas[j].Abre) })
+	for _, g := range grupos {
+		ms := abiertas[g.ID]
+		if ms == nil {
+			ms = []domain.Asignacion{}
+		}
+		ordenarPorUrgencia(ms, ahora, z)
+		out.Salas = append(out.Salas, Sala{Grupo: g, Misiones: ms})
+	}
+	return out, nil
 }
 
 type Mision struct {

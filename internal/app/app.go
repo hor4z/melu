@@ -24,6 +24,11 @@ type Servicios struct {
 	Membresias   port.Membresias
 	Panel        port.Panel
 	Perfiles     port.Perfiles
+	Series       port.Series
+	Programacion port.Programacion
+	// Zona: dónde vive la escuela. Solo hace falta para expandir repeticiones y para saber
+	// dónde empieza el día. Si es nil se usa la del proceso.
+	Zona *time.Location
 }
 
 // EntrarConIdentidad resuelve o crea la persona a partir de una identidad externa y abre sesión.

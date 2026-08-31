@@ -13,6 +13,10 @@ type Config struct {
 	GoogleClientID     string
 	GoogleClientSecret string
 	DevLogin           bool
+	// Zona: la única cosa del servidor que necesita saber en qué huso vive la escuela. Se usa
+	// para expandir una repetición ("los martes a las 10" no son instantes sin una zona) y para
+	// saber dónde empieza el día en el panel.
+	Zona string
 }
 
 // Load lee .env (si existe) y luego el entorno. El entorno gana.
@@ -25,6 +29,7 @@ func Load() Config {
 		GoogleClientID:     env("MELU_GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret: env("MELU_GOOGLE_CLIENT_SECRET", ""),
 		DevLogin:           env("MELU_DEV_LOGIN", "") == "1",
+		Zona:               env("MELU_TZ", "America/Argentina/Buenos_Aires"),
 	}
 }
 

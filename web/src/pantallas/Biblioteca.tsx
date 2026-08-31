@@ -1,13 +1,17 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
+import { CalendarClock, Plus } from 'lucide-react'
 import { Button, Card, CardContent, CardMedia, EmptyState, Eyebrow, Heading, Icon, Text } from '@/kit'
 import { api, type Actividad } from '../lib/api'
 import { useEspacioId } from '../lib/espacio'
 import { ChipsComposicion } from '../bloques/Chips'
+import { Programar } from '../bloques/Programar'
+import { diaDeIso, formatearDia } from '../lib/fechas'
 import { Portada } from '../bloques/Portada'
 
 export function Biblioteca() {
+  const [programar, setProgramar] = useState<string | null>(null)
   const nav = useNavigate()
   const espacioId = useEspacioId()
   const q = useQuery({ queryKey: ['actividades', espacioId], queryFn: () => api.get<{ recetas: Actividad[]; mias: Actividad[] }>(`/api/actividades?espacio=${espacioId}`) })
@@ -30,11 +34,16 @@ export function Biblioteca() {
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {mias.map((a) => (
-              <Card key={a.id} asChild interactive>
-                <button type="button" onClick={() => nav(`/actividades/${a.id}`)} className="text-left">
+              <Card key={a.id} className="overflow-hidden">
+                <button type="button" onClick={() => nav(`/actividades/${a.id}`)} className="cursor-pointer text-left">
                   <CardMedia><Portada titulo={a.titulo} className="h-28 w-full" size={72} /></CardMedia>
-                  <CardContent className="flex flex-col gap-2 p-4"><span className="font-semibold">{a.titulo}</span><ChipsComposicion c={a.composicion} compacto /><Text size="xs" variant="muted">{a.documento.fases.length} fases · {a.documento.fases.reduce((n, f) => n + f.bloques.length, 0)} bloques · editada {new Date(a.updatedAt).toLocaleDateString('es-AR')}</Text></CardContent>
+                  <CardContent className="flex flex-col gap-2 p-4"><span className="font-semibold">{a.titulo}</span><ChipsComposicion c={a.composicion} compacto /><Text size="xs" variant="muted">{a.documento.fases.length} fases · {a.documento.fases.reduce((n, f) => n + f.bloques.length, 0)} bloques · editada {formatearDia(diaDeIso(a.updatedAt))}</Text></CardContent>
                 </button>
+                {/* Programar desde acá y no desde el editor: el camino corto es «esta actividad,
+                    los martes», no «abrir, asignar, programar». */}
+                <div className="border-t border-line px-4 py-2">
+                  <Button size="sm" variant="ghost" startIcon={<Icon icon={CalendarClock} size="sm" />} onClick={() => setProgramar(a.id)}>Programar</Button>
+                </div>
               </Card>
             ))}
           </div>
@@ -52,6 +61,7 @@ export function Biblioteca() {
         <div><Heading size="xl">Plantillas de melu</Heading><Text size="sm" variant="muted">Combinaciones que funcionan. «Usar» te hace una copia para editar y asignar.</Text></div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{q.data?.recetas.map((r) => <Receta key={r.id} r={r} onUsar={() => usar.mutate(r.id)} cargando={usar.isPending && usar.variables === r.id} />)}</div>
       </section>
+      {programar && <Programar abierto onCerrar={() => setProgramar(null)} actividadId={programar} onListo={() => setProgramar(null)} />}
     </div>
   )
 }
