@@ -22,7 +22,7 @@ import {
 
 /* ═══════════ el guion ═══════════ */
 
-type Opcion = { valor: string; titulo: string; pie?: string; cuerpo?: ReactNode; fondo?: string }
+type Opcion = { valor: string; titulo: string; pie?: string; cuerpo?: ReactNode }
 type Paso =
   | { tipo: 'contar'; clave: string; capitulo: number; render: ReactNode; cta: string }
   | { tipo: 'elegir'; clave: string; capitulo: number; titulo: string; bajada?: string; opciones: Opcion[]; alto?: boolean }
@@ -36,6 +36,17 @@ const COLUMNAS: Record<number, string> = {
   2: 'sm:grid-cols-2',
   3: 'sm:grid-cols-2 lg:grid-cols-3',
   4: 'sm:grid-cols-2 lg:grid-cols-4',
+}
+
+/** Una ilustración dentro de una tarjeta: contenida y del tamaño de los dibujos que reemplaza,
+ *  no recortada a sangre. Las tres vienen normalizadas por su caja de tinta, así que con fijar
+ *  el alto ya pesan lo mismo. */
+function Ilustracion({ src }: { src: string }) {
+  return (
+    <span className="flex h-32 items-center justify-center p-3">
+      <img src={src} alt="" aria-hidden="true" className="max-h-full w-auto select-none" draggable={false} />
+    </span>
+  )
 }
 
 function opcionesDeMuestra(que: ClaveMuestra): Opcion[] {
@@ -144,9 +155,9 @@ function guion(banda: Banda, yaEntro: boolean): Paso[] {
       titulo: '¿Por dónde andás?',
       bajada: 'Para mostrarte ejemplos que te sirvan y no cosas que todavía no viste.',
       opciones: [
-        { valor: 'chico', titulo: 'Recién empiezo', pie: 'Estoy aprendiendo a leer y a contar', fondo: '/tarjetas/recien-empiezo.webp' },
-        { valor: 'medio', titulo: 'Voy a la primaria', pie: 'Leo bien y ya sé multiplicar', fondo: '/tarjetas/primaria.webp' },
-        { valor: 'grande', titulo: 'Secundaria o más', pie: 'Me manejo con fracciones y ecuaciones', fondo: '/tarjetas/secundaria.webp' },
+        { valor: 'chico', titulo: 'Recién empiezo', pie: 'Estoy aprendiendo a leer y a contar', cuerpo: <Ilustracion src="/tarjetas/recien-empiezo.webp" /> },
+        { valor: 'medio', titulo: 'Voy a la primaria', pie: 'Leo bien y ya sé multiplicar', cuerpo: <Ilustracion src="/tarjetas/primaria.webp" /> },
+        { valor: 'grande', titulo: 'Secundaria o más', pie: 'Me manejo con fracciones y ecuaciones', cuerpo: <Ilustracion src="/tarjetas/secundaria.webp" /> },
       ],
     },
     {
@@ -361,20 +372,6 @@ function Pregunta({ paso, elegido, onElegir, conVoz }: {
                 Con esta
               </button>
             </div>
-          ) : o.fondo ? (
-            // La imagen ocupa el lugar del dibujo, a sangre en su mitad de la tarjeta. El texto
-            // queda abajo sobre blanco, con la misma tinta y el mismo tamaño que las demás:
-            // sobre una imagen cargada no hay contraste que aguante un texto chico.
-            <button key={o.valor} type="button" role="radio" aria-checked={elegido === o.valor}
-              onClick={() => onElegir(o.valor)}
-              className={cn(puesto, 'gap-0 overflow-hidden p-0',
-                'hover:border-ink/40 hover:shadow-[var(--shadow-card)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus')}>
-              <img src={o.fondo} alt="" aria-hidden="true" className="min-h-0 w-full flex-1 object-cover" />
-              <span className="flex flex-col gap-1 p-4 text-left">
-                <span className="text-[15px] font-medium leading-snug text-ink">{o.titulo}</span>
-                {o.pie && <span className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-subtle">{o.pie}</span>}
-              </span>
-            </button>
           ) : (
             <button key={o.valor} type="button" role="radio" aria-checked={elegido === o.valor}
               onClick={() => onElegir(o.valor)}
