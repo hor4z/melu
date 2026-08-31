@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 import {
-  Button, Card, DoodleBrote, DoodleFoco, DoodleGrupo, DoodleLibro, DoodleMapa, DoodlePuente, Eyebrow, Heading, Icon, IconButton, Logomark, Text, cn,
+  Button, Card, DoodleBrote, DoodleFoco, DoodleGrupo, DoodleLibro, DoodleMapa, DoodlePuente, Eyebrow, Heading, Icon, IconButton, Logomark, Personaje, Text, cn,
 } from '@/kit'
 import { api } from '../lib/api'
 import { EJES, POLOS, titular, type PerfilVivo, type Polo } from '../lib/perfil'
@@ -116,12 +116,14 @@ function guion(banda: Banda): Paso[] {
   return [
     {
       tipo: 'contar', clave: 'hola', capitulo: 0, cta: 'Empezar',
+      // Ella entra caminando y saluda; el texto llega detrás. Primero la persona, después la app.
       render: (
-        <div className="flex flex-col items-center gap-6 text-center">
-          <Logomark size={72} className="kit-rise text-ink" />
-          <div className="flex flex-col gap-3">
-            <Heading size="2xl" className="kit-reveal kit-retraso-1">Hola. Esto es melu.</Heading>
-            <Text size="xl" variant="muted" className="kit-reveal kit-retraso-2 max-w-md text-balance">
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-2">
+          <Personaje className="h-[44vh] max-h-[26rem] min-h-60 shrink-0" alt="Meli, la guía de melu, entrando y saludando" />
+          <div className="flex max-w-md flex-col gap-3 text-center sm:text-left">
+            <Logomark size={40} className="kit-reveal mx-auto text-ink sm:mx-0" />
+            <Heading size="2xl" className="kit-reveal kit-retraso-2">Hola. Esto es melu.</Heading>
+            <Text size="xl" variant="muted" className="kit-reveal kit-retraso-3 text-balance">
               Un lugar donde se aprende haciendo: tocás, probás, te equivocás y seguís. Nada de mirar una pantalla sin hacer nada.
             </Text>
           </div>

@@ -35,3 +35,4 @@ export { Alert, Separator, Skeleton, Progress, EmptyState, type AlertProps } fro
 export { Text, Heading, Eyebrow, Kbd, type TextProps, type HeadingProps } from './text'
 export { Logo, Logomark, Sparkline, StatTile, ProgressRing, Stepper, Subrayado, Contador, PhotoFrame, UserMenu } from './melu'
 export * from './doodles'
+export { Personaje } from './personaje'
