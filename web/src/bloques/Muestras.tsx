@@ -29,7 +29,7 @@ type Def = {
   hablado: string
   leido: string
   consigna: string
-  ver: 'partes' | 'puntos' | 'suma' | 'barra'
+  ver: 'partes' | 'galletita' | 'puntos' | 'suma' | 'barra'
   partes?: number; pintadas?: number; etiqueta?: string
   filas?: number; cols?: number
   hacer: Hacer
@@ -38,15 +38,15 @@ type Def = {
 const DEFS: Record<ClaveMuestra, Def> = {
   mitad: {
     titulo: 'La mitad',
-    hablado: 'Partimos la galletita justo por el medio. Quedan dos pedazos iguales. Cada uno es una mitad.',
+    hablado: 'Tengo una galletita y somos dos. La parto justo por el medio... ¡listo! Dos pedazos igualitos: uno para vos, uno para mí. Ese pedazo tuyo es la mitad.',
     leido: 'Mitad: dos pedazos iguales.',
     consigna: 'Pintá la mitad.',
-    ver: 'partes', partes: 2, pintadas: 1, etiqueta: 'la mitad',
+    ver: 'galletita',
     hacer: { kind: 'partes', partes: 2, objetivo: 1, logro: '¡Eso es la mitad!' },
   },
   contar: {
     titulo: 'Tres y dos',
-    hablado: 'Tres bolitas y dos bolitas. Contamos todas juntas: una, dos, tres, cuatro, cinco.',
+    hablado: 'Mirá: tres bolitas acá, dos bolitas acá. ¿Cuántas hay? Contemos juntos... una, dos, tres, cuatro, ¡cinco!',
     leido: '3 + 2 = 5',
     consigna: 'Pintá cinco.',
     ver: 'suma',
@@ -54,7 +54,7 @@ const DEFS: Record<ClaveMuestra, Def> = {
   },
   tercio: {
     titulo: 'Un tercio',
-    hablado: 'Partís algo en tres partes iguales. Una sola de esas partes es un tercio.',
+    hablado: 'Agarrá una barra de chocolate y partila en tres partes iguales. Te comés una sola. Esa que te comiste es un tercio.',
     leido: 'Un tercio es una de las tres partes iguales en que se corta un entero. Se escribe 1/3.',
     consigna: 'Pintá un tercio.',
     ver: 'partes', partes: 3, pintadas: 1, etiqueta: '1/3',
@@ -62,7 +62,7 @@ const DEFS: Record<ClaveMuestra, Def> = {
   },
   porcuatro: {
     titulo: 'Tres por cuatro',
-    hablado: 'Tres por cuatro son tres filas de cuatro. Contá conmigo: cuatro, ocho, doce.',
+    hablado: 'Tres por cuatro es armar tres filas de cuatro. Y no las contás de a una: contás de a cuatro, que es más rápido. Cuatro, ocho, doce.',
     leido: '3 × 4 = 4 + 4 + 4 = 12. Multiplicar es sumar el mismo número tantas veces como diga el otro.',
     consigna: 'Armá tres filas de cuatro.',
     ver: 'puntos', filas: 3, cols: 4,
@@ -70,7 +70,7 @@ const DEFS: Record<ClaveMuestra, Def> = {
   },
   porcentaje: {
     titulo: 'El 25 %',
-    hablado: 'El veinticinco por ciento es la cuarta parte. De cada cien, veinticinco.',
+    hablado: 'Veinticinco por ciento son veinticinco de cada cien. O sea, la cuarta parte. Si una pizza se reparte entre cuatro, tu porción es el veinticinco por ciento.',
     leido: '25 % = 25/100 = 1/4. Una cuarta parte del total.',
     consigna: 'Pintá el 25 %.',
     ver: 'partes', partes: 4, pintadas: 1, etiqueta: '25 %',
@@ -78,7 +78,7 @@ const DEFS: Record<ClaveMuestra, Def> = {
   },
   incognita: {
     titulo: 'x + 5 = 12',
-    hablado: 'Si a un número le sumás cinco y te da doce, ese número tiene que ser siete.',
+    hablado: 'Hay un número escondido ahí. Le sumás cinco y te da doce. ¿Cuál es? Sacale cinco al doce y aparece: siete.',
     leido: 'x + 5 = 12 → x = 12 − 5 = 7',
     consigna: 'Buscá el valor de x.',
     ver: 'barra',
@@ -93,6 +93,23 @@ export const consignaDe = (q: ClaveMuestra) => DEFS[q].consigna
 
 export function MuestraVer({ que }: { que: ClaveMuestra }) {
   const d = DEFS[que]
+  if (d.ver === 'galletita') {
+    return (
+      <svg viewBox="0 0 108 104" className="w-full" role="img" aria-label="Una galletita partida al medio, con una mitad pintada">
+        <defs>
+          <clipPath id="mitad-izq"><rect x="0" y="0" width="54" height="104" /></clipPath>
+        </defs>
+        <circle cx={54} cy={44} r={40} fill="var(--color-teal-500)" clipPath="url(#mitad-izq)" />
+        <circle cx={54} cy={44} r={40} fill="none" stroke="currentColor" strokeWidth="3" />
+        <line x1={54} y1={2} x2={54} y2={86} stroke="currentColor" strokeWidth="3" strokeDasharray="6 5" />
+        {/* las chispas: una galletita se reconoce por esto */}
+        {[[34, 26], [26, 52], [42, 68], [74, 28], [84, 54], [66, 70]].map(([cx, cy], i) => (
+          <circle key={i} cx={cx} cy={cy} r={4.2} fill={cx < 54 ? '#ffffff' : 'currentColor'} opacity={cx < 54 ? 0.92 : 0.78} />
+        ))}
+        <text x={54} y={101} textAnchor="middle" fontSize="12" fontWeight="700" fill="var(--color-teal-500)">la mitad</text>
+      </svg>
+    )
+  }
   if (d.ver === 'partes') {
     const n = d.partes ?? 3, pintadas = d.pintadas ?? 1
     const ancho = Math.floor(168 / n) - 4

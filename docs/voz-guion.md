@@ -10,14 +10,17 @@ una tarjeta muda se lee como «a esta persona no le entra por el oído», que es
 
 ---
 
-## Antes de grabar: ¿de quién es la voz?
+## La voz es la de ella
 
-En pantalla hay una nena con anteojos y jardinero. Si la voz que explica es de un adulto,
-se va a sentir como si alguien hablara *por* ella. Hay dos caminos y conviene elegir uno
-antes de grabar, porque cambia el tono de todo:
+Decidido: habla la nena de la pantalla, no una narradora. Eso manda sobre todo lo demás.
 
-- **Es la voz de ella.** Una voz joven, de par. Explica como explica una compañera.
-- **Es una voz que acompaña.** Un adulto cálido, que guía. Ella es el personaje, no la narradora.
+No explica **a** alguien: comparte **con** alguien. Por eso las frases están escritas en
+primera persona y repartiendo — «tengo una galletita y somos dos», «contemos juntos»,
+«sacale cinco al doce y aparece». Es una compañera contándote algo que ya sabe, no una
+maestra tomando lección.
+
+Español rioplatense, voseo, sin neutro. Y sin sobreactuar de «voz para chicos»: los chicos
+detectan eso al toque. Hablá como le hablarías a un hermanito, con ganas pero de verdad.
 
 ## Cómo grabar
 
@@ -40,12 +43,12 @@ suena en ninguna franja de edad.
 
 | # | archivo | frase |
 |---|---|---|
-| 1 | `mitad` | Partimos la galletita justo por el medio. Quedan dos pedazos iguales. Cada uno es una mitad. |
-| 2 | `contar` | Tres bolitas y dos bolitas. Contamos todas juntas: una, dos, tres, cuatro, cinco. |
-| 3 | `tercio` | Partís algo en tres partes iguales. Una sola de esas partes es un tercio. |
-| 4 | `porcuatro` | Tres por cuatro son tres filas de cuatro. Contá conmigo: cuatro, ocho, doce. |
-| 5 | `porcentaje` | El veinticinco por ciento es la cuarta parte. De cada cien, veinticinco. |
-| 6 | `incognita` | Si a un número le sumás cinco y te da doce, ese número tiene que ser siete. |
+| 1 | `mitad` | Tengo una galletita y somos dos. La parto justo por el medio... ¡listo! Dos pedazos igualitos: uno para vos, uno para mí. Ese pedazo tuyo es la mitad. |
+| 2 | `contar` | Mirá: tres bolitas acá, dos bolitas acá. ¿Cuántas hay? Contemos juntos... una, dos, tres, cuatro, ¡cinco! |
+| 3 | `tercio` | Agarrá una barra de chocolate y partila en tres partes iguales. Te comés una sola. Esa que te comiste es un tercio. |
+| 4 | `porcuatro` | Tres por cuatro es armar tres filas de cuatro. Y no las contás de a una: contás de a cuatro, que es más rápido. Cuatro, ocho, doce. |
+| 5 | `porcentaje` | Veinticinco por ciento son veinticinco de cada cien. O sea, la cuarta parte. Si una pizza se reparte entre cuatro, tu porción es el veinticinco por ciento. |
+| 6 | `incognita` | Hay un número escondido ahí. Le sumás cinco y te da doce. ¿Cuál es? Sacale cinco al doce y aparece: siete. |
 
 ## Grupo B — Las consignas (imprescindibles)
 
