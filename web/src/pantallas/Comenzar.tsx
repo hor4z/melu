@@ -242,7 +242,7 @@ export function Comenzar() {
 
   async function salir() {
     await qc.invalidateQueries({ queryKey: ['yo'] })
-    nav('/hoy', { replace: true })
+    nav('/', { replace: true })
   }
 
   const avanzar = () => setI((n) => Math.min(n + 1, PASOS.length - 1))

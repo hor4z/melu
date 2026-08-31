@@ -26,7 +26,14 @@ export function Progreso() {
         <StatTile label="Tiempo" value={p.minutos} unit="min" hint="en total, trabajando" tint="bg-blue" icon={<Icon icon={Clock} size="lg" />} />
         <StatTile label="Aciertos" value={p.aciertos >= 0 ? Math.round(p.aciertos * 100) : '—'} unit={p.aciertos >= 0 ? '%' : undefined} hint="en los chequeos" tint="bg-lilac" icon={<Icon icon={Target} size="lg" />} />
       </section>
-      {perfil.data && <TarjetaPerfil v={perfil.data} titulo="Cómo aprendés, hoy" voz="vos" />}
+      {perfil.data && (
+        <div className="flex flex-col gap-2">
+          <TarjetaPerfil v={perfil.data} titulo="Cómo aprendés, hoy" voz="vos" />
+          <div className="self-end">
+            <Button variant="ghost" size="sm" asChild><a href="/comenzar">Volver a hacer el recorrido</a></Button>
+          </div>
+        </div>
+      )}
       {Object.keys(p.experiencias).length > 0 && (
         <Card padding="lg"><Eyebrow>Qué tipo de cosas hiciste</Eyebrow><div className="mt-3 flex flex-wrap gap-2">{Object.entries(p.experiencias).map(([k, n]) => <Chip key={k}>{EXPERIENCIAS[k] ?? k} · {n}</Chip>)}</div></Card>
       )}

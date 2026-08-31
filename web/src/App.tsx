@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router'
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { Spinner } from '@/kit'
 import { useYo } from './lib/sesion'
@@ -33,16 +33,25 @@ function Unirme() {
 
 export function App() {
   const yo = useYo()
+  // Con `window.location.pathname` esto no se entera de las navegaciones del router: la URL
+  // cambia y la pantalla se queda donde estaba. Hay que escuchar la ubicación de verdad.
+  const { pathname } = useLocation()
   const modo = yo.data?.modo
   useEffect(() => { if (modo === 'aprendiz') document.documentElement.dataset.mode = 'aprendiz'; else delete document.documentElement.dataset.mode }, [modo])
 
-  if (window.location.pathname.startsWith('/kit')) return <Kit />
+  if (pathname.startsWith('/kit')) return <Kit />
 
   if (yo.isPending) return <div className="grid min-h-screen place-items-center"><Spinner /></div>
   if (!yo.data) return <Routes><Route path="/unirme/:codigo" element={<Entrar />} /><Route path="*" element={<Entrar />} /></Routes>
 
-  const enUnirme = window.location.pathname.startsWith('/unirme/')
+  const enUnirme = pathname.startsWith('/unirme/')
   if (enUnirme) return <Routes><Route path="/unirme/:codigo" element={<Unirme />} /><Route path="*" element={<Navigate to="/hoy" replace />} /></Routes>
+
+  // El recorrido de bienvenida vive fuera de los modos: ocupa la pantalla entera y cualquiera
+  // puede entrar. Un aprendiz lo rehace cuando quiere; un docente pasa por él para ver lo mismo
+  // que van a ver los chicos, que es la única manera honesta de opinar sobre él.
+  if (pathname.startsWith('/comenzar')) return <Comenzar />
+
   if (yo.data.modo === 'nuevo') return <Bienvenida yo={yo.data} />
 
   if (yo.data.modo === 'aprendiz') {
@@ -51,7 +60,6 @@ export function App() {
     return (
       <Routes>
         <Route path="/mision/:id" element={<MisionPantalla />} />
-        <Route path="/comenzar" element={<Comenzar />} />
         <Route path="*" element={
           <ShellAprendiz yo={yo.data}>
             <Routes>

@@ -62,10 +62,13 @@ export function GrupoDetalle() {
         ? <Vacio titulo="Todavía nadie se unió" texto="Cuando entren, cada uno hace un recorrido de bienvenida de dos minutos y acá vas a ver con qué le va mejor a cada uno." accion={<Button onClick={() => setInvitar(true)}>Invitar</Button>} />
         : (
           <div className="flex flex-col gap-4">
-            <Text size="sm" variant="muted" className="max-w-2xl">
-              Esto no es un diagnóstico ni una etiqueta. Cada perfil arranca con lo que la persona eligió en su recorrido de bienvenida,
-              y se va corrigiendo con cómo le va de verdad en cada tipo de misión. Cambia con el tiempo, y a propósito.
-            </Text>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <Text size="sm" variant="muted" className="max-w-2xl">
+                Esto no es un diagnóstico ni una etiqueta. Cada perfil arranca con lo que la persona eligió en su recorrido de bienvenida,
+                y se va corrigiendo con cómo le va de verdad en cada tipo de misión. Cambia con el tiempo, y a propósito.
+              </Text>
+              <Button variant="secondary" size="sm" asChild><a href="/comenzar">Hacer el recorrido</a></Button>
+            </div>
             {perfiles.data && <ResumenDelGrupo perfiles={perfiles.data} />}
             <ul className="flex flex-col gap-2">
               {(perfiles.data ?? []).map((v) => (
