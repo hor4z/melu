@@ -115,7 +115,7 @@ const POR_BANDA: Record<Banda, {
   },
 }
 
-function guion(banda: Banda): Paso[] {
+function guion(banda: Banda, yaEntro: boolean): Paso[] {
   const b = POR_BANDA[banda]
   const [muestraA, muestraB] = MUESTRAS[banda]
   const chico = banda === 'chico'
@@ -126,7 +126,9 @@ function guion(banda: Banda): Paso[] {
       // Ella entra caminando y saluda; el texto llega detrás. Primero la persona, después la app.
       render: (
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-2">
-          <Personaje className="h-[44vh] max-h-[26rem] min-h-60 shrink-0" alt="La guía de melu: entra, saluda, se pone el casco y se pone a medir" />
+          {/* Si ya pasó por acá, no vuelve a entrar caminando: ya está. */}
+          <Personaje soloIdle={yaEntro} className="h-[44vh] max-h-[26rem] min-h-60 shrink-0"
+            alt="La guía de melu: entra, saluda, se pone el casco y se pone a medir" />
           <div className="flex max-w-md flex-col gap-3 text-center sm:text-left">
             <Logomark size={40} className="kit-reveal mx-auto text-ink sm:mx-0" />
             <Heading size="2xl" className="kit-reveal kit-retraso-2">Hola. Esto es melu.</Heading>
@@ -235,8 +237,15 @@ export function Comenzar() {
   const [resp, setResp] = useState<Record<string, string>>({})
   const [perfil, setPerfil] = useState<PerfilVivo | null>(null)
 
+  // Una vez que se avanzó de la primera pantalla, la entrada del personaje ya se vio: si se
+  // vuelve atrás tiene que estar ahí parada, no volver a caminar desde afuera.
+  const [yaEntro, setYaEntro] = useState(false)
+  // Volver atrás no es llegar a algo nuevo: la pantalla no se vuelve a presentar con animación,
+  // porque ya se vio. Presentarla otra vez se lee como un parpadeo.
+  const [atras, setAtras] = useState(false)
+
   const banda = (resp.banda as Banda) ?? 'medio'
-  const PASOS = useMemo(() => guion(banda), [banda])
+  const PASOS = useMemo(() => guion(banda, yaEntro), [banda, yaEntro])
   const paso = PASOS[i]
   const chico = banda === 'chico'
 
@@ -252,7 +261,7 @@ export function Comenzar() {
     nav('/', { replace: true })
   }
 
-  const avanzar = () => setI((n) => Math.min(n + 1, PASOS.length - 1))
+  const avanzar = () => { setYaEntro(true); setAtras(false); setI((n) => Math.min(n + 1, PASOS.length - 1)) }
 
   // al llegar a "armando" se guarda; la pantalla dura lo que dura la animación
   useEffect(() => {
@@ -272,12 +281,12 @@ export function Comenzar() {
     <div className="flex min-h-screen flex-col bg-canvas">
       <header className="mx-auto flex w-full max-w-4xl items-center gap-4 px-4 pt-5 sm:px-8">
         <IconButton icon={<Icon icon={ArrowLeft} />} label="Volver" variant="ghost"
-          onClick={() => setI((n) => Math.max(0, n - 1))} className={cn(i === 0 && 'invisible')} />
+          onClick={() => { setAtras(true); setI((n) => Math.max(0, n - 1)) }} className={cn(i === 0 && 'invisible')} />
         <Progreso pasos={PASOS} capitulo={paso.capitulo} indice={i} />
       </header>
 
       <main className="flex flex-1 items-center justify-center px-4 py-8 sm:px-8">
-        <div key={paso.clave} className="kit-reveal flex w-full max-w-4xl flex-col items-center">
+        <div key={paso.clave} className={cn('flex w-full max-w-4xl flex-col items-center', !atras && 'kit-reveal')}>
           {paso.tipo === 'contar' && paso.render}
           {paso.tipo === 'elegir' && <Pregunta paso={paso} elegido={resp[paso.clave]} onElegir={elegir} conVoz={chico || paso.clave === 'banda'} />}
           {paso.tipo === 'armando' && <Armando />}
