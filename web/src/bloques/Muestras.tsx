@@ -5,7 +5,7 @@
 // Y el concepto tiene que estar al alcance: a alguien de seis años "un tercio" no le dice nada.
 // Por eso cada franja tiene sus propios conceptos. La mecánica es idéntica; lo que cambia es qué
 // se explica y con cuántas palabras.
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Play, Square, Volume2 } from 'lucide-react'
 import { cn, Icon, Text } from '@/kit'
 
@@ -159,16 +159,57 @@ export function MuestraVer({ que }: { que: ClaveMuestra }) {
 
 /* ---------- escuchar ---------- */
 
-/** Lee un texto en voz alta si el navegador puede, y lo resalta palabra por palabra si no. */
-export function useVoz(texto: string) {
-  const [i, setI] = useState(-1)
-  const timer = useRef<number | undefined>(undefined)
-  useEffect(() => () => { window.clearInterval(timer.current); window.speechSynthesis?.cancel() }, [])
+/** Las muestras que ya tienen voz grabada en `public/voz/muestra/`. */
+export const CON_AUDIO = new Set<ClaveMuestra>(['mitad', 'contar', 'tercio', 'porcuatro', 'porcentaje', 'incognita'])
 
-  const palabras = texto.split(' ')
-  function alternar() {
-    window.clearInterval(timer.current)
-    if (i >= 0) { setI(-1); window.speechSynthesis?.cancel(); return }
+const audioDe = (q: ClaveMuestra) => (CON_AUDIO.has(q) ? `/voz/muestra/${q}.m4a` : undefined)
+
+/** ¿El navegador puede leer en voz alta? En Linux sin voces instaladas, no: la respuesta
+ *  puede tardar, porque el catálogo de voces llega asincrónico. */
+export function useVozDelSistema() {
+  const [hay, setHay] = useState(false)
+  useEffect(() => {
+    const s = window.speechSynthesis
+    if (!s) return
+    const leer = () => setHay(s.getVoices().length > 0)
+    leer()
+    s.addEventListener('voiceschanged', leer)
+    return () => s.removeEventListener('voiceschanged', leer)
+  }, [])
+  return hay
+}
+
+/** Narra un texto: primero con la voz grabada, y si no hay archivo o falla, con la del navegador.
+ *
+ *  El resaltado palabra por palabra va contra el **tiempo real del audio**, no contra un reloj
+ *  fijo. Con un reloj fijo la palabra iluminada se despega de la que suena y el efecto se vuelve
+ *  ruido. Como no tenemos marcas por palabra, se reparte la duración según cuánto ocupa cada una,
+ *  dándole más peso a las que terminan en signo, que es donde la voz respira. */
+function useNarracion(texto: string, src?: string) {
+  const palabras = useMemo(() => texto.split(' '), [texto])
+  const cortes = useMemo(() => {
+    const peso = palabras.map((p) => p.length + 1 + (/[.,:;!?…]$/.test(p) ? 6 : 0))
+    const total = peso.reduce((a, b) => a + b, 0)
+    // fracción del audio en la que termina cada palabra
+    return peso.map((_, k) => peso.slice(0, k + 1).reduce((a, b) => a + b, 0) / total)
+  }, [palabras])
+
+  const audio = useRef<HTMLAudioElement | null>(null)
+  const cuadro = useRef<number | undefined>(undefined)
+  const reloj = useRef<number | undefined>(undefined)
+  const [i, setI] = useState(-1)
+
+  const parar = useCallback(() => {
+    if (cuadro.current) cancelAnimationFrame(cuadro.current)
+    window.clearInterval(reloj.current)
+    audio.current?.pause()
+    window.speechSynthesis?.cancel()
+    setI(-1)
+  }, [])
+
+  useEffect(() => parar, [parar])
+
+  const conElNavegador = useCallback(() => {
     try {
       const u = new SpeechSynthesisUtterance(texto)
       u.lang = 'es-AR'
@@ -178,17 +219,38 @@ export function useVoz(texto: string) {
     } catch { /* sin voz: queda el resaltado, que ya cuenta la frase */ }
     setI(0)
     let n = 0
-    timer.current = window.setInterval(() => {
+    reloj.current = window.setInterval(() => {
       n += 1
-      if (n >= palabras.length) { window.clearInterval(timer.current); setI(-1) } else setI(n)
+      if (n >= palabras.length) { window.clearInterval(reloj.current); setI(-1) } else setI(n)
     }, 330)
-  }
+  }, [texto, palabras.length])
+
+  const alternar = useCallback(() => {
+    if (i >= 0) { parar(); return }
+    if (!src) { conElNavegador(); return }
+    const a = audio.current ?? new Audio(src)
+    audio.current = a
+    a.currentTime = 0
+    a.onended = () => { if (cuadro.current) cancelAnimationFrame(cuadro.current); setI(-1) }
+    const seguir = () => {
+      const f = a.duration ? a.currentTime / a.duration : 0
+      const k = cortes.findIndex((c) => f < c)
+      setI(k < 0 ? palabras.length - 1 : k)
+      cuadro.current = requestAnimationFrame(seguir)
+    }
+    a.play().then(() => { setI(0); seguir() }).catch(conElNavegador)
+  }, [i, src, cortes, palabras.length, parar, conElNavegador])
+
   return { palabras, i, sonando: i >= 0, alternar }
 }
 
-/** Un altavoz chico para leer en voz alta cualquier texto de la pantalla. */
-export function BotonVoz({ texto, className }: { texto: string; className?: string }) {
-  const { sonando, alternar } = useVoz(texto)
+/** Un altavoz chico para leer en voz alta cualquier texto de la pantalla.
+ *  Si no hay ni archivo ni voz del sistema no se dibuja: un botón que no hace nada, en una
+ *  pantalla para quien todavía no lee, es peor que no tener botón. */
+export function BotonVoz({ texto, src, className }: { texto: string; src?: string; className?: string }) {
+  const hayVoz = useVozDelSistema()
+  const { sonando, alternar } = useNarracion(texto, src)
+  if (!src && !hayVoz) return null
   return (
     <button type="button" onClick={alternar} aria-label={sonando ? 'Parar la lectura' : 'Escuchar esto'}
       className={cn('grid size-8 shrink-0 place-items-center rounded-full border border-line text-ink-muted transition hover:border-ink hover:text-ink',
@@ -199,7 +261,7 @@ export function BotonVoz({ texto, className }: { texto: string; className?: stri
 }
 
 export function MuestraEscuchar({ que }: { que: ClaveMuestra }) {
-  const { palabras, i, sonando, alternar } = useVoz(DEFS[que].hablado)
+  const { palabras, i, sonando, alternar } = useNarracion(DEFS[que].hablado, audioDe(que))
   return (
     <div className="flex w-full flex-col items-center gap-3">
       <button type="button" onClick={(e) => { e.stopPropagation(); alternar() }}

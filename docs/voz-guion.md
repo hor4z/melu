@@ -86,10 +86,14 @@ Las consignas de las tarjetas del grupo C van con su concepto, no sueltas:
 
 ---
 
-## Grupo A — Las seis explicaciones (imprescindibles)
+## Grupo A — Las seis explicaciones ✅ GRABADO (31/08/2026)
 
-Son las que se escuchan al tocar ▶ en la tarjeta «Escuchá». Sin estas, la tarjeta no
-suena en ninguna franja de edad.
+Son las que se escuchan al tocar ▶ en la tarjeta «Escuchá».
+
+Ya están en `web/public/voz/muestra/`. Voces sintéticas de ElevenLabs: **Gaby** para las
+cuatro de chicos y primaria, **Martin Alvarez** para las dos de secundaria. Vinieron con casi
+6 LUFS de diferencia entre una voz y otra, así que se normalizaron todas a −18 LUFS y se les
+recortó la cola de silencio.
 
 | # | archivo que queda | frase |
 |---|---|---|
@@ -100,7 +104,10 @@ suena en ninguna franja de edad.
 | 5 | `muestra/porcentaje.m4a` | Veinticinco por ciento son veinticinco de cada cien. O sea, la cuarta parte. Si una pizza se reparte entre cuatro, tu porción es el veinticinco por ciento. |
 | 6 | `muestra/incognita.m4a` | Hay un número escondido ahí. Le sumás cinco y te da doce. ¿Cuál es? Sacale cinco al doce y aparece: siete. |
 
-## Grupo B — Las consignas (imprescindibles)
+## Grupo B — Las consignas ⬜ PENDIENTE
+
+Sin estas, la franja «recién empieza» no tiene lectura en voz alta: el altavoz al lado de
+la consigna directamente no se dibuja cuando no hay ni archivo ni voz del sistema.
 
 El título y la bajada de cada pregunta, de corrido, como una sola frase. La primera la
 escucha todo el mundo; las otras siete son de la franja «recién empiezo», que es
