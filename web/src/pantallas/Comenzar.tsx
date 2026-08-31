@@ -43,8 +43,10 @@ const COLUMNAS: Record<number, string> = {
  *  el alto ya pesan lo mismo. */
 function Ilustracion({ src }: { src: string }) {
   return (
-    <span className="flex h-32 items-center justify-center p-3">
-      <img src={src} alt="" aria-hidden="true" className="max-h-full w-auto select-none" draggable={false} />
+    <span className="flex items-center justify-center p-1">
+      {/* El alto es la única perilla: subirlo o bajarlo mueve las tres a la vez, porque las
+          imágenes están normalizadas por su caja de tinta. */}
+      <img src={src} alt="" aria-hidden="true" className="max-h-40 w-auto select-none" draggable={false} />
     </span>
   )
 }
