@@ -18,13 +18,17 @@ import { useEffect, useRef, useState } from 'react'
 import { cn } from './lib'
 
 type Props = {
-  /** Saltear la entrada y arrancar quieta. Útil si el personaje ya apareció antes. */
+  /** Qué hace después de entrar. `quieta` respira; `trabaja` se pone el casco y mide. */
+  bucle?: 'quieta' | 'trabaja'
+  /** Saltear la entrada y arrancar en el bucle. Útil si el personaje ya apareció antes. */
   soloIdle?: boolean
   className?: string
   alt?: string
 }
 
-export function Personaje({ soloIdle = false, className, alt = 'La guía de melu, saludando' }: Props) {
+const BUCLES = { quieta: '/personaje/idle.mp4', trabaja: '/personaje/trabaja.mp4' } as const
+
+export function Personaje({ bucle = 'quieta', soloIdle = false, className, alt = 'La guía de melu, saludando' }: Props) {
   const [quieta, setQuieta] = useState(soloIdle)
   const [sinMovimiento, setSinMovimiento] = useState(false)
   const idle = useRef<HTMLVideoElement>(null)
@@ -59,7 +63,7 @@ export function Personaje({ soloIdle = false, className, alt = 'La guía de melu
       {/* invisible pero ocupando lugar: le da el alto y el ancho a la caja */}
       <img src="/personaje/quieta.png" alt="" aria-hidden="true" className="h-full w-auto opacity-0" draggable={false} />
       <video
-        ref={idle} src="/personaje/idle.mp4" poster="/personaje/quieta.png"
+        ref={idle} src={BUCLES[bucle]} poster="/personaje/quieta.png"
         muted playsInline loop preload="auto" autoPlay={soloIdle}
         aria-label={alt}
         className="absolute inset-0 h-full w-full select-none object-contain"

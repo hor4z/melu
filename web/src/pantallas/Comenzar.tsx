@@ -126,7 +126,7 @@ function guion(banda: Banda): Paso[] {
       // Ella entra caminando y saluda; el texto llega detrás. Primero la persona, después la app.
       render: (
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-2">
-          <Personaje className="h-[44vh] max-h-[26rem] min-h-60 shrink-0" alt="Meli, la guía de melu, entrando y saludando" />
+          <Personaje bucle="trabaja" className="h-[44vh] max-h-[26rem] min-h-60 shrink-0" alt="La guía de melu: entra, saluda, se pone el casco y se pone a medir" />
           <div className="flex max-w-md flex-col gap-3 text-center sm:text-left">
             <Logomark size={40} className="kit-reveal mx-auto text-ink sm:mx-0" />
             <Heading size="2xl" className="kit-reveal kit-retraso-2">Hola. Esto es melu.</Heading>
