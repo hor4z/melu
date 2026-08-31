@@ -298,19 +298,22 @@ export function Comenzar() {
         <Progreso pasos={PASOS} capitulo={paso.capitulo} indice={i} />
       </header>
 
-      <main className="flex flex-1 items-center justify-center px-4 py-8 sm:px-8">
-        <div key={paso.clave} className={cn('flex w-full max-w-4xl flex-col items-center', !atras && 'kit-reveal')}>
+      {/* El botón va pegado al contenido, no clavado al fondo de la pantalla. Un pie fijo abajo
+          funciona en un celular -pantalla corta, pulgar abajo- pero en una ventana de escritorio
+          deja la acción a cientos de píxeles de aquello a lo que se refiere.
+          `m-auto` centra cuando hay lugar y no recorta cuando el contenido es más alto que la
+          ventana, que es lo que pasa con `items-center` en una columna que desborda. */}
+      <main className="flex flex-1 px-4 py-8 sm:px-8">
+        <div key={paso.clave} className={cn('m-auto flex w-full max-w-4xl flex-col items-center gap-9', !atras && 'kit-reveal')}>
           {paso.tipo === 'contar' && paso.render}
           {paso.tipo === 'elegir' && <Pregunta paso={paso} elegido={resp[paso.clave]} onElegir={elegir} conVoz={chico || paso.clave === 'banda'} />}
           {paso.tipo === 'armando' && <Armando />}
           {paso.tipo === 'perfil' && <TuPerfil perfil={perfil} error={guardar.isError} onReintentar={() => guardar.mutate(resp)} />}
+
+          {paso.tipo === 'contar' && <Button size="lg" onClick={avanzar} endIcon={<Icon icon={ChevronRight} />}>{paso.cta}</Button>}
+          {paso.tipo === 'perfil' && <Button size="lg" onClick={salir} disabled={!perfil}>Ir a mis misiones</Button>}
         </div>
       </main>
-
-      <footer className="sticky bottom-0 flex justify-center bg-gradient-to-t from-canvas via-canvas px-4 pb-8 pt-4">
-        {paso.tipo === 'contar' && <Button size="lg" onClick={avanzar} endIcon={<Icon icon={ChevronRight} />}>{paso.cta}</Button>}
-        {paso.tipo === 'perfil' && <Button size="lg" onClick={salir} disabled={!perfil}>Ir a mis misiones</Button>}
-      </footer>
     </div>
   )
 }

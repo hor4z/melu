@@ -143,8 +143,8 @@ function Runner({ m }: { m: Mision }) {
   const explicacion = b?.explicacion
 
   return (
-    <div className="flex min-h-screen flex-col bg-canvas">
-      <header className="sticky top-0 z-10 flex items-center gap-4 bg-canvas px-5 py-4">
+    <div className="flex h-screen flex-col overflow-hidden bg-canvas">
+      <header className="z-10 flex shrink-0 items-center gap-4 bg-canvas px-5 py-4">
         <button type="button" onClick={() => (i === 0 ? nav('/hoy') : setI(i - 1))} aria-label={i === 0 ? 'Salir' : 'Anterior'}
           className="grid size-9 shrink-0 place-items-center rounded-full hover:bg-hover"><Icon icon={i === 0 ? X : ChevronLeft} size="lg" /></button>
         <div className="flex flex-1 gap-1.5" aria-label={`Paso ${i + 1} de ${pasos.length}`}>
@@ -159,7 +159,9 @@ function Runner({ m }: { m: Mision }) {
         <Text size="sm" variant="subtle" mono className="shrink-0">{i + 1}/{pasos.length}</Text>
       </header>
 
-      <div className="min-h-0 flex-1">
+      {/* El contenido scrollea acá adentro, no la página: así el pie con la acción principal
+          nunca se va abajo del pliegue, que es justo lo que hay que tener a mano. */}
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <div key={i} className="kit-reveal mx-auto flex w-full max-w-2xl flex-col gap-6 px-5 pb-10 pt-4">
           {i === 0 && (
             <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-4">
