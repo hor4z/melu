@@ -55,6 +55,15 @@ export const COPY: Record<string, string> = {
   Eyebrow: 'El rótulo de sección en mayúsculas: el gesto que ordena la página.',
 
   // Capas
+  MenuButton:
+    'El disparador de un menú que muestra qué hay elegido: un visual a la izquierda, la etiqueta, '
+    + 'una línea abajo y el chevron. El menú de la cuenta y el selector de espacios lo escribían '
+    + 'cada uno por su lado, con su propio anillo de foco y su propio padding.',
+  'MenuButton.leading': 'Lo que va a la izquierda: un Avatar, un Icon sobre un mosaico, un Logo.',
+  'MenuButton.description': 'La segunda línea, más chica y más callada.',
+  'MenuButton.block': 'Ocupa todo el ancho: el selector de la barra lateral sí, el de la cabecera no.',
+  'MenuButton.chevron': 'Dos chevrones para elegir entre varios; uno para un menú común.',
+  'MenuButton.compact': 'Abajo de `sm` queda solo el visual. Para cabeceras, donde el lugar se acaba antes.',
   MoreMenu: 'El menú de tres puntos: el gesto de «más acciones» sobre una fila o una tarjeta.',
   'Drawer.purpose': '`required` bloquea el cierre con Escape o con un clic afuera: solo cierran los botones.',
   Drawer: 'Un panel pegado a un borde. Las partes son las de Dialog, con otro nombre para que se lea.',
@@ -82,6 +91,5 @@ export const COPY: Record<string, string> = {
 
   // Marca
   Logomark: 'El logo, uno para toda la app: un zigzag de tres trazos, la «m» dibujada a mano.',
-  Squiggle: 'El subrayado a mano abajo de una palabra. Una vez por página, en el título.',
   PhotoFrame: 'Una foto en un marco blanco con borde de tinta, apenas rotada.',
 }

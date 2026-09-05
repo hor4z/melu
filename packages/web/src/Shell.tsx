@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell, BookOpen, Check, ChevronsUpDown, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
+import { Bell, BookOpen, Check, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
 import {
   Badge, Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
-  DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, IconButton, Input, Kbd, Logo, RadioGroup,
-  RadioGroupItem, Text,
+  DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, IconButton, Input, Kbd, Logo, MenuButton, RadioGroup,
+  RadioGroupItem, Text, cn, focusRing,
 } from '@melu/ui'
 import { UserMenu } from './blocks/Product'
 import { useSignOut } from './lib/session'
@@ -15,7 +15,8 @@ import { SPACE_KINDS } from './lib/composition'
 import { Modal } from './blocks/Modal'
 
 const item = ({ isActive }: { isActive: boolean }) =>
-  `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${isActive ? 'bg-teal font-semibold text-accent' : 'text-ink-muted hover:bg-hover hover:text-ink'}`
+  cn('flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors', focusRing,
+    isActive ? 'bg-teal font-semibold text-accent' : 'text-ink-muted hover:bg-hover hover:text-ink')
 
 function NotificationsBell({ spaceId }: { spaceId: string }) {
   const nav = useNavigate()
@@ -37,14 +38,11 @@ function SpacePicker() {
     <>
       <DropdownMenu placement="bottom-start">
         <DropdownMenuTrigger>
-          <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left outline-none hover:bg-hover focus-visible:ring-3 focus-visible:ring-focus/30">
-            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-lilac"><Icon icon={School} size="lg" /></span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold">{space?.name ?? 'Sin espacio'}</span>
-              <span className="block text-xs text-ink-subtle">{spaces.length > 1 ? `${spaces.length} espacios` : 'Tu espacio'}</span>
-            </span>
-            <Icon icon={ChevronsUpDown} size="sm" color="subtle" />
-          </button>
+          <MenuButton block chevron="updown"
+            leading={<span className="grid size-9 shrink-0 place-items-center rounded-lg bg-lilac"><Icon icon={School} size="lg" /></span>}
+            description={spaces.length > 1 ? `${spaces.length} espacios` : 'Tu espacio'}>
+            {space?.name ?? 'Sin espacio'}
+          </MenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent minWidth={240}>
           <DropdownMenuLabel>Espacios</DropdownMenuLabel>

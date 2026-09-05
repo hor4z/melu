@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router'
-import { Button, Card, DoodleBridge, DoodleBulb, DoodleSprout, Heading, Icon, Squiggle, Text } from '@melu/ui'
+import { Button, Card, DoodleBridge, DoodleBulb, DoodleSprout, Heading, Icon, Text } from '@melu/ui'
 import { ArrowRight } from 'lucide-react'
 import { Code } from '../pieces'
 
@@ -17,7 +17,7 @@ export function Overview() {
     <>
       <div className="mb-12">
         <Heading level={1} size="display" className="max-w-3xl">
-          El sistema con el que se construye <Squiggle>melu</Squiggle>.
+          El sistema con el que se construye melu.
         </Heading>
         <Text variant="muted" className="mt-4 max-w-2xl text-lg">
           Un kit de componentes y un conjunto de tokens, hechos acá y para esto. No es una librería
@@ -70,7 +70,7 @@ export function Overview() {
           {[['Componentes', '~90 exportados, en 25 archivos'],
             ['Tokens', 'Dos capas: primitivos y semánticos'],
             ['Movimiento', '9 clases, todas con reduced-motion'],
-            ['Marca', 'El logo, el subrayado y 10 doodles']].map(([t, d]) => (
+            ['Marca', 'El logo, el marco y 10 placeholders']].map(([t, d]) => (
             <Card key={t} padding="md" className="gap-1">
               <Text weight="semibold">{t}</Text>
               <Text size="sm" variant="muted">{d}</Text>

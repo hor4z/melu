@@ -5,7 +5,7 @@ import {
 } from '@floating-ui/react'
 import { Portal } from './portal'
 import { Check, ChevronDown, Search } from 'lucide-react'
-import { cn, useControllableState } from './lib'
+import { cn, focusRing, useControllableState } from './lib'
 import { Icon } from './icon'
 import { fieldAria, useField } from './field'
 
@@ -110,7 +110,7 @@ export function SelectTrigger({ className, children, startIcon, ...props }: Comp
   return (
     <button type="button" ref={s.refs.setReference} id={aria.id} aria-describedby={aria['aria-describedby']}
       disabled={s.disabled ?? aria.disabled} data-state={s.isOpen ? 'open' : 'closed'}
-      className={cn('flex w-full items-center gap-2 rounded-md border bg-surface text-left text-ink outline-none transition-[border-color,box-shadow] focus-visible:ring-3 focus-visible:ring-focus/25 disabled:bg-muted disabled:opacity-60',
+      className={cn(`flex w-full items-center gap-2 rounded-md border bg-surface text-left text-ink outline-none transition-[border-color,box-shadow] disabled:bg-muted disabled:opacity-60 ${focusRing}`,
         HEIGHT[s.size], bad ? 'border-danger focus-visible:ring-danger/25' : 'border-line focus-visible:border-ink', className)}
       {...s.getReferenceProps(props as Record<string, unknown>)}>
       {startIcon && <span className="text-ink-subtle">{startIcon}</span>}

@@ -1,5 +1,5 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
-import { cn, useControllableState } from './lib'
+import { cn, focusRing, useControllableState } from './lib'
 import { Spinner } from './spinner'
 import { fieldAria, useField } from './field'
 
@@ -39,7 +39,7 @@ export function Switch({ checked, defaultChecked = false, onCheckedChange, size 
     <button
       type="button" role="switch" aria-checked={on} id={aria.id} aria-describedby={aria['aria-describedby']}
       disabled={isDisabled} onClick={() => setOn(!on)}
-      className={cn('group inline-flex items-center gap-2.5 rounded-md text-left text-sm outline-none focus-visible:ring-3 focus-visible:ring-focus/30 disabled:cursor-not-allowed', spread && 'w-full justify-between', className)}
+      className={cn(`group inline-flex items-center gap-2.5 rounded-md text-left text-sm disabled:cursor-not-allowed ${focusRing}`, spread && 'w-full justify-between', className)}
       {...props}
     >
       {spread ? <><span className="min-w-0">{children}</span>{control}</> : <>{control}<span className="min-w-0">{children}</span></>}

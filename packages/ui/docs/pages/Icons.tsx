@@ -91,7 +91,7 @@ export function Icons() {
         </Block>
 
         <Block id="doodles" title="Doodles"
-          note="No son iconos: son ilustraciones de la marca. Van grandes, de a uno, y para dar aire — no para señalizar.">
+          note="Van grandes, de a uno, y para dar aire — no para señalizar. Hoy son placeholders: hasta que haya arte propio, cada uno rinde un ícono de lucide con el trazo fino.">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
             {Object.entries(DOODLES).map(([name, D]) => (
               <Card key={name} padding="md" className="items-center gap-2">

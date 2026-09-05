@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, ChevronLeft, Eye, EyeOff, GripVertical, LayoutTemplate, Plus, Send, X } from 'lucide-react'
-import { Button, Card, Chip, Eyebrow, Icon, Input, Kbd, Popover, PopoverAnchor, PopoverContent, PopoverTrigger, Text, Textarea, Toggle, cn } from '@melu/ui'
+import { Button, Card, Chip, Eyebrow, Icon, IconButton, Input, Kbd, Popover, PopoverAnchor, PopoverContent, PopoverTrigger, SegmentedControl, SegmentedControlItem, Tabs, TabsList, TabsTrigger, Text, Textarea, Toggle, cn, focusRing } from '@melu/ui'
 import { api, newId, type Activity, type Block, type Criterion, type ManipulativeFigure, type Group, type Lens, type GameEngine, type BlockType } from '../lib/api'
 import { IS_INTERACTIVE, SETTINGS, EXPERIENCES, FIGURES, GAMES, SOCIAL, BLOCK_TYPES, EVIDENCE_MEDIA } from '../lib/composition'
 import { CompositionChips } from '../blocks/Chips'
@@ -91,15 +91,19 @@ function EditorLoaded({ initial }: { initial: Activity }) {
         </Card>
 
         <Card>
-          <div className="flex flex-wrap items-center gap-1 border-b border-line px-4 pt-2" role="tablist" aria-label="Fases">
-            {a.document.phases.map((ff, i) => (
-              <button key={ff.key} type="button" role="tab" aria-selected={i === phase} onClick={() => setPhase(i)} className={`-mb-px flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm ${i === phase ? 'border-ink font-semibold' : 'border-transparent text-ink-muted hover:text-ink'}`}>
-                <span className={`grid size-5 place-items-center rounded-sm text-xs font-bold ${i === phase ? 'bg-ink text-white' : 'bg-muted'}`}>{i + 1}</span>
-                {i === phase && !preview ? <input value={ff.name} onChange={(e) => renamePhase(i, e.target.value)} onClick={(e) => e.stopPropagation()} className="w-28 bg-transparent outline-none" aria-label="Nombre de la fase" /> : ff.name}
-              </button>
-            ))}
-            {!preview && <button type="button" onClick={addPhase} className="ml-1 flex items-center gap-1 px-2 py-2.5 text-sm text-ink-muted hover:text-ink"><Icon icon={Plus} size="sm" /> fase</button>}
-          </div>
+          <Tabs value={String(phase)} onValueChange={(v) => setPhase(Number(v))}>
+            <TabsList aria-label="Fases" className="px-4 pt-2">
+              {a.document.phases.map((ff, i) => (
+                <TabsTrigger key={ff.key} value={String(i)}>
+                  <span className={cn('grid size-5 place-items-center rounded-sm text-xs font-bold', i === phase ? 'bg-ink text-white' : 'bg-muted')}>{i + 1}</span>
+                  {i === phase && !preview
+                    ? <input value={ff.name} onChange={(e) => renamePhase(i, e.target.value)} onClick={(e) => e.stopPropagation()} className="w-28 bg-transparent outline-none" aria-label="Nombre de la fase" />
+                    : ff.name}
+                </TabsTrigger>
+              ))}
+              {!preview && <Button size="sm" variant="ghost" onClick={addPhase} startIcon={<Icon icon={Plus} size="sm" />}>fase</Button>}
+            </TabsList>
+          </Tabs>
           <div className="p-5 sm:p-8">
             {f?.asks && !preview && <Text size="sm" variant="muted" className="mb-4">Esta fase pide: {f.asks}</Text>}
             {preview ? (
@@ -116,9 +120,9 @@ function EditorLoaded({ initial }: { initial: Activity }) {
                     onChange={(p, snap) => refresh(b.id, p, snap)} onEnter={(rest) => insert(i + 1, 'paragraph', rest)} onRemove={() => remove(b.id)} onMove={(d) => moveBy(b.id, d)} onDrop={(target) => moveTo(b.id, target)} onPasteLines={(l) => paste(i + 1, l)} onFocusIn={() => setFocusRef(b.id)} />
                 ))}
                 <DropZone idx={f?.blocks.length ?? 0} onDropAt={(id, target) => moveTo(id, target)} />
-                <button type="button" onClick={() => insert(f?.blocks.length ?? 0)} className="mt-1 flex items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-ink-muted hover:bg-hover">
-                  <Icon icon={Plus} size="sm" /> Escribí acá, o tipeá <Kbd>/</Kbd> para elegir un tipo de bloque
-                </button>
+                <Button variant="ghost" className="mt-1 h-auto justify-start px-2 py-2 font-normal text-ink-muted" onClick={() => insert(f?.blocks.length ?? 0)} startIcon={<Icon icon={Plus} size="sm" />}>
+                  <span>Escribí acá, o tipeá <Kbd>/</Kbd> para elegir un tipo de bloque</span>
+                </Button>
               </div>
             )}
           </div>
@@ -172,7 +176,11 @@ function Picker(p: PickerProps) {
   return (
     <Popover open={open} onOpenChange={setOpen} role="listbox">
       <PopoverTrigger>
-        <button type="button" disabled={p.disabled} className="flex flex-wrap items-center gap-1 rounded-sm px-1.5 py-0.5 text-left outline-none hover:bg-hover focus-visible:ring-3 focus-visible:ring-focus/30 disabled:hover:bg-transparent">
+        {/* El único control de la app que no es una pieza del kit, y a propósito: en una fila de
+            propiedades tiene que leerse como contenido, no como un control, hasta que se lo pasa
+            por encima. Lo visual sale igual del tema —el hover y el anillo de foco son los del
+            sistema— y lo que muestra adentro son Chips. */}
+        <button type="button" disabled={p.disabled} className={cn('flex flex-wrap items-center gap-1 rounded-sm px-1.5 py-0.5 text-left hover:bg-hover disabled:hover:bg-transparent', focusRing)}>
           {activeOnes.length === 0 && <span className="text-ink-subtle">Elegir…</span>}
           {activeOnes.map((k) => <Chip key={k} size="sm">{p.options[k] ?? k}</Chip>)}
         </button>
@@ -238,12 +246,16 @@ function BlockEditor({ b, idx, focused, isFirst, isLast, onChange, onEnter, onRe
     <div className={`group relative -mx-2 flex gap-1 rounded-lg px-2 py-0.5 ${over ? 'shadow-[inset_0_2px_0_0_var(--accent-text)]' : ''}`} onFocus={onFocusIn}
       onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)} onDrop={(e) => { e.preventDefault(); setOver(false); const id = e.dataTransfer.getData('text/bloque'); if (id && id !== b.id) onDrop(idx) }}>
       <div className="flex w-16 shrink-0 items-start justify-end gap-0.5 pt-1.5 opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100">
-        <button type="button" onClick={() => setMenu(menu === null ? '' : null)} className="rounded-sm p-1 text-ink-subtle hover:bg-hover" aria-label="Cambiar tipo" title={t.name}><Icon icon={Plus} size="sm" /></button>
+        <IconButton size="sm" variant="ghost" label="Cambiar tipo" title={t.name} onClick={() => setMenu(menu === null ? '' : null)} icon={<Icon icon={Plus} size="sm" />} />
         <span draggable onDragStart={(e) => { e.dataTransfer.setData('text/bloque', b.id); e.dataTransfer.effectAllowed = 'move' }} className="cursor-grab rounded-sm p-1 text-ink-subtle hover:bg-hover active:cursor-grabbing" aria-label="Arrastrar"><Icon icon={GripVertical} size="sm" /></span>
       </div>
       <Popover open={menu !== null} onOpenChange={(o) => !o && setMenu(null)} placement="bottom-start" role="menu">
       <div className={`relative min-w-0 flex-1 ${frameCls}`}>
-        {t.semantic && <div className="mb-1 flex items-center justify-between"><Eyebrow className="text-brand-text">{t.name}{b.type === 'evidence' && ` · ${EVIDENCE_MEDIA[b.media ?? 'photo']}`}</Eyebrow><span className="flex opacity-0 group-hover:opacity-100"><button type="button" onClick={() => onMove(-1)} disabled={isFirst} className="rounded-sm p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Subir"><Icon icon={ArrowUp} size="xs" /></button><button type="button" onClick={() => onMove(1)} disabled={isLast} className="rounded-sm p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Bajar"><Icon icon={ArrowDown} size="xs" /></button><button type="button" onClick={onRemove} className="rounded-sm p-0.5 text-ink-subtle hover:text-danger" aria-label="Borrar"><Icon icon={X} size="xs" /></button></span></div>}
+        {t.semantic && <div className="mb-1 flex items-center justify-between"><Eyebrow className="text-brand-text">{t.name}{b.type === 'evidence' && ` · ${EVIDENCE_MEDIA[b.media ?? 'photo']}`}</Eyebrow><span className="flex gap-0.5 opacity-0 group-hover:opacity-100">
+            <IconButton size="sm" variant="ghost" label="Subir" onClick={() => onMove(-1)} disabled={isFirst} icon={<Icon icon={ArrowUp} size="xs" />} />
+            <IconButton size="sm" variant="ghost" label="Bajar" onClick={() => onMove(1)} disabled={isLast} icon={<Icon icon={ArrowDown} size="xs" />} />
+            <IconButton size="sm" variant="ghost" label="Borrar" onClick={onRemove} className="hover:text-danger" icon={<Icon icon={X} size="xs" />} />
+          </span></div>}
         <PopoverAnchor>
           <textarea ref={ref} value={menu !== null ? '/' + menu : b.text} rows={1} onChange={(e) => onInput(e.target.value)} onKeyDown={onKey} onPaste={onPaste} aria-label={t.name} placeholder={b.type === 'list' ? 'Un ítem por línea' : b.type === 'paragraph' ? 'Escribí, o "/" para elegir un bloque' : t.hint}
             className={`w-full resize-none bg-transparent leading-relaxed outline-none placeholder:text-ink-subtle ${classes[b.type] ?? (t.semantic ? 'font-medium' : 'text-base')}`} />
@@ -341,9 +353,9 @@ function BlockDetail({ b, onChange }: { b: Block; onChange: (p: Partial<Block>, 
       {b.type === 'game' && <GameConfig b={b} onChange={onChange} />}
       {b.type === 'manipulative' && <FigureConfig b={b} onChange={onChange} />}
       {b.type === 'evidence' && (
-        <div className="mt-2 flex gap-1">{(['photo', 'audio', 'file'] as const).map((k) => (
-          <button key={k} type="button" onClick={() => onChange({ media: k }, true)} className={cn('rounded-md border px-2 py-0.5 text-xs font-medium', b.media === k ? 'border-ink bg-solid text-on-solid' : 'border-line')}>{EVIDENCE_MEDIA[k]}</button>
-        ))}</div>
+        <SegmentedControl className="mt-2" size="sm" label="Qué se entrega" value={b.media ?? 'photo'} onValueChange={(v) => onChange({ media: v as 'photo' | 'audio' | 'file' }, true)}>
+          {(['photo', 'audio', 'file'] as const).map((k) => <SegmentedControlItem key={k} value={k}>{EVIDENCE_MEDIA[k]}</SegmentedControlItem>)}
+        </SegmentedControl>
       )}
       {t?.grades && (
         <div className="mt-3 flex flex-col gap-1.5 border-t border-line pt-2">

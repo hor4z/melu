@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, type ComponentPropsWithoutRef, type PointerEvent as RPointerEvent } from 'react'
-import { cn, useControllableState } from './lib'
+import { cn, focusRing, useControllableState } from './lib'
 import { fieldAria, useField } from './field'
 
 export interface SliderProps extends Omit<ComponentPropsWithoutRef<'div'>, 'onChange' | 'defaultValue'> {
@@ -94,7 +94,7 @@ export function Slider({
             aria-label={label ?? (range ? (i === 0 ? 'Mínimo' : 'Máximo') : undefined)} aria-describedby={aria['aria-describedby']}
             aria-valuemin={min} aria-valuemax={max} aria-valuenow={n} aria-valuetext={formatValue(n)} aria-disabled={disabled}
             onKeyDown={onType(i)}
-            className="group absolute size-5 -translate-x-1/2 rounded-full border-2 border-solid bg-surface shadow-sm outline-none focus-visible:ring-3 focus-visible:ring-focus/30"
+            className={cn('group absolute size-5 -translate-x-1/2 rounded-full border-2 border-solid bg-surface shadow-sm', focusRing)}
             style={{ left: `${pct(n)}%` }}>
             {valueDisplay === 'tooltip' && (
               <span className={cn('pointer-events-none absolute bottom-full left-1/2 mb-1.5 -translate-x-1/2 rounded-md bg-ink px-1.5 py-0.5 text-xs font-semibold text-white opacity-0 transition-opacity tabular-nums group-hover:opacity-100 group-focus-visible:opacity-100', isOn === i && 'opacity-100')}>

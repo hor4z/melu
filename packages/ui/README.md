@@ -24,7 +24,7 @@ type-chequea estos archivos de paso: romper un componente acá hace fallar el bu
 
 ```
 src/            los componentes, planos, uno por archivo
-  brand/        el logo, el subrayado y los doodles
+  brand/        el logo, el marco de foto y los doodles (placeholders)
   charts/       sparkline, anillo de progreso, contador
   tokens/       primitivos · semánticos · escalas
   theme.css     los tokens + el @theme de Tailwind + base + animaciones

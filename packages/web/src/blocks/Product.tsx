@@ -1,8 +1,8 @@
 // Piezas de melu armadas sobre el design system. Codifican decisiones de producto —la
 // unidad del panel, el copy del menú de cuenta— así que viven acá y no en @melu/ui.
 import type { ReactNode } from 'react'
-import { ChevronDown, LogOut, RefreshCw, User } from 'lucide-react'
-import { Avatar, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Icon, Sparkline, cn } from '@melu/ui'
+import { LogOut, RefreshCw, User } from 'lucide-react'
+import { Avatar, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Icon, MenuButton, Sparkline, cn } from '@melu/ui'
 
 /** Metric with a tint, a big number and a trend. The dashboard's unit. */
 export function StatTile({ label, value, unit, delta, series, tint = 'bg-teal', icon, hint }: {
@@ -54,14 +54,9 @@ export function UserMenu({ name, email, subtitle, onProfile, onChangeSpace, onSi
   return (
     <DropdownMenu placement="bottom-end">
       <DropdownMenuTrigger>
-        <button type="button" className="flex items-center gap-2 rounded-md py-1 pl-1 pr-2 outline-none hover:bg-hover focus-visible:ring-3 focus-visible:ring-focus/30" aria-label="Menú de la cuenta">
-          <Avatar name={name} size="sm" />
-          <span className="hidden text-left leading-tight sm:block">
-            <span className="block text-sm font-medium">{name}</span>
-            {subtitle && <span className="block text-xs text-ink-subtle">{subtitle}</span>}
-          </span>
-          <Icon icon={ChevronDown} size="sm" color="subtle" />
-        </button>
+        <MenuButton compact aria-label="Menú de la cuenta" leading={<Avatar name={name} size="sm" />} description={subtitle}>
+          {name}
+        </MenuButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent minWidth={230}>
         <DropdownMenuLabel>

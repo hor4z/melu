@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn, Slot, Slottable } from './lib'
+import { cn, focusRing, Slot, Slottable } from './lib'
 import { Icon } from './icon'
 
 const chipVariants = cva('inline-flex max-w-full items-center gap-1.5 whitespace-nowrap rounded-md font-medium', {
@@ -14,7 +14,7 @@ const chipVariants = cva('inline-flex max-w-full items-center gap-1.5 whitespace
       success: 'bg-success-subtle text-success', warning: 'bg-warning-subtle text-warning', danger: 'bg-danger-subtle text-danger',
     },
     size: { sm: 'h-5.5 px-2 text-xs', md: 'h-6.5 px-2.5 text-xs', lg: 'h-8 px-3 text-sm' },
-    interactive: { true: 'cursor-pointer outline-none transition-colors hover:brightness-95 focus-visible:ring-3 focus-visible:ring-focus/30' },
+    interactive: { true: `cursor-pointer outline-none transition-colors hover:brightness-95 ${focusRing}` },
   },
   defaultVariants: { color: 'default', size: 'md' },
 })

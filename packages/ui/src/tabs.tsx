@@ -1,5 +1,5 @@
 import { createContext, useContext, type ComponentPropsWithoutRef, type ReactNode } from 'react'
-import { cn, useControllableState } from './lib'
+import { cn, focusRing, useControllableState } from './lib'
 
 type Ctx = { value: string; setValue: (v: string) => void; variant: 'line' | 'pill'; base: string }
 const TabsCtx = createContext<Ctx | null>(null)
@@ -44,7 +44,7 @@ export function TabsTrigger({ value, className, children, disabled, ...props }: 
   return (
     <button type="button" role="tab" id={`${t.base}-t-${value}`} aria-controls={`${t.base}-p-${value}`} aria-selected={isOn}
       tabIndex={isOn ? 0 : -1} disabled={disabled} onClick={() => t.setValue(value)}
-      className={cn('inline-flex items-center gap-2 whitespace-nowrap px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-focus/30 disabled:opacity-45',
+      className={cn(`inline-flex items-center gap-2 whitespace-nowrap px-3 text-sm font-medium outline-none transition-colors disabled:opacity-45 ${focusRing}`,
         t.variant === 'line'
           ? cn('-mb-px h-10 border-b-2', isOn ? 'border-ink text-ink' : 'border-transparent text-ink-muted hover:text-ink')
           : cn('h-8 rounded-md', isOn ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'),

@@ -4,7 +4,7 @@
 //
 // One entry point on purpose: `@melu/ui` for everything, `@melu/ui/theme.css` for the styles.
 // The brand lives in its own folder even though this barrel is flat.
-export { cn, Slot, Slottable, composeRefs, useControllableState, type SlotProps } from './lib'
+export { cn, Slot, Slottable, composeRefs, focusRing, focusRingWithin, useControllableState, type SlotProps } from './lib'
 // El árbol que relaciona los flotantes anidados. Sale de acá y no de floating-ui: la app no
 // declara esa dependencia, la declara el sistema, que es quien la usa.
 export { FloatingTree } from '@floating-ui/react'
@@ -25,8 +25,8 @@ export { Chip, Badge, type ChipProps } from './chip'
 export { Avatar, AvatarGroup, initials, tintOf, type AvatarProps } from './avatar'
 export {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuGroup, MoreMenu,
-  type DropdownMenuProps, type DropdownMenuItemProps, type MenuOption,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuGroup, MoreMenu, MenuButton,
+  type DropdownMenuProps, type DropdownMenuItemProps, type MenuOption, type MenuButtonProps,
 } from './dropdown'
 export {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel, SelectSeparator, NativeSelect,
@@ -46,7 +46,7 @@ export { Alert, Separator, Skeleton, Progress, EmptyState, type AlertProps } fro
 export { Text, Heading, Eyebrow, Kbd, type TextProps, type HeadingProps } from './text'
 export { Sparkline, ProgressRing, Counter } from './charts'
 export {
-  Logomark, Logo, Squiggle, PhotoFrame,
+  Logomark, Logo, PhotoFrame,
   DoodleWave, DoodleGroup, DoodleBulb, DoodleBridge, DoodleMap, DoodleRobot,
   DoodleKitchen, DoodleLock, DoodleBook, DoodleSprout, DOODLES, type DoodleName,
 } from './brand'

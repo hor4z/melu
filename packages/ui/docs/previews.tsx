@@ -2,8 +2,7 @@
 // tarjeta entera es un enlace, así que lo que hay adentro no debe robarle el clic.
 import {
   AvatarGroup, Badge, Button, Card, CardContent, CardHeader, CardTitle, Checkbox, Chip, Counter,
-  Heading, Icon, IconButton, Input, Logo, Progress, ProgressRing, Slider, Sparkline, Spinner, Squiggle,
-  Switch, Text,
+  Heading, Icon, IconButton, Input, Logo, Progress, ProgressRing, Slider, Sparkline, Spinner, Switch, Text,
 } from '@melu/ui'
 import { CircleCheck, Layers, MoreHorizontal, Search, Sparkles, Star } from 'lucide-react'
 
@@ -162,7 +161,7 @@ export const PREVIEWS: Record<string, () => React.ReactNode> = {
   brand: () => (
     <div className="pointer-events-none flex flex-col items-center gap-1">
       <Logo />
-      <Text size="xs" variant="muted">con su <Squiggle>gesto</Squiggle></Text>
+      <Text size="xs" variant="muted">el logo y el logomark</Text>
     </div>
   ),
 }
