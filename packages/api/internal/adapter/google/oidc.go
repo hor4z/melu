@@ -8,15 +8,15 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type Identidad struct{ Sub, Email, Nombre string }
+type Identity struct{ Sub, Email, Name string }
 
-type Cliente struct {
+type Client struct {
 	cfg      oauth2.Config
 	verifier *oidc.IDTokenVerifier
 }
 
-// Nuevo devuelve nil si no hay client id: el login con Google queda apagado.
-func Nuevo(ctx context.Context, clientID, secret, redirectURL string) (*Cliente, error) {
+// New returns nil when there is no client id: Google sign-in stays off.
+func New(ctx context.Context, clientID, secret, redirectURL string) (*Client, error) {
 	if clientID == "" {
 		return nil, nil
 	}
@@ -24,7 +24,7 @@ func Nuevo(ctx context.Context, clientID, secret, redirectURL string) (*Cliente,
 	if err != nil {
 		return nil, err
 	}
-	return &Cliente{
+	return &Client{
 		cfg: oauth2.Config{
 			ClientID: clientID, ClientSecret: secret, RedirectURL: redirectURL,
 			Endpoint: p.Endpoint(), Scopes: []string{oidc.ScopeOpenID, "email", "profile"},
@@ -33,16 +33,16 @@ func Nuevo(ctx context.Context, clientID, secret, redirectURL string) (*Cliente,
 	}, nil
 }
 
-func (c *Cliente) URL(state string) string { return c.cfg.AuthCodeURL(state) }
+func (c *Client) URL(state string) string { return c.cfg.AuthCodeURL(state) }
 
-func (c *Cliente) Canjear(ctx context.Context, code string) (*Identidad, error) {
+func (c *Client) Exchange(ctx context.Context, code string) (*Identity, error) {
 	tok, err := c.cfg.Exchange(ctx, code)
 	if err != nil {
 		return nil, err
 	}
 	raw, ok := tok.Extra("id_token").(string)
 	if !ok {
-		return nil, errors.New("sin id_token")
+		return nil, errors.New("no id_token")
 	}
 	idt, err := c.verifier.Verify(ctx, raw)
 	if err != nil {
@@ -57,7 +57,7 @@ func (c *Cliente) Canjear(ctx context.Context, code string) (*Identidad, error) 
 		return nil, err
 	}
 	if !claims.Verified {
-		return nil, errors.New("email no verificado")
+		return nil, errors.New("email not verified")
 	}
-	return &Identidad{Sub: idt.Subject, Email: claims.Email, Nombre: claims.Name}, nil
+	return &Identity{Sub: idt.Subject, Email: claims.Email, Name: claims.Name}, nil
 }

@@ -21,7 +21,7 @@ export function Tabs({ value, defaultValue = '', onValueChange, variant = 'line'
 
 export function TabsList({ className, children, ...props }: ComponentPropsWithoutRef<'div'>) {
   const t = useTabsCtx()
-  const mover = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const moveBy = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return
     e.preventDefault()
     const items = [...e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]:not(:disabled)')]
@@ -31,7 +31,7 @@ export function TabsList({ className, children, ...props }: ComponentPropsWithou
     next?.focus(); next?.click()
   }
   return (
-    <div role="tablist" onKeyDown={mover}
+    <div role="tablist" onKeyDown={moveBy}
       className={cn('flex flex-wrap items-center', t.variant === 'line' ? 'gap-1 border-b border-line' : 'gap-1 rounded-lg bg-muted p-1', className)} {...props}>
       {children}
     </div>
@@ -40,14 +40,14 @@ export function TabsList({ className, children, ...props }: ComponentPropsWithou
 
 export function TabsTrigger({ value, className, children, disabled, ...props }: Omit<ComponentPropsWithoutRef<'button'>, 'value'> & { value: string; children: ReactNode }) {
   const t = useTabsCtx()
-  const activo = t.value === value
+  const isOn = t.value === value
   return (
-    <button type="button" role="tab" id={`${t.base}-t-${value}`} aria-controls={`${t.base}-p-${value}`} aria-selected={activo}
-      tabIndex={activo ? 0 : -1} disabled={disabled} onClick={() => t.setValue(value)}
+    <button type="button" role="tab" id={`${t.base}-t-${value}`} aria-controls={`${t.base}-p-${value}`} aria-selected={isOn}
+      tabIndex={isOn ? 0 : -1} disabled={disabled} onClick={() => t.setValue(value)}
       className={cn('inline-flex items-center gap-2 whitespace-nowrap px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-focus/30 disabled:opacity-45',
         t.variant === 'line'
-          ? cn('-mb-px h-10 border-b-2', activo ? 'border-ink text-ink' : 'border-transparent text-ink-muted hover:text-ink')
-          : cn('h-8 rounded-md', activo ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'),
+          ? cn('-mb-px h-10 border-b-2', isOn ? 'border-ink text-ink' : 'border-transparent text-ink-muted hover:text-ink')
+          : cn('h-8 rounded-md', isOn ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'),
         className)}
       {...props}>{children}</button>
   )

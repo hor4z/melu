@@ -23,7 +23,7 @@ const iconButtonVariantes = cva(
 )
 
 export interface IconButtonProps extends Omit<ComponentPropsWithoutRef<'button'>, 'children'>, VariantProps<typeof iconButtonVariantes> {
-  /** Obligatorio: es el nombre accesible del botón, porque no hay texto visible. */
+  /** Required: it is the button's accessible name, since there is no visible text. */
   label: string
   icon: ReactNode
   loading?: boolean

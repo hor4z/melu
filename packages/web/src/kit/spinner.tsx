@@ -1,9 +1,9 @@
 import { cn } from './lib'
 
-const TAMANOS = { xs: 12, sm: 14, md: 16, lg: 20, xl: 28 } as const
+const SIZES = { xs: 12, sm: 14, md: 16, lg: 20, xl: 28 } as const
 
-export function Spinner({ size = 'md', className, label }: { size?: keyof typeof TAMANOS | number; className?: string; label?: string }) {
-  const px = typeof size === 'number' ? size : TAMANOS[size]
+export function Spinner({ size = 'md', className, label }: { size?: keyof typeof SIZES | number; className?: string; label?: string }) {
+  const px = typeof size === 'number' ? size : SIZES[size]
   return (
     <span role={label ? 'status' : undefined} aria-label={label} className={cn('inline-block shrink-0', className)}>
       <svg width={px} height={px} viewBox="0 0 24 24" fill="none" aria-hidden="true" className="animate-spin">

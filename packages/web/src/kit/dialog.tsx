@@ -7,13 +7,13 @@ import { Icon } from './icon'
 import { IconButton } from './icon-button'
 
 type Ctx = {
-  abierto: boolean
-  setAbierto: (v: boolean) => void
+  isOpen: boolean
+  setIsOpen: (v: boolean) => void
   refs: ReturnType<typeof useFloating>['refs']
   context: ReturnType<typeof useFloating>['context']
   getReferenceProps: (u?: Record<string, unknown>) => Record<string, unknown>
   getFloatingProps: (u?: Record<string, unknown>) => Record<string, unknown>
-  tituloId: string
+  titleId: string
   descId: string
   nodeId: string | undefined
 }
@@ -29,34 +29,34 @@ export interface DialogProps {
   open?: boolean
   defaultOpen?: boolean
   onOpenChange?: (v: boolean) => void
-  /** `required` no deja cerrar con Escape ni clic afuera: solo con los botones. */
+  /** `required` blocks closing with Escape or an outside click: only the buttons close it. */
   purpose?: 'info' | 'form' | 'required'
 }
 
 export function Dialog({ children, open, defaultOpen = false, onOpenChange, purpose = 'info' }: DialogProps) {
-  const [abierto, setAbierto] = useControllableState({ value: open, defaultValue: defaultOpen, onChange: onOpenChange })
+  const [isOpen, setIsOpen] = useControllableState({ value: open, defaultValue: defaultOpen, onChange: onOpenChange })
   const nodeId = useFloatingNodeId()
-  const { refs, context } = useFloating({ nodeId, open: abierto, onOpenChange: setAbierto })
+  const { refs, context } = useFloating({ nodeId, open: isOpen, onOpenChange: setIsOpen })
 
-  // Un modal controlado desde afuera no tiene disparador al que devolverle el foco.
-  // Mientras está cerrado vamos anotando quién tiene el foco; al cerrarse, se lo devolvemos.
-  // (No sirve leerlo al abrir: para entonces floating-ui ya movió el foco adentro.)
-  const previo = useRef<HTMLElement | null>(null)
-  const eraAbierto = useRef(abierto)
-  // Este efecto va primero a propósito: tiene que leer `previo` antes de que el de abajo lo pise.
+  // A modal controlled from outside has no trigger to give focus back to.
+  // While it is closed we keep noting who has focus; on close, we give it back.
+  // (Reading it on open is no good: by then floating-ui already moved focus inside.)
+  const previous = useRef<HTMLElement | null>(null)
+  const wasOpen = useRef(isOpen)
+  // This effect goes first on purpose: it has to read `previous` before the one below overwrites it.
   useEffect(() => {
-    const seCerro = eraAbierto.current && !abierto
-    eraAbierto.current = abierto
-    if (!seCerro) return
-    const el = previo.current
+    const wasClosed = wasOpen.current && !isOpen
+    wasOpen.current = isOpen
+    if (!wasClosed) return
+    const el = previous.current
     if (el?.isConnected) requestAnimationFrame(() => el.focus({ preventScroll: true }))
-  }, [abierto])
+  }, [isOpen])
   useEffect(() => {
-    if (abierto) return
-    const anotar = () => { previo.current = document.activeElement as HTMLElement | null }
-    document.addEventListener('focusin', anotar)
-    return () => document.removeEventListener('focusin', anotar)
-  }, [abierto])
+    if (isOpen) return
+    const note = () => { previous.current = document.activeElement as HTMLElement | null }
+    document.addEventListener('focusin', note)
+    return () => document.removeEventListener('focusin', note)
+  }, [isOpen])
   const { getReferenceProps, getFloatingProps } = useInteractions([
     useClick(context),
     useDismiss(context, { outsidePress: purpose === 'info', escapeKey: purpose !== 'required', bubbles: false, outsidePressEvent: 'mousedown' }),
@@ -64,7 +64,7 @@ export function Dialog({ children, open, defaultOpen = false, onOpenChange, purp
   ])
   const base = context.floatingId
   return (
-    <DialogCtx.Provider value={{ abierto, setAbierto, refs, context, getReferenceProps, getFloatingProps, tituloId: `${base}-t`, descId: `${base}-d`, nodeId }}>
+    <DialogCtx.Provider value={{ isOpen, setIsOpen, refs, context, getReferenceProps, getFloatingProps, titleId: `${base}-t`, descId: `${base}-d`, nodeId }}>
       {children}
     </DialogCtx.Provider>
   )
@@ -76,18 +76,18 @@ export function DialogTrigger({ children, asChild = true, ...props }: ComponentP
   return <Cmp ref={d.refs.setReference} {...d.getReferenceProps(props as Record<string, unknown>)}>{children}</Cmp>
 }
 
-const ANCHOS = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl', full: 'max-w-[calc(100vw-2rem)]' }
+const WIDTHS = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl', full: 'max-w-[calc(100vw-2rem)]' }
 
-export function DialogContent({ className, children, size = 'md', ...props }: ComponentPropsWithoutRef<'div'> & { size?: keyof typeof ANCHOS }) {
+export function DialogContent({ className, children, size = 'md', ...props }: ComponentPropsWithoutRef<'div'> & { size?: keyof typeof WIDTHS }) {
   const d = useDialogCtx()
-  if (!d.abierto) return null
+  if (!d.isOpen) return null
   return (
     <FloatingNode id={d.nodeId}>
     <Portal>
       <FloatingOverlay lockScroll data-state="open" className="kit-fade z-50 grid place-items-center bg-[var(--overlay)] p-4">
         <FloatingFocusManager context={d.context} returnFocus={false} initialFocus={0}>
-          <div ref={d.refs.setFloating} aria-labelledby={d.tituloId} aria-describedby={d.descId} data-state="open"
-            className={cn('kit-pop flex max-h-[85dvh] w-full flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg outline-none', ANCHOS[size], className)}
+          <div ref={d.refs.setFloating} aria-labelledby={d.titleId} aria-describedby={d.descId} data-state="open"
+            className={cn('kit-pop flex max-h-[85dvh] w-full flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg outline-none', WIDTHS[size], className)}
             {...d.getFloatingProps(props as Record<string, unknown>)}>
             {children}
           </div>
@@ -103,13 +103,13 @@ export function DialogHeader({ className, children, showClose = true, ...props }
   return (
     <div className={cn('flex items-start justify-between gap-4 border-b border-line px-5 py-4', className)} {...props}>
       <div className="flex min-w-0 flex-col gap-0.5">{children}</div>
-      {showClose && <IconButton label="Cerrar" size="sm" icon={<Icon icon={X} size="lg" />} onClick={() => d.setAbierto(false)} />}
+      {showClose && <IconButton label="Cerrar" size="sm" icon={<Icon icon={X} size="lg" />} onClick={() => d.setIsOpen(false)} />}
     </div>
   )
 }
 export function DialogTitle({ className, ...props }: ComponentPropsWithoutRef<'h2'>) {
   const d = useDialogCtx()
-  return <h2 id={d.tituloId} className={cn('font-display text-lg font-semibold tracking-tight', className)} {...props} />
+  return <h2 id={d.titleId} className={cn('font-display text-lg font-semibold tracking-tight', className)} {...props} />
 }
 export function DialogDescription({ className, ...props }: ComponentPropsWithoutRef<'p'>) {
   const d = useDialogCtx()
@@ -124,5 +124,5 @@ export function DialogFooter({ className, ...props }: ComponentPropsWithoutRef<'
 export function DialogClose({ children, asChild = true, ...props }: ComponentPropsWithoutRef<'button'> & { asChild?: boolean }) {
   const d = useDialogCtx()
   const Cmp = asChild ? Slot : 'button'
-  return <Cmp onClick={() => d.setAbierto(false)} {...props}>{children}</Cmp>
+  return <Cmp onClick={() => d.setIsOpen(false)} {...props}>{children}</Cmp>
 }

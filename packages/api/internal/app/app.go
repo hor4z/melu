@@ -1,4 +1,4 @@
-// Package app orquesta el dominio a través de los puertos. No sabe de HTTP ni de SQL.
+// Package app orchestrates the domain through the ports. It knows nothing about HTTP or SQL.
 package app
 
 import (
@@ -11,127 +11,127 @@ import (
 	"melu/internal/port"
 )
 
-type Servicios struct {
-	Personas     port.Personas
-	Sesiones     port.Sesiones
-	Espacios     port.Espacios
-	Grupos       port.Grupos
-	Lentes       port.Lentes
-	Eventos      port.Eventos
-	Actividades  port.Actividades
-	Asignaciones port.Asignaciones
-	Entregas     port.Entregas
-	Membresias   port.Membresias
-	Panel        port.Panel
-	Perfiles     port.Perfiles
-	// Zona: si es nil se usa la del proceso.
-	Zona *time.Location
+type Services struct {
+	People      port.People
+	Sessions    port.Sessions
+	Spaces      port.Spaces
+	Groups      port.Groups
+	Lenses      port.Lenses
+	Events      port.Events
+	Activities  port.Activities
+	Assignments port.Assignments
+	Submissions port.Submissions
+	Memberships port.Memberships
+	Dashboard   port.Dashboard
+	Profiles    port.Profiles
+	// TZ: if nil, the process time zone is used.
+	TZ *time.Location
 }
 
-func (s *Servicios) zona() *time.Location {
-	if s.Zona != nil {
-		return s.Zona
+func (s *Services) zone() *time.Location {
+	if s.TZ != nil {
+		return s.TZ
 	}
 	return time.Local
 }
 
-// inicioDelDia da el arranque del día local. Existe porque `Truncate(24*time.Hour)` trunca en
-// UTC: en Argentina el «día» empezaba a las 21:00 y las barras del panel salían corridas.
-func inicioDelDia(t time.Time, z *time.Location) time.Time {
+// startOfDay returns the start of the local day. It exists because `Truncate(24*time.Hour)`
+// truncates in UTC: in Argentina the "day" started at 21:00 and the dashboard bars came out shifted.
+func startOfDay(t time.Time, z *time.Location) time.Time {
 	t = t.In(z)
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, z)
 }
 
-// EntrarConIdentidad resuelve o crea la persona a partir de una identidad externa y abre sesión.
-func (s *Servicios) EntrarConIdentidad(ctx context.Context, sub, email, nombre string) (token string, err error) {
-	p, err := s.Personas.PorGoogleSub(ctx, sub)
-	if err != nil && err != domain.ErrNoEncontrado {
+// SignInWithIdentity resolves or creates the person from an external identity and opens a session.
+func (s *Services) SignInWithIdentity(ctx context.Context, sub, email, name string) (token string, err error) {
+	p, err := s.People.ByGoogleSub(ctx, sub)
+	if err != nil && err != domain.ErrNotFound {
 		return "", err
 	}
 	if p == nil && email != "" {
-		p, err = s.Personas.PorEmail(ctx, email)
-		if err != nil && err != domain.ErrNoEncontrado {
+		p, err = s.People.ByEmail(ctx, email)
+		if err != nil && err != domain.ErrNotFound {
 			return "", err
 		}
 		if p != nil {
-			if err := s.Personas.VincularGoogle(ctx, p.ID, sub); err != nil {
+			if err := s.People.LinkGoogle(ctx, p.ID, sub); err != nil {
 				return "", err
 			}
 		}
 	}
 	if p == nil {
-		if nombre == "" {
-			nombre = strings.Split(email, "@")[0]
+		if name == "" {
+			name = strings.Split(email, "@")[0]
 		}
-		p, err = s.Personas.Crear(ctx, domain.Persona{Email: email, GoogleSub: sub, Nombre: nombre})
+		p, err = s.People.Create(ctx, domain.Person{Email: email, GoogleSub: sub, Name: name})
 		if err != nil {
 			return "", err
 		}
-		_ = s.Eventos.Emitir(ctx, domain.Evento{PersonaID: &p.ID, Verbo: "persona.creada", Origen: "observado", Ocurrio: time.Now()})
+		_ = s.Events.Emit(ctx, domain.Event{PersonID: &p.ID, Verb: "person.created", Source: "observed", OccurredAt: time.Now()})
 	}
-	_ = s.Eventos.Emitir(ctx, domain.Evento{PersonaID: &p.ID, Verbo: "sesion.iniciada", Origen: "observado", Ocurrio: time.Now()})
-	return s.Sesiones.Crear(ctx, p.ID)
+	_ = s.Events.Emit(ctx, domain.Event{PersonID: &p.ID, Verb: "session.started", Source: "observed", OccurredAt: time.Now()})
+	return s.Sessions.Create(ctx, p.ID)
 }
 
-type Contexto struct {
-	Persona    domain.Persona     `json:"persona"`
-	Espacios   []domain.Espacio   `json:"espacios"`
-	Membresias []domain.Membresia `json:"membresias"`
+type Account struct {
+	Person      domain.Person       `json:"person"`
+	Spaces      []domain.Space      `json:"spaces"`
+	Memberships []domain.Membership `json:"memberships"`
 }
 
-func (s *Servicios) Yo(ctx context.Context, p domain.Persona) (*Contexto, error) {
-	esp, err := s.Espacios.DePersona(ctx, p.ID)
+func (s *Services) Account(ctx context.Context, p domain.Person) (*Account, error) {
+	spaces, err := s.Spaces.OfPerson(ctx, p.ID)
 	if err != nil {
 		return nil, err
 	}
-	mem, err := s.Espacios.Membresias(ctx, p.ID)
+	memberships, err := s.Spaces.Memberships(ctx, p.ID)
 	if err != nil {
 		return nil, err
 	}
-	return &Contexto{Persona: p, Espacios: esp, Membresias: mem}, nil
+	return &Account{Person: p, Spaces: spaces, Memberships: memberships}, nil
 }
 
-func (s *Servicios) CrearEspacio(ctx context.Context, p domain.Persona, nombre, tipo string) (*domain.Espacio, error) {
-	if err := domain.ValidarNombre(nombre); err != nil {
+func (s *Services) CreateSpace(ctx context.Context, p domain.Person, name, kind string) (*domain.Space, error) {
+	if err := domain.ValidateName(name); err != nil {
 		return nil, err
 	}
-	if tipo == "" {
-		tipo = "personal"
+	if kind == "" {
+		kind = "personal"
 	}
-	e, err := s.Espacios.Crear(ctx, domain.Espacio{Nombre: nombre, Slug: slug(nombre) + "-" + codigo(4), Tipo: tipo}, p.ID)
+	e, err := s.Spaces.Create(ctx, domain.Space{Name: name, Slug: slug(name) + "-" + code(4), Kind: kind}, p.ID)
 	if err != nil {
 		return nil, err
 	}
-	_ = s.Eventos.Emitir(ctx, domain.Evento{PersonaID: &p.ID, Verbo: "espacio.creado", Payload: map[string]any{"espacioId": e.ID}, Origen: "observado", Ocurrio: time.Now()})
+	_ = s.Events.Emit(ctx, domain.Event{PersonID: &p.ID, Verb: "space.created", Payload: map[string]any{"spaceId": e.ID}, Source: "observed", OccurredAt: time.Now()})
 	return e, nil
 }
 
-func (s *Servicios) CrearGrupo(ctx context.Context, p domain.Persona, espacioID, nombre string) (*domain.Grupo, error) {
-	if err := domain.ValidarNombre(nombre); err != nil {
+func (s *Services) CreateGroup(ctx context.Context, p domain.Person, spaceID, name string) (*domain.Group, error) {
+	if err := domain.ValidateName(name); err != nil {
 		return nil, err
 	}
-	if !s.esMiembro(ctx, p.ID, espacioID, domain.RolCoordinador, domain.RolGuia) {
-		return nil, domain.ErrNoAutorizado
+	if !s.isMember(ctx, p.ID, spaceID, domain.RoleCoordinator, domain.RoleGuide) {
+		return nil, domain.ErrNotAllowed
 	}
-	g, err := s.Grupos.Crear(ctx, domain.Grupo{EspacioID: espacioID, Nombre: nombre, Codigo: codigo(6)}, p.ID)
+	g, err := s.Groups.Create(ctx, domain.Group{SpaceID: spaceID, Name: name, Code: code(6)}, p.ID)
 	if err != nil {
 		return nil, err
 	}
-	_ = s.Eventos.Emitir(ctx, domain.Evento{PersonaID: &p.ID, GrupoID: &g.ID, Verbo: "grupo.creado", Origen: "observado", Ocurrio: time.Now()})
+	_ = s.Events.Emit(ctx, domain.Event{PersonID: &p.ID, GroupID: &g.ID, Verb: "group.created", Source: "observed", OccurredAt: time.Now()})
 	return g, nil
 }
 
-func (s *Servicios) esMiembro(ctx context.Context, personaID, espacioID string, roles ...domain.Rol) bool {
-	mem, err := s.Espacios.Membresias(ctx, personaID)
+func (s *Services) isMember(ctx context.Context, personID, spaceID string, roles ...domain.Role) bool {
+	memberships, err := s.Spaces.Memberships(ctx, personID)
 	if err != nil {
 		return false
 	}
-	for _, m := range mem {
-		if m.EspacioID != espacioID {
+	for _, m := range memberships {
+		if m.SpaceID != spaceID {
 			continue
 		}
 		for _, r := range roles {
-			if m.Rol == r {
+			if m.Role == r {
 				return true
 			}
 		}
@@ -139,8 +139,8 @@ func (s *Servicios) esMiembro(ctx context.Context, personaID, espacioID string, 
 	return false
 }
 
-// codigo genera un código legible sin caracteres ambiguos (0/O, 1/I/L).
-func codigo(n int) string {
+// code generates a readable code with no ambiguous characters (0/O, 1/I/L).
+func code(n int) string {
 	const alf = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 	b := make([]byte, n)
 	rand.Read(b)

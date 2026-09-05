@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn, Slot } from './lib'
 import { Icon } from './icon'
 
-const chipVariantes = cva('inline-flex max-w-full items-center gap-1.5 whitespace-nowrap rounded-md font-medium', {
+const chipVariants = cva('inline-flex max-w-full items-center gap-1.5 whitespace-nowrap rounded-md font-medium', {
   variants: {
     color: {
       default: 'bg-muted text-ink', outline: 'border border-line text-ink-muted',
@@ -19,9 +19,9 @@ const chipVariantes = cva('inline-flex max-w-full items-center gap-1.5 whitespac
   defaultVariants: { color: 'default', size: 'md' },
 })
 
-export interface ChipProps extends Omit<ComponentPropsWithoutRef<'span'>, 'color'>, VariantProps<typeof chipVariantes> {
+export interface ChipProps extends Omit<ComponentPropsWithoutRef<'span'>, 'color'>, VariantProps<typeof chipVariants> {
   icon?: ReactNode
-  /** Muestra la X para quitarlo (filtros, etiquetas elegidas). */
+  /** Shows the X to remove it (filters, chosen tags). */
   onRemove?: () => void
   asChild?: boolean
 }
@@ -29,7 +29,7 @@ export interface ChipProps extends Omit<ComponentPropsWithoutRef<'span'>, 'color
 export function Chip({ className, color, size, interactive, icon, onRemove, asChild, children, ...props }: ChipProps) {
   const Cmp = asChild ? Slot : 'span'
   return (
-    <Cmp className={cn(chipVariantes({ color, size, interactive: interactive ?? (props.onClick ? true : undefined) }), className)} {...props}>
+    <Cmp className={cn(chipVariants({ color, size, interactive: interactive ?? (props.onClick ? true : undefined) }), className)} {...props}>
       {icon}
       <span className="truncate">{children}</span>
       {onRemove && (
@@ -40,7 +40,7 @@ export function Chip({ className, color, size, interactive, icon, onRemove, asCh
   )
 }
 
-/** Contador o estado breve. Más chico y redondo que un Chip. */
+/** Counter or short status. Smaller and rounder than a Chip. */
 export function Badge({ className, color = 'danger', children, ...props }: Omit<ChipProps, 'size'>) {
   return <Chip color={color} size="sm" className={cn('h-5 min-w-5 justify-center rounded-full px-1.5 font-bold tabular-nums', className)} {...props}>{children}</Chip>
 }

@@ -1,156 +1,160 @@
 create extension if not exists pgcrypto;
 
--- estructura
-create table espacio (
+-- Table names are plural because `group` is a reserved word in SQL.
+-- The product vocabulary (espacio, grupo, guía, aprendiz, lente) lives in CLAUDE.md;
+-- here and everywhere else in the code we use its English representation.
+
+-- structure
+create table spaces (
   id uuid primary key default gen_random_uuid(),
-  nombre text not null,
+  name text not null,
   slug text not null unique,
-  tipo text not null default 'personal',           -- escuela | club | apoyo | personal
+  kind text not null default 'personal',           -- school | club | tutoring | personal
   created_at timestamptz not null default now()
 );
 
-create table periodo (
+create table terms (
   id uuid primary key default gen_random_uuid(),
-  espacio_id uuid not null references espacio(id) on delete cascade,
-  nombre text not null,
-  desde date, hasta date,
+  space_id uuid not null references spaces(id) on delete cascade,
+  name text not null,
+  starts_on date, ends_on date,
   created_at timestamptz not null default now()
 );
 
-create table grupo (
+create table groups (
   id uuid primary key default gen_random_uuid(),
-  espacio_id uuid not null references espacio(id) on delete cascade,
-  periodo_id uuid references periodo(id) on delete set null,
-  nombre text not null,
-  codigo text not null unique,                     -- para /unirme/:codigo
-  etiquetas jsonb not null default '{}',           -- grado, materia, turno...
+  space_id uuid not null references spaces(id) on delete cascade,
+  term_id uuid references terms(id) on delete set null,
+  name text not null,
+  code text not null unique,                       -- for /join/:code
+  tags jsonb not null default '{}',                -- grade, subject, shift...
   created_at timestamptz not null default now()
 );
 
-create table persona (
+create table people (
   id uuid primary key default gen_random_uuid(),
   email text unique,
   google_sub text unique,
-  nombre text not null,
+  name text not null,
   pin_hash text,
   created_at timestamptz not null default now()
 );
 
-create table membresia (
+create table memberships (
   id uuid primary key default gen_random_uuid(),
-  persona_id uuid not null references persona(id) on delete cascade,
-  espacio_id uuid not null references espacio(id) on delete cascade,
-  grupo_id uuid references grupo(id) on delete cascade,
-  rol text not null check (rol in ('guia','aprendiz','acompanante','coordinador')),
+  person_id uuid not null references people(id) on delete cascade,
+  space_id uuid not null references spaces(id) on delete cascade,
+  group_id uuid references groups(id) on delete cascade,
+  role text not null check (role in ('guide','learner','companion','coordinator')),
   created_at timestamptz not null default now(),
-  unique (persona_id, espacio_id, grupo_id, rol)
+  unique (person_id, space_id, group_id, role)
 );
-create index on membresia (persona_id);
-create index on membresia (grupo_id);
+create index on memberships (person_id);
+create index on memberships (group_id);
 
-create table vinculo (
-  acompanante_id uuid not null references persona(id) on delete cascade,
-  aprendiz_id uuid not null references persona(id) on delete cascade,
-  primary key (acompanante_id, aprendiz_id)
-);
-
--- contenido
-create table lente (
-  clave text primary key,
-  nombre text not null,
-  descripcion text not null default '',
-  fases jsonb not null                              -- [{clave, nombre, pide}]
+create table companion_links (
+  companion_id uuid not null references people(id) on delete cascade,
+  learner_id uuid not null references people(id) on delete cascade,
+  primary key (companion_id, learner_id)
 );
 
-create table objetivo (
+-- content
+create table lenses (
+  key text primary key,
+  name text not null,
+  description text not null default '',
+  phases jsonb not null                             -- [{key, name, asks}]
+);
+
+create table objectives (
   id uuid primary key default gen_random_uuid(),
-  espacio_id uuid not null references espacio(id) on delete cascade,
-  disciplina text not null,
-  titulo text not null,
-  requiere uuid[] not null default '{}',
+  space_id uuid not null references spaces(id) on delete cascade,
+  discipline text not null,
+  title text not null,
+  requires uuid[] not null default '{}',
   created_at timestamptz not null default now()
 );
 
-create table actividad (
+create table activities (
   id uuid primary key default gen_random_uuid(),
-  espacio_id uuid references espacio(id) on delete cascade,  -- null = receta global
-  titulo text not null,
-  es_receta boolean not null default false,
-  composicion jsonb not null default '{}',          -- {experiencia, lente, disciplinas[], escenario[], social, evidencia[]}
-  documento jsonb not null default '{"fases":[]}',  -- {fases:[{clave,nombre,bloques:[...]}]}
-  rubrica jsonb not null default '[]',              -- [{id,label,niveles[],objetivoId?,duenoId?}]
-  autores uuid[] not null default '{}',
+  space_id uuid references spaces(id) on delete cascade,  -- null = global recipe
+  title text not null,
+  is_recipe boolean not null default false,
+  composition jsonb not null default '{}',          -- {experience, lens, disciplines[], setting[], social, evidence[]}
+  document jsonb not null default '{"phases":[]}',  -- {phases:[{key,name,blocks:[...]}]}
+  rubric jsonb not null default '[]',               -- [{id,label,levels[],objectiveId?,ownerId?}]
+  authors uuid[] not null default '{}',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
--- el circuito
-create table asignacion (
+-- the loop
+create table assignments (
   id uuid primary key default gen_random_uuid(),
-  actividad_id uuid not null references actividad(id),
-  grupo_id uuid not null references grupo(id) on delete cascade,
-  destinatarios uuid[],                              -- null = todo el grupo
-  documento_snapshot jsonb not null,
-  rubrica_snapshot jsonb not null default '[]',
-  abre timestamptz not null default now(),
-  cierra timestamptz,
+  activity_id uuid not null references activities(id),
+  group_id uuid not null references groups(id) on delete cascade,
+  recipients uuid[],                                 -- null = the whole group
+  document_snapshot jsonb not null,
+  rubric_snapshot jsonb not null default '[]',
+  opens_at timestamptz not null default now(),
+  closes_at timestamptz,
   created_at timestamptz not null default now()
 );
 
-create table entrega (
+create table submissions (
   id uuid primary key default gen_random_uuid(),
-  asignacion_id uuid not null references asignacion(id) on delete cascade,
-  aprendiz_id uuid not null references persona(id) on delete cascade,
-  estado text not null default 'en_curso' check (estado in ('en_curso','entregada','corregida')),
-  respuestas jsonb not null default '{}',
-  artefactos jsonb not null default '[]',
-  puntajes jsonb not null default '[]',
-  entregada_at timestamptz,
+  assignment_id uuid not null references assignments(id) on delete cascade,
+  learner_id uuid not null references people(id) on delete cascade,
+  status text not null default 'in_progress' check (status in ('in_progress','submitted','graded')),
+  answers jsonb not null default '{}',
+  artifacts jsonb not null default '[]',
+  scores jsonb not null default '[]',
+  submitted_at timestamptz,
   updated_at timestamptz not null default now(),
-  unique (asignacion_id, aprendiz_id)
+  unique (assignment_id, learner_id)
 );
 
--- la base de todo: append-only, bitemporal
-create table evento (
+-- the ground truth: append-only, bitemporal
+create table events (
   id bigserial primary key,
-  persona_id uuid,
-  grupo_id uuid,
-  actividad_id uuid,
-  verbo text not null,
+  person_id uuid,
+  group_id uuid,
+  activity_id uuid,
+  verb text not null,
   payload jsonb not null default '{}',
-  origen text not null default 'observado' check (origen in ('observado','declarado','inferido')),
-  ocurrio timestamptz not null default now(),
-  registrado timestamptz not null default now()
+  source text not null default 'observed' check (source in ('observed','declared','inferred')),
+  occurred_at timestamptz not null default now(),
+  recorded_at timestamptz not null default now()
 );
-create index on evento (persona_id, ocurrio);
-create index on evento (verbo, ocurrio);
+create index on events (person_id, occurred_at);
+create index on events (verb, occurred_at);
 
-create table sesion (
+create table sessions (
   token text primary key,
-  persona_id uuid not null references persona(id) on delete cascade,
-  expira timestamptz not null,
+  person_id uuid not null references people(id) on delete cascade,
+  expires_at timestamptz not null,
   created_at timestamptz not null default now()
 );
 
--- los lentes, como datos
-insert into lente (clave, nombre, descripcion, fases) values
-('sin_lente','Sin lente','Una sola fase. Práctica, lectura, cualquier cosa corta.',
- '[{"clave":"unica","nombre":"Actividad","pide":""}]'),
+-- lenses, as data. The key is technical; the text is content and stays in Spanish.
+insert into lenses (key, name, description, phases) values
+('no_lens','Sin lente','Una sola fase. Práctica, lectura, cualquier cosa corta.',
+ '[{"key":"single","name":"Actividad","asks":""}]'),
 ('cpa','CPA (Singapur)','Un concepto matemático nuevo, de lo concreto al símbolo.',
- '[{"clave":"concreto","nombre":"Concreto","pide":"Foto de los materiales manipulados"},{"clave":"pictorico","nombre":"Pictórico","pide":"Dibujo o diagrama"},{"clave":"abstracto","nombre":"Abstracto","pide":"Notación simbólica"}]'),
+ '[{"key":"concrete","name":"Concreto","asks":"Foto de los materiales manipulados"},{"key":"pictorial","name":"Pictórico","asks":"Dibujo o diagrama"},{"key":"abstract","name":"Abstracto","asks":"Notación simbólica"}]'),
 ('design_thinking','Design thinking','Cuando hay alguien para quien se diseña. Sin usuario real es teatro.',
- '[{"clave":"empatizar","nombre":"Empatizar","pide":"Entrevista o observación"},{"clave":"definir","nombre":"Definir","pide":"El problema en una frase"},{"clave":"idear","nombre":"Idear","pide":"Bocetos"},{"clave":"prototipar","nombre":"Prototipar","pide":"Foto del prototipo"},{"clave":"probar","nombre":"Probar","pide":"Qué pasó al probarlo con la persona"}]'),
+ '[{"key":"empathize","name":"Empatizar","asks":"Entrevista o observación"},{"key":"define","name":"Definir","asks":"El problema en una frase"},{"key":"ideate","name":"Idear","asks":"Bocetos"},{"key":"prototype","name":"Prototipar","asks":"Foto del prototipo"},{"key":"test","name":"Probar","asks":"Qué pasó al probarlo con la persona"}]'),
 ('polya','Polya','Resolución de problemas. El revisar es donde se aprende.',
- '[{"clave":"entender","nombre":"Entender","pide":"Qué se pide, con tus palabras"},{"clave":"planificar","nombre":"Planificar","pide":"El plan antes de la respuesta"},{"clave":"ejecutar","nombre":"Ejecutar","pide":"La resolución"},{"clave":"revisar","nombre":"Revisar","pide":"¿Tiene sentido? ¿Otro camino?"}]'),
-('proyecto','Proyecto (ABP)','Interdisciplinar y largo. Envoltorio natural para dos docentes.',
- '[{"clave":"pregunta","nombre":"Pregunta","pide":""},{"clave":"investigar","nombre":"Investigar","pide":"Fuentes y hallazgos"},{"clave":"crear","nombre":"Crear","pide":"El producto"},{"clave":"presentar","nombre":"Presentar","pide":"Audio o video"},{"clave":"reflexionar","nombre":"Reflexionar","pide":"Qué aprendí, qué cambiaría"}]'),
-('indagacion_5e','Indagación 5E','Ciencias y fenómenos. La explicación viene después de tocar.',
- '[{"clave":"enganchar","nombre":"Enganchar","pide":""},{"clave":"explorar","nombre":"Explorar","pide":"Observaciones"},{"clave":"explicar","nombre":"Explicar","pide":"Tu explicación"},{"clave":"elaborar","nombre":"Elaborar","pide":"Aplicación a otro caso"},{"clave":"evaluar","nombre":"Evaluar","pide":""}]'),
-('rutina_pensamiento','Rutinas de pensamiento','Cortas, diez minutos, cualquier disciplina.',
- '[{"clave":"veo","nombre":"Veo","pide":"Qué ves"},{"clave":"pienso","nombre":"Pienso","pide":"Qué pensás"},{"clave":"me_pregunto","nombre":"Me pregunto","pide":"Qué te preguntás"}]'),
-('juego','Juego + debrief','Lúdico con intención. Sin debrief es recreo.',
- '[{"clave":"reglas","nombre":"Reglas","pide":""},{"clave":"jugar","nombre":"Jugar","pide":"Resultado de cada ronda"},{"clave":"debrief","nombre":"Debrief","pide":"Qué operación resolvía cada paso"}]'),
-('servicio','Aprendizaje-servicio','Comunidad, barrio, escuela.',
- '[{"clave":"necesidad","nombre":"Necesidad","pide":"Qué hace falta y a quién"},{"clave":"plan","nombre":"Plan","pide":""},{"clave":"accion","nombre":"Acción","pide":"Fotos de lo hecho"},{"clave":"reflexion","nombre":"Reflexión","pide":""}]'),
-('espaciado','Recuperación espaciada','Consolidar lo ya visto. Evaluación que enseña.',
- '[{"clave":"chequeo","nombre":"Chequeo","pide":"2-3 ítems"},{"clave":"devolucion","nombre":"Devolución","pide":""},{"clave":"rechequeo","nombre":"Re-chequeo","pide":"Días después"}]');
+ '[{"key":"understand","name":"Entender","asks":"Qué se pide, con tus palabras"},{"key":"plan","name":"Planificar","asks":"El plan antes de la respuesta"},{"key":"execute","name":"Ejecutar","asks":"La resolución"},{"key":"review","name":"Revisar","asks":"¿Tiene sentido? ¿Otro camino?"}]'),
+('project','Proyecto (ABP)','Interdisciplinar y largo. Envoltorio natural para dos docentes.',
+ '[{"key":"question","name":"Pregunta","asks":""},{"key":"research","name":"Investigar","asks":"Fuentes y hallazgos"},{"key":"create","name":"Crear","asks":"El producto"},{"key":"present","name":"Presentar","asks":"Audio o video"},{"key":"reflect","name":"Reflexionar","asks":"Qué aprendí, qué cambiaría"}]'),
+('inquiry_5e','Indagación 5E','Ciencias y fenómenos. La explicación viene después de tocar.',
+ '[{"key":"engage","name":"Enganchar","asks":""},{"key":"explore","name":"Explorar","asks":"Observaciones"},{"key":"explain","name":"Explicar","asks":"Tu explicación"},{"key":"elaborate","name":"Elaborar","asks":"Aplicación a otro caso"},{"key":"evaluate","name":"Evaluar","asks":""}]'),
+('thinking_routine','Rutinas de pensamiento','Cortas, diez minutos, cualquier disciplina.',
+ '[{"key":"see","name":"Veo","asks":"Qué ves"},{"key":"think","name":"Pienso","asks":"Qué pensás"},{"key":"wonder","name":"Me pregunto","asks":"Qué te preguntás"}]'),
+('game','Juego + debrief','Lúdico con intención. Sin debrief es recreo.',
+ '[{"key":"rules","name":"Reglas","asks":""},{"key":"play","name":"Jugar","asks":"Resultado de cada ronda"},{"key":"debrief","name":"Debrief","asks":"Qué operación resolvía cada paso"}]'),
+('service_learning','Aprendizaje-servicio','Comunidad, barrio, escuela.',
+ '[{"key":"need","name":"Necesidad","asks":"Qué hace falta y a quién"},{"key":"plan","name":"Plan","asks":""},{"key":"action","name":"Acción","asks":"Fotos de lo hecho"},{"key":"reflection","name":"Reflexión","asks":""}]'),
+('spaced_review','Recuperación espaciada','Consolidar lo ya visto. Evaluación que enseña.',
+ '[{"key":"check","name":"Chequeo","asks":"2-3 ítems"},{"key":"feedback","name":"Devolución","asks":""},{"key":"recheck","name":"Re-chequeo","asks":"Días después"}]');

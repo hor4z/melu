@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn, Slot } from './lib'
 
-const cardVariantes = cva('flex min-w-0 flex-col rounded-xl', {
+const cardVariants = cva('flex min-w-0 flex-col rounded-xl', {
   variants: {
     variant: {
       default: 'border border-line bg-surface',
@@ -19,13 +19,13 @@ const cardVariantes = cva('flex min-w-0 flex-col rounded-xl', {
   defaultVariants: { variant: 'default', padding: 'none' },
 })
 
-export interface CardProps extends ComponentPropsWithoutRef<'div'>, VariantProps<typeof cardVariantes> {
+export interface CardProps extends ComponentPropsWithoutRef<'div'>, VariantProps<typeof cardVariants> {
   asChild?: boolean
 }
 
 export function Card({ className, variant, padding, interactive, asChild, ...props }: CardProps) {
   const Cmp = asChild ? Slot : 'div'
-  return <Cmp className={cn(cardVariantes({ variant, padding, interactive }), className)} {...props} />
+  return <Cmp className={cn(cardVariants({ variant, padding, interactive }), className)} {...props} />
 }
 
 export function CardHeader({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
@@ -43,7 +43,7 @@ export function CardContent({ className, ...props }: ComponentPropsWithoutRef<'d
 export function CardFooter({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   return <div className={cn('mt-auto flex flex-wrap items-center gap-2 p-5 pt-0', className)} {...props} />
 }
-/** Franja superior a sangre: portada, ilustración o foto. */
+/** Full-bleed top strip: cover, illustration or photo. */
 export function CardMedia({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   return <div className={cn('grid shrink-0 place-items-center overflow-hidden rounded-t-xl', className)} {...props} />
 }

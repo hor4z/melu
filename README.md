@@ -30,8 +30,8 @@ packages/api              Go · un módulo, hexagonal
   migrations               SQL numerado, embebido, se aplica al arrancar
 
 packages/web             React 19 + Astryx + Tailwind (solo layout) + React Router
-  src/pantallas            una pantalla por ruta
-  src/bloques              piezas grandes que arman pantallas
+  src/screens              una pantalla por ruta
+  src/blocks               piezas grandes que arman pantallas
   src/kit                  componentes y tokens
   src/lib                  api, sesión, perfil
 

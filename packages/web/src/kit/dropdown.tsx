@@ -11,13 +11,13 @@ import { Icon } from './icon'
 import { IconButton } from './icon-button'
 
 type Ctx = {
-  abierto: boolean
-  setAbierto: (v: boolean) => void
+  isOpen: boolean
+  setIsOpen: (v: boolean) => void
   activeIndex: number | null
   getItemProps: (u?: Record<string, unknown>) => Record<string, unknown>
   refs: ReturnType<typeof useFloating>['refs']
   floatingStyles: React.CSSProperties
-  posicionado: boolean
+  positioned: boolean
   context: ReturnType<typeof useFloating>['context']
   getReferenceProps: (u?: Record<string, unknown>) => Record<string, unknown>
   getFloatingProps: (u?: Record<string, unknown>) => Record<string, unknown>
@@ -41,14 +41,14 @@ export interface DropdownMenuProps {
 }
 
 export function DropdownMenu({ children, open, defaultOpen = false, onOpenChange, placement = 'bottom-start' }: DropdownMenuProps) {
-  const [abierto, setAbierto] = useControllableState({ value: open, defaultValue: defaultOpen, onChange: onOpenChange })
+  const [isOpen, setIsOpen] = useControllableState({ value: open, defaultValue: defaultOpen, onChange: onOpenChange })
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const elementsRef = useRef<(HTMLElement | null)[]>([])
   const labelsRef = useRef<(string | null)[]>([])
   const nodeId = useFloatingNodeId()
 
   const { refs, floatingStyles, context, isPositioned } = useFloating({
-    nodeId, open: abierto, onOpenChange: setAbierto, placement, whileElementsMounted: autoUpdate,
+    nodeId, open: isOpen, onOpenChange: setIsOpen, placement, whileElementsMounted: autoUpdate,
     middleware: [
       offset(6), flip({ padding: 8 }), shift({ padding: 8 }),
       sizeMw({ padding: 8, apply({ availableHeight, elements }) { elements.floating.style.maxHeight = `${Math.max(160, availableHeight)}px` } }),
@@ -56,15 +56,15 @@ export function DropdownMenu({ children, open, defaultOpen = false, onOpenChange
   })
   const { getReferenceProps, getFloatingProps, getItemProps } = useInteractions([
     useClick(context),
-    // `bubbles: false`: cerrar este menú no debe cerrar también el modal que lo contiene.
+    // `bubbles: false`: closing this menu must not also close the modal containing it.
     useDismiss(context, { bubbles: false }),
     useRole(context, { role: 'menu' }),
     useListNavigation(context, { listRef: elementsRef, activeIndex, onNavigate: setActiveIndex, loop: true }),
-    useTypeahead(context, { listRef: labelsRef, activeIndex, onMatch: setActiveIndex, enabled: abierto }),
+    useTypeahead(context, { listRef: labelsRef, activeIndex, onMatch: setActiveIndex, enabled: isOpen }),
   ])
 
   return (
-    <MenuCtx.Provider value={{ abierto, setAbierto, activeIndex, getItemProps, refs, floatingStyles, context, posicionado: isPositioned, getReferenceProps, getFloatingProps, elementsRef, labelsRef, nodeId }}>
+    <MenuCtx.Provider value={{ isOpen, setIsOpen, activeIndex, getItemProps, refs, floatingStyles, context, positioned: isPositioned, getReferenceProps, getFloatingProps, elementsRef, labelsRef, nodeId }}>
       {children}
     </MenuCtx.Provider>
   )
@@ -73,19 +73,19 @@ export function DropdownMenu({ children, open, defaultOpen = false, onOpenChange
 export function DropdownMenuTriggerBase({ children, asChild = true, ...props }: ComponentPropsWithoutRef<'button'> & { asChild?: boolean }) {
   const m = useMenuCtx()
   const Cmp = asChild ? Slot : 'button'
-  return <Cmp ref={m.refs.setReference} data-state={m.abierto ? 'open' : 'closed'} {...m.getReferenceProps(props as Record<string, unknown>)}>{children}</Cmp>
+  return <Cmp ref={m.refs.setReference} data-state={m.isOpen ? 'open' : 'closed'} {...m.getReferenceProps(props as Record<string, unknown>)}>{children}</Cmp>
 }
 
 export const DropdownMenuTrigger = DropdownMenuTriggerBase
 
 export function DropdownMenuContent({ className, children, minWidth = 200, ...props }: ComponentPropsWithoutRef<'div'> & { minWidth?: number }) {
   const m = useMenuCtx()
-  if (!m.abierto) return null
+  if (!m.isOpen) return null
   return (
     <FloatingNode id={m.nodeId}>
     <Portal>
-      <FloatingFocusManager context={m.context} modal={false} initialFocus={-1} returnFocus disabled={!m.posicionado}>
-        <div ref={m.refs.setFloating} style={{ ...m.floatingStyles, minWidth, visibility: m.posicionado ? undefined : 'hidden' }} data-state="open"
+      <FloatingFocusManager context={m.context} modal={false} initialFocus={-1} returnFocus disabled={!m.positioned}>
+        <div ref={m.refs.setFloating} style={{ ...m.floatingStyles, minWidth, visibility: m.positioned ? undefined : 'hidden' }} data-state="open"
           className={cn('kit-pop z-50 overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-lg outline-none', className)}
           {...m.getFloatingProps(props as Record<string, unknown>)}>
           <FloatingList elementsRef={m.elementsRef} labelsRef={m.labelsRef}>{children}</FloatingList>
@@ -97,29 +97,29 @@ export function DropdownMenuContent({ className, children, minWidth = 200, ...pr
 }
 
 export interface DropdownMenuItemProps extends ComponentPropsWithoutRef<'div'> {
-  /** Texto para la búsqueda por tecleo. Si los hijos no son texto plano, pasalo a mano. */
+  /** Text for type-ahead search. If the children are not plain text, pass it by hand. */
   label?: string
   icon?: ReactNode
   shortcut?: string
   destructive?: boolean
   disabled?: boolean
-  /** Deja el menú abierto al elegir: útil para opciones que se marcan. */
+  /** Keeps the menu open on pick: useful for options that get checked. */
   keepOpen?: boolean
 }
 
 export function DropdownMenuItem({ className, children, label, icon, shortcut, destructive, disabled, keepOpen, onClick, ...props }: DropdownMenuItemProps) {
   const m = useMenuCtx()
   const { ref, index } = useListItem({ label: disabled ? null : (label ?? (typeof children === 'string' ? children : undefined)) })
-  const activo = m.activeIndex === index
+  const isOn = m.activeIndex === index
   return (
-    <div ref={ref} role="menuitem" tabIndex={activo ? 0 : -1} aria-disabled={disabled}
+    <div ref={ref} role="menuitem" tabIndex={isOn ? 0 : -1} aria-disabled={disabled}
       className={cn('flex cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm outline-none',
         destructive ? 'text-danger' : 'text-ink',
-        activo && !disabled && (destructive ? 'bg-danger-subtle' : 'bg-hover'),
+        isOn && !disabled && (destructive ? 'bg-danger-subtle' : 'bg-hover'),
         disabled && 'pointer-events-none opacity-45', className)}
       {...m.getItemProps({
         ...props,
-        onClick: (e: React.MouseEvent<HTMLDivElement>) => { if (disabled) return; onClick?.(e); if (!keepOpen) m.setAbierto(false) },
+        onClick: (e: React.MouseEvent<HTMLDivElement>) => { if (disabled) return; onClick?.(e); if (!keepOpen) m.setIsOpen(false) },
       })}>
       {icon && <span className="text-ink-subtle">{icon}</span>}
       <span className="min-w-0 flex-1 truncate">{children}</span>
@@ -147,9 +147,9 @@ export function DropdownMenuGroup({ className, ...props }: ComponentPropsWithout
   return <div role="group" className={cn('flex flex-col', className)} {...props} />
 }
 
-export type OpcionMenu = { label: string; icon?: ReactNode; onSelect?: () => void; destructive?: boolean; disabled?: boolean; separatorBefore?: boolean }
+export type MenuOption = { label: string; icon?: ReactNode; onSelect?: () => void; destructive?: boolean; disabled?: boolean; separatorBefore?: boolean }
 
-/** El menú de tres puntos: el gesto de “más acciones” en una fila o una tarjeta. */
+/** The three-dot menu: the “more actions” gesture on a row or a card. */
 DropdownMenu.Trigger = DropdownMenuTriggerBase
 DropdownMenu.Content = DropdownMenuContent
 DropdownMenu.Item = DropdownMenuItem
@@ -157,7 +157,7 @@ DropdownMenu.Label = DropdownMenuLabel
 DropdownMenu.Separator = DropdownMenuSeparator
 
 export function MoreMenu({ items, label = 'Más acciones', orientation = 'horizontal', placement = 'bottom-end', size = 'md', variant = 'ghost' }: {
-  items: OpcionMenu[]; label?: string; orientation?: 'horizontal' | 'vertical'; placement?: Placement
+  items: MenuOption[]; label?: string; orientation?: 'horizontal' | 'vertical'; placement?: Placement
   size?: 'sm' | 'md' | 'lg'; variant?: 'ghost' | 'outline' | 'subtle'
 }) {
   return (
