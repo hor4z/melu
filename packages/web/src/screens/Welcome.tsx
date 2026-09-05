@@ -1,38 +1,57 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowRight, Check, Copy } from 'lucide-react'
-import { Button, Card, CardContent, CardMedia, DoodleGroup, DoodleWave, Field, Heading, Icon, Input, Logo, RadioGroup, RadioGroupItem, Text } from '@melu/ui'
+import { Button, Card, CardContent, CardMedia, DoodleWave, Field, Heading, Icon, Input, Logo, RadioGroup, RadioGroupItem, Text } from '@melu/ui'
 import { Stepper, UserMenu } from '../blocks/Product'
-import { api, type Activity, type Space, type SpaceKind, type Group, type Invite, type Me } from '../lib/api'
+import { AddLearners } from '../blocks/AddLearners'
+import { api, type Activity, type Space, type SpaceKind, type Group, type Me } from '../lib/api'
 import { SPACE_KINDS } from '../lib/composition'
 import { useSignOut } from '../lib/session'
 import { CompositionChips } from '../blocks/Chips'
 
-// First time: you are nothing yet. You pick where to come in.
+// First time: nobody has put you anywhere yet. Either you are the one who sets things up, or
+// somebody has to add you — and the only thing they need from you is the email you just used.
 export function Welcome({ me }: { me: Me }) {
-  const [door, setDoor] = useState<'teach' | 'learn' | null>(null)
+  const [door, setDoor] = useState<'teach' | null>(null)
+  const [copied, setCopied] = useState(false)
   const signOut = useSignOut()
   return (
     <div className="min-h-screen bg-canvas">
       <header className="flex items-center justify-between px-8 py-5">
         <Logo />
-        <UserMenu name={me.person.Name} email={me.person.Email} onSignOut={signOut} />
+        <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl} onSignOut={signOut} />
       </header>
       <div className="mx-auto w-full max-w-3xl px-6 pb-16 pt-6">
         {!door && (
           <>
             <div className="mb-10 text-center">
-              <Heading level={1} size="display">Hola, {me.person.Name.split(' ')[0]}. ¿Qué venís a hacer?</Heading>
-              <Text variant="muted" className="mt-2">Elegí una puerta. Después podés ser las dos cosas.</Text>
+              <Heading level={1} size="display">Hola, {me.person.name.split(' ')[0]}. Todavía no tenés nada acá.</Heading>
+              <Text variant="muted" className="mt-2">Dos formas de que eso cambie.</Text>
             </div>
-            <div className="grid gap-5 sm:grid-cols-2">
-              <Door illustration={<DoodleWave size={96} className="text-ink" />} tint="bg-teal" title="Enseño" text="Armo actividades y las doy a un grupo: mi aula, mi taller, mis alumnos particulares. Veo cómo les va y qué les cuesta." onClick={() => setDoor('teach')} />
-              <Door illustration={<DoodleGroup size={150} className="text-ink" />} tint="bg-yellow" title="Aprendo" text="Mi docente me dio un código de seis letras. Quiero ver mis misiones y hacerlas." onClick={() => setDoor('learn')} />
-            </div>
+
+            <Door illustration={<DoodleWave size={96} className="text-ink" />} tint="bg-teal" title="Enseño"
+              text="Armo actividades y las doy a un grupo: mi aula, mi taller, mis alumnos particulares. Veo cómo les va y qué les cuesta."
+              onClick={() => setDoor('teach')} />
+
+            {/* Lo que reemplaza al código: en vez de pedirle al chico que consiga seis letras,
+                le mostramos lo único que su docente necesita de él. */}
+            <Card variant="yellow" padding="lg" className="mt-5 gap-3">
+              <Heading level={2} size="lg">¿Te están por sumar a un grupo?</Heading>
+              <Text size="sm" variant="muted">
+                Pasale este email a tu docente. Cuando te sume, tus misiones aparecen acá solas —
+                no hay nada que escribir.
+              </Text>
+              <div className="flex flex-wrap items-center gap-3">
+                <code className="rounded-md border border-line bg-surface px-3 py-2 font-mono text-sm">{me.person.email}</code>
+                <Button variant="secondary" size="sm" startIcon={<Icon icon={copied ? Check : Copy} size="sm" />}
+                  onClick={() => { void navigator.clipboard.writeText(me.person.email); setCopied(true); setTimeout(() => setCopied(false), 1500) }}>
+                  {copied ? 'Copiado' : 'Copiar'}
+                </Button>
+              </div>
+            </Card>
           </>
         )}
         {door === 'teach' && <Onboarding onBack={() => setDoor(null)} />}
-        {door === 'learn' && <Join onBack={() => setDoor(null)} />}
       </div>
     </div>
   )
@@ -53,7 +72,7 @@ function Door({ illustration, tint, title, text, onClick }: { illustration: Reac
   )
 }
 
-// Teacher onboarding in three steps: space → group (with an invite) → first assigned activity.
+// Teacher onboarding in three steps: space → group and its people → first assigned activity.
 function Onboarding({ onBack }: { onBack: () => void }) {
   const qc = useQueryClient()
   const [step, setStep] = useState(0)
@@ -62,18 +81,15 @@ function Onboarding({ onBack }: { onBack: () => void }) {
   const [groupName, setGroupName] = useState('')
   const [space, setSpace] = useState<Space | null>(null)
   const [group, setGroup] = useState<Group | null>(null)
-  const [inv, setInv] = useState<Invite | null>(null)
-  const [copied, setCopied] = useState(false)
   const recipes = useQuery({ queryKey: ['activities'], queryFn: () => api.get<{ recipes: Activity[]; mine: Activity[] }>('/api/activities'), enabled: step === 2 })
 
   const create = useMutation({
     mutationFn: async () => {
       const e = await api.post<Space>('/api/spaces', { name, kind })
       const g = await api.post<Group>('/api/groups', { spaceId: e.id, name: groupName || 'Mi primer grupo' })
-      const i = await api.get<Invite>(`/api/groups/${g.id}/invite`)
-      return { e, g, i }
+      return { e, g }
     },
-    onSuccess: ({ e, g, i }) => { setSpace(e); setGroup(g); setInv(i); setStep(1) },
+    onSuccess: ({ e, g }) => { setSpace(e); setGroup(g); setStep(1) },
   })
   const assign = useMutation({
     mutationFn: async (recipeId: string) => { const a = await api.post<Activity>('/api/activities', { spaceId: space!.id, fromRecipe: recipeId }); await api.post(`/api/activities/${a.id}/assign`, { groupId: group!.id }); return a },
@@ -83,7 +99,7 @@ function Onboarding({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <Stepper steps={['Tu espacio', 'Invitá a los chicos', 'Primera actividad']} current={step} />
+      <Stepper steps={['Tu espacio', 'Sumá a los chicos', 'Primera actividad']} current={step} />
 
       {step === 0 && (
         <Card asChild padding="lg"><form className="grid gap-6 lg:grid-cols-[1fr_260px]" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
@@ -105,20 +121,17 @@ function Onboarding({ onBack }: { onBack: () => void }) {
         </form></Card>
       )}
 
-      {step === 1 && inv && (
-        <Card padding="lg" className="grid gap-6 lg:grid-cols-[1fr_240px]">
-          <div className="flex flex-col gap-5">
-            <div><Heading level={2} size="xl">Invitá a los chicos a «{group?.name}»</Heading><Text variant="muted">Entran con Google y escriben este código, o escanean el QR. Sin registros, sin contraseñas.</Text></div>
-            <Card variant="yellow" padding="md" className="flex-row flex-wrap items-center gap-6">
-              <div><div className="text-xs font-bold uppercase tracking-wider text-ink-subtle">Código del grupo</div><div className="font-mono text-4xl font-semibold tracking-[0.3em]">{inv.code}</div></div>
-              <div className="flex flex-col gap-2">
-                <Button variant="secondary" size="sm" startIcon={<Icon icon={copied ? Check : Copy} />} onClick={() => { navigator.clipboard.writeText(inv.link).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500) }) }}>{copied ? 'Copiado' : 'Copiar link'}</Button>
-                <Text size="xs" variant="muted" mono>{inv.link}</Text>
-              </div>
-            </Card>
-            <div className="flex gap-2"><Button onClick={() => setStep(2)}>Ya lo compartí, seguir</Button><Button variant="ghost" onClick={() => setStep(2)}>Lo hago después</Button></div>
+      {step === 1 && group && (
+        <Card padding="lg" className="gap-5">
+          <div>
+            <Heading level={2} size="xl">Sumá a los chicos</Heading>
+            <Text variant="muted">Entran con Google y el grupo ya los espera. Sin códigos, sin contraseñas, sin registros.</Text>
           </div>
-          <Card padding="sm" className="items-center gap-2"><img src={inv.qr} alt="QR para unirse" className="size-44" /><Text size="xs" variant="muted">Escanear con el celular</Text></Card>
+          <AddLearners groupId={group.id} groupName={group.name} />
+          <div className="flex gap-2 border-t border-line pt-4">
+            <Button onClick={() => setStep(2)}>Seguir</Button>
+            <Button variant="ghost" onClick={() => setStep(2)}>Lo hago después</Button>
+          </div>
         </Card>
       )}
 
@@ -141,20 +154,3 @@ function Onboarding({ onBack }: { onBack: () => void }) {
   )
 }
 
-function Join({ onBack }: { onBack: () => void }) {
-  const qc = useQueryClient()
-  const [code, setCode] = useState('')
-  const joinIt = useMutation({ mutationFn: () => api.post<Group>('/api/join', { code: code.trim() }), onSuccess: () => qc.invalidateQueries({ queryKey: ['me'] }) })
-  return (
-    <Card asChild padding="lg"><form className="mx-auto grid max-w-2xl gap-6 sm:grid-cols-[1fr_200px]" onSubmit={(e) => { e.preventDefault(); joinIt.mutate() }}>
-      <div className="flex flex-col gap-5">
-        <div><Heading size="xl">El código de tu grupo</Heading><Text variant="muted">Te lo da tu docente. Son seis letras y números, tipo <span className="font-mono font-semibold">DEMO4A</span>. Si te mandaron un link, con tocarlo alcanza.</Text></div>
-        <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={6} autoFocus aria-label="Código" placeholder="ABC123"
-          className="h-auto px-4 py-4 text-center font-mono text-3xl uppercase tracking-[0.4em]" />
-        {joinIt.isError && <Text size="sm" variant="danger">Ese código no existe. Revisalo con tu docente.</Text>}
-        <div className="flex gap-2"><Button type="submit" loading={joinIt.isPending} disabled={code.length < 6}>Entrar al grupo</Button><Button variant="ghost" onClick={onBack}>Volver</Button></div>
-      </div>
-      <Card variant="yellow" padding="none" className="place-items-center justify-center"><DoodleGroup size={170} className="text-ink" /></Card>
-    </form></Card>
-  )
-}

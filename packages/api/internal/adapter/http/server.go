@@ -18,16 +18,18 @@ import (
 )
 
 type Server struct {
-	svc      *app.Services
-	google   *google.Client // nil = apagado
-	devLogin bool
-	web      fs.FS // Vite build, may be nil in dev
-	baseURL  string
-	mux      *http.ServeMux
+	svc     *app.Services
+	google  *google.Client
+	web     fs.FS // Vite build, may be nil in dev
+	baseURL string
+	// secure marks the cookies when melu is served over https. Deriving it from the base URL
+	// keeps local development working over plain http without a second flag to forget.
+	secure bool
+	mux    *http.ServeMux
 }
 
-func New(svc *app.Services, g *google.Client, devLogin bool, web fs.FS, baseURL string) *Server {
-	s := &Server{svc: svc, google: g, devLogin: devLogin, web: web, baseURL: baseURL, mux: http.NewServeMux()}
+func New(svc *app.Services, g *google.Client, web fs.FS, baseURL string) *Server {
+	s := &Server{svc: svc, google: g, web: web, baseURL: baseURL, secure: strings.HasPrefix(baseURL, "https://"), mux: http.NewServeMux()}
 	s.routes()
 	return s
 }
@@ -37,10 +39,8 @@ func (s *Server) Handler() http.Handler { return logging(s.mux) }
 func (s *Server) routes() {
 	m := s.mux
 	m.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) { js(w, 200, map[string]any{"ok": true}) })
-	m.HandleFunc("GET /api/auth/options", s.authOptions)
 	m.HandleFunc("GET /api/auth/google", s.authGoogle)
 	m.HandleFunc("GET /api/auth/google/callback", s.authGoogleCallback)
-	m.HandleFunc("POST /api/auth/dev", s.authDev)
 	m.HandleFunc("POST /api/auth/logout", s.logout)
 
 	m.Handle("GET /api/me", s.withSession(s.yo))
@@ -60,72 +60,88 @@ func (s *Server) routes() {
 }
 
 // ---- auth ----
-func (s *Server) authOptions(w http.ResponseWriter, r *http.Request) {
-	js(w, 200, map[string]any{"google": s.google != nil, "dev": s.devLogin})
-}
+
+// oauthCookie carries three things across the round trip to Google: the state, the nonce, and
+// where the person was headed. It has to survive the trip in the browser because the callback
+// arrives on a fresh request with nothing else to tie it to the one that started the flow.
+const oauthCookie = "oauth_flow"
 
 func (s *Server) authGoogle(w http.ResponseWriter, r *http.Request) {
-	if s.google == nil {
-		http.Error(w, "Google sign-in not configured", 503)
-		return
-	}
-	b := make([]byte, 16)
-	rand.Read(b)
-	state := hex.EncodeToString(b)
-	http.SetCookie(w, &http.Cookie{Name: "oauth_state", Value: state, Path: "/", HttpOnly: true, MaxAge: 600, SameSite: http.SameSiteLaxMode})
-	http.Redirect(w, r, s.google.URL(state), http.StatusFound)
+	state, nonce := token16(), token16()
+	// `next` is where to come back to. Only a path: an absolute URL here would turn the sign-in
+	// into an open redirect, handing anybody a melu link that lands somewhere else.
+	next := safeNext(r.URL.Query().Get("next"))
+	s.setCookie(w, &http.Cookie{Name: oauthCookie, Value: state + "|" + nonce + "|" + next, HttpOnly: true, MaxAge: 600})
+	http.Redirect(w, r, s.google.URL(state, nonce), http.StatusFound)
 }
 
 func (s *Server) authGoogleCallback(w http.ResponseWriter, r *http.Request) {
-	c, err := r.Cookie("oauth_state")
-	if err != nil || c.Value != r.URL.Query().Get("state") {
+	c, err := r.Cookie(oauthCookie)
+	if err != nil {
 		http.Error(w, "invalid state", 400)
 		return
 	}
-	id, err := s.google.Exchange(r.Context(), r.URL.Query().Get("code"))
+	// Spent on arrival, whatever happens next: leaving it alive would let the same state be
+	// replayed for the ten minutes it lasts.
+	s.setCookie(w, &http.Cookie{Name: oauthCookie, Value: "", MaxAge: -1})
+
+	parts := strings.SplitN(c.Value, "|", 3)
+	if len(parts) != 3 || parts[0] != r.URL.Query().Get("state") {
+		http.Error(w, "invalid state", 400)
+		return
+	}
+	id, err := s.google.Exchange(r.Context(), r.URL.Query().Get("code"), parts[1])
 	if err != nil {
 		http.Error(w, "could not sign in with Google: "+err.Error(), 401)
 		return
 	}
-	tok, err := s.svc.SignInWithIdentity(r.Context(), id.Sub, id.Email, id.Name)
+	tok, err := s.svc.SignInWithIdentity(r.Context(), id.Sub, id.Email, id.Name, id.Picture)
 	if err != nil {
 		fail(w, err)
 		return
 	}
-	setSession(w, tok)
-	http.Redirect(w, r, "/", http.StatusFound)
-}
-
-// authDev signs in with any email. Only with MELU_DEV_LOGIN=1.
-func (s *Server) authDev(w http.ResponseWriter, r *http.Request) {
-	if !s.devLogin {
-		http.NotFound(w, r)
-		return
-	}
-	var in struct{ Email, Name string }
-	if json.NewDecoder(r.Body).Decode(&in) != nil || !strings.Contains(in.Email, "@") {
-		http.Error(w, "invalid email", 400)
-		return
-	}
-	tok, err := s.svc.SignInWithIdentity(r.Context(), "dev:"+in.Email, in.Email, in.Name)
-	if err != nil {
-		fail(w, err)
-		return
-	}
-	setSession(w, tok)
-	js(w, 200, map[string]any{"ok": true})
+	s.setSession(w, tok)
+	http.Redirect(w, r, safeNext(parts[2]), http.StatusFound)
 }
 
 func (s *Server) logout(w http.ResponseWriter, r *http.Request) {
 	if c, err := r.Cookie("melu_session"); err == nil {
-		s.svc.Sessions.Delete(r.Context(), c.Value)
+		// If the row survives, the cookie is gone from the browser but the token is still good
+		// for thirty days. Worth saying out loud rather than dropping.
+		if err := s.svc.Sessions.Delete(r.Context(), c.Value); err != nil {
+			slog.Error("the session could not be deleted, the token stays valid", "err", err)
+		}
 	}
-	http.SetCookie(w, &http.Cookie{Name: "melu_session", Value: "", Path: "/", MaxAge: -1})
+	s.setCookie(w, &http.Cookie{Name: "melu_session", Value: "", MaxAge: -1})
 	js(w, 200, map[string]any{"ok": true})
 }
 
-func setSession(w http.ResponseWriter, tok string) {
-	http.SetCookie(w, &http.Cookie{Name: "melu_session", Value: tok, Path: "/", HttpOnly: true, SameSite: http.SameSiteLaxMode, MaxAge: 30 * 24 * 3600})
+func (s *Server) setSession(w http.ResponseWriter, tok string) {
+	s.setCookie(w, &http.Cookie{Name: "melu_session", Value: tok, HttpOnly: true, MaxAge: 30 * 24 * 3600})
+}
+
+// setCookie fills in what every cookie melu sets has in common, so `Secure` cannot be forgotten
+// on one of them.
+func (s *Server) setCookie(w http.ResponseWriter, c *http.Cookie) {
+	c.Path = "/"
+	c.Secure = s.secure
+	c.SameSite = http.SameSiteLaxMode
+	http.SetCookie(w, c)
+}
+
+func token16() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	return hex.EncodeToString(b)
+}
+
+// safeNext keeps only a path inside melu. Anything else —an absolute URL, a protocol-relative
+// `//host`— falls back to the root.
+func safeNext(next string) string {
+	if !strings.HasPrefix(next, "/") || strings.HasPrefix(next, "//") {
+		return "/"
+	}
+	return next
 }
 
 // ---- session ----

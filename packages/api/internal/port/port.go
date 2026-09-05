@@ -10,7 +10,7 @@ type People interface {
 	ByGoogleSub(ctx context.Context, sub string) (*domain.Person, error)
 	ByEmail(ctx context.Context, email string) (*domain.Person, error)
 	Create(ctx context.Context, p domain.Person) (*domain.Person, error)
-	LinkGoogle(ctx context.Context, id, sub string) error
+	LinkGoogle(ctx context.Context, id, sub, name, avatar string) error
 }
 
 type Sessions interface {
@@ -63,7 +63,6 @@ type Submissions interface {
 
 type Memberships interface {
 	Join(ctx context.Context, personID, spaceID, groupID string, role domain.Role) error
-	GroupByCode(ctx context.Context, code string) (*domain.Group, error)
 	GroupsOfLearner(ctx context.Context, personID string) ([]domain.Group, error)
 	Learners(ctx context.Context, groupID string) ([]domain.Learner, error)
 }

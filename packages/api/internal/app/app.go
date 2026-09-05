@@ -4,6 +4,7 @@ package app
 import (
 	"context"
 	"crypto/rand"
+	"errors"
 	"strings"
 	"time"
 
@@ -42,19 +43,25 @@ func startOfDay(t time.Time, z *time.Location) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, z)
 }
 
-// SignInWithIdentity resolves or creates the person from an external identity and opens a session.
-func (s *Services) SignInWithIdentity(ctx context.Context, sub, email, name string) (token string, err error) {
+// SignInWithIdentity resolves or creates the person behind a Google account and opens a session.
+//
+// The second lookup —by email, when the sub is unknown— is what makes the whole thing work
+// without codes: a guide writes down the emails of their group, and when one of those people
+// signs in for the first time the membership is already waiting. That first sign-in is also
+// what fills in their real name and their picture.
+func (s *Services) SignInWithIdentity(ctx context.Context, sub, email, name, avatar string) (token string, err error) {
+	email = strings.ToLower(strings.TrimSpace(email))
 	p, err := s.People.ByGoogleSub(ctx, sub)
-	if err != nil && err != domain.ErrNotFound {
+	if err != nil && !errors.Is(err, domain.ErrNotFound) {
 		return "", err
 	}
 	if p == nil && email != "" {
 		p, err = s.People.ByEmail(ctx, email)
-		if err != nil && err != domain.ErrNotFound {
+		if err != nil && !errors.Is(err, domain.ErrNotFound) {
 			return "", err
 		}
 		if p != nil {
-			if err := s.People.LinkGoogle(ctx, p.ID, sub); err != nil {
+			if err := s.People.LinkGoogle(ctx, p.ID, sub, name, avatar); err != nil {
 				return "", err
 			}
 		}
@@ -63,7 +70,7 @@ func (s *Services) SignInWithIdentity(ctx context.Context, sub, email, name stri
 		if name == "" {
 			name = strings.Split(email, "@")[0]
 		}
-		p, err = s.People.Create(ctx, domain.Person{Email: email, GoogleSub: sub, Name: name})
+		p, err = s.People.Create(ctx, domain.Person{Email: email, GoogleSub: sub, Name: name, AvatarURL: avatar})
 		if err != nil {
 			return "", err
 		}
@@ -98,7 +105,7 @@ func (s *Services) CreateSpace(ctx context.Context, p domain.Person, name, kind 
 	if kind == "" {
 		kind = "personal"
 	}
-	e, err := s.Spaces.Create(ctx, domain.Space{Name: name, Slug: slug(name) + "-" + code(4), Kind: kind}, p.ID)
+	e, err := s.Spaces.Create(ctx, domain.Space{Name: name, Slug: slug(name) + "-" + suffix(4), Kind: kind}, p.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +120,7 @@ func (s *Services) CreateGroup(ctx context.Context, p domain.Person, spaceID, na
 	if !s.isMember(ctx, p.ID, spaceID, domain.RoleCoordinator, domain.RoleGuide) {
 		return nil, domain.ErrNotAllowed
 	}
-	g, err := s.Groups.Create(ctx, domain.Group{SpaceID: spaceID, Name: name, Code: code(6)}, p.ID)
+	g, err := s.Groups.Create(ctx, domain.Group{SpaceID: spaceID, Name: name}, p.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -139,8 +146,9 @@ func (s *Services) isMember(ctx context.Context, personID, spaceID string, roles
 	return false
 }
 
-// code generates a readable code with no ambiguous characters (0/O, 1/I/L).
-func code(n int) string {
+// suffix keeps two spaces with the same name apart in the URL. Nobody types it: it used to
+// also make the group codes, and that is the part that is gone.
+func suffix(n int) string {
 	const alf = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
 	b := make([]byte, n)
 	rand.Read(b)

@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"strings"
 	"time"
 
 	"melu/internal/domain"
@@ -41,17 +43,66 @@ func (s *Services) Me(ctx context.Context, p domain.Person) (*Me, error) {
 	return &Me{Person: p, Mode: mode, Spaces: c.Spaces, Memberships: c.Memberships, Profile: hasProfile}, nil
 }
 
-// Join: a signed-in person enters a group with its code, as a learner.
-func (s *Services) Join(ctx context.Context, p domain.Person, code string) (*domain.Group, error) {
-	g, err := s.Memberships.GroupByCode(ctx, code)
+// AddLearners is what replaced the group code: the guide writes down the emails of their
+// group and each of those people finds it waiting the first time they sign in with Google.
+//
+// The person is created if this is the first time melu hears of that email, with a placeholder
+// name taken from the local part. `SignInWithIdentity` then adopts that row —real name, real
+// picture— instead of making a second one, which is why the email match has to be
+// case-insensitive on both sides.
+func (s *Services) AddLearners(ctx context.Context, p domain.Person, groupID string, emails []string) (added, already []string, err error) {
+	g, err := s.Groups.ByID(ctx, groupID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	if err := s.Memberships.Join(ctx, p.ID, g.SpaceID, g.ID, domain.RoleLearner); err != nil {
-		return nil, err
+	if !s.isMember(ctx, p.ID, g.SpaceID, domain.RoleGuide, domain.RoleCoordinator) {
+		return nil, nil, domain.ErrNotAllowed
 	}
-	_ = s.Events.Emit(ctx, domain.Event{PersonID: &p.ID, GroupID: &g.ID, Verb: "group.joined", Source: "observed", OccurredAt: time.Now()})
-	return g, nil
+
+	// Arrancan vacíos y no en nil: un slice nil de Go se serializa como `null`, y del otro lado
+	// `null.length` rompe la pantalla. Una lista vacía es una lista.
+	added, already = []string{}, []string{}
+	seen := map[string]bool{}
+	for _, raw := range emails {
+		email := strings.ToLower(strings.TrimSpace(raw))
+		if !strings.Contains(email, "@") || seen[email] {
+			continue
+		}
+		seen[email] = true
+
+		person, err := s.People.ByEmail(ctx, email)
+		if err != nil && !errors.Is(err, domain.ErrNotFound) {
+			return nil, nil, err
+		}
+		if person == nil {
+			person, err = s.People.Create(ctx, domain.Person{Email: email, Name: strings.Split(email, "@")[0]})
+			if err != nil {
+				return nil, nil, err
+			}
+		} else if s.hasMembership(ctx, person.ID, g.ID) {
+			already = append(already, email)
+			continue
+		}
+		if err := s.Memberships.Join(ctx, person.ID, g.SpaceID, g.ID, domain.RoleLearner); err != nil {
+			return nil, nil, err
+		}
+		_ = s.Events.Emit(ctx, domain.Event{PersonID: &person.ID, GroupID: &g.ID, Verb: "group.joined", Source: "observed", OccurredAt: time.Now()})
+		added = append(added, email)
+	}
+	return added, already, nil
+}
+
+func (s *Services) hasMembership(ctx context.Context, personID, groupID string) bool {
+	people, err := s.Memberships.Learners(ctx, groupID)
+	if err != nil {
+		return false
+	}
+	for _, l := range people {
+		if l.ID == personID {
+			return true
+		}
+	}
+	return false
 }
 
 // ---- activities (guide) ----

@@ -3,6 +3,7 @@ package platform
 import (
 	"bufio"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -12,7 +13,6 @@ type Config struct {
 	BaseURL            string
 	GoogleClientID     string
 	GoogleClientSecret string
-	DevLogin           bool
 	// TZ: where the school lives. Needed to know where the day starts, because truncating an
 	// instant truncates in UTC and in Argentina that puts the boundary at 21:00.
 	TZ string
@@ -20,14 +20,13 @@ type Config struct {
 
 // Load reads .env (if present) and then the environment. The environment wins.
 func Load() Config {
-	loadDotEnv(".env")
+	loadDotEnv()
 	return Config{
 		Addr:               env("MELU_ADDR", ":8787"),
 		DatabaseURL:        env("MELU_DATABASE_URL", "postgres://melu:melu@localhost:5434/melu?sslmode=disable"),
 		BaseURL:            env("MELU_BASE_URL", "http://localhost:8787"),
 		GoogleClientID:     env("MELU_GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret: env("MELU_GOOGLE_CLIENT_SECRET", ""),
-		DevLogin:           env("MELU_DEV_LOGIN", "") == "1",
 		TZ:                 env("MELU_TZ", "America/Argentina/Buenos_Aires"),
 	}
 }
@@ -39,7 +38,17 @@ func env(k, def string) string {
 	return def
 }
 
-func loadDotEnv(path string) {
+// loadDotEnv walks up looking for a .env. The server runs from packages/api —that is what the
+// Makefile does— and the file lives at the root of the monorepo, next to the other one nobody
+// wants to keep in sync.
+func loadDotEnv() {
+	path := ".env"
+	for i := 0; i < 4; i++ {
+		if _, err := os.Stat(path); err == nil {
+			break
+		}
+		path = filepath.Join("..", path)
+	}
 	f, err := os.Open(path)
 	if err != nil {
 		return

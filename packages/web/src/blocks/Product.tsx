@@ -48,13 +48,14 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
   )
 }
 /** Avatar that opens the account menu. */
-export function UserMenu({ name, email, subtitle, onProfile, onChangeSpace, onSignOut }: {
-  name: string; email?: string; subtitle?: string; onProfile?: () => void; onChangeSpace?: () => void; onSignOut: () => void
+export function UserMenu({ name, email, avatar, subtitle, onProfile, onChangeSpace, onSignOut }: {
+  name: string; email?: string; avatar?: string; subtitle?: string
+  onProfile?: () => void; onChangeSpace?: () => void; onSignOut: () => void
 }) {
   return (
     <DropdownMenu placement="bottom-end">
       <DropdownMenuTrigger>
-        <MenuButton compact aria-label="Menú de la cuenta" leading={<Avatar name={name} size="sm" />} description={subtitle}>
+        <MenuButton compact aria-label="Menú de la cuenta" leading={<Avatar name={name} src={avatar} size="sm" />} description={subtitle}>
           {name}
         </MenuButton>
       </DropdownMenuTrigger>

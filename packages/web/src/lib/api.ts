@@ -11,9 +11,20 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
     body: body ? JSON.stringify(body) : undefined,
     credentials: 'same-origin',
   })
+  // El 401 de `/api/me` es la respuesta normal a «todavía no entraste», y quien pregunta ya
+  // sabe qué hacer con él. En cualquier otra ruta significa que la sesión se venció mientras la
+  // persona navegaba: sin avisar, cada pantalla se rompe por su cuenta.
+  if (res.status === 401 && path !== '/api/me') onExpired?.()
   if (!res.ok) throw new ApiError(res.status, (await res.text()) || res.statusText)
   return res.status === 204 ? (undefined as T) : res.json()
 }
+
+/**
+ * Qué hacer cuando el servidor dice que ya no hay sesión. Lo define `main.tsx` una sola vez;
+ * acá no vive porque este archivo no sabe de react-query ni de rutas.
+ */
+let onExpired: (() => void) | undefined
+export function onSessionExpired(fn: () => void) { onExpired = fn }
 
 export const api = {
   get: <T>(p: string) => req<T>('GET', p),
@@ -22,16 +33,15 @@ export const api = {
 }
 
 // ---- types mirroring the Go domain ----
-export type Person = { ID: string; Email: string; Name: string }
+export type Person = { id: string; email: string; name: string; avatarUrl?: string }
 export type Space = { id: string; name: string; slug: string; kind: SpaceKind }
 export type SpaceKind = 'school' | 'club' | 'tutoring' | 'personal'
 export type Role = 'guide' | 'learner' | 'companion' | 'coordinator'
 export type Membership = { spaceId: string; groupId: string | null; role: Role }
-export type Group = { id: string; spaceId: string; name: string; code: string; tags: Record<string, string>; learners: number }
+export type Group = { id: string; spaceId: string; name: string; tags: Record<string, string>; learners: number }
 export type Phase = { key: string; name: string; asks: string }
 export type Lens = { key: string; name: string; description: string; phases: Phase[] }
 export type Me = { person: Person; mode: 'guide' | 'learner' | 'new'; spaces: Space[]; memberships: Membership[]; profile: boolean }
-export type AuthOptions = { google: boolean; dev: boolean }
 
 export type BlockType =
   | 'paragraph' | 'heading' | 'list' | 'callout'
@@ -111,4 +121,3 @@ export type DaySeries = { day: string; opened: number; submitted: number }
 export type SubmissionSummary = { submissionId: string; assignmentId: string; learner?: string; title: string; group: string; status: 'in_progress' | 'submitted' | 'graded'; minutes: number; accuracy: number; when: string }
 export type Dashboard = { spaces: number; groups: number; learners: number; toReview: number; avgMinutes: number; accuracy: number; weekSeries: DaySeries[]; signals: Signal[]; byKind: ByKind[]; checklist: Record<string, boolean>; recentSubmissions: SubmissionSummary[] }
 export type Progress = { done: number; inProgress: number; minutes: number; accuracy: number; streak: number; missions: SubmissionSummary[]; experiences: Record<string, number> }
-export type Invite = { code: string; link: string; qr: string; group: string }

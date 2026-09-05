@@ -5,13 +5,22 @@ Espacios para aprender. Componé una actividad mezclando disciplinas y métodos,
 ## Correr en local
 
 ```sh
-cp .env.example .env     # ya trae MELU_DEV_LOGIN=1: entrás con cualquier email
+cp .env.example .env     # y cargale las credenciales de Google: son obligatorias
 make db                  # postgres en :5434
 make dev                 # api en :8787 + front en :5173
 ```
 
-Abrí http://localhost:5173. Para login real con Google, cargá `MELU_GOOGLE_CLIENT_ID` y `MELU_GOOGLE_CLIENT_SECRET` en `.env`
-(redirect URI: `http://localhost:8787/api/auth/google/callback`).
+Abrí http://localhost:5173.
+
+**Se entra con Google y con nada más**, seas docente o estudiante. Sin las credenciales el
+servidor no arranca: un binario sin forma de entrar no le sirve a nadie. Se sacan de Google
+Cloud Console → Credentials → OAuth client ID, tipo *Web application*, con
+`http://localhost:5173/api/auth/google/callback` como redirect URI.
+
+Con `MELU_DEMO=1` la base trae un espacio de ejemplo cuyo docente es
+`horacio.rivero@educabot.com`: entrando con esa cuenta de Google aparece todo el demo. Es el
+mismo mecanismo que usa cualquiera — la persona ya está en la base con su email, y el primer
+ingreso con Google la adopta.
 
 ## Estructura
 

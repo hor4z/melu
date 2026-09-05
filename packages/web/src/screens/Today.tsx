@@ -1,9 +1,8 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { ArrowRight } from 'lucide-react'
-import { Button, Card, Chip, DoodleGroup, EmptyState, Eyebrow, Heading, Icon, Input, ProgressRing, Text } from '@melu/ui'
-import { api, type Assignment, type Group, type Room, type Me } from '../lib/api'
+import { Button, Card, Chip, DoodleGroup, EmptyState, Eyebrow, Heading, Icon, ProgressRing, Text } from '@melu/ui'
+import { api, type Assignment, type Room, type Me } from '../lib/api'
 import { CompositionChips } from '../blocks/Chips'
 import { Cover } from '../blocks/Cover'
 
@@ -20,7 +19,7 @@ export function Today({ me }: { me: Me }) {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex items-center justify-between gap-4">
-        <div><Eyebrow>Hoy</Eyebrow><Heading level={1} size="2xl" className="mt-1">Hola, {me.person.Name.split(' ')[0]}</Heading><Text variant="muted">{pending.length === 0 ? 'Nada pendiente. Bien hecho.' : pending.length === 1 ? 'Tenés una misión pendiente.' : `Tenés ${pending.length} misiones pendientes.`}</Text></div>
+        <div><Eyebrow>Hoy</Eyebrow><Heading level={1} size="2xl" className="mt-1">Hola, {me.person.name.split(' ')[0]}</Heading><Text variant="muted">{pending.length === 0 ? 'Nada pendiente. Bien hecho.' : pending.length === 1 ? 'Tenés una misión pendiente.' : `Tenés ${pending.length} misiones pendientes.`}</Text></div>
         {everyOne.length > 0 && <ProgressRing value={done / everyOne.length} size={64}>{done}/{everyOne.length}</ProgressRing>}
       </header>
 
@@ -59,23 +58,7 @@ export function Today({ me }: { me: Me }) {
           </ul>
         </section>
       ))}
-      <OtherGroup />
     </div>
   )
 }
 
-function OtherGroup() {
-  const qc = useQueryClient()
-  const [code, setCode] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const joinIt = useMutation({ mutationFn: () => api.post<Group>('/api/join', { code }), onSuccess: () => { setCode(''); setIsOpen(false); qc.invalidateQueries({ queryKey: ['today'] }) } })
-  if (!isOpen) return <Button variant="ghost" size="sm" className="self-start" onClick={() => setIsOpen(true)}>+ Unirme a otro grupo con un código</Button>
-  return (
-    <form className="flex flex-wrap items-center gap-2" onSubmit={(e) => { e.preventDefault(); joinIt.mutate() }}>
-      <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={6} autoFocus aria-label="Código" placeholder="ABC123" className="w-40 font-mono uppercase" />
-      <Button type="submit" loading={joinIt.isPending} disabled={code.length < 6}>Unirme</Button>
-      <Button variant="ghost" onClick={() => setIsOpen(false)}>Cancelar</Button>
-      {joinIt.isError && <Text size="sm" variant="danger">Ese código no existe.</Text>}
-    </form>
-  )
-}

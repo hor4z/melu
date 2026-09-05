@@ -480,7 +480,7 @@ function AssignDialog({ isOpen, onClose, activityId, onAssigned }: { isOpen: boo
         {groupList.length === 0 && <Text variant="muted">Todavía no tenés grupos.</Text>}
         {groupList.map((g) => (
           <div key={g.id} className="flex items-center justify-between rounded-xl border border-line px-4 py-3">
-            <div><div className="font-medium">{g.name}</div><Text size="xs" variant="muted">{g.learners} aprendices · código {g.code}</Text></div>
+            <div><div className="font-medium">{g.name}</div><Text size="xs" variant="muted">{g.learners} aprendices</Text></div>
             {ready === g.id ? <Text size="sm" className="font-semibold text-success">Asignada ✓</Text> : <Button size="sm" onClick={() => assign.mutate(g.id)} loading={assign.isPending && assign.variables === g.id}>Asignar</Button>}
           </div>
         ))}

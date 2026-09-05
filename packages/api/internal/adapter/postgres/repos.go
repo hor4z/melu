@@ -27,8 +27,8 @@ func noRows(err error) error {
 
 // ---- People ----
 type personRow struct {
-	ID, Name   string
-	Email, Sub *string
+	ID, Name           string
+	Email, Sub, Avatar *string
 }
 
 func (r personRow) dom() *domain.Person {
@@ -39,13 +39,16 @@ func (r personRow) dom() *domain.Person {
 	if r.Sub != nil {
 		p.GoogleSub = *r.Sub
 	}
+	if r.Avatar != nil {
+		p.AvatarURL = *r.Avatar
+	}
 	return p
 }
 
 func (r *Repos) person(ctx context.Context, where string, arg any) (*domain.Person, error) {
 	var row personRow
-	err := r.db.QueryRow(ctx, `select id, name, email, google_sub from people where `+where, arg).
-		Scan(&row.ID, &row.Name, &row.Email, &row.Sub)
+	err := r.db.QueryRow(ctx, `select id, name, email, google_sub, avatar_url from people where `+where, arg).
+		Scan(&row.ID, &row.Name, &row.Email, &row.Sub, &row.Avatar)
 	if err != nil {
 		return nil, noRows(err)
 	}
@@ -55,21 +58,27 @@ func (r *Repos) person(ctx context.Context, where string, arg any) (*domain.Pers
 func (r *Repos) ByGoogleSub(ctx context.Context, sub string) (*domain.Person, error) {
 	return r.person(ctx, "google_sub=$1", sub)
 }
+// ByEmail matches on the lowercase form, which is the one the unique index is built on.
 func (r *Repos) ByEmail(ctx context.Context, email string) (*domain.Person, error) {
-	return r.person(ctx, "email=$1", email)
+	return r.person(ctx, "lower(email)=lower($1)", email)
 }
 func (r *Repos) Create(ctx context.Context, p domain.Person) (*domain.Person, error) {
 	var id string
-	err := r.db.QueryRow(ctx, `insert into people(email, google_sub, name) values(nullif($1,''), nullif($2,''), $3) returning id`,
-		p.Email, p.GoogleSub, p.Name).Scan(&id)
+	err := r.db.QueryRow(ctx, `insert into people(email, google_sub, name, avatar_url) values(nullif(lower($1),''), nullif($2,''), $3, nullif($4,'')) returning id`,
+		p.Email, p.GoogleSub, p.Name, p.AvatarURL).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
 	p.ID = id
 	return &p, nil
 }
-func (r *Repos) LinkGoogle(ctx context.Context, id, sub string) error {
-	_, err := r.db.Exec(ctx, `update people set google_sub=$2 where id=$1`, id, sub)
+// LinkGoogle adopts a person who was already here —added by a guide, or seeded— the first time
+// they sign in. The picture only fills a gap: what Google knows beats a placeholder and loses
+// to anything a person chose.
+func (r *Repos) LinkGoogle(ctx context.Context, id, sub, name, avatar string) error {
+	_, err := r.db.Exec(ctx,
+		`update people set google_sub=$2, name=coalesce(nullif($3,''), name), avatar_url=coalesce(avatar_url, nullif($4,'')) where id=$1`,
+		id, sub, name, avatar)
 	return err
 }
 
@@ -83,8 +92,8 @@ func (r *Repos) CreateSession(ctx context.Context, personID string) (string, err
 }
 func (r *Repos) Resolve(ctx context.Context, token string) (*domain.Person, error) {
 	var row personRow
-	err := r.db.QueryRow(ctx, `select p.id, p.name, p.email, p.google_sub from sessions s join people p on p.id=s.person_id where s.token=$1 and s.expires_at>now()`, token).
-		Scan(&row.ID, &row.Name, &row.Email, &row.Sub)
+	err := r.db.QueryRow(ctx, `select p.id, p.name, p.email, p.google_sub, p.avatar_url from sessions s join people p on p.id=s.person_id where s.token=$1 and s.expires_at>now()`, token).
+		Scan(&row.ID, &row.Name, &row.Email, &row.Sub, &row.Avatar)
 	if err != nil {
 		return nil, noRows(err)
 	}
@@ -143,7 +152,7 @@ func (r *Repos) CreateGroup(ctx context.Context, g domain.Group, guideID string)
 		return nil, err
 	}
 	defer tx.Rollback(ctx)
-	if err := tx.QueryRow(ctx, `insert into groups(space_id, name, code, tags) values($1,$2,$3,$4) returning id`, g.SpaceID, g.Name, g.Code, g.Tags).Scan(&g.ID); err != nil {
+	if err := tx.QueryRow(ctx, `insert into groups(space_id, name, tags) values($1,$2,$3) returning id`, g.SpaceID, g.Name, g.Tags).Scan(&g.ID); err != nil {
 		return nil, err
 	}
 	if _, err := tx.Exec(ctx, `insert into memberships(person_id, space_id, group_id, role) values($1,$2,$3,'guide')`, guideID, g.SpaceID, g.ID); err != nil {
@@ -152,12 +161,12 @@ func (r *Repos) CreateGroup(ctx context.Context, g domain.Group, guideID string)
 	return &g, tx.Commit(ctx)
 }
 
-const groupCols = `g.id, g.space_id, g.name, g.code, g.tags,
+const groupCols = `g.id, g.space_id, g.name, g.tags,
   (select count(*) from memberships a where a.group_id=g.id and a.role='learner')`
 
 func scanGroup(row pgx.CollectableRow) (domain.Group, error) {
 	var g domain.Group
-	return g, row.Scan(&g.ID, &g.SpaceID, &g.Name, &g.Code, &g.Tags, &g.Learners)
+	return g, row.Scan(&g.ID, &g.SpaceID, &g.Name, &g.Tags, &g.Learners)
 }
 
 func (r *Repos) OfGuide(ctx context.Context, personID, spaceID string) ([]domain.Group, error) {

@@ -26,7 +26,7 @@ export function Home({ me }: { me: Me }) {
   const series = p.weekSeries ?? []
   const steps: [string, string, string, string][] = [
     ['group', 'Creá un grupo', 'Un aula, un taller, tres alumnos: gente que aprende junta.', '/groups'],
-    ['invite', 'Invitá a los chicos', 'Compartí el código o el QR del grupo. Entran con Google.', '/groups'],
+    ['invite', 'Sumá a los chicos', 'Escribí sus emails. Entran con Google y el grupo ya los espera.', '/groups'],
     ['activity', 'Armá una actividad', 'Empezá desde una receta y editala como un documento.', '/activities/new'],
     ['assign', 'Asignala al grupo', 'Los chicos la ven en «Hoy» y la hacen a su ritmo.', '/activities'],
     ['grade', 'Mirá la primera entrega', 'La rúbrica es una botonera: dos minutos por entrega.', '/groups'],
@@ -41,7 +41,7 @@ export function Home({ me }: { me: Me }) {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <Eyebrow>Inicio</Eyebrow>
-          <Heading level={1} size="2xl" className="mt-1">Hola, {me.person.Name.split(' ')[0]} 👋</Heading>
+          <Heading level={1} size="2xl" className="mt-1">Hola, {me.person.name.split(' ')[0]} 👋</Heading>
           <Text variant="muted">{p.toReview > 0 ? `Tenés ${p.toReview} ${p.toReview === 1 ? 'entrega' : 'entregas'} para mirar.` : 'Nada pendiente para corregir. Buen momento para armar algo nuevo.'}</Text>
         </div>
         <div className="flex gap-2"><Button variant="secondary" onClick={() => nav('/groups')} startIcon={<Icon icon={UserPlus} />}>Invitar al grupo</Button><Button onClick={() => nav('/activities/new')} startIcon={<Icon icon={Sparkles} />}>Nueva actividad</Button></div>

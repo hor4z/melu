@@ -68,7 +68,7 @@ nueva y estas dos no se tocan más.
 
 ```sh
 npm install              # una vez, desde la raíz: es un workspace
-cp .env.example .env     # trae MELU_DEV_LOGIN=1: entrás con cualquier email
+cp .env.example .env     # cargale las credenciales de Google: son obligatorias
 make db                  # postgres en :5434
 make dev                 # api en :8787 + front en :5173
 make ui                  # el sitio del design system, en :5174
