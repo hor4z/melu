@@ -20,7 +20,7 @@
 // And the clips' background was taken to pure white, so there is no box: the figure sits on
 // the app's canvas.
 import { useEffect, useRef, useState } from 'react'
-import { cn } from './lib'
+import { cn } from '@melu/ui'
 
 type CharacterState = 'entering' | 'idle' | 'working'
 

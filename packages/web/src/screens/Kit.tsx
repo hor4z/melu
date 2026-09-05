@@ -10,8 +10,8 @@ import {
   Popover, PopoverContent, PopoverTrigger, Progress, RadioCard, RadioGroup, RadioGroupItem, SegmentedControl, SegmentedControlItem,
   Select, SelectContent, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue, Separator, Skeleton, Slider,
   Switch, Tabs, TabsContent, TabsList, TabsTrigger, Text, Textarea, Toggle, ToggleGroup, ToggleGroupItem, Tooltip, TooltipContent, TooltipTrigger,
-} from '@/kit'
-import { Logo } from '@/kit'
+} from '@melu/ui'
+import { Logo } from '@melu/ui'
 
 function Section({ id, title, note, children }: { id: string; title: string; note?: string; children: ReactNode }) {
   return (

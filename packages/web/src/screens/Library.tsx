@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
-import { Button, Card, CardContent, CardMedia, EmptyState, Eyebrow, Heading, Icon, Text } from '@/kit'
+import { Button, Card, CardContent, CardMedia, EmptyState, Eyebrow, Heading, Icon, Text } from '@melu/ui'
 import { api, type Activity } from '../lib/api'
 import { useSpaceId } from '../lib/space'
 import { CompositionChips } from '../blocks/Chips'

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight } from 'lucide-react'
-import { Card, Chip, Eyebrow, Heading, Icon, Text } from '@/kit'
+import { Card, Chip, Eyebrow, Heading, Icon, Text } from '@melu/ui'
 import { api, type Lens } from '../lib/api'
 
 export function Lenses() {

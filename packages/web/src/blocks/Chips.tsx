@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Chip } from '@/kit'
+import { Chip } from '@melu/ui'
 import { api, type Composition, type Lens } from '../lib/api'
 import { SETTINGS, EXPERIENCES, SOCIAL, labelOf } from '../lib/composition'
 

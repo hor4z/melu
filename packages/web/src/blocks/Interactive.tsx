@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowDown, ArrowUp, Camera, Check, Mic, Paperclip, X } from 'lucide-react'
-import { Chip, Icon, Input, Textarea, cn } from '@/kit'
+import { Chip, Icon, Input, Textarea, cn } from '@melu/ui'
 import type { Block, AnswerValue } from '../lib/api'
 import { GameBlock, gameScore } from './Games'
 import { ManipulativeBlock } from './Manipulatives'

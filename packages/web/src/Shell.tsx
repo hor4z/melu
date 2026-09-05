@@ -2,10 +2,8 @@ import { useState, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bell, BookOpen, Check, ChevronsUpDown, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
-import {
-  Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
-  Field, Icon, Input, Logo, Text, UserMenu, cn,
-} from '@/kit'
+import { Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, Field, Icon, Input, Logo, Text, cn } from '@melu/ui'
+import { UserMenu } from './blocks/Product'
 import { useSignOut } from './lib/session'
 import { useSpace } from './lib/space'
 import { api, type Space, type SpaceKind, type Dashboard, type Me } from './lib/api'

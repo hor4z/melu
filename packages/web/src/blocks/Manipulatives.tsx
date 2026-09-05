@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { cn } from '@/kit'
+import { cn } from '@melu/ui'
 import type { Block, AnswerValue } from '../lib/api'
 import type { StepState } from './Interactive'
 

@@ -7,7 +7,7 @@
 // is explained, and in how many words.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Play, Square, Volume2 } from 'lucide-react'
-import { cn, Icon, Text } from '@/kit'
+import { cn, Icon, Text } from '@melu/ui'
 
 export type Band = 'small' | 'medium' | 'large'
 export type SampleKey = 'half' | 'count' | 'third' | 'timesFour' | 'percent' | 'unknown'

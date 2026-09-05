@@ -1,6 +1,6 @@
 // How the learning profile is shown. One single way to draw it, whoever is looking.
 import { TrendingDown, TrendingUp } from 'lucide-react'
-import { Card, Chip, Eyebrow, Icon, Text, cn } from '@/kit'
+import { Card, Chip, Eyebrow, Icon, Text, cn } from '@melu/ui'
 import { ProfileBars } from '../screens/Start'
 import { BANDS, AXES, POLES, confidence, dominant, even, headline, type LiveProfile, type Pole } from '../lib/profile'
 

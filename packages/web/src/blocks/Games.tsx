@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check, RotateCcw, Timer, Trophy, X } from 'lucide-react'
-import { Button, Chip, Icon, Logomark, Progress, Text, cn } from '@/kit'
+import { Button, Chip, Icon, Logomark, Progress, Text, cn } from '@melu/ui'
 import type { Block, AnswerValue } from '../lib/api'
 import type { StepState } from './Interactive'
 

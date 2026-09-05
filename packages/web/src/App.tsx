@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
-import { Spinner } from '@/kit'
+import { Spinner } from '@melu/ui'
 import { useMe } from './lib/session'
 import { api, type Group } from './lib/api'
 import { GuideShell, LearnerShell } from './Shell'

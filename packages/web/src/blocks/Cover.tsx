@@ -1,4 +1,4 @@
-import { DoodleSprout, DoodleLock, DoodleKitchen, DoodleBulb, DoodleBook, DoodleMap, DoodleBridge, DoodleRobot } from '@/kit'
+import { DoodleSprout, DoodleLock, DoodleKitchen, DoodleBulb, DoodleBook, DoodleMap, DoodleBridge, DoodleRobot } from '@melu/ui'
 
 // Cover per activity: tint + doodle picked from the title (or a default). No photos until there are any.
 const MAP: Record<string, [string, React.ComponentType<{ size?: number; className?: string }>]> = {

@@ -10,9 +10,8 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
-import {
-  Button, Card, DoodleSprout, DoodleBulb, DoodleGroup, DoodleMap, Eyebrow, Heading, Icon, IconButton, Logomark, Character, Text, cn,
-} from '@/kit'
+import { Button, Card, DoodleSprout, DoodleBulb, DoodleGroup, DoodleMap, Eyebrow, Heading, Icon, IconButton, Logomark, Text, cn } from '@melu/ui'
+import { Character } from '../blocks/Character'
 import { api } from '../lib/api'
 import { AXES, POLES, headline, type LiveProfile, type Pole } from '../lib/profile'
 import {

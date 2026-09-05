@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router'
-import { Button, DoodleGroup, DoodleWave, Input, Logo, Squiggle, Text } from '@/kit'
+import { Button, DoodleGroup, DoodleWave, Input, Logo, Squiggle, Text } from '@melu/ui'
 import { api, type AuthOptions } from '../lib/api'
 
 export function SignIn() {
