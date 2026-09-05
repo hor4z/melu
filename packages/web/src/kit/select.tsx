@@ -7,7 +7,7 @@ import { Portal } from './portal'
 import { Check, ChevronDown, Search } from 'lucide-react'
 import { cn, useControllableState } from './lib'
 import { Icon } from './icon'
-import { ariaDeCampo, useField } from './field'
+import { fieldAria, useField } from './field'
 
 type Ctx = {
   value: string
@@ -105,7 +105,7 @@ const HEIGHT = { sm: 'h-8 px-2.5 text-[13px]', md: 'h-9.5 px-3 text-sm', lg: 'h-
 export function SelectTrigger({ className, children, startIcon, ...props }: ComponentPropsWithoutRef<'button'> & { startIcon?: ReactNode }) {
   const s = useSelectCtx()
   const f = useField()
-  const aria = ariaDeCampo(f)
+  const aria = fieldAria(f)
   const bad = s.invalid ?? (f?.status === 'error')
   return (
     <button type="button" ref={s.refs.setReference} id={aria.id} aria-describedby={aria['aria-describedby']}
@@ -207,7 +207,7 @@ export function SelectSeparator({ className, ...props }: ComponentPropsWithoutRe
 /** The browser's `<select>` with the kit's styles: for simple forms or very long lists. */
 export function NativeSelect({ className, size = 'md', invalid, children, ...props }: Omit<ComponentPropsWithoutRef<'select'>, 'size'> & { size?: 'sm' | 'md' | 'lg'; invalid?: boolean }) {
   const f = useField()
-  const aria = ariaDeCampo(f, { id: props.id })
+  const aria = fieldAria(f, { id: props.id })
   const bad = invalid ?? (f?.status === 'error')
   return (
     <div className="relative flex items-center">

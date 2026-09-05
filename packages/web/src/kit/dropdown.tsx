@@ -70,7 +70,7 @@ export function DropdownMenu({ children, open, defaultOpen = false, onOpenChange
   )
 }
 
-export function DropdownMenuTriggerBase({ children, asChild = true, ...props }: ComponentPropsWithoutRef<'button'> & { asChild?: boolean }) {
+function DropdownMenuTriggerBase({ children, asChild = true, ...props }: ComponentPropsWithoutRef<'button'> & { asChild?: boolean }) {
   const m = useMenuCtx()
   const Cmp = asChild ? Slot : 'button'
   return <Cmp ref={m.refs.setReference} data-state={m.isOpen ? 'open' : 'closed'} {...m.getReferenceProps(props as Record<string, unknown>)}>{children}</Cmp>

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router'
-import { Button, DoodleGroup, DoodleWave, Input, Logo, Underline, Text } from '@/kit'
+import { Button, DoodleGroup, DoodleWave, Input, Logo, Squiggle, Text } from '@/kit'
 import { api, type AuthOptions } from '../lib/api'
 
 export function SignIn() {
@@ -24,7 +24,7 @@ export function SignIn() {
         <div className="relative">
           <DoodleWave size={110} className="absolute -left-4 -top-28 text-ink" />
           <DoodleGroup size={220} className="absolute -top-24 right-0 text-ink" />
-          <h1 className="max-w-xl font-display text-[56px] font-semibold leading-[1.05] tracking-tight text-balance">Aprender deja <Underline>huella</Underline>.</h1>
+          <h1 className="max-w-xl font-display text-[56px] font-semibold leading-[1.05] tracking-tight text-balance">Aprender deja <Squiggle>huella</Squiggle>.</h1>
           <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-muted">Componé una actividad, dásela a un grupo y mirá qué pasa. Lo que los chicos hacen con las manos, en el barrio o en la pantalla queda registrado desde el primer día.</p>
         </div>
         <div className="relative -mx-12 -mb-12 h-64 overflow-hidden"><img src="/ref/img_home_01.png" alt="" className="absolute bottom-0 left-0 w-[115%] max-w-none" /></div>

@@ -100,7 +100,7 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
 }
 
 /** Hand-drawn underline beneath a word. Used once per page, in the title. */
-export function Underline({ children }: { children: ReactNode }) {
+export function Squiggle({ children }: { children: ReactNode }) {
   return (
     <span className="relative inline-block">
       <span className="relative z-10">{children}</span>
@@ -111,15 +111,15 @@ export function Underline({ children }: { children: ReactNode }) {
   )
 }
 
-export function Counter({ hasta, className }: { hasta: number; className?: string }) {
+export function Counter({ to, className }: { to: number; className?: string }) {
   const [v, setV] = useState(0)
   const raf = useRef(0)
   useEffect(() => {
     const t0 = performance.now()
-    const tick = (t: number) => { const k = Math.min(1, (t - t0) / 700); setV(Math.round(hasta * (1 - (1 - k) ** 3))); if (k < 1) raf.current = requestAnimationFrame(tick) }
+    const tick = (t: number) => { const k = Math.min(1, (t - t0) / 700); setV(Math.round(to * (1 - (1 - k) ** 3))); if (k < 1) raf.current = requestAnimationFrame(tick) }
     raf.current = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf.current)
-  }, [hasta])
+  }, [to])
   return <span className={cn('tabular-nums', className)}>{v}</span>
 }
 

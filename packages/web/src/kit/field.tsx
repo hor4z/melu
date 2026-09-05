@@ -16,7 +16,7 @@ const FieldCtx = createContext<Ctx | null>(null)
 export function useField() { return useContext(FieldCtx) }
 
 /** the aria-* attributes that belong to the control inside a Field. */
-export function ariaDeCampo(f: Ctx | null, own: { id?: string; 'aria-describedby'?: string } = {}) {
+export function fieldAria(f: Ctx | null, own: { id?: string; 'aria-describedby'?: string } = {}) {
   if (!f) return { ...own, 'aria-invalid': undefined, 'aria-required': undefined, disabled: undefined } as const
   const desc = [f.hasDesc && f.descId, f.hasMsg && f.msgId, own['aria-describedby']].filter(Boolean).join(' ')
   return {

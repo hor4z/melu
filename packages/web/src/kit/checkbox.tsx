@@ -2,7 +2,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { Check, Minus } from 'lucide-react'
 import { cn, useControllableState } from './lib'
 import { Icon } from './icon'
-import { ariaDeCampo, useField } from './field'
+import { fieldAria, useField } from './field'
 
 export interface CheckboxProps extends Omit<ComponentPropsWithoutRef<'button'>, 'onChange' | 'value' | 'children' | 'checked' | 'defaultChecked'> {
   checked?: boolean | 'indeterminate'
@@ -15,7 +15,7 @@ export interface CheckboxProps extends Omit<ComponentPropsWithoutRef<'button'>, 
 
 export function Checkbox({ checked, defaultChecked = false, onCheckedChange, size = 'md', disabled, children, description, className, ...props }: CheckboxProps) {
   const f = useField()
-  const aria = ariaDeCampo(f)
+  const aria = fieldAria(f)
   const [val, setVal] = useControllableState<boolean | 'indeterminate'>({ value: checked, defaultValue: defaultChecked, onChange: (v) => onCheckedChange?.(v === true) })
   const marked = val === true
   const medium = val === 'indeterminate'

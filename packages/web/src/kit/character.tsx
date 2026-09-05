@@ -1,8 +1,8 @@
 // melu's character. Three clips that meet in the same standing pose:
 //
-//   entra ──▶ quieta ──(cada tanto)──▶ trabaja ──▶ quieta ──▶ …
+//   enter ──▶ idle ──(every so often)──▶ work ──▶ idle ──▶ …
 //
-// `enter` walks in and waves. `still` breathes on a loop. `work` is an occasional interlude: she
+// `enter` walks in and waves. `idle` breathes on a loop. `work` is an occasional interlude: she
 // puts on the helmet, measures, points, takes it off and returns to the standing pose. It is encoded
 // round-trip exactly for that: it ends where it started, so returning to the loop does not jump.
 //
@@ -22,7 +22,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { cn } from './lib'
 
-type StatusChip = 'entrando' | 'quieta' | 'trabajando'
+type CharacterState = 'entering' | 'idle' | 'working'
 
 type Props = {
   /** How often the helmet interlude shows up, in seconds [min, max]. `false` turns it off. */
@@ -34,7 +34,7 @@ type Props = {
 }
 
 export function Character({ interlude = [20, 60], idleOnly = false, className, alt = 'La guía de melu, saludando' }: Props) {
-  const [status, setStatus] = useState<StatusChip>(idleOnly ? 'quieta' : 'entrando')
+  const [status, setStatus] = useState<CharacterState>(idleOnly ? 'idle' : 'entering')
   const [noMotion, setNoMotion] = useState(false)
   const still = useRef<HTMLVideoElement>(null)
   const working = useRef<HTMLVideoElement>(null)
@@ -55,19 +55,19 @@ export function Character({ interlude = [20, 60], idleOnly = false, className, a
   useEffect(() => {
     if (noMotion) return
     const q = still.current, t = working.current
-    if (status === 'trabajando') {
+    if (status === 'working') {
       q?.pause()
-      if (!t) { setStatus('quieta'); return }
+      if (!t) { setStatus('idle'); return }
       t.currentTime = 0
-      t.play().catch(() => setStatus('quieta'))
+      t.play().catch(() => setStatus('idle'))
       return
     }
-    if (status === 'quieta' && q) {
+    if (status === 'idle' && q) {
       t?.pause()
       q.currentTime = 0
       q.play().catch(() => {})
     }
-    if (status !== 'quieta' || !interlude) return
+    if (status !== 'idle' || !interlude) return
     const [min, max] = interlude
     const waiting = (min + Math.random() * Math.max(0, max - min)) * 1000
     // With the tab in the background the browser throttles timers and playback: the interlude
@@ -75,8 +75,8 @@ export function Character({ interlude = [20, 60], idleOnly = false, className, a
     const id = window.setTimeout(() => {
       if (document.hidden) { document.addEventListener('visibilitychange', function goBack() {
         document.removeEventListener('visibilitychange', goBack)
-        setStatus('trabajando')
-      }) } else setStatus('trabajando')
+        setStatus('working')
+      }) } else setStatus('working')
     }, waiting)
     return () => window.clearTimeout(id)
   }, [status, interlude, noMotion])
@@ -97,14 +97,14 @@ export function Character({ interlude = [20, 60], idleOnly = false, className, a
 
       <video ref={working} src="/character/work.mp4" poster="/character/still.png"
         muted playsInline preload="auto" aria-hidden="true"
-        onEnded={() => setStatus('quieta')} onError={() => setStatus('quieta')}
-        className={cn('absolute inset-0 h-full w-full select-none object-contain', status !== 'trabajando' && 'invisible')} />
+        onEnded={() => setStatus('idle')} onError={() => setStatus('idle')}
+        className={cn('absolute inset-0 h-full w-full select-none object-contain', status !== 'working' && 'invisible')} />
 
       {!idleOnly && (
         <video src="/character/enter.mp4" poster="/character/still.png"
           autoPlay muted playsInline preload="auto" aria-hidden="true"
-          onEnded={() => setStatus('quieta')} onError={() => setStatus('quieta')}
-          className={cn('absolute inset-0 h-full w-full select-none object-contain', status !== 'entrando' && 'invisible')} />
+          onEnded={() => setStatus('idle')} onError={() => setStatus('idle')}
+          className={cn('absolute inset-0 h-full w-full select-none object-contain', status !== 'entering' && 'invisible')} />
       )}
     </div>
   )

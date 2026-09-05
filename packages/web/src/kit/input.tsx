@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from './lib'
 import { Icon } from './icon'
 import { Spinner } from './spinner'
-import { ariaDeCampo, useField } from './field'
+import { fieldAria, useField } from './field'
 
 const frameCls = cva(
   'flex w-full items-center gap-2 rounded-md border bg-surface text-ink transition-[border-color,box-shadow] focus-within:ring-3 focus-within:ring-focus/25 has-disabled:bg-muted has-disabled:opacity-60',
@@ -29,7 +29,7 @@ export interface InputProps extends Omit<ComponentPropsWithoutRef<'input'>, 'siz
 
 export function Input({ className, size, invalid, startIcon, endIcon, loading, clearable, onClear, disabled, value, ...props }: InputProps) {
   const f = useField()
-  const aria = ariaDeCampo(f, { id: props.id, 'aria-describedby': props['aria-describedby'] })
+  const aria = fieldAria(f, { id: props.id, 'aria-describedby': props['aria-describedby'] })
   const bad = invalid ?? (f?.status === 'error')
   const hasText = typeof value === 'string' ? value.length > 0 : undefined
   return (
@@ -57,7 +57,7 @@ export interface TextareaProps extends ComponentPropsWithoutRef<'textarea'> {
 
 export function Textarea({ className, invalid, autoGrow, rows = 3, onChange, ...props }: TextareaProps) {
   const f = useField()
-  const aria = ariaDeCampo(f, { id: props.id, 'aria-describedby': props['aria-describedby'] })
+  const aria = fieldAria(f, { id: props.id, 'aria-describedby': props['aria-describedby'] })
   const bad = invalid ?? (f?.status === 'error')
   return (
     <textarea

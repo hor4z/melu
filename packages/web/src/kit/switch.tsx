@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn, useControllableState } from './lib'
 import { Spinner } from './spinner'
-import { ariaDeCampo, useField } from './field'
+import { fieldAria, useField } from './field'
 
 export interface SwitchProps extends Omit<ComponentPropsWithoutRef<'button'>, 'onChange' | 'value' | 'children'> {
   checked?: boolean
@@ -22,7 +22,7 @@ const MEASURES = {
 
 export function Switch({ checked, defaultChecked = false, onCheckedChange, size = 'md', loading, disabled, children, spread, className, ...props }: SwitchProps) {
   const f = useField()
-  const aria = ariaDeCampo(f)
+  const aria = fieldAria(f)
   const [on, setOn] = useControllableState({ value: checked, defaultValue: defaultChecked, onChange: onCheckedChange })
   const m = MEASURES[size]
   const isDisabled = disabled ?? aria.disabled ?? loading

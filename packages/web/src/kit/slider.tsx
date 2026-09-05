@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState, type ComponentPropsWithoutRef, type PointerEvent as RPointerEvent } from 'react'
 import { cn, useControllableState } from './lib'
-import { ariaDeCampo, useField } from './field'
+import { fieldAria, useField } from './field'
 
 export interface SliderProps extends Omit<ComponentPropsWithoutRef<'div'>, 'onChange' | 'defaultValue'> {
   /** One number for a value; two for a range. */
@@ -27,7 +27,7 @@ export function Slider({
   disabled, marks, formatValue = String, valueDisplay = 'tooltip', minStepsBetweenThumbs = 0, label, className, ...props
 }: SliderProps) {
   const f = useField()
-  const aria = ariaDeCampo(f)
+  const aria = fieldAria(f)
   const [val, setVal] = useControllableState<number | [number, number]>({ value, defaultValue, onChange: onValueChange })
   const nums = aArray(val)
   const range = nums.length === 2

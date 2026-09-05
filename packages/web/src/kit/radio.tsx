@@ -1,6 +1,6 @@
 import { createContext, useContext, useRef, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { cn, useControllableState } from './lib'
-import { ariaDeCampo, useField } from './field'
+import { fieldAria, useField } from './field'
 
 type Ctx = { value: string; setValue: (v: string) => void; name: string; disabled?: boolean; size: 'sm' | 'md' }
 const RadioCtx = createContext<Ctx | null>(null)
@@ -21,7 +21,7 @@ export function RadioGroup({ value, defaultValue = '', onValueChange, name, disa
   const auto = useRef(`r${Math.random().toString(36).slice(2, 8)}`)
   return (
     <RadioCtx.Provider value={{ value: val, setValue: setVal, name: name ?? auto.current, disabled: disabled ?? f?.disabled, size }}>
-      <div role="radiogroup" aria-describedby={ariaDeCampo(f)['aria-describedby']}
+      <div role="radiogroup" aria-describedby={fieldAria(f)['aria-describedby']}
         className={cn('flex gap-2', orientation === 'vertical' ? 'flex-col' : 'flex-row flex-wrap items-center gap-4', className)} {...props}>
         {children}
       </div>
