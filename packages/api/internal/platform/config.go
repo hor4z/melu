@@ -13,12 +13,12 @@ type Config struct {
 	GoogleClientID     string
 	GoogleClientSecret string
 	DevLogin           bool
-	// Zona: dónde vive la escuela. Hace falta para saber dónde empieza el día, porque
-	// truncar un instante trunca en UTC y en Argentina eso pone el borde a las 21:00.
-	Zona string
+	// TZ: where the school lives. Needed to know where the day starts, because truncating an
+	// instant truncates in UTC and in Argentina that puts the boundary at 21:00.
+	TZ string
 }
 
-// Load lee .env (si existe) y luego el entorno. El entorno gana.
+// Load reads .env (if present) and then the environment. The environment wins.
 func Load() Config {
 	loadDotEnv(".env")
 	return Config{
@@ -28,7 +28,7 @@ func Load() Config {
 		GoogleClientID:     env("MELU_GOOGLE_CLIENT_ID", ""),
 		GoogleClientSecret: env("MELU_GOOGLE_CLIENT_SECRET", ""),
 		DevLogin:           env("MELU_DEV_LOGIN", "") == "1",
-		Zona:               env("MELU_TZ", "America/Argentina/Buenos_Aires"),
+		TZ:                 env("MELU_TZ", "America/Argentina/Buenos_Aires"),
 	}
 }
 

@@ -12,7 +12,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={qc}>
       <BrowserRouter>
-        {/* El árbol relaciona los flotantes anidados: cerrar un menú dentro de un modal no cierra el modal. */}
+        {/* The tree relates nested floating elements: closing a menu inside a modal does not close the modal. */}
         <FloatingTree>
           <App />
         </FloatingTree>

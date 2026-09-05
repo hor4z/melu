@@ -1,12 +1,12 @@
-// El kit de melu. Componentes compuestos, estilados con Tailwind sobre los tokens del tema.
-// Convenciones: `asChild` para prestar los estilos a otro elemento, `cn()` para mezclar clases,
-// y estado controlado o no controlado en todos los que guardan algo.
+// melu's kit. Composed components, styled with Tailwind on top of the theme tokens.
+// Conventions: `asChild` to lend the styles to another element, `cn()` to merge classes,
+// and controlled or uncontrolled state in every one that holds something.
 export { cn, Slot, composeRefs, useControllableState, type SlotProps } from './lib'
 export { Icon, type IconProps } from './icon'
 export { Spinner } from './spinner'
-export { Button, ButtonGroup, botonVariantes, type ButtonProps } from './button'
+export { Button, ButtonGroup, buttonVariants, type ButtonProps } from './button'
 export { IconButton, type IconButtonProps } from './icon-button'
-export { Field, FieldLabel, FieldDescription, FieldStatus, Form, FormRow, FormActions, useField, ariaDeCampo, type FieldProps, type EstadoCampo } from './field'
+export { Field, FieldLabel, FieldDescription, FieldStatus, Form, FormRow, FormActions, useField, ariaDeCampo, type FieldProps, type FieldState } from './field'
 export { Input, Textarea, type InputProps, type TextareaProps } from './input'
 export { Switch, type SwitchProps } from './switch'
 export { Checkbox, type CheckboxProps } from './checkbox'
@@ -16,11 +16,11 @@ export { SegmentedControl, SegmentedControlItem, type SegmentedControlProps } fr
 export { Slider, type SliderProps } from './slider'
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, CardMedia, type CardProps } from './card'
 export { Chip, Badge, type ChipProps } from './chip'
-export { Avatar, AvatarGroup, iniciales, tinteDe, type AvatarProps } from './avatar'
+export { Avatar, AvatarGroup, initials, tintOf, type AvatarProps } from './avatar'
 export {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuGroup, MoreMenu,
-  type DropdownMenuProps, type DropdownMenuItemProps, type OpcionMenu,
+  type DropdownMenuProps, type DropdownMenuItemProps, type MenuOption,
 } from './dropdown'
 export {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel, SelectSeparator, NativeSelect,
@@ -33,6 +33,6 @@ export { Portal } from './portal'
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'
 export { Alert, Separator, Skeleton, Progress, EmptyState, type AlertProps } from './feedback'
 export { Text, Heading, Eyebrow, Kbd, type TextProps, type HeadingProps } from './text'
-export { Logo, Logomark, Sparkline, StatTile, ProgressRing, Stepper, Subrayado, Contador, PhotoFrame, UserMenu } from './melu'
+export { Logo, Logomark, Sparkline, StatTile, ProgressRing, Stepper, Underline, Counter, PhotoFrame, UserMenu } from './melu'
 export * from './doodles'
-export { Personaje } from './personaje'
+export { Character } from './character'

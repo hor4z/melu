@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from './lib'
 import { Icon } from './icon'
 
-const alertVariantes = cva('flex items-start gap-3 rounded-xl p-4 text-sm', {
+const alertVariants = cva('flex items-start gap-3 rounded-xl p-4 text-sm', {
   variants: {
     variant: {
       info: 'bg-blue text-ink', success: 'bg-success-subtle text-ink',
@@ -14,10 +14,10 @@ const alertVariantes = cva('flex items-start gap-3 rounded-xl p-4 text-sm', {
   },
   defaultVariants: { variant: 'info' },
 })
-const ICONOS = { info: Info, success: CircleCheck, warning: TriangleAlert, danger: CircleAlert, neutral: Info }
+const ICONS = { info: Info, success: CircleCheck, warning: TriangleAlert, danger: CircleAlert, neutral: Info }
 const COLOR = { info: 'text-accent', success: 'text-success', warning: 'text-warning', danger: 'text-danger', neutral: 'text-ink-subtle' } as const
 
-export interface AlertProps extends Omit<ComponentPropsWithoutRef<'div'>, 'title'>, VariantProps<typeof alertVariantes> {
+export interface AlertProps extends Omit<ComponentPropsWithoutRef<'div'>, 'title'>, VariantProps<typeof alertVariants> {
   title?: ReactNode
   icon?: ReactNode | false
   actions?: ReactNode
@@ -26,8 +26,8 @@ export interface AlertProps extends Omit<ComponentPropsWithoutRef<'div'>, 'title
 export function Alert({ className, variant = 'info', title, icon, actions, children, ...props }: AlertProps) {
   const v = variant ?? 'info'
   return (
-    <div role={v === 'danger' ? 'alert' : 'status'} className={cn(alertVariantes({ variant }), className)} {...props}>
-      {icon !== false && (icon ?? <Icon icon={ICONOS[v]} size="lg" className={cn('mt-px', COLOR[v])} />)}
+    <div role={v === 'danger' ? 'alert' : 'status'} className={cn(alertVariants({ variant }), className)} {...props}>
+      {icon !== false && (icon ?? <Icon icon={ICONS[v]} size="lg" className={cn('mt-px', COLOR[v])} />)}
       <div className="min-w-0 flex-1">
         {title && <p className="font-semibold">{title}</p>}
         {children && <div className={cn('text-ink-muted', title && 'mt-0.5')}>{children}</div>}
@@ -59,7 +59,7 @@ export function Progress({ value, max = 100, className, label, showValue, ...pro
   )
 }
 
-/** Vacío con explicación: siempre decí qué falta y qué se puede hacer. */
+/** Empty state with an explanation: always say what is missing and what can be done. */
 export function EmptyState({ className, icon, title, description, actions, ...props }: ComponentPropsWithoutRef<'div'> & { icon?: ReactNode; title: ReactNode; description?: ReactNode; actions?: ReactNode }) {
   return (
     <div className={cn('flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-line-strong px-6 py-10 text-center', className)} {...props}>

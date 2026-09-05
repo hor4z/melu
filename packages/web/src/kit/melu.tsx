@@ -1,4 +1,4 @@
-// Piezas propias de melu, armadas sobre el kit. Viven acá para que no haya dos sistemas.
+// melu's own pieces, built on the kit. They live here so there are not two systems.
 import { useEffect, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { ChevronDown, LogOut, RefreshCw, User } from 'lucide-react'
 import { cn } from './lib'
@@ -6,7 +6,7 @@ import { Icon } from './icon'
 import { Avatar } from './avatar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from './dropdown'
 
-/** El logo, uno solo para toda la app: un zigzag de tres trazos, la “m” hecha con la mano. */
+/** The logo, one for the whole app: a three-stroke zigzag, the “m” drawn by hand. */
 export function Logomark({ size = 28, className }: { size?: number; className?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true" className={className}>
@@ -16,16 +16,16 @@ export function Logomark({ size = 28, className }: { size?: number; className?: 
 }
 
 export function Logo({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
-  const [px, texto] = ({ sm: [22, 'text-base'], md: [28, 'text-xl'], lg: [40, 'text-3xl'] } as const)[size]
+  const [px, text] = ({ sm: [22, 'text-base'], md: [28, 'text-xl'], lg: [40, 'text-3xl'] } as const)[size]
   return (
     <span className={cn('inline-flex items-center gap-2 text-ink', className)}>
       <Logomark size={px} />
-      <span className={cn('font-display font-semibold tracking-tight', texto)}>melu</span>
+      <span className={cn('font-display font-semibold tracking-tight', text)}>melu</span>
     </span>
   )
 }
 
-/** Línea de tendencia mínima, sin librería. */
+/** Minimal trend line, no library. */
 export function Sparkline({ data, width = 96, height = 32, className }: { data: number[]; width?: number; height?: number; className?: string }) {
   if (data.length < 2) return <svg width={width} height={height} className={className} aria-hidden="true" />
   const max = Math.max(...data, 1), min = Math.min(...data, 0)
@@ -40,7 +40,7 @@ export function Sparkline({ data, width = 96, height = 32, className }: { data: 
   )
 }
 
-/** Métrica con tinte, número grande y tendencia. La unidad del panel. */
+/** Metric with a tint, a big number and a trend. The dashboard's unit. */
 export function StatTile({ label, value, unit, delta, series, tint = 'bg-teal', icon, hint }: {
   label: string; value: string | number; unit?: string; delta?: number; series?: number[]; tint?: string; icon?: ReactNode; hint?: string
 }) {
@@ -82,25 +82,25 @@ export function ProgressRing({ value, size = 72, stroke = 7, children, className
   )
 }
 
-export function Stepper({ pasos, actual }: { pasos: string[]; actual: number }) {
+export function Stepper({ steps, current }: { steps: string[]; current: number }) {
   return (
     <ol className="flex flex-wrap items-center gap-2" aria-label="Pasos">
-      {pasos.map((p, i) => (
+      {steps.map((p, i) => (
         <li key={p} className="flex items-center gap-2">
           <span className={cn('grid size-7 place-items-center rounded-full text-xs font-bold',
-            i < actual ? 'bg-accent text-white' : i === actual ? 'bg-solid text-on-solid' : 'border-2 border-line text-ink-subtle')}>
-            {i < actual ? '✓' : i + 1}
+            i < current ? 'bg-accent text-white' : i === current ? 'bg-solid text-on-solid' : 'border-2 border-line text-ink-subtle')}>
+            {i < current ? '✓' : i + 1}
           </span>
-          <span className={cn('text-sm', i === actual ? 'font-semibold' : 'text-ink-muted')}>{p}</span>
-          {i < pasos.length - 1 && <span className="mx-1 h-px w-8 bg-line" />}
+          <span className={cn('text-sm', i === current ? 'font-semibold' : 'text-ink-muted')}>{p}</span>
+          {i < steps.length - 1 && <span className="mx-1 h-px w-8 bg-line" />}
         </li>
       ))}
     </ol>
   )
 }
 
-/** Subrayado dibujado a mano bajo una palabra. Se usa una vez por página, en el título. */
-export function Subrayado({ children }: { children: ReactNode }) {
+/** Hand-drawn underline beneath a word. Used once per page, in the title. */
+export function Underline({ children }: { children: ReactNode }) {
   return (
     <span className="relative inline-block">
       <span className="relative z-10">{children}</span>
@@ -111,7 +111,7 @@ export function Subrayado({ children }: { children: ReactNode }) {
   )
 }
 
-export function Contador({ hasta, className }: { hasta: number; className?: string }) {
+export function Counter({ hasta, className }: { hasta: number; className?: string }) {
   const [v, setV] = useState(0)
   const raf = useRef(0)
   useEffect(() => {
@@ -123,7 +123,7 @@ export function Contador({ hasta, className }: { hasta: number; className?: stri
   return <span className={cn('tabular-nums', className)}>{v}</span>
 }
 
-/** Foto en marco blanco con borde de tinta, apenas girada. */
+/** Photo in a white frame with an ink border, slightly rotated. */
 export function PhotoFrame({ src, alt = '', rotate = 0, className, children }: ComponentPropsWithoutRef<'figure'> & { src?: string; alt?: string; rotate?: number }) {
   return (
     <figure className={cn('overflow-hidden rounded-lg border-2 border-ink bg-white p-2', className)} style={{ transform: `rotate(${rotate}deg)` }}>
@@ -132,32 +132,32 @@ export function PhotoFrame({ src, alt = '', rotate = 0, className, children }: C
   )
 }
 
-/** Avatar que abre el menú de la cuenta. */
-export function UserMenu({ nombre, email, subtitulo, onPerfil, onCambiarEspacio, onSalir }: {
-  nombre: string; email?: string; subtitulo?: string; onPerfil?: () => void; onCambiarEspacio?: () => void; onSalir: () => void
+/** Avatar that opens the account menu. */
+export function UserMenu({ name, email, subtitle, onProfile, onChangeSpace, onSignOut }: {
+  name: string; email?: string; subtitle?: string; onProfile?: () => void; onChangeSpace?: () => void; onSignOut: () => void
 }) {
   return (
     <DropdownMenu placement="bottom-end">
       <DropdownMenuTrigger>
         <button type="button" className="flex items-center gap-2 rounded-md py-1 pl-1 pr-2 outline-none hover:bg-hover focus-visible:ring-3 focus-visible:ring-focus/30" aria-label="Menú de la cuenta">
-          <Avatar name={nombre} size="sm" />
+          <Avatar name={name} size="sm" />
           <span className="hidden text-left leading-tight sm:block">
-            <span className="block text-sm font-medium">{nombre}</span>
-            {subtitulo && <span className="block text-xs text-ink-subtle">{subtitulo}</span>}
+            <span className="block text-sm font-medium">{name}</span>
+            {subtitle && <span className="block text-xs text-ink-subtle">{subtitle}</span>}
           </span>
           <Icon icon={ChevronDown} size="sm" color="subtle" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent minWidth={230}>
         <DropdownMenuLabel>
-          <span className="block text-sm font-semibold normal-case tracking-normal text-ink">{nombre}</span>
+          <span className="block text-sm font-semibold normal-case tracking-normal text-ink">{name}</span>
           {email && <span className="block text-xs font-normal normal-case tracking-normal text-ink-subtle">{email}</span>}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {onPerfil && <DropdownMenuItem icon={<Icon icon={User} size="sm" />} onClick={onPerfil}>Mi perfil</DropdownMenuItem>}
-        {onCambiarEspacio && <DropdownMenuItem icon={<Icon icon={RefreshCw} size="sm" />} onClick={onCambiarEspacio}>Cambiar de espacio</DropdownMenuItem>}
-        {(onPerfil || onCambiarEspacio) && <DropdownMenuSeparator />}
-        <DropdownMenuItem icon={<Icon icon={LogOut} size="sm" />} destructive onClick={onSalir}>Salir</DropdownMenuItem>
+        {onProfile && <DropdownMenuItem icon={<Icon icon={User} size="sm" />} onClick={onProfile}>Mi perfil</DropdownMenuItem>}
+        {onChangeSpace && <DropdownMenuItem icon={<Icon icon={RefreshCw} size="sm" />} onClick={onChangeSpace}>Cambiar de espacio</DropdownMenuItem>}
+        {(onProfile || onChangeSpace) && <DropdownMenuSeparator />}
+        <DropdownMenuItem icon={<Icon icon={LogOut} size="sm" />} destructive onClick={onSignOut}>Salir</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

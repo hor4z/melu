@@ -1,4 +1,4 @@
-// Package domain define las entidades y reglas del sistema. No importa nada fuera de la stdlib.
+// Package domain defines the entities and rules of the system. It imports nothing outside the stdlib.
 package domain
 
 import (
@@ -8,147 +8,147 @@ import (
 )
 
 var (
-	ErrNoEncontrado = errors.New("no encontrado")
-	ErrNoAutorizado = errors.New("no autorizado")
-	ErrInvalido     = errors.New("inválido")
+	ErrNotFound   = errors.New("not found")
+	ErrNotAllowed = errors.New("not allowed")
+	ErrInvalid    = errors.New("invalid")
 )
 
-type Rol string
+type Role string
 
 const (
-	RolGuia        Rol = "guia"
-	RolAprendiz    Rol = "aprendiz"
-	RolAcompanante Rol = "acompanante"
-	RolCoordinador Rol = "coordinador"
+	RoleGuide       Role = "guide"
+	RoleLearner     Role = "learner"
+	RoleCompanion   Role = "companion"
+	RoleCoordinator Role = "coordinator"
 )
 
-type Persona struct {
+type Person struct {
 	ID        string
 	Email     string
 	GoogleSub string
-	Nombre    string
+	Name      string
 }
 
-type Espacio struct {
-	ID     string `json:"id"`
-	Nombre string `json:"nombre"`
-	Slug   string `json:"slug"`
-	Tipo   string `json:"tipo"`
+type Space struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+	Kind string `json:"kind"`
 }
 
-type Grupo struct {
-	ID         string          `json:"id"`
-	EspacioID  string          `json:"espacioId"`
-	Nombre     string          `json:"nombre"`
-	Codigo     string          `json:"codigo"`
-	Etiquetas  json.RawMessage `json:"etiquetas"`
-	Aprendices int             `json:"aprendices"`
+type Group struct {
+	ID       string          `json:"id"`
+	SpaceID  string          `json:"spaceId"`
+	Name     string          `json:"name"`
+	Code     string          `json:"code"`
+	Tags     json.RawMessage `json:"tags"`
+	Learners int             `json:"learners"`
 }
 
-type Membresia struct {
-	EspacioID string  `json:"espacioId"`
-	GrupoID   *string `json:"grupoId"`
-	Rol       Rol     `json:"rol"`
+type Membership struct {
+	SpaceID string  `json:"spaceId"`
+	GroupID *string `json:"groupId"`
+	Role    Role    `json:"role"`
 }
 
-type Fase struct {
-	Clave  string `json:"clave"`
-	Nombre string `json:"nombre"`
-	Pide   string `json:"pide"`
+type Phase struct {
+	Key  string `json:"key"`
+	Name string `json:"name"`
+	Asks string `json:"asks"`
 }
 
-type Lente struct {
-	Clave       string `json:"clave"`
-	Nombre      string `json:"nombre"`
-	Descripcion string `json:"descripcion"`
-	Fases       []Fase `json:"fases"`
+type Lens struct {
+	Key         string  `json:"key"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Phases      []Phase `json:"phases"`
 }
 
-// Evento es el hecho inmutable del que todo lo demás se deriva.
-type Evento struct {
-	PersonaID   *string
-	GrupoID     *string
-	ActividadID *string
-	Verbo       string
-	Payload     any
-	Origen      string // observado | declarado | inferido
-	Ocurrio     time.Time
+// Event is the immutable fact everything else is derived from.
+type Event struct {
+	PersonID   *string
+	GroupID    *string
+	ActivityID *string
+	Verb       string
+	Payload    any
+	Source     string // observed | declared | inferred
+	OccurredAt time.Time
 }
 
-func ValidarNombre(s string) error {
+func ValidateName(s string) error {
 	if len(s) < 2 || len(s) > 120 {
-		return ErrInvalido
+		return ErrInvalid
 	}
 	return nil
 }
 
-// ---- contenido y circuito ----
+// ---- content and the loop ----
 
-type Actividad struct {
+type Activity struct {
 	ID          string          `json:"id"`
-	EspacioID   *string         `json:"espacioId"`
-	Titulo      string          `json:"titulo"`
-	EsReceta    bool            `json:"esReceta"`
-	Composicion json.RawMessage `json:"composicion"`
-	Documento   json.RawMessage `json:"documento"`
-	Rubrica     json.RawMessage `json:"rubrica"`
-	Autores     []string        `json:"autores"`
+	SpaceID     *string         `json:"spaceId"`
+	Title       string          `json:"title"`
+	IsRecipe    bool            `json:"isRecipe"`
+	Composition json.RawMessage `json:"composition"`
+	Document    json.RawMessage `json:"document"`
+	Rubric      json.RawMessage `json:"rubric"`
+	Authors     []string        `json:"authors"`
 	UpdatedAt   time.Time       `json:"updatedAt"`
 }
 
-type Asignacion struct {
-	ID              string          `json:"id"`
-	ActividadID     string          `json:"actividadId"`
-	GrupoID         string          `json:"grupoId"`
-	Titulo          string          `json:"titulo"`
-	Composicion     json.RawMessage `json:"composicion"`
-	Documento       json.RawMessage `json:"documento,omitempty"`
-	Rubrica         json.RawMessage `json:"rubrica,omitempty"`
-	Abre            time.Time       `json:"abre"`
-	Cierra          *time.Time      `json:"cierra"`
-	Entregas        int             `json:"entregas"`
-	EntregasTotales int             `json:"entregasTotales"`
-	// solo para el aprendiz
-	GrupoNombre string  `json:"grupoNombre,omitempty"`
-	MiEstado    *string `json:"miEstado"`
+type Assignment struct {
+	ID               string          `json:"id"`
+	ActivityID       string          `json:"activityId"`
+	GroupID          string          `json:"groupId"`
+	Title            string          `json:"title"`
+	Composition      json.RawMessage `json:"composition"`
+	Document         json.RawMessage `json:"document,omitempty"`
+	Rubric           json.RawMessage `json:"rubric,omitempty"`
+	OpensAt          time.Time       `json:"opensAt"`
+	ClosesAt         *time.Time      `json:"closesAt"`
+	Submissions      int             `json:"submissions"`
+	SubmissionsTotal int             `json:"submissionsTotal"`
+	// learner only
+	GroupName string  `json:"groupName,omitempty"`
+	MyStatus  *string `json:"myStatus"`
 }
 
-type Entrega struct {
+type Submission struct {
 	ID           string          `json:"id"`
-	AsignacionID string          `json:"asignacionId"`
-	AprendizID   string          `json:"aprendizId"`
-	Aprendiz     string          `json:"aprendiz,omitempty"`
-	Estado       string          `json:"estado"`
-	Respuestas   json.RawMessage `json:"respuestas"`
-	Artefactos   json.RawMessage `json:"artefactos"`
-	Pasos        json.RawMessage `json:"pasos"`
-	Puntajes     json.RawMessage `json:"puntajes"`
-	EntregadaAt  *time.Time      `json:"entregadaAt"`
+	AssignmentID string          `json:"assignmentId"`
+	LearnerID    string          `json:"learnerId"`
+	Learner      string          `json:"learner,omitempty"`
+	Status       string          `json:"status"`
+	Answers      json.RawMessage `json:"answers"`
+	Artifacts    json.RawMessage `json:"artifacts"`
+	Steps        json.RawMessage `json:"steps"`
+	Scores       json.RawMessage `json:"scores"`
+	SubmittedAt  *time.Time      `json:"submittedAt"`
 	UpdatedAt    time.Time       `json:"updatedAt"`
 }
 
-type Aprendiz struct {
-	ID     string `json:"id"`
-	Nombre string `json:"nombre"`
+type Learner struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
-// Hecho es una entrega con su contexto y tiempos: la fila cruda de la que se derivan las métricas.
-type Hecho struct {
-	EntregaID, AsignacionID, AprendizID, Aprendiz, GrupoID, Grupo, Titulo, Estado string
-	Experiencia                                                                   string
-	Abierta, Entregada                                                            *time.Time
-	Respuestas, Documento, Pasos, Composicion                                     json.RawMessage
-	Actualizada                                                                   time.Time
+// Fact is a submission with its context and timings: the raw row the metrics are derived from.
+type Fact struct {
+	SubmissionID, AssignmentID, LearnerID, Learner, GroupID, Group, Title, Status string
+	Experience                                                                    string
+	OpenedAt, SubmittedAt                                                         *time.Time
+	Answers, Document, Steps, Composition                                         json.RawMessage
+	UpdatedAt                                                                     time.Time
 }
 
-// ---- perfil de aprendizaje ----
+// ---- learning profile ----
 
-// Perfil es una foto de cómo le entra el contenido a alguien, no una etiqueta.
-// Declarado sale del onboarding; lo observado se recalcula siempre de las entregas.
-type Perfil struct {
-	PersonaID   string             `json:"personaId"`
-	Declarado   map[string]float64 `json:"declarado"`
-	Respuestas  json.RawMessage    `json:"respuestas"`
-	Creado      time.Time          `json:"creado"`
-	Actualizado time.Time          `json:"actualizado"`
+// Profile is a snapshot of how content reaches someone, not a label.
+// Declared comes from the onboarding; the observed side is always recomputed from submissions.
+type Profile struct {
+	PersonID  string             `json:"personId"`
+	Declared  map[string]float64 `json:"declared"`
+	Answers   json.RawMessage    `json:"answers"`
+	CreatedAt time.Time          `json:"createdAt"`
+	UpdatedAt time.Time          `json:"updatedAt"`
 }

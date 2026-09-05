@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn, Slot } from './lib'
 import { Spinner } from './spinner'
 
-export const botonVariantes = cva(
+export const buttonVariants = cva(
   'relative inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md font-semibold outline-none transition-[background-color,border-color,color,box-shadow] focus-visible:ring-3 focus-visible:ring-focus/30 disabled:pointer-events-none disabled:opacity-45 aria-disabled:pointer-events-none aria-disabled:opacity-45 [&_svg]:pointer-events-none',
   {
     variants: {
@@ -24,10 +24,10 @@ export const botonVariantes = cva(
   },
 )
 
-export interface ButtonProps extends Omit<ComponentPropsWithoutRef<'button'>, 'color'>, VariantProps<typeof botonVariantes> {
-  /** Rinde el hijo (un <a>, un <Link>) con los estilos del botón, en vez de un <button>. */
+export interface ButtonProps extends Omit<ComponentPropsWithoutRef<'button'>, 'color'>, VariantProps<typeof buttonVariants> {
+  /** Renders the child (an <a>, a <Link>) with the button styles, instead of a <button>. */
   asChild?: boolean
-  /** Muestra spinner, deshabilita y anuncia el estado. */
+  /** Shows a spinner, disables, and announces the state. */
   loading?: boolean
   startIcon?: ReactNode
   endIcon?: ReactNode
@@ -42,7 +42,7 @@ export function Button({ className, variant, size, block, asChild, loading = fal
       type={asChild ? undefined : type}
       disabled={asChild ? undefined : disabled || loading}
       aria-busy={loading || undefined}
-      className={cn(botonVariantes({ variant, size, block }), className)}
+      className={cn(buttonVariants({ variant, size, block }), className)}
       {...props}
     >
       {loading ? <Spinner size={spinnerSize} /> : startIcon}
@@ -52,7 +52,7 @@ export function Button({ className, variant, size, block, asChild, loading = fal
   )
 }
 
-/** Botones pegados en una fila: comparten bordes y redondeo. */
+/** Buttons joined in a row: they share borders and rounding. */
 export function ButtonGroup({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   return (
     <div role="group"

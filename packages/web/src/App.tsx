@@ -2,92 +2,92 @@ import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { Spinner } from '@/kit'
-import { useYo } from './lib/sesion'
-import { api, type Grupo } from './lib/api'
-import { ShellGuia, ShellAprendiz } from './Shell'
-import { ProveedorEspacio } from './lib/espacio'
-import { Entrar } from './pantallas/Entrar'
-import { Bienvenida } from './pantallas/Bienvenida'
-import { Inicio } from './pantallas/Inicio'
-import { Grupos } from './pantallas/Grupos'
-import { GrupoDetalle } from './pantallas/GrupoDetalle'
-import { Biblioteca } from './pantallas/Biblioteca'
-import { NuevaActividad } from './pantallas/NuevaActividad'
-import { Editor } from './pantallas/Editor'
-import { Corregir } from './pantallas/Corregir'
-import { Lentes } from './pantallas/Lentes'
-import { Hoy } from './pantallas/Hoy'
-import { MisionPantalla } from './pantallas/Mision'
-import { Progreso } from './pantallas/Progreso'
-import { Kit } from './pantallas/Kit'
-import { Comenzar } from './pantallas/Comenzar'
+import { useMe } from './lib/session'
+import { api, type Group } from './lib/api'
+import { GuideShell, LearnerShell } from './Shell'
+import { SpaceProvider } from './lib/space'
+import { SignIn } from './screens/SignIn'
+import { Welcome } from './screens/Welcome'
+import { Home } from './screens/Home'
+import { Groups } from './screens/Groups'
+import { GroupDetail } from './screens/GroupDetail'
+import { Library } from './screens/Library'
+import { NewActivity } from './screens/NewActivity'
+import { Editor } from './screens/Editor'
+import { Review } from './screens/Review'
+import { Lenses } from './screens/Lenses'
+import { Today } from './screens/Today'
+import { MissionScreen } from './screens/Mission'
+import { Progress } from './screens/Progress'
+import { Kit } from './screens/Kit'
+import { Start } from './screens/Start'
 
-// Si alguien llega con un código de invitación y ya tiene sesión, se une solo y sigue a Hoy.
-function Unirme() {
-  const { codigo } = useParams()
+// If someone arrives with an invite code and already has a session, they join and go on to Today.
+function Join() {
+  const { code } = useParams()
   const qc = useQueryClient()
   const nav = useNavigate()
-  useEffect(() => { if (codigo) api.post<Grupo>('/api/unirme', { codigo }).finally(async () => { await qc.invalidateQueries({ queryKey: ['yo'] }); nav('/hoy', { replace: true }) }) }, [codigo, qc, nav])
+  useEffect(() => { if (code) api.post<Group>('/api/join', { code }).finally(async () => { await qc.invalidateQueries({ queryKey: ['me'] }); nav('/today', { replace: true }) }) }, [code, qc, nav])
   return <div className="grid min-h-screen place-items-center"><Spinner /></div>
 }
 
 export function App() {
-  const yo = useYo()
-  // Con `window.location.pathname` esto no se entera de las navegaciones del router: la URL
-  // cambia y la pantalla se queda donde estaba. Hay que escuchar la ubicación de verdad.
+  const me = useMe()
+  // With `window.location.pathname` this misses router navigations: the URL changes and the
+  // screen stays where it was. We have to listen to the real location.
   const { pathname } = useLocation()
-  const modo = yo.data?.modo
-  useEffect(() => { if (modo === 'aprendiz') document.documentElement.dataset.mode = 'aprendiz'; else delete document.documentElement.dataset.mode }, [modo])
+  const mode = me.data?.mode
+  useEffect(() => { if (mode === 'learner') document.documentElement.dataset.mode = 'learner'; else delete document.documentElement.dataset.mode }, [mode])
 
   if (pathname.startsWith('/kit')) return <Kit />
 
-  if (yo.isPending) return <div className="grid min-h-screen place-items-center"><Spinner /></div>
-  if (!yo.data) return <Routes><Route path="/unirme/:codigo" element={<Entrar />} /><Route path="*" element={<Entrar />} /></Routes>
+  if (me.isPending) return <div className="grid min-h-screen place-items-center"><Spinner /></div>
+  if (!me.data) return <Routes><Route path="/join/:code" element={<SignIn />} /><Route path="*" element={<SignIn />} /></Routes>
 
-  const enUnirme = pathname.startsWith('/unirme/')
-  if (enUnirme) return <Routes><Route path="/unirme/:codigo" element={<Unirme />} /><Route path="*" element={<Navigate to="/hoy" replace />} /></Routes>
+  const inJoin = pathname.startsWith('/join/')
+  if (inJoin) return <Routes><Route path="/join/:code" element={<Join />} /><Route path="*" element={<Navigate to="/today" replace />} /></Routes>
 
-  // El recorrido de bienvenida vive fuera de los modos: ocupa la pantalla entera y cualquiera
-  // puede entrar. Un aprendiz lo rehace cuando quiere; un docente pasa por él para ver lo mismo
-  // que van a ver los chicos, que es la única manera honesta de opinar sobre él.
-  if (pathname.startsWith('/comenzar')) return <Comenzar />
+  // The welcome walkthrough lives outside the modes: it takes the whole screen and anyone can
+  // enter. A learner redoes it whenever they want; a teacher goes through it to see the same
+  // thing the kids will see, which is the only honest way to have an opinion about it.
+  if (pathname.startsWith('/start')) return <Start />
 
-  if (yo.data.modo === 'nuevo') return <Bienvenida yo={yo.data} />
+  if (me.data.mode === 'new') return <Welcome me={me.data} />
 
-  if (yo.data.modo === 'aprendiz') {
-    // Primero lo primero: si nunca pasó por el onboarding, arranca ahí.
-    if (!yo.data.perfil) return <Comenzar />
+  if (me.data.mode === 'learner') {
+    // First things first: if they never went through the onboarding, that is where they start.
+    if (!me.data.profile) return <Start />
     return (
       <Routes>
-        <Route path="/mision/:id" element={<MisionPantalla />} />
+        <Route path="/mission/:id" element={<MissionScreen />} />
         <Route path="*" element={
-          <ShellAprendiz yo={yo.data}>
+          <LearnerShell me={me.data}>
             <Routes>
-              <Route path="/hoy" element={<Hoy yo={yo.data} />} />
-              <Route path="/progreso" element={<Progreso />} />
-              <Route path="*" element={<Navigate to="/hoy" replace />} />
+              <Route path="/today" element={<Today me={me.data} />} />
+              <Route path="/progress" element={<Progress />} />
+              <Route path="*" element={<Navigate to="/today" replace />} />
             </Routes>
-          </ShellAprendiz>
+          </LearnerShell>
         } />
       </Routes>
     )
   }
 
   return (
-    <ProveedorEspacio yo={yo.data}>
-    <ShellGuia yo={yo.data}>
+    <SpaceProvider me={me.data}>
+    <GuideShell me={me.data}>
       <Routes>
-        <Route path="/inicio" element={<Inicio yo={yo.data} />} />
-        <Route path="/grupos" element={<Grupos />} />
-        <Route path="/grupos/:id" element={<GrupoDetalle />} />
-        <Route path="/actividades" element={<Biblioteca />} />
-        <Route path="/actividades/nueva" element={<NuevaActividad />} />
-        <Route path="/actividades/:id" element={<Editor />} />
-        <Route path="/corregir/:id" element={<Corregir />} />
-        <Route path="/lentes" element={<Lentes />} />
-        <Route path="*" element={<Navigate to="/inicio" replace />} />
+        <Route path="/home" element={<Home me={me.data} />} />
+        <Route path="/groups" element={<Groups />} />
+        <Route path="/groups/:id" element={<GroupDetail />} />
+        <Route path="/activities" element={<Library />} />
+        <Route path="/activities/new" element={<NewActivity />} />
+        <Route path="/activities/:id" element={<Editor />} />
+        <Route path="/review/:id" element={<Review />} />
+        <Route path="/lenses" element={<Lenses />} />
+        <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
-    </ShellGuia>
-    </ProveedorEspacio>
+    </GuideShell>
+    </SpaceProvider>
   )
 }

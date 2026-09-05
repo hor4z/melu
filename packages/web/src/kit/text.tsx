@@ -34,7 +34,7 @@ export function Heading({ level = 2, size, className, ...props }: HeadingProps) 
   return <Cmp className={cn(headingVariantes({ size }), className)} {...props} />
 }
 
-/** Rótulo de sección en mayúsculas: el gesto que ordena la página. */
+/** Uppercase section label: the gesture that organizes the page. */
 export function Eyebrow({ className, ...props }: ComponentPropsWithoutRef<'p'>) {
   return <p className={cn('text-[13px] font-bold uppercase tracking-[0.115em] text-ink-subtle', className)} {...props} />
 }

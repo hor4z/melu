@@ -1,10 +1,10 @@
-// Doodles de línea: personajes redondos, trazo tinta, un toque teal. Sin librerías.
+// Line doodles: round characters, ink stroke, a touch of teal. No libraries.
 import type { SVGProps } from 'react'
 
 const base = { fill: 'none', stroke: 'currentColor', strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
 type P = SVGProps<SVGSVGElement> & { size?: number }
 
-export function DoodleSaluda({ size = 120, ...p }: P) {
+export function DoodleWave({ size = 120, ...p }: P) {
   return (
     <svg viewBox="0 0 120 120" width={size} height={size} {...base} {...p}>
       <circle cx="60" cy="52" r="26" />
@@ -14,7 +14,7 @@ export function DoodleSaluda({ size = 120, ...p }: P) {
     </svg>
   )
 }
-export function DoodleGrupo({ size = 160, ...p }: P) {
+export function DoodleGroup({ size = 160, ...p }: P) {
   return (
     <svg viewBox="0 0 200 120" width={size} height={size * 0.6} {...base} {...p}>
       <circle cx="50" cy="70" r="20" /><circle cx="100" cy="60" r="24" /><circle cx="152" cy="72" r="20" />
@@ -25,7 +25,7 @@ export function DoodleGrupo({ size = 160, ...p }: P) {
     </svg>
   )
 }
-export function DoodleFoco({ size = 120, ...p }: P) {
+export function DoodleBulb({ size = 120, ...p }: P) {
   return (
     <svg viewBox="0 0 120 120" width={size} height={size} {...base} {...p}>
       <path d="M60 18c-18 0-30 13-30 28 0 11 6 17 12 24 3 4 4 8 4 12h28c0-4 1-8 4-12 6-7 12-13 12-24 0-15-12-28-30-28z" />
@@ -34,7 +34,7 @@ export function DoodleFoco({ size = 120, ...p }: P) {
     </svg>
   )
 }
-export function DoodlePuente({ size = 160, ...p }: P) {
+export function DoodleBridge({ size = 160, ...p }: P) {
   return (
     <svg viewBox="0 0 200 100" width={size} height={size / 2} {...base} {...p}>
       <path d="M10 80h180M30 80V56h140v24" /><path d="M30 56l30-30 30 30 30-30 30 30 30-30" /><path d="M60 26v30M120 26v30M180 26v30" />
@@ -42,7 +42,7 @@ export function DoodlePuente({ size = 160, ...p }: P) {
     </svg>
   )
 }
-export function DoodleMapa({ size = 140, ...p }: P) {
+export function DoodleMap({ size = 140, ...p }: P) {
   return (
     <svg viewBox="0 0 140 120" width={size} height={size * 0.86} {...base} {...p}>
       <path d="M14 30l36-14 40 14 36-14v76l-36 14-40-14-36 14z" /><path d="M50 16v76M90 30v76" />
@@ -58,7 +58,7 @@ export function DoodleRobot({ size = 120, ...p }: P) {
     </svg>
   )
 }
-export function DoodleCocina({ size = 120, ...p }: P) {
+export function DoodleKitchen({ size = 120, ...p }: P) {
   return (
     <svg viewBox="0 0 120 120" width={size} height={size} {...base} {...p}>
       <path d="M20 60h80v10c0 20-18 34-40 34S20 90 20 70z" /><path d="M14 60h92" /><path d="M40 44c-4-8 4-10 0-18M60 44c-4-8 4-10 0-18M80 44c-4-8 4-10 0-18" stroke="var(--color-teal-500)" />
@@ -66,14 +66,14 @@ export function DoodleCocina({ size = 120, ...p }: P) {
     </svg>
   )
 }
-export function DoodleCandado({ size = 120, ...p }: P) {
+export function DoodleLock({ size = 120, ...p }: P) {
   return (
     <svg viewBox="0 0 120 120" width={size} height={size} {...base} {...p}>
       <rect x="30" y="52" width="60" height="48" rx="8" /><path d="M42 52V38a18 18 0 0136 0v14" /><circle cx="60" cy="74" r="6" stroke="var(--color-teal-500)" /><path d="M60 80v10" stroke="var(--color-teal-500)" />
     </svg>
   )
 }
-export function DoodleLibro({ size = 120, ...p }: P) {
+export function DoodleBook({ size = 120, ...p }: P) {
   return (
     <svg viewBox="0 0 120 120" width={size} height={size} {...base} {...p}>
       <path d="M16 30c14-6 30-6 44 4 14-10 30-10 44-4v60c-14-6-30-6-44 4-14-10-30-10-44-4z" /><path d="M60 34v60" />
@@ -81,7 +81,7 @@ export function DoodleLibro({ size = 120, ...p }: P) {
     </svg>
   )
 }
-export function DoodleBrote({ size = 120, ...p }: P) {
+export function DoodleSprout({ size = 120, ...p }: P) {
   return (
     <svg viewBox="0 0 120 120" width={size} height={size} {...base} {...p}>
       <path d="M36 100h48M44 100V80c0-10-10-14-20-12 2 12 8 18 20 20M60 100V60" /><path d="M60 62c0-16 12-26 30-24-2 18-12 26-30 26" stroke="var(--color-teal-500)" />
@@ -89,5 +89,5 @@ export function DoodleBrote({ size = 120, ...p }: P) {
     </svg>
   )
 }
-export const DOODLES = { saluda: DoodleSaluda, grupo: DoodleGrupo, foco: DoodleFoco, puente: DoodlePuente, mapa: DoodleMapa, robot: DoodleRobot, cocina: DoodleCocina, candado: DoodleCandado, libro: DoodleLibro, brote: DoodleBrote }
+export const DOODLES = { wave: DoodleWave, group: DoodleGroup, bulb: DoodleBulb, bridge: DoodleBridge, map: DoodleMap, robot: DoodleRobot, kitchen: DoodleKitchen, lock: DoodleLock, book: DoodleBook, sprout: DoodleSprout }
 export type DoodleName = keyof typeof DOODLES

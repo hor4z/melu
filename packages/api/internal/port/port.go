@@ -6,76 +6,76 @@ import (
 	"melu/internal/domain"
 )
 
-type Personas interface {
-	PorGoogleSub(ctx context.Context, sub string) (*domain.Persona, error)
-	PorEmail(ctx context.Context, email string) (*domain.Persona, error)
-	Crear(ctx context.Context, p domain.Persona) (*domain.Persona, error)
-	VincularGoogle(ctx context.Context, id, sub string) error
+type People interface {
+	ByGoogleSub(ctx context.Context, sub string) (*domain.Person, error)
+	ByEmail(ctx context.Context, email string) (*domain.Person, error)
+	Create(ctx context.Context, p domain.Person) (*domain.Person, error)
+	LinkGoogle(ctx context.Context, id, sub string) error
 }
 
-type Sesiones interface {
-	Crear(ctx context.Context, personaID string) (token string, err error)
-	Resolver(ctx context.Context, token string) (*domain.Persona, error)
-	Borrar(ctx context.Context, token string) error
+type Sessions interface {
+	Create(ctx context.Context, personID string) (token string, err error)
+	Resolve(ctx context.Context, token string) (*domain.Person, error)
+	Delete(ctx context.Context, token string) error
 }
 
-type Espacios interface {
-	Crear(ctx context.Context, e domain.Espacio, creadorID string) (*domain.Espacio, error)
-	DePersona(ctx context.Context, personaID string) ([]domain.Espacio, error)
-	Membresias(ctx context.Context, personaID string) ([]domain.Membresia, error)
+type Spaces interface {
+	Create(ctx context.Context, e domain.Space, creatorID string) (*domain.Space, error)
+	OfPerson(ctx context.Context, personID string) ([]domain.Space, error)
+	Memberships(ctx context.Context, personID string) ([]domain.Membership, error)
 }
 
-type Grupos interface {
-	Crear(ctx context.Context, g domain.Grupo, guiaID string) (*domain.Grupo, error)
-	DeGuia(ctx context.Context, personaID, espacioID string) ([]domain.Grupo, error)
-	PorID(ctx context.Context, id string) (*domain.Grupo, error)
+type Groups interface {
+	Create(ctx context.Context, g domain.Group, guideID string) (*domain.Group, error)
+	OfGuide(ctx context.Context, personID, spaceID string) ([]domain.Group, error)
+	ByID(ctx context.Context, id string) (*domain.Group, error)
 }
 
-type Lentes interface {
-	Todos(ctx context.Context) ([]domain.Lente, error)
+type Lenses interface {
+	All(ctx context.Context) ([]domain.Lens, error)
 }
 
-type Eventos interface {
-	Emitir(ctx context.Context, e domain.Evento) error
+type Events interface {
+	Emit(ctx context.Context, e domain.Event) error
 }
 
-type Actividades interface {
-	Recetas(ctx context.Context) ([]domain.Actividad, error)
-	DeEspacios(ctx context.Context, espacioIDs []string) ([]domain.Actividad, error)
-	PorID(ctx context.Context, id string) (*domain.Actividad, error)
-	Crear(ctx context.Context, a domain.Actividad) (*domain.Actividad, error)
-	Guardar(ctx context.Context, a domain.Actividad) error
+type Activities interface {
+	Recipes(ctx context.Context) ([]domain.Activity, error)
+	OfSpaces(ctx context.Context, espacioIDs []string) ([]domain.Activity, error)
+	ByID(ctx context.Context, id string) (*domain.Activity, error)
+	Create(ctx context.Context, a domain.Activity) (*domain.Activity, error)
+	Save(ctx context.Context, a domain.Activity) error
 }
 
-type Asignaciones interface {
-	Crear(ctx context.Context, a domain.Asignacion) (*domain.Asignacion, error)
-	DeGrupo(ctx context.Context, grupoID string) ([]domain.Asignacion, error)
-	DeAprendiz(ctx context.Context, aprendizID string) ([]domain.Asignacion, error)
-	PorID(ctx context.Context, id string) (*domain.Asignacion, error)
+type Assignments interface {
+	Create(ctx context.Context, a domain.Assignment) (*domain.Assignment, error)
+	OfGroup(ctx context.Context, groupID string) ([]domain.Assignment, error)
+	OfLearner(ctx context.Context, learnerID string) ([]domain.Assignment, error)
+	ByID(ctx context.Context, id string) (*domain.Assignment, error)
 }
 
-type Entregas interface {
-	Abrir(ctx context.Context, asignacionID, aprendizID string) (*domain.Entrega, error)
-	Guardar(ctx context.Context, e domain.Entrega) error
-	DeAsignacion(ctx context.Context, asignacionID string) ([]domain.Entrega, error)
-	PorID(ctx context.Context, id string) (*domain.Entrega, error)
+type Submissions interface {
+	Open(ctx context.Context, assignmentID, learnerID string) (*domain.Submission, error)
+	Save(ctx context.Context, e domain.Submission) error
+	OfAssignment(ctx context.Context, assignmentID string) ([]domain.Submission, error)
+	ByID(ctx context.Context, id string) (*domain.Submission, error)
 }
 
-type Membresias interface {
-	Unir(ctx context.Context, personaID, espacioID, grupoID string, rol domain.Rol) error
-	GrupoPorCodigo(ctx context.Context, codigo string) (*domain.Grupo, error)
-	GruposDeAprendiz(ctx context.Context, personaID string) ([]domain.Grupo, error)
-	Aprendices(ctx context.Context, grupoID string) ([]domain.Aprendiz, error)
+type Memberships interface {
+	Join(ctx context.Context, personID, spaceID, groupID string, role domain.Role) error
+	GroupByCode(ctx context.Context, code string) (*domain.Group, error)
+	GroupsOfLearner(ctx context.Context, personID string) ([]domain.Group, error)
+	Learners(ctx context.Context, groupID string) ([]domain.Learner, error)
 }
 
-type Panel interface {
-	HechosDeGuia(ctx context.Context, guiaID, espacioID string) ([]domain.Hecho, error)
-	HechosDeAprendiz(ctx context.Context, aprendizID string) ([]domain.Hecho, error)
-	HayAsignaciones(ctx context.Context, guiaID string) bool
+type Dashboard interface {
+	FactsOfGuide(ctx context.Context, guideID, spaceID string) ([]domain.Fact, error)
+	FactsOfLearner(ctx context.Context, learnerID string) ([]domain.Fact, error)
+	HasAssignments(ctx context.Context, guideID string) bool
 }
 
-type Perfiles interface {
-	PorPersona(ctx context.Context, personaID string) (*domain.Perfil, error)
-	Guardar(ctx context.Context, p domain.Perfil) error
-	DeGrupo(ctx context.Context, grupoID string) (map[string]domain.Perfil, error)
+type Profiles interface {
+	ByPerson(ctx context.Context, personID string) (*domain.Profile, error)
+	Save(ctx context.Context, p domain.Profile) error
+	OfGroup(ctx context.Context, groupID string) (map[string]domain.Profile, error)
 }

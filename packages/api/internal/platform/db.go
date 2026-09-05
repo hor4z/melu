@@ -19,7 +19,7 @@ func OpenDB(ctx context.Context, url string) (*pgxpool.Pool, error) {
 	return pool, pool.Ping(ctx)
 }
 
-// Migrate aplica en orden los .sql de fs que no estén en schema_migrations.
+// Migrate applies, in order, the .sql files in fs that are not yet in schema_migrations.
 func Migrate(ctx context.Context, pool *pgxpool.Pool, fs embed.FS, dir string) error {
 	if _, err := pool.Exec(ctx, `create table if not exists schema_migrations (name text primary key, applied_at timestamptz not null default now())`); err != nil {
 		return err
@@ -47,7 +47,7 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool, fs embed.FS, dir string) e
 		}
 		if _, err := tx.Exec(ctx, string(sql)); err != nil {
 			tx.Rollback(ctx)
-			return fmt.Errorf("migración %s: %w", e.Name(), err)
+			return fmt.Errorf("migration %s: %w", e.Name(), err)
 		}
 		if _, err := tx.Exec(ctx, `insert into schema_migrations(name) values($1)`, e.Name()); err != nil {
 			tx.Rollback(ctx)
@@ -56,7 +56,7 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool, fs embed.FS, dir string) e
 		if err := tx.Commit(ctx); err != nil {
 			return err
 		}
-		slog.Info("migración aplicada", "name", e.Name())
+		slog.Info("migration applied", "name", e.Name())
 	}
 	return nil
 }

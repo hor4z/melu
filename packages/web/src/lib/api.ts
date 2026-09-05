@@ -1,4 +1,4 @@
-// Cliente mínimo. Un solo lugar donde vive fetch.
+// Minimal client. A single place where fetch lives.
 export class ApiError extends Error {
   status: number
   constructor(status: number, message: string) { super(message); this.status = status }
@@ -21,93 +21,94 @@ export const api = {
   put: <T>(p: string, b?: unknown) => req<T>('PUT', p, b),
 }
 
-// ---- tipos que espejan el dominio de Go ----
-export type Persona = { ID: string; Email: string; Nombre: string }
-export type Espacio = { id: string; nombre: string; slug: string; tipo: string }
-export type Rol = 'guia' | 'aprendiz' | 'acompanante' | 'coordinador'
-export type Membresia = { espacioId: string; grupoId: string | null; rol: Rol }
-export type Grupo = { id: string; espacioId: string; nombre: string; codigo: string; etiquetas: Record<string, string>; aprendices: number }
-export type Fase = { clave: string; nombre: string; pide: string }
-export type Lente = { clave: string; nombre: string; descripcion: string; fases: Fase[] }
-export type Yo = { persona: Persona; modo: 'guia' | 'aprendiz' | 'nuevo'; espacios: Espacio[]; membresias: Membresia[]; perfil: boolean }
-export type AuthOpciones = { google: boolean; dev: boolean }
+// ---- types mirroring the Go domain ----
+export type Person = { ID: string; Email: string; Name: string }
+export type Space = { id: string; name: string; slug: string; kind: SpaceKind }
+export type SpaceKind = 'school' | 'club' | 'tutoring' | 'personal'
+export type Role = 'guide' | 'learner' | 'companion' | 'coordinator'
+export type Membership = { spaceId: string; groupId: string | null; role: Role }
+export type Group = { id: string; spaceId: string; name: string; code: string; tags: Record<string, string>; learners: number }
+export type Phase = { key: string; name: string; asks: string }
+export type Lens = { key: string; name: string; description: string; phases: Phase[] }
+export type Me = { person: Person; mode: 'guide' | 'learner' | 'new'; spaces: Space[]; memberships: Membership[]; profile: boolean }
+export type AuthOptions = { google: boolean; dev: boolean }
 
-export type TipoBloque =
-  | 'parrafo' | 'titulo' | 'lista' | 'destacado'
-  | 'pregunta' | 'opciones' | 'chequeo' | 'varias' | 'numerico' | 'completar' | 'ordenar' | 'emparejar'
-  | 'juego' | 'manipulable'
-  | 'evidencia' | 'autoreporte'
+export type BlockType =
+  | 'paragraph' | 'heading' | 'list' | 'callout'
+  | 'question' | 'choice' | 'check' | 'multi' | 'number' | 'fill_in' | 'order' | 'match'
+  | 'game' | 'manipulative'
+  | 'evidence' | 'self_report'
 
-export type Bloque = {
+export type Block = {
   id: string
-  tipo: TipoBloque
-  texto: string
-  opciones?: string[]          // opciones / varias
-  correcta?: number            // opciones (y el viejo chequeo)
-  correctas?: number[]         // varias
-  respuesta?: number           // numerico
-  tolerancia?: number          // numerico
-  unidad?: string              // numerico
-  huecos?: string[]            // completar: lo que va en cada {{hueco}}
+  type: BlockType
+  text: string
+  options?: string[]          // opciones / varias
+  correct?: number            // opciones (y el viejo chequeo)
+  correctMulti?: number[]         // varias
+  answer?: number           // numerico
+  tolerance?: number          // numerico
+  unit?: string              // numerico
+  blanks?: string[]            // completar: lo que va en cada {{hueco}}
   items?: string[]             // ordenar: en el orden correcto
-  pares?: { izq: string; der: string }[]  // emparejar y memoria
+  pairs?: { left: string; right: string }[]  // emparejar y memoria
   // ---- juego ----
-  motor?: MotorJuego
-  categorias?: { nombre: string; items: string[] }[]        // clasificar
-  preguntas?: { texto: string; opciones: string[]; correcta: number }[]  // contrarreloj
-  segundos?: number                                         // contrarreloj
-  // ---- manipulable: figuras que se arrastran ----
-  figura?: FiguraManipulable
-  min?: number; max?: number; paso?: number                 // recta numérica
-  partes?: number                                           // barra de fracción
+  engine?: GameEngine
+  categories?: { name: string; items: string[] }[]        // clasificar
+  questions?: { text: string; options: string[]; correct: number }[]  // contrarreloj
+  seconds?: number                                         // contrarreloj
+  // ---- manipulative: figures you drag ----
+  figure?: ManipulativeFigure
+  min?: number; max?: number; step?: number                 // recta numérica
+  parts?: number                                           // barra de fracción
   coefA?: number; coefB?: number; coefC?: number            // balanza: a·x + b = c
-  explicacion?: string         // se muestra después de responder
-  pista?: string               // se puede pedir antes
-  kind?: 'foto' | 'audio' | 'archivo'  // evidencia
+  explanation?: string         // se muestra después de responder
+  hint?: string               // se puede pedir antes
+  media?: 'photo' | 'audio' | 'file'  // evidencia
 }
 
-/** Lo que pasó en cada bloque: la señal que vale, más rica que la respuesta final. */
-export type MotorJuego = 'clasificar' | 'memoria' | 'contrarreloj'
-export type FiguraManipulable = 'recta' | 'fraccion' | 'balanza'
+/** What happened in each block: the signal that counts, richer than the final answer. */
+export type GameEngine = 'sort' | 'memory' | 'time_attack'
+export type ManipulativeFigure = 'number_line' | 'fraction_bar' | 'balance'
 
-export type PasoResultado = { intentos: number; ok: boolean | null; ms: number }
-export type Pasos = Record<string, PasoResultado>
-export type FaseDoc = { clave: string; nombre: string; pide?: string; bloques: Bloque[] }
-export type Documento = { fases: FaseDoc[] }
-export type Composicion = {
-  experiencia?: string; lente?: string; disciplinas?: string[]
-  escenario?: string[]; social?: string; evidencia?: string[]
+export type StepResult = { attempts: number; ok: boolean | null; ms: number }
+export type Steps = Record<string, StepResult>
+export type PhaseDoc = { key: string; name: string; asks?: string; blocks: Block[] }
+export type Document = { phases: PhaseDoc[] }
+export type Composition = {
+  experience?: string; lens?: string; disciplines?: string[]
+  setting?: string[]; social?: string; evidence?: string[]
 }
-export type Criterio = { id: string; label: string; niveles: string[]; disciplina?: string }
-export type Actividad = {
-  id: string; espacioId: string | null; titulo: string; esReceta: boolean
-  composicion: Composicion; documento: Documento; rubrica: Criterio[]; autores: string[]; updatedAt: string
+export type Criterion = { id: string; label: string; levels: string[]; discipline?: string }
+export type Activity = {
+  id: string; spaceId: string | null; title: string; isRecipe: boolean
+  composition: Composition; document: Document; rubric: Criterion[]; authors: string[]; updatedAt: string
 }
-export type Asignacion = {
-  id: string; actividadId: string; grupoId: string; titulo: string; composicion: Composicion
-  documento?: Documento; rubrica?: Criterio[]; abre: string; cierra: string | null
-  entregas: number; entregasTotales: number; grupoNombre?: string; miEstado: 'en_curso' | 'entregada' | 'corregida' | null
+export type Assignment = {
+  id: string; activityId: string; groupId: string; title: string; composition: Composition
+  document?: Document; rubric?: Criterion[]; opensAt: string; closesAt: string | null
+  submissions: number; submissionsTotal: number; groupName?: string; myStatus: 'in_progress' | 'submitted' | 'graded' | null
 }
-export type ValorRespuesta = string | number | number[] | string[]
-export type Respuestas = Record<string, ValorRespuesta>
-export type Puntaje = { id: string; nivel: number }
-export type Entrega = {
-  id: string; asignacionId: string; aprendizId: string; aprendiz?: string
-  estado: 'en_curso' | 'entregada' | 'corregida'; respuestas: Respuestas; artefactos: unknown[]; pasos: Pasos; puntajes: Puntaje[]
-  entregadaAt: string | null; updatedAt: string
+export type AnswerValue = string | number | number[] | string[]
+export type Answers = Record<string, AnswerValue>
+export type Score = { id: string; level: number }
+export type Submission = {
+  id: string; assignmentId: string; learnerId: string; learner?: string
+  status: 'in_progress' | 'submitted' | 'graded'; answers: Answers; artifacts: unknown[]; steps: Steps; scores: Score[]
+  submittedAt: string | null; updatedAt: string
 }
-export type Sala = { grupo: Grupo; misiones: Asignacion[] }
-export type Mision = { asignacion: Asignacion; entrega: Entrega }
-export type Aprendiz = { id: string; nombre: string }
-export type GrupoDetalle = { grupo: Grupo; asignaciones: Asignacion[]; aprendices: Aprendiz[] }
+export type Room = { group: Group; missions: Assignment[] }
+export type Mission = { assignment: Assignment; submission: Submission }
+export type Learner = { id: string; name: string }
+export type GroupDetail = { group: Group; assignments: Assignment[]; learners: Learner[] }
 
-export const nuevoId = () => Math.random().toString(36).slice(2, 10)
+export const newId = () => Math.random().toString(36).slice(2, 10)
 
-// ---- panel y progreso ----
-export type Senal = { aprendizId: string; aprendiz: string; grupoId: string; grupo: string; tipo: 'abandono' | 'errores' | 'lento' | 'brilla'; detalle: string; sugerencia: string; recetaTitulo?: string; recetaId?: string }
-export type PorTipo = { experiencia: string; entregas: number; minutosProm: number; aciertos: number }
-export type DiaSerie = { dia: string; abiertas: number; entregadas: number }
-export type EntregaResumen = { entregaId: string; asignacionId: string; aprendiz?: string; titulo: string; grupo: string; estado: 'en_curso' | 'entregada' | 'corregida'; minutos: number; aciertos: number; cuando: string }
-export type Panel = { espacios: number; grupos: number; aprendices: number; paraMirar: number; minutosProm: number; aciertos: number; serieSemana: DiaSerie[]; senales: Senal[]; porTipo: PorTipo[]; checklist: Record<string, boolean>; entregasRecientes: EntregaResumen[] }
-export type Progreso = { hechas: number; enCurso: number; minutos: number; aciertos: number; racha: number; misiones: EntregaResumen[]; experiencias: Record<string, number> }
-export type Invitacion = { codigo: string; link: string; qr: string; grupo: string }
+// ---- dashboard and progress ----
+export type Signal = { learnerId: string; learner: string; groupId: string; group: string; kind: 'dropout' | 'misses' | 'slow' | 'shines'; detail: string; suggestion: string; recipeTitle?: string; recipeId?: string }
+export type ByKind = { experience: string; submissions: number; avgMinutes: number; accuracy: number }
+export type DaySeries = { day: string; opened: number; submitted: number }
+export type SubmissionSummary = { submissionId: string; assignmentId: string; learner?: string; title: string; group: string; status: 'in_progress' | 'submitted' | 'graded'; minutes: number; accuracy: number; when: string }
+export type Dashboard = { spaces: number; groups: number; learners: number; toReview: number; avgMinutes: number; accuracy: number; weekSeries: DaySeries[]; signals: Signal[]; byKind: ByKind[]; checklist: Record<string, boolean>; recentSubmissions: SubmissionSummary[] }
+export type Progress = { done: number; inProgress: number; minutes: number; accuracy: number; streak: number; missions: SubmissionSummary[]; experiences: Record<string, number> }
+export type Invite = { code: string; link: string; qr: string; group: string }

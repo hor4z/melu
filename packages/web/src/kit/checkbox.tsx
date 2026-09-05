@@ -17,18 +17,18 @@ export function Checkbox({ checked, defaultChecked = false, onCheckedChange, siz
   const f = useField()
   const aria = ariaDeCampo(f)
   const [val, setVal] = useControllableState<boolean | 'indeterminate'>({ value: checked, defaultValue: defaultChecked, onChange: (v) => onCheckedChange?.(v === true) })
-  const marcado = val === true
-  const medio = val === 'indeterminate'
-  const caja = size === 'sm' ? 'size-4' : 'size-[18px]'
+  const marked = val === true
+  const medium = val === 'indeterminate'
+  const box = size === 'sm' ? 'size-4' : 'size-[18px]'
   return (
     <button
-      type="button" role="checkbox" aria-checked={medio ? 'mixed' : marcado} id={aria.id} aria-describedby={aria['aria-describedby']}
-      disabled={disabled ?? aria.disabled} onClick={() => setVal(!marcado)}
+      type="button" role="checkbox" aria-checked={medium ? 'mixed' : marked} id={aria.id} aria-describedby={aria['aria-describedby']}
+      disabled={disabled ?? aria.disabled} onClick={() => setVal(!marked)}
       className={cn('group flex items-start gap-2.5 rounded-md text-left text-sm outline-none focus-visible:ring-3 focus-visible:ring-focus/30 disabled:cursor-not-allowed disabled:opacity-50', className)}
       {...props}
     >
-      <span className={cn('mt-px grid shrink-0 place-items-center rounded border-2 transition-colors', caja, marcado || medio ? 'border-solid bg-solid text-on-solid' : 'border-line-strong bg-surface group-hover:border-ink')}>
-        {medio ? <Icon icon={Minus} size="sm" /> : marcado ? <Icon icon={Check} size="sm" /> : null}
+      <span className={cn('mt-px grid shrink-0 place-items-center rounded border-2 transition-colors', box, marked || medium ? 'border-solid bg-solid text-on-solid' : 'border-line-strong bg-surface group-hover:border-ink')}>
+        {medium ? <Icon icon={Minus} size="sm" /> : marked ? <Icon icon={Check} size="sm" /> : null}
       </span>
       {(children || description) && (
         <span className="min-w-0">

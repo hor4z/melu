@@ -23,11 +23,11 @@ func main() {
 
 	db, err := platform.OpenDB(ctx, cfg.DatabaseURL)
 	if err != nil {
-		slog.Error("sin base de datos", "err", err)
+		slog.Error("no database", "err", err)
 		os.Exit(1)
 	}
 	if err := platform.Migrate(ctx, db, migrations.FS, "."); err != nil {
-		slog.Error("migraciones", "err", err)
+		slog.Error("migrations", "err", err)
 		os.Exit(1)
 	}
 
@@ -38,33 +38,33 @@ func main() {
 		}
 	}
 
-	zona, err := time.LoadLocation(cfg.Zona)
+	zone, err := time.LoadLocation(cfg.TZ)
 	if err != nil {
-		slog.Warn("zona horaria desconocida, se usa la del proceso", "zona", cfg.Zona, "err", err)
-		zona = time.Local
+		slog.Warn("unknown time zone, falling back to the process one", "zone", cfg.TZ, "err", err)
+		zone = time.Local
 	}
 
 	repos := postgres.New(db)
-	svc := &app.Servicios{
-		Personas: repos, Sesiones: repos.Sesiones(), Espacios: repos.Espacios(),
-		Grupos: repos.Grupos(), Lentes: repos, Eventos: repos,
-		Actividades: repos.Actividades(), Asignaciones: repos.Asignaciones(), Entregas: repos.Entregas(), Membresias: repos.Membresias(), Panel: repos.Panel(), Perfiles: repos.Perfiles(), Zona: zona,
+	svc := &app.Services{
+		People: repos, Sessions: repos.Sessions(), Spaces: repos.Spaces(),
+		Groups: repos.Groups(), Lenses: repos, Events: repos,
+		Activities: repos.Activities(), Assignments: repos.Assignments(), Submissions: repos.Submissions(), Memberships: repos.Memberships(), Dashboard: repos.Dashboard(), Profiles: repos.Profiles(), TZ: zone,
 	}
 
-	g, err := google.Nuevo(ctx, cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.BaseURL+"/api/auth/google/callback")
+	g, err := google.New(ctx, cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.BaseURL+"/api/auth/google/callback")
 	if err != nil {
 		slog.Error("google oidc", "err", err)
 		os.Exit(1)
 	}
 	if g == nil {
-		slog.Warn("login con Google apagado (falta MELU_GOOGLE_CLIENT_ID)")
+		slog.Warn("Google sign-in off (MELU_GOOGLE_CLIENT_ID missing)")
 	}
 	if cfg.DevLogin {
-		slog.Warn("login de desarrollo activo (MELU_DEV_LOGIN=1)")
+		slog.Warn("dev sign-in enabled (MELU_DEV_LOGIN=1)")
 	}
 
 	srv := httpadapter.New(svc, g, cfg.DevLogin, web.Dist(), cfg.BaseURL)
-	slog.Info("melu escuchando", "addr", cfg.Addr)
+	slog.Info("melu listening", "addr", cfg.Addr)
 	if err := http.ListenAndServe(cfg.Addr, srv.Handler()); err != nil {
 		slog.Error("server", "err", err)
 		os.Exit(1)

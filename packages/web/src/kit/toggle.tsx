@@ -34,11 +34,11 @@ export function Toggle({ pressed, defaultPressed = false, onPressedChange, varia
   )
 }
 
-type GrupoCtx = { valores: string[]; alternar: (v: string) => void; size: ToggleProps['size']; variant: ToggleProps['variant'] }
-const ToggleGroupCtx = createContext<GrupoCtx | null>(null)
+type GroupCtx = { values: string[]; toggle: (v: string) => void; size: ToggleProps['size']; variant: ToggleProps['variant'] }
+const ToggleGroupCtx = createContext<GroupCtx | null>(null)
 
 export interface ToggleGroupProps extends Omit<ComponentPropsWithoutRef<'div'>, 'onChange' | 'defaultValue'>, VariantProps<typeof toggleVariantes> {
-  /** `single` deja una activa; `multiple` permite varias. */
+  /** `single` keeps one active; `multiple` allows several. */
   type?: 'single' | 'multiple'
   value?: string[]
   defaultValue?: string[]
@@ -47,9 +47,9 @@ export interface ToggleGroupProps extends Omit<ComponentPropsWithoutRef<'div'>, 
 
 export function ToggleGroup({ type = 'single', value, defaultValue = [], onValueChange, variant, size, className, children, ...props }: ToggleGroupProps) {
   const [vals, setVals] = useControllableState({ value, defaultValue, onChange: onValueChange })
-  const alternar = (v: string) => setVals(type === 'single' ? (vals.includes(v) ? [] : [v]) : vals.includes(v) ? vals.filter((x) => x !== v) : [...vals, v])
+  const toggle = (v: string) => setVals(type === 'single' ? (vals.includes(v) ? [] : [v]) : vals.includes(v) ? vals.filter((x) => x !== v) : [...vals, v])
   return (
-    <ToggleGroupCtx.Provider value={{ valores: vals, alternar, size, variant }}>
+    <ToggleGroupCtx.Provider value={{ values: vals, toggle, size, variant }}>
       <div role="group" className={cn('flex flex-wrap items-center gap-1.5', className)} {...props}>{children}</div>
     </ToggleGroupCtx.Provider>
   )
@@ -58,5 +58,5 @@ export function ToggleGroup({ type = 'single', value, defaultValue = [], onValue
 export function ToggleGroupItem({ value, className, children, ...props }: Omit<ToggleProps, 'pressed' | 'onPressedChange'> & { value: string }) {
   const ctx = useContext(ToggleGroupCtx)
   if (!ctx) throw new Error('ToggleGroupItem necesita un ToggleGroup alrededor')
-  return <Toggle pressed={ctx.valores.includes(value)} onPressedChange={() => ctx.alternar(value)} size={ctx.size} variant={ctx.variant} className={className} {...props}>{children}</Toggle>
+  return <Toggle pressed={ctx.values.includes(value)} onPressedChange={() => ctx.toggle(value)} size={ctx.size} variant={ctx.variant} className={className} {...props}>{children}</Toggle>
 }

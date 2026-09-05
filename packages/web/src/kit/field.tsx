@@ -3,41 +3,41 @@ import { CircleAlert, CircleCheck, TriangleAlert } from 'lucide-react'
 import { cn } from './lib'
 import { Icon } from './icon'
 
-export type EstadoCampo = 'error' | 'warning' | 'success'
+export type FieldState = 'error' | 'warning' | 'success'
 
 type Ctx = {
   id: string; descId: string; msgId: string
-  tieneDesc: boolean; tieneMsg: boolean
-  estado?: EstadoCampo; disabled?: boolean; required?: boolean
+  hasDesc: boolean; hasMsg: boolean
+  status?: FieldState; disabled?: boolean; required?: boolean
 }
 const FieldCtx = createContext<Ctx | null>(null)
 
-/** Los controles del kit leen esto para heredar id, aria y estado sin que los cablees a mano. */
+/** The kit controls read this to inherit id, aria and state without wiring them by hand. */
 export function useField() { return useContext(FieldCtx) }
 
-/** aria-* que corresponden al control dentro de un Field. */
-export function ariaDeCampo(f: Ctx | null, propios: { id?: string; 'aria-describedby'?: string } = {}) {
-  if (!f) return { ...propios, 'aria-invalid': undefined, 'aria-required': undefined, disabled: undefined } as const
-  const desc = [f.tieneDesc && f.descId, f.tieneMsg && f.msgId, propios['aria-describedby']].filter(Boolean).join(' ')
+/** the aria-* attributes that belong to the control inside a Field. */
+export function ariaDeCampo(f: Ctx | null, own: { id?: string; 'aria-describedby'?: string } = {}) {
+  if (!f) return { ...own, 'aria-invalid': undefined, 'aria-required': undefined, disabled: undefined } as const
+  const desc = [f.hasDesc && f.descId, f.hasMsg && f.msgId, own['aria-describedby']].filter(Boolean).join(' ')
   return {
-    id: propios.id ?? f.id,
+    id: own.id ?? f.id,
     'aria-describedby': desc || undefined,
-    'aria-invalid': f.estado === 'error' || undefined,
+    'aria-invalid': f.status === 'error' || undefined,
     'aria-required': f.required || undefined,
     disabled: f.disabled,
   }
 }
 
 export interface FieldProps extends Omit<ComponentPropsWithoutRef<'div'>, 'id'> {
-  /** Etiqueta corta. Si no la pasás, usá <FieldLabel> como hijo. */
+  /** Short label. If you do not pass it, use <FieldLabel> as a child. */
   label?: ReactNode
   description?: ReactNode
-  /** Mensaje con tono: rojo para error, ámbar para aviso, verde para confirmación. */
-  status?: { type: EstadoCampo; message?: ReactNode }
+  /** Message with a tone: red for error, amber for warning, green for confirmation. */
+  status?: { type: FieldState; message?: ReactNode }
   optional?: boolean
   required?: boolean
   disabled?: boolean
-  /** Para grupos (radios, checkboxes): rinde fieldset/legend en vez de label. */
+  /** For groups (radios, checkboxes): renders fieldset/legend instead of label. */
   asGroup?: boolean
 }
 
@@ -45,10 +45,10 @@ export function Field({ label, description, status, optional, required, disabled
   const base = useId()
   const ctx: Ctx = {
     id: `${base}-c`, descId: `${base}-d`, msgId: `${base}-m`,
-    tieneDesc: Boolean(description), tieneMsg: Boolean(status?.message),
-    estado: status?.type, disabled, required,
+    hasDesc: Boolean(description), hasMsg: Boolean(status?.message),
+    status: status?.type, disabled, required,
   }
-  const contenido = (
+  const content = (
     <>
         {label && <FieldLabel asLegend={asGroup} optional={optional}>{label}</FieldLabel>}
         {description && <FieldDescription>{description}</FieldDescription>}
@@ -59,17 +59,17 @@ export function Field({ label, description, status, optional, required, disabled
   return (
     <FieldCtx.Provider value={ctx}>
       {asGroup
-        ? <fieldset className={cn('flex min-w-0 flex-col gap-1.5', className)}>{contenido}</fieldset>
-        : <div className={cn('flex min-w-0 flex-col gap-1.5', className)} {...props}>{contenido}</div>}
+        ? <fieldset className={cn('flex min-w-0 flex-col gap-1.5', className)}>{content}</fieldset>
+        : <div className={cn('flex min-w-0 flex-col gap-1.5', className)} {...props}>{content}</div>}
     </FieldCtx.Provider>
   )
 }
 
 export function FieldLabel({ className, children, optional, asLegend, ...props }: ComponentPropsWithoutRef<'label'> & { optional?: boolean; asLegend?: boolean }) {
   const f = useField()
-  const contenido = <>{children}{optional && <span className="ml-1 font-normal text-ink-subtle">(opcional)</span>}{f?.required && !optional && <span className="ml-0.5 text-danger" aria-hidden="true">*</span>}</>
-  if (asLegend) return <legend className={cn('text-sm font-semibold text-ink', className)}>{contenido}</legend>
-  return <label htmlFor={f?.id} className={cn('text-sm font-semibold text-ink', f?.disabled && 'opacity-50', className)} {...props}>{contenido}</label>
+  const content = <>{children}{optional && <span className="ml-1 font-normal text-ink-subtle">(opcional)</span>}{f?.required && !optional && <span className="ml-0.5 text-danger" aria-hidden="true">*</span>}</>
+  if (asLegend) return <legend className={cn('text-sm font-semibold text-ink', className)}>{content}</legend>
+  return <label htmlFor={f?.id} className={cn('text-sm font-semibold text-ink', f?.disabled && 'opacity-50', className)} {...props}>{content}</label>
 }
 
 export function FieldDescription({ className, ...props }: ComponentPropsWithoutRef<'p'>) {
@@ -77,21 +77,21 @@ export function FieldDescription({ className, ...props }: ComponentPropsWithoutR
   return <p id={f?.descId} className={cn('text-[13px] leading-snug text-ink-muted', className)} {...props} />
 }
 
-const ICONO_ESTADO = { error: CircleAlert, warning: TriangleAlert, success: CircleCheck }
-const COLOR_ESTADO = { error: 'text-danger', warning: 'text-warning', success: 'text-success' }
+const STATUS_ICON = { error: CircleAlert, warning: TriangleAlert, success: CircleCheck }
+const STATUS_COLOR = { error: 'text-danger', warning: 'text-warning', success: 'text-success' }
 
-export function FieldStatus({ type = 'error', className, children, ...props }: ComponentPropsWithoutRef<'p'> & { type?: EstadoCampo }) {
+export function FieldStatus({ type = 'error', className, children, ...props }: ComponentPropsWithoutRef<'p'> & { type?: FieldState }) {
   const f = useField()
   return (
     <p id={f?.msgId} role={type === 'error' ? 'alert' : undefined}
-      className={cn('flex items-start gap-1.5 text-[13px] leading-snug', COLOR_ESTADO[type], className)} {...props}>
-      <Icon icon={ICONO_ESTADO[type]} size="sm" className="mt-px" />
+      className={cn('flex items-start gap-1.5 text-[13px] leading-snug', STATUS_COLOR[type], className)} {...props}>
+      <Icon icon={STATUS_ICON[type]} size="sm" className="mt-px" />
       <span>{children}</span>
     </p>
   )
 }
 
-/** Filas de formulario con separación consistente. */
+/** Form rows with consistent spacing. */
 export function Form({ className, ...props }: ComponentPropsWithoutRef<'form'>) {
   return <form className={cn('flex flex-col gap-5', className)} {...props} />
 }

@@ -4,7 +4,7 @@ import { Portal } from './portal'
 import { cn, Slot } from './lib'
 
 type Ctx = {
-  abierto: boolean
+  isOpen: boolean
   refs: ReturnType<typeof useFloating>['refs']
   floatingStyles: React.CSSProperties
   getReferenceProps: (u?: Record<string, unknown>) => Record<string, unknown>
@@ -19,10 +19,10 @@ const useTooltipCtx = () => {
 }
 
 export function Tooltip({ children, placement = 'top', delay = 200 }: { children: ReactNode; placement?: Placement; delay?: number }) {
-  const [abierto, setAbierto] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
   const nodeId = useFloatingNodeId()
   const { refs, floatingStyles, context } = useFloating({
-    nodeId, open: abierto, onOpenChange: setAbierto, placement, whileElementsMounted: autoUpdate,
+    nodeId, open: isOpen, onOpenChange: setIsOpen, placement, whileElementsMounted: autoUpdate,
     middleware: [offset(6), flip({ padding: 8 }), shift({ padding: 8 })],
   })
   const { getReferenceProps, getFloatingProps } = useInteractions([
@@ -31,7 +31,7 @@ export function Tooltip({ children, placement = 'top', delay = 200 }: { children
     useDismiss(context, { bubbles: false }),
     useRole(context, { role: 'tooltip' }),
   ])
-  return <TooltipCtx.Provider value={{ abierto, refs, floatingStyles, getReferenceProps, getFloatingProps, nodeId }}>{children}</TooltipCtx.Provider>
+  return <TooltipCtx.Provider value={{ isOpen, refs, floatingStyles, getReferenceProps, getFloatingProps, nodeId }}>{children}</TooltipCtx.Provider>
 }
 
 export function TooltipTrigger({ children, asChild = true, ...props }: ComponentPropsWithoutRef<'span'> & { asChild?: boolean }) {
@@ -42,7 +42,7 @@ export function TooltipTrigger({ children, asChild = true, ...props }: Component
 
 export function TooltipContent({ className, children, ...props }: ComponentPropsWithoutRef<'div'>) {
   const t = useTooltipCtx()
-  if (!t.abierto) return null
+  if (!t.isOpen) return null
   return (
     <FloatingNode id={t.nodeId}>
     <Portal>
