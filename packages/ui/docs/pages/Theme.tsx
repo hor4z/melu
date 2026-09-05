@@ -5,7 +5,7 @@
 // convierte en verificación además de documentación.
 import { useState } from 'react'
 import { Card, Heading, Text } from '@melu/ui'
-import { Block, Code, PageHead } from '../pieces'
+import { Block, Code, PageHead, Rule, Ticks } from '../pieces'
 
 const readToken = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 
@@ -161,14 +161,30 @@ export function Theme() {
           <Scale names={['--space-1', '--space-2', '--space-3', '--space-4', '--space-5', '--space-6', '--space-8', '--space-10', '--space-12', '--space-16']} />
         </Block>
 
-        <Block id="radios" title="Radios" note="De la esquina apenas rota a la píldora.">
-          <div className="flex flex-wrap gap-4">
-            {['--radius-xs', '--radius-sm', '--radius-md', '--radius-lg', '--radius-xl', '--radius-2xl'].map((n) => (
-              <div key={n} className="flex flex-col items-center gap-2">
-                <span className="size-16 border-2 border-brand-text bg-teal" style={{ borderRadius: `var(${n})` }} />
-                <Text size="xs" className="font-mono text-ink-subtle">{n}</Text>
-              </div>
-            ))}
+        <Block id="radios" title="Radios" note="Un escalón por rol, y no hay dos que valgan lo mismo.">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-wrap gap-4">
+              {RADII.map(([name, role]) => (
+                <div key={name} className="flex w-28 flex-col items-center gap-2 text-center">
+                  <span className="size-16 border-2 border-brand-text bg-teal" style={{ borderRadius: `var(${name})` }} />
+                  <Text size="xs" className="font-mono text-ink-subtle">{name}</Text>
+                  <Text size="xs" variant="muted">{role}</Text>
+                </div>
+              ))}
+            </div>
+
+            <Rule title="El radio de un hijo es el del padre menos el padding del padre"
+              why="Si el hijo repite el radio del padre, la curva de adentro queda más abierta que la de afuera y el borde se ve torcido. Es la regla que evita elegir el número a ojo.">
+              El menú tiene <code className="font-mono text-xs">--radius-xl</code> (16) y{' '}
+              <code className="font-mono text-xs">p-1.5</code> (6), así que sus ítems van en{' '}
+              <code className="font-mono text-xs">--radius-lg</code> (12). El control segmentado tiene 12 y{' '}
+              <code className="font-mono text-xs">p-1</code> (4), así que los suyos van en 8.
+            </Rule>
+
+            <Rule title="Una escala con dos escalones iguales no tiene medio"
+              why={<Ticks>{'`sm` y `md` valían los dos 4px, y `xl` y `2xl` los dos 16. Entre el control y la tarjeta no quedaba nada, y el control segmentado había terminado con un `rounded-[5px]` escrito a mano.'}</Ticks>}>
+              Cada escalón vale distinto del anterior. Un radio fuera de la escala es un bug, igual que un hex.
+            </Rule>
           </div>
         </Block>
 
@@ -191,6 +207,16 @@ export function Theme() {
     </>
   )
 }
+
+/** Cada radio con el rol que le toca. La lista es la doc: si se agrega uno, se dice para qué. */
+const RADII: [name: string, role: string][] = [
+  ['--radius-xs', 'marcas: kbd, la X de un chip'],
+  ['--radius-sm', 'detalles: la imagen dentro de un marco'],
+  ['--radius-md', 'controles: botón, input, select, toggle'],
+  ['--radius-lg', 'dentro de una superficie: ítem de menú, pestaña'],
+  ['--radius-xl', 'superficies: card, modal, popover, alert'],
+  ['--radius-2xl', 'piezas grandes y sueltas'],
+]
 
 const MOTION_CLASSES = [
   ['ui-reveal', 'Aparecer', 'Lo que entra a la pantalla.'],

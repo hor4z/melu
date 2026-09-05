@@ -119,7 +119,7 @@ export function DialogBody({ className, ...props }: ComponentPropsWithoutRef<'di
   return <div className={cn('min-h-0 flex-1 overflow-y-auto px-5 py-4', className)} {...props} />
 }
 export function DialogFooter({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
-  return <div className={cn('flex flex-wrap items-center justify-end gap-2 border-t border-line px-5 py-3.5', className)} {...props} />
+  return <div className={cn('flex flex-wrap items-center justify-end gap-2 border-t border-line px-5 py-4', className)} {...props} />
 }
 export function DialogClose({ children, asChild = true, ...props }: ComponentPropsWithoutRef<'button'> & { asChild?: boolean }) {
   const d = useDialogCtx()

@@ -116,7 +116,7 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
             <label className="hidden max-w-md flex-1 items-center gap-2 rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-ink-subtle md:flex">
               <Icon icon={Search} size="sm" />
               <input placeholder="Buscar grupos, actividades, aprendices…" className="w-full bg-transparent outline-none placeholder:text-ink-subtle" />
-              <kbd className="rounded border border-line bg-surface px-1.5 font-mono text-[10px]">⌘K</kbd>
+              <kbd className="rounded-sm border border-line bg-surface px-1.5 font-mono text-[10px]">⌘K</kbd>
             </label>
             <div className="flex items-center gap-2">
               <NotificationsBell spaceId={space?.id ?? ''} />

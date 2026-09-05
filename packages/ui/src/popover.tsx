@@ -54,7 +54,7 @@ export function PopoverContent({ className, children, manageFocus = true, ...pro
   if (!p.isOpen) return null
   const panel = (
     <div ref={p.refs.setFloating} style={{ ...p.floatingStyles, visibility: p.positioned ? undefined : 'hidden' }} data-state="open"
-      className={cn('ui-pop z-50 overflow-y-auto rounded-xl border border-line bg-surface p-4 shadow-lg outline-none', className)}
+      className={cn('ui-pop z-50 overflow-y-auto rounded-xl border border-line bg-surface p-5 shadow-lg outline-none', className)}
       {...p.getFloatingProps(props as Record<string, unknown>)}>
       {children}
     </div>

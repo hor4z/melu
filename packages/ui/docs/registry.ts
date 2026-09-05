@@ -4,7 +4,7 @@
 // grupo pertenece, para qué sirve, cuándo no usarlo— que es justamente lo que ninguna
 // herramienta puede deducir.
 
-export type Group = 'Acciones' | 'Formulario' | 'Contenido' | 'Capas' | 'Navegación' | 'Estado' | 'Datos' | 'Marca' | 'Primitivas'
+export type Group = 'Acciones' | 'Formulario' | 'Contenido' | 'Diálogos y capas' | 'Navegación' | 'Estado' | 'Datos' | 'Marca' | 'Primitivas'
 
 export type Demo = {
   /** El archivo bajo `docs/examples/<slug>/`, sin extensión. Es el código que se muestra. */
@@ -239,7 +239,7 @@ export const REGISTRY: Entry[] = [
   {
     slug: 'dialog',
     title: 'Dialog',
-    group: 'Capas',
+    group: 'Diálogos y capas',
     summary: 'Una decisión que interrumpe. Bloquea el scroll y atrapa el foco.',
     exports: ['Dialog', 'DialogTrigger', 'DialogContent', 'DialogHeader', 'DialogTitle', 'DialogDescription', 'DialogBody', 'DialogFooter', 'DialogClose'],
     demos: [
@@ -251,7 +251,7 @@ export const REGISTRY: Entry[] = [
   {
     slug: 'dropdown',
     title: 'DropdownMenu',
-    group: 'Capas',
+    group: 'Diálogos y capas',
     summary: 'Acciones sobre algo. `MoreMenu` es el de tres puntos, ya armado.',
     exports: ['DropdownMenu', 'DropdownMenuTrigger', 'DropdownMenuContent', 'DropdownMenuItem', 'DropdownMenuCheckboxItem', 'DropdownMenuLabel', 'DropdownMenuSeparator', 'DropdownMenuGroup', 'MoreMenu'],
     demos: [
@@ -263,7 +263,7 @@ export const REGISTRY: Entry[] = [
   {
     slug: 'popover',
     title: 'Popover',
-    group: 'Capas',
+    group: 'Diálogos y capas',
     summary: 'Contenido al lado de algo, sin interrumpir.',
     exports: ['Popover', 'PopoverAnchor', 'PopoverTrigger', 'PopoverContent', 'PopoverClose'],
     demos: [
@@ -274,7 +274,7 @@ export const REGISTRY: Entry[] = [
   {
     slug: 'tooltip',
     title: 'Tooltip',
-    group: 'Capas',
+    group: 'Diálogos y capas',
     summary: 'Una aclaración corta al pasar el mouse o al enfocar.',
     exports: ['Tooltip', 'TooltipTrigger', 'TooltipContent'],
     demos: [{ id: 'basic', title: 'Lo habitual', note: 'Aparece a los 200 ms y también con foco de teclado.' }],
@@ -283,7 +283,7 @@ export const REGISTRY: Entry[] = [
   {
     slug: 'portal',
     title: 'Portal',
-    group: 'Capas',
+    group: 'Diálogos y capas',
     summary: 'Sacar algo del árbol del DOM sin sacarlo del de React.',
     exports: ['Portal'],
     demos: [{ id: 'basic', title: 'Lo habitual', note: 'Lo usan por dentro el modal, el menú y el popover; casi nunca hace falta a mano.' }],
@@ -359,6 +359,10 @@ export const REGISTRY: Entry[] = [
   },
 ]
 
-export const GROUPS: Group[] = ['Acciones', 'Formulario', 'Contenido', 'Capas', 'Navegación', 'Estado', 'Datos', 'Marca', 'Primitivas']
+export const GROUPS: Group[] = ['Acciones', 'Formulario', 'Contenido', 'Diálogos y capas', 'Navegación', 'Estado', 'Datos', 'Marca', 'Primitivas']
 
 export const bySlug = new Map(REGISTRY.map((e) => [e.slug, e]))
+
+/** El id del ancla de un grupo: sin acentos ni espacios, que es lo que acepta una URL. */
+export const groupId = (group: Group) =>
+  group.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')

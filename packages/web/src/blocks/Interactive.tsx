@@ -139,7 +139,7 @@ function MultiBlock({ b, value, onChange, status, reveal }: Props) {
           <button key={i} type="button" disabled={status !== 'editing'}
             onClick={() => onChange(on ? pickedOnes.filter((x) => x !== i) : [...pickedOnes, i])}
             className={cn('ui-reveal flex items-center gap-3 rounded-md border px-4 py-4 text-left text-base transition-colors disabled:cursor-default', ['', 'ui-delay-1', 'ui-delay-2', 'ui-delay-3'][i] ?? '', optionFrame(on, (b.correctMulti ?? []).includes(i), status, Boolean(reveal)))}>
-            <span className={cn('grid size-6 shrink-0 place-items-center rounded border-2', on ? 'border-ink bg-solid text-on-solid' : 'border-line-strong')}>{on && <Icon icon={Check} size="sm" />}</span>
+            <span className={cn('grid size-6 shrink-0 place-items-center rounded-sm border-2', on ? 'border-ink bg-solid text-on-solid' : 'border-line-strong')}>{on && <Icon icon={Check} size="sm" />}</span>
             <span className="flex-1">{o}</span>
           </button>
         )

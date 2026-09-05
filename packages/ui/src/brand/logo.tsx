@@ -34,7 +34,7 @@ export function Squiggle({ children }: { children: ReactNode }) {
 export function PhotoFrame({ src, alt = '', rotate = 0, className, children }: ComponentPropsWithoutRef<'figure'> & { src?: string; alt?: string; rotate?: number }) {
   return (
     <figure className={cn('overflow-hidden rounded-lg border-2 border-ink bg-white p-2', className)} style={{ transform: `rotate(${rotate}deg)` }}>
-      {src ? <img src={src} alt={alt} className="block h-full w-full rounded-md object-cover" /> : <div className="grid h-full w-full place-items-center rounded-md bg-muted">{children}</div>}
+      {src ? <img src={src} alt={alt} className="block h-full w-full rounded-sm object-cover" /> : <div className="grid h-full w-full place-items-center rounded-sm bg-muted">{children}</div>}
     </figure>
   )
 }

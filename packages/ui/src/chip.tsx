@@ -36,7 +36,7 @@ export function Chip({ className, color, size, interactive, icon, onRemove, asCh
       {asChild ? <Slottable>{children}</Slottable> : <span className="truncate">{children}</span>}
       {onRemove && (
         <button type="button" onClick={(e) => { e.stopPropagation(); onRemove() }} aria-label="Quitar"
-          className="-mr-1 rounded p-0.5 opacity-60 transition-opacity hover:opacity-100"><Icon icon={X} size="xs" /></button>
+          className="-mr-1 rounded-xs p-0.5 opacity-60 transition-opacity hover:opacity-100"><Icon icon={X} size="xs" /></button>
       )}
     </Cmp>
   )

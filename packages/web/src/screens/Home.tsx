@@ -99,14 +99,14 @@ export function Home({ me }: { me: Me }) {
               {series.map((d) => (
                 <div key={d.day} className="flex flex-1 flex-col items-center gap-1" title={`${d.opened} abiertas · ${d.submitted} entregadas`}>
                   <div className="flex h-28 w-full items-end justify-center gap-1">
-                    <div className="w-2.5 rounded-t bg-line" style={{ height: `${(d.opened / maxSeries) * 100}%` }} />
-                    <div className="w-2.5 rounded-t bg-accent" style={{ height: `${(d.submitted / maxSeries) * 100}%` }} />
+                    <div className="w-2.5 rounded-t-sm bg-line" style={{ height: `${(d.opened / maxSeries) * 100}%` }} />
+                    <div className="w-2.5 rounded-t-sm bg-accent" style={{ height: `${(d.submitted / maxSeries) * 100}%` }} />
                   </div>
                   <span className="text-[10px] text-ink-subtle">{['D', 'L', 'M', 'X', 'J', 'V', 'S'][new Date(d.day + 'T12:00:00').getDay()]}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-3 flex gap-4 text-xs text-ink-muted"><span className="flex items-center gap-1"><span className="size-2 rounded bg-line" /> abiertas</span><span className="flex items-center gap-1"><span className="size-2 rounded bg-accent" /> entregadas</span></div>
+            <div className="mt-3 flex gap-4 text-xs text-ink-muted"><span className="flex items-center gap-1"><span className="size-2 rounded-sm bg-line" /> abiertas</span><span className="flex items-center gap-1"><span className="size-2 rounded-sm bg-accent" /> entregadas</span></div>
           </Card>
 
           <Card padding="lg">

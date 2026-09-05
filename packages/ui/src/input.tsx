@@ -41,7 +41,7 @@ export function Input({ className, size, invalid, startIcon, endIcon, loading, c
       />
       {loading && <Spinner size="sm" className="text-ink-subtle" />}
       {clearable && hasText && !loading && (
-        <button type="button" onClick={onClear} aria-label="Borrar" className="rounded p-0.5 text-ink-subtle hover:bg-hover hover:text-ink"><Icon icon={X} size="sm" /></button>
+        <button type="button" onClick={onClear} aria-label="Borrar" className="rounded-xs p-0.5 text-ink-subtle hover:bg-hover hover:text-ink"><Icon icon={X} size="sm" /></button>
       )}
       {endIcon && <span className="text-ink-subtle">{endIcon}</span>}
     </div>

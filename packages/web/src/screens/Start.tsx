@@ -370,7 +370,7 @@ function QuestionBlock({ step, pickedOne, onPick, withVoice }: {
               <span className="flex flex-1 items-center justify-center text-ink">{o.body}</span>
               <button type="button" role="radio" aria-checked={pickedOne === o.value} aria-label={`Elegir: ${o.title}`}
                 onClick={() => onPick(o.value)}
-                className={cn('rounded border-2 border-line px-3 py-2 text-xs font-bold uppercase tracking-[0.1em] text-ink-muted transition',
+                className={cn('rounded-md border-2 border-line px-3 py-2 text-xs font-bold uppercase tracking-[0.1em] text-ink-muted transition',
                   'hover:border-ink hover:bg-ink hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus',
                   pickedOne === o.value && 'border-ink bg-ink text-white')}>
                 Con esta
@@ -514,7 +514,7 @@ export function ProfileBars({ profile, compact = false }: { profile: Record<stri
         return (
           <div key={e.key} className="flex flex-col gap-1.5">
             {!compact && <span className="text-xs font-bold uppercase tracking-[0.12em] text-ink-subtle">{e.name}</span>}
-            <div className="flex h-7 w-full overflow-hidden rounded border border-line">
+            <div className="flex h-7 w-full overflow-hidden rounded-md border border-line">
               {e.poles.map((p: Pole) => {
                 const v = profile[p] ?? 0
                 return (

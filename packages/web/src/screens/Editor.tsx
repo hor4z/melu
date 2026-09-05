@@ -84,7 +84,7 @@ function EditorLoaded({ initial }: { initial: Activity }) {
               <Prop name="Lente"><Picker options={Object.fromEntries((lenses.data ?? []).map((l) => [l.key, l.name]))} value={a.composition.lens} onPick={(v) => setComp({ lens: v })} disabled={preview} /></Prop>
               <Prop name="Escenario"><Picker multi options={SETTINGS} values={a.composition.setting ?? []} onToggle={(v) => setComp({ setting: (a.composition.setting ?? []).includes(v) ? (a.composition.setting ?? []).filter((x) => x !== v) : [...(a.composition.setting ?? []), v] })} disabled={preview} /></Prop>
               <Prop name="Social"><Picker options={SOCIAL} value={a.composition.social} onPick={(v) => setComp({ social: v })} disabled={preview} /></Prop>
-              <Prop name="Disciplinas"><input value={(a.composition.disciplines ?? []).join(', ')} onChange={(e) => setComp({ disciplines: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })} readOnly={preview} placeholder="Matemática · medida, Física · fuerzas" className="w-full rounded px-1.5 py-0.5 hover:bg-hover focus:bg-hover focus:outline-none" /></Prop>
+              <Prop name="Disciplinas"><input value={(a.composition.disciplines ?? []).join(', ')} onChange={(e) => setComp({ disciplines: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })} readOnly={preview} placeholder="Matemática · medida, Física · fuerzas" className="w-full rounded-sm px-1.5 py-0.5 hover:bg-hover focus:bg-hover focus:outline-none" /></Prop>
             </div>
             {preview && <CompositionChips c={a.composition} />}
           </div>
@@ -94,7 +94,7 @@ function EditorLoaded({ initial }: { initial: Activity }) {
           <div className="flex flex-wrap items-center gap-1 border-b border-line px-4 pt-2" role="tablist" aria-label="Fases">
             {a.document.phases.map((ff, i) => (
               <button key={ff.key} type="button" role="tab" aria-selected={i === phase} onClick={() => setPhase(i)} className={`-mb-px flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm ${i === phase ? 'border-ink font-semibold' : 'border-transparent text-ink-muted hover:text-ink'}`}>
-                <span className={`grid size-5 place-items-center rounded text-[11px] font-bold ${i === phase ? 'bg-ink text-white' : 'bg-muted'}`}>{i + 1}</span>
+                <span className={`grid size-5 place-items-center rounded-sm text-[11px] font-bold ${i === phase ? 'bg-ink text-white' : 'bg-muted'}`}>{i + 1}</span>
                 {i === phase && !preview ? <input value={ff.name} onChange={(e) => renamePhase(i, e.target.value)} onClick={(e) => e.stopPropagation()} className="w-28 bg-transparent outline-none" aria-label="Nombre de la fase" /> : ff.name}
               </button>
             ))}
@@ -136,7 +136,7 @@ function EditorLoaded({ initial }: { initial: Activity }) {
           {a.rubric.map((c, i) => (
             <div key={c.id} className="flex flex-col gap-2 rounded-lg border border-line bg-canvas p-3">
               <textarea value={c.label} rows={2} onChange={(e) => setRubric(a.rubric.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} aria-label="Criterio" placeholder="Qué mirás" className="w-full resize-none bg-transparent text-sm font-medium outline-none placeholder:text-ink-subtle" />
-              <div className="flex gap-1">{c.levels.map((n, k) => <input key={k} value={n} aria-label={`Nivel ${k + 1}`} onChange={(e) => setRubric(a.rubric.map((x, j) => (j === i ? { ...x, levels: x.levels.map((nn, kk) => (kk === k ? e.target.value : nn)) } : x)))} className="min-w-0 flex-1 rounded border border-line bg-surface px-1.5 py-1 text-xs" />)}</div>
+              <div className="flex gap-1">{c.levels.map((n, k) => <input key={k} value={n} aria-label={`Nivel ${k + 1}`} onChange={(e) => setRubric(a.rubric.map((x, j) => (j === i ? { ...x, levels: x.levels.map((nn, kk) => (kk === k ? e.target.value : nn)) } : x)))} className="min-w-0 flex-1 rounded-sm border border-line bg-surface px-1.5 py-1 text-xs" />)}</div>
               <button type="button" onClick={() => setRubric(a.rubric.filter((_, j) => j !== i))} className="self-end text-xs text-ink-subtle hover:text-danger">quitar</button>
             </div>
           ))}
@@ -165,7 +165,7 @@ function Picker(p: PickerProps) {
   return (
     <Popover open={open} onOpenChange={setOpen} role="listbox">
       <PopoverTrigger>
-        <button type="button" disabled={p.disabled} className="flex flex-wrap items-center gap-1 rounded px-1.5 py-0.5 text-left outline-none hover:bg-hover focus-visible:ring-3 focus-visible:ring-focus/30 disabled:hover:bg-transparent">
+        <button type="button" disabled={p.disabled} className="flex flex-wrap items-center gap-1 rounded-sm px-1.5 py-0.5 text-left outline-none hover:bg-hover focus-visible:ring-3 focus-visible:ring-focus/30 disabled:hover:bg-transparent">
           {activeOnes.length === 0 && <span className="text-ink-subtle">Elegir…</span>}
           {activeOnes.map((k) => <Chip key={k} size="sm">{p.options[k] ?? k}</Chip>)}
         </button>
@@ -182,7 +182,7 @@ function Picker(p: PickerProps) {
 
 function DropZone({ idx, onDropAt }: { idx: number; onDropAt: (id: string, target: number) => void }) {
   const [over, setOver] = useState(false)
-  return <div onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)} onDrop={(e) => { e.preventDefault(); setOver(false); const id = e.dataTransfer.getData('text/bloque'); if (id) onDropAt(id, idx) }} className={`h-2 rounded transition-colors ${over ? 'bg-brand-text' : ''}`} />
+  return <div onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)} onDrop={(e) => { e.preventDefault(); setOver(false); const id = e.dataTransfer.getData('text/bloque'); if (id) onDropAt(id, idx) }} className={`h-2 rounded-full transition-colors ${over ? 'bg-brand-text' : ''}`} />
 }
 
 const CATEGORIES: [string, BlockType[]][] = [
@@ -231,12 +231,12 @@ function BlockEditor({ b, idx, focused, isFirst, isLast, onChange, onEnter, onRe
     <div className={`group relative -mx-2 flex gap-1 rounded-lg px-2 py-0.5 ${over ? 'shadow-[inset_0_2px_0_0_var(--accent-text)]' : ''}`} onFocus={onFocusIn}
       onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)} onDrop={(e) => { e.preventDefault(); setOver(false); const id = e.dataTransfer.getData('text/bloque'); if (id && id !== b.id) onDrop(idx) }}>
       <div className="flex w-16 shrink-0 items-start justify-end gap-0.5 pt-1.5 opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100">
-        <button type="button" onClick={() => setMenu(menu === null ? '' : null)} className="rounded p-1 text-ink-subtle hover:bg-hover" aria-label="Cambiar tipo" title={t.name}><Icon icon={Plus} size="sm" /></button>
-        <span draggable onDragStart={(e) => { e.dataTransfer.setData('text/bloque', b.id); e.dataTransfer.effectAllowed = 'move' }} className="cursor-grab rounded p-1 text-ink-subtle hover:bg-hover active:cursor-grabbing" aria-label="Arrastrar"><Icon icon={GripVertical} size="sm" /></span>
+        <button type="button" onClick={() => setMenu(menu === null ? '' : null)} className="rounded-sm p-1 text-ink-subtle hover:bg-hover" aria-label="Cambiar tipo" title={t.name}><Icon icon={Plus} size="sm" /></button>
+        <span draggable onDragStart={(e) => { e.dataTransfer.setData('text/bloque', b.id); e.dataTransfer.effectAllowed = 'move' }} className="cursor-grab rounded-sm p-1 text-ink-subtle hover:bg-hover active:cursor-grabbing" aria-label="Arrastrar"><Icon icon={GripVertical} size="sm" /></span>
       </div>
       <Popover open={menu !== null} onOpenChange={(o) => !o && setMenu(null)} placement="bottom-start" role="menu">
       <div className={`relative min-w-0 flex-1 ${frameCls}`}>
-        {t.semantic && <div className="mb-1 flex items-center justify-between"><Rotulo>{t.name}{b.type === 'evidence' && ` · ${EVIDENCE_MEDIA[b.media ?? 'photo']}`}</Rotulo><span className="flex opacity-0 group-hover:opacity-100"><button type="button" onClick={() => onMove(-1)} disabled={isFirst} className="rounded p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Subir"><Icon icon={ArrowUp} size="xs" /></button><button type="button" onClick={() => onMove(1)} disabled={isLast} className="rounded p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Bajar"><Icon icon={ArrowDown} size="xs" /></button><button type="button" onClick={onRemove} className="rounded p-0.5 text-ink-subtle hover:text-danger" aria-label="Borrar"><Icon icon={X} size="xs" /></button></span></div>}
+        {t.semantic && <div className="mb-1 flex items-center justify-between"><Rotulo>{t.name}{b.type === 'evidence' && ` · ${EVIDENCE_MEDIA[b.media ?? 'photo']}`}</Rotulo><span className="flex opacity-0 group-hover:opacity-100"><button type="button" onClick={() => onMove(-1)} disabled={isFirst} className="rounded-sm p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Subir"><Icon icon={ArrowUp} size="xs" /></button><button type="button" onClick={() => onMove(1)} disabled={isLast} className="rounded-sm p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Bajar"><Icon icon={ArrowDown} size="xs" /></button><button type="button" onClick={onRemove} className="rounded-sm p-0.5 text-ink-subtle hover:text-danger" aria-label="Borrar"><Icon icon={X} size="xs" /></button></span></div>}
         <PopoverAnchor>
           <textarea ref={ref} value={menu !== null ? '/' + menu : b.text} rows={1} onChange={(e) => onInput(e.target.value)} onKeyDown={onKey} onPaste={onPaste} aria-label={t.name} placeholder={b.type === 'list' ? 'Un ítem por línea' : b.type === 'paragraph' ? 'Escribí, o "/" para elegir un bloque' : t.hint}
             className={`w-full resize-none bg-transparent leading-relaxed outline-none placeholder:text-ink-subtle ${classes[b.type] ?? (t.semantic ? 'font-medium' : 'text-base')}`} />

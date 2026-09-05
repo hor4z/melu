@@ -40,5 +40,5 @@ export function Eyebrow({ className, ...props }: ComponentPropsWithoutRef<'p'>) 
 }
 
 export function Kbd({ className, ...props }: ComponentPropsWithoutRef<'kbd'>) {
-  return <kbd className={cn('rounded border border-line bg-muted px-1.5 py-0.5 font-mono text-[11px] text-ink-muted', className)} {...props} />
+  return <kbd className={cn('rounded-sm border border-line bg-muted px-1.5 py-0.5 font-mono text-[11px] text-ink-muted', className)} {...props} />
 }

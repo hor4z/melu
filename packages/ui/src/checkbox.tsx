@@ -27,7 +27,7 @@ export function Checkbox({ checked, defaultChecked = false, onCheckedChange, siz
       className={cn('group flex items-start gap-2.5 rounded-md text-left text-sm outline-none focus-visible:ring-3 focus-visible:ring-focus/30 disabled:cursor-not-allowed disabled:opacity-50', className)}
       {...props}
     >
-      <span className={cn('mt-px grid shrink-0 place-items-center rounded border-2 transition-colors', box, marked || medium ? 'border-solid bg-solid text-on-solid' : 'border-line-strong bg-surface group-hover:border-ink')}>
+      <span className={cn('mt-px grid shrink-0 place-items-center rounded-sm border-2 transition-colors', box, marked || medium ? 'border-solid bg-solid text-on-solid' : 'border-line-strong bg-surface group-hover:border-ink')}>
         {medium ? <Icon icon={Minus} size="sm" /> : marked ? <Icon icon={Check} size="sm" /> : null}
       </span>
       {(children || description) && (

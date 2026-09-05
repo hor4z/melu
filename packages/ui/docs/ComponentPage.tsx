@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, Check, ChevronDown, Copy } from 'lucide-react'
 import DOCS from 'virtual:melu-props'
 import type { PropDoc } from './props-plugin'
 import { bySlug, REGISTRY, type Entry } from './registry'
+import { COPY } from './copy'
 import { Block, PageHead, Ticks } from './pieces'
 import { Layout, type Section } from './Layout'
 
@@ -75,7 +76,7 @@ function PropsTable({ name }: { name: string }) {
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-baseline gap-2">
         <Text mono weight="semibold">{name}</Text>
-        {doc.description && <Text size="sm" variant="muted"><Ticks>{doc.description}</Ticks></Text>}
+        {COPY[name] && <Text size="sm" variant="muted"><Ticks>{COPY[name]}</Ticks></Text>}
       </div>
 
       {doc.props.length === 0
@@ -96,7 +97,7 @@ function PropsTable({ name }: { name: string }) {
                     <td className="px-4 py-2.5">
                       <span className="font-mono text-xs font-medium">{p.name}</span>
                       {p.required && <span className="ml-1 text-xs text-danger" title="Obligatoria">*</span>}
-                      {p.description && <Text size="xs" variant="muted" className="mt-1 max-w-md"><Ticks>{p.description}</Ticks></Text>}
+                      {COPY[`${name}.${p.name}`] && <Text size="xs" variant="muted" className="mt-1 max-w-md"><Ticks>{COPY[`${name}.${p.name}`]}</Ticks></Text>}
                     </td>
                     <td className="px-4 py-2.5"><span className="font-mono text-xs text-accent">{p.type}</span></td>
                     <td className="px-4 py-2.5"><span className="font-mono text-xs text-ink-subtle">{p.default ?? '—'}</span></td>

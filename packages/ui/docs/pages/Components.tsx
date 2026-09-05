@@ -3,7 +3,9 @@
 import { NavLink } from 'react-router'
 import { Alert, Card, Heading, Text } from '@melu/ui'
 import DOCS from 'virtual:melu-props'
-import { GROUPS, REGISTRY } from '../registry'
+import type { PropDoc } from '../props-plugin'
+import { groupId, GROUPS, REGISTRY } from '../registry'
+import { COPY } from '../copy'
 import { PREVIEWS } from '../previews'
 import { PageHead, Ticks } from '../pieces'
 
@@ -12,6 +14,15 @@ import { PageHead, Ticks } from '../pieces'
 // test: la página no puede quedarse atrás sin decirlo.
 const COVERED = new Set(REGISTRY.flatMap((e) => e.exports))
 const MISSING = Object.keys(DOCS).filter((name) => !COVERED.has(name) && DOCS[name]?.source.startsWith('src/'))
+
+// El código está en inglés y el sitio en español, así que la prosa sale de `docs/copy.ts`. Lo
+// que el JSDoc explica y la tabla todavía no traduce no se muestra: se avisa acá.
+const UNTRANSLATED = Object.values(DOCS)
+  .filter((d) => d.source.startsWith('src/'))
+  .flatMap((d) => [
+    ...(d.description && !COPY[d.name] ? [d.name] : []),
+    ...d.props.filter((p: PropDoc) => p.description && !COPY[`${d.name}.${p.name}`]).map((p: PropDoc) => `${d.name}.${p.name}`),
+  ])
 
 export function Components() {
   return (
@@ -23,8 +34,13 @@ export function Components() {
       </PageHead>
 
       {MISSING.length > 0 && (
-        <Alert variant="warning" title={`${MISSING.length} exportados que no están documentados`} className="mb-10">
+        <Alert variant="warning" title={`${MISSING.length} exportados que no están documentados`} className="mb-4">
           <span className="font-mono text-xs">{MISSING.join(', ')}</span>
+        </Alert>
+      )}
+      {UNTRANSLATED.length > 0 && (
+        <Alert variant="warning" title={`${UNTRANSLATED.length} textos del código sin traducir en docs/copy.ts`} className="mb-4">
+          <span className="font-mono text-xs">{UNTRANSLATED.join(', ')}</span>
         </Alert>
       )}
 
@@ -33,7 +49,7 @@ export function Components() {
           const items = REGISTRY.filter((e) => e.group === group)
           if (!items.length) return null
           return (
-            <section key={group} id={group.toLowerCase()} className="scroll-mt-24 border-t border-line pt-8">
+            <section key={group} id={groupId(group)} className="scroll-mt-24 border-t border-line pt-8">
               <Heading level={2} size="xl">{group}</Heading>
               <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {items.map((entry) => {
@@ -61,4 +77,4 @@ export function Components() {
   )
 }
 
-Components.sections = GROUPS.map((g) => [g.toLowerCase(), g] as [string, string])
+Components.sections = GROUPS.map((g) => [groupId(g), g] as [string, string])
