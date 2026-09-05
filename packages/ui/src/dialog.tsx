@@ -84,7 +84,7 @@ const WIDTHS = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl
 
 export function DialogContent({ className, children, size = 'md', initialFocus, ...props }: ComponentPropsWithoutRef<'div'> & {
   size?: keyof typeof WIDTHS
-  /** Qué se enfoca al abrir. Por defecto el primer elemento; una confirmación enfoca Cancelar. */
+  /** What gets focus on open. The first element by default; a confirmation focuses Cancel. */
   initialFocus?: RefObject<HTMLElement | null>
 }) {
   const d = useDialogCtx()

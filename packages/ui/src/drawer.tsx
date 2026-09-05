@@ -11,7 +11,7 @@ import {
   DialogTrigger, useDialogCtx, type DialogProps,
 } from './dialog'
 
-/** Un panel pegado a un borde. Las partes son las de Dialog, con otro nombre para que se lea. */
+/** A panel stuck to an edge. Its parts are Dialog's, renamed so the call site reads right. */
 export function Drawer(props: DialogProps) {
   return <Dialog {...props} />
 }

@@ -10,20 +10,20 @@ import { Button } from './button'
 import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from './dialog'
 
 export interface AlertDialogProps {
-  /** Lo que abre la confirmación. Sin esto se controla de afuera con `open`. */
+  /** What opens the confirmation. Without it, control it from outside with `open`. */
   trigger?: ReactNode
   open?: boolean
   defaultOpen?: boolean
   onOpenChange?: (v: boolean) => void
   title: ReactNode
   description?: ReactNode
-  /** Contenido extra entre la explicación y los botones. Casi nunca hace falta. */
+  /** Extra content between the explanation and the buttons. Rarely needed. */
   children?: ReactNode
   confirmLabel?: string
   cancelLabel?: string
-  /** `danger` pinta el botón de confirmar en rojo: se borra, se expulsa, se pierde algo. */
+  /** `danger` paints the confirm button red: something is deleted, removed or lost. */
   tone?: 'default' | 'danger'
-  /** Deja el botón hilando mientras la acción viaja, y bloquea el cierre. */
+  /** Spins the button while the action travels, and blocks closing. */
   loading?: boolean
   onConfirm?: () => void
   onCancel?: () => void
