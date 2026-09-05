@@ -7,10 +7,10 @@ import { useState } from 'react'
 import { Card, Heading, Text } from '@melu/ui'
 import { Block, Code, PageHead } from '../pieces'
 
-const leer = (nombre: string) => getComputedStyle(document.documentElement).getPropertyValue(nombre).trim()
+const readToken = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 
 /** Los primitivos: los valores crudos. Un componente no los usa nunca. */
-const PRIMITIVOS = [
+const PRIMITIVES = [
   ['--color-white', '--color-ink', '--color-ink-2', '--color-ink-3', '--color-ink-4'],
   ['--color-mist-50', '--color-mist-100', '--color-mist-200', '--color-mist-300'],
   ['--color-teal-50', '--color-teal-100', '--color-teal-500', '--color-teal-600'],
@@ -20,7 +20,7 @@ const PRIMITIVOS = [
 ]
 
 /** Los semánticos: los roles. Los componentes se estilan solo contra esta capa. */
-const SEMANTICOS: [string, string, string[]][] = [
+const SEMANTIC: [string, string, string[]][] = [
   ['Superficies', 'Dónde se apoya el contenido.',
    ['--bg', '--surface', '--surface-muted', '--surface-hover', '--surface-active', '--overlay', '--bg-inverted']],
   ['Bordes', 'La línea que separa sin gritar.',
@@ -36,7 +36,7 @@ const SEMANTICOS: [string, string, string[]][] = [
 ]
 
 /** Los estados de interacción, que es donde un sistema se nota o se cae. */
-const INTERACCION: [string, string, string][] = [
+const INTERACTION: [string, string, string][] = [
   ['Reposo', '--surface', 'Lo normal.'],
   ['Hover', '--surface-hover', 'Una capa de tinta al 4 %, no un color nuevo.'],
   ['Activo', '--surface-active', 'La misma capa, al 8 %.'],
@@ -44,30 +44,30 @@ const INTERACCION: [string, string, string][] = [
   ['Deshabilitado', '--surface-disabled', 'Se ve, no se toca, y el cursor lo dice.'],
 ]
 
-function Muestra({ nombre }: { nombre: string }) {
+function Swatch({ name }: { name: string }) {
   // Se lee una vez al montar: el theme ya está aplicado cuando React monta, y los tokens no
   // cambian en caliente. Un efecto acá solo agregaría un render de más.
-  const [valor] = useState(() => leer(nombre))
+  const [value] = useState(() => readToken(name))
   return (
     <div className="flex items-center gap-3">
-      <span className="size-9 shrink-0 rounded-lg border border-line" style={{ background: `var(${nombre})` }} />
+      <span className="size-9 shrink-0 rounded-lg border border-line" style={{ background: `var(${name})` }} />
       <span className="min-w-0">
-        <Text size="sm" className="block truncate font-mono">{nombre}</Text>
-        <Text size="xs" variant="subtle" className="block truncate font-mono">{valor || '—'}</Text>
+        <Text size="sm" className="block truncate font-mono">{name}</Text>
+        <Text size="xs" variant="subtle" className="block truncate font-mono">{value || '—'}</Text>
       </span>
     </div>
   )
 }
 
-function Escala({ nombres, unidad }: { nombres: string[]; unidad?: string }) {
-  const [vals] = useState(() => Object.fromEntries(nombres.map((n) => [n, leer(n)])))
+function Scale({ names, unit }: { names: string[]; unit?: string }) {
+  const [values] = useState(() => Object.fromEntries(names.map((n) => [n, readToken(n)])))
   return (
     <div className="flex flex-col gap-2">
-      {nombres.map((n) => (
+      {names.map((n) => (
         <div key={n} className="flex items-center gap-4">
           <Text size="xs" className="w-40 shrink-0 font-mono text-ink-muted">{n}</Text>
           <span className="h-4 rounded bg-brand-text" style={{ width: `var(${n})` }} />
-          <Text size="xs" variant="subtle" className="font-mono">{vals[n]}{unidad}</Text>
+          <Text size="xs" variant="subtle" className="font-mono">{values[n]}{unit}</Text>
         </div>
       ))}
     </div>
@@ -108,9 +108,9 @@ export function Theme() {
 
         <Block id="primitivos" title="Primitivos" note="Los valores crudos. Están acá para poder mirarlos, no para usarlos.">
           <div className="flex flex-col gap-6">
-            {PRIMITIVOS.map((fila, i) => (
+            {PRIMITIVES.map((fila, i) => (
               <div key={i} className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                {fila.map((n) => <Muestra key={n} nombre={n} />)}
+                {fila.map((n) => <Swatch key={n} name={n} />)}
               </div>
             ))}
           </div>
@@ -118,12 +118,12 @@ export function Theme() {
 
         <Block id="semanticos" title="Semánticos" note="Los roles. Esto es lo que usa un componente.">
           <div className="flex flex-col gap-8">
-            {SEMANTICOS.map(([titulo, nota, nombres]) => (
-              <div key={titulo}>
-                <Heading level={3} size="md">{titulo}</Heading>
-                <Text size="sm" variant="muted" className="mt-0.5">{nota}</Text>
+            {SEMANTIC.map(([title, note, names]) => (
+              <div key={title}>
+                <Heading level={3} size="md">{title}</Heading>
+                <Text size="sm" variant="muted" className="mt-0.5">{note}</Text>
                 <div className="mt-3 grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                  {nombres.map((n) => <Muestra key={n} nombre={n} />)}
+                  {names.map((n) => <Swatch key={n} name={n} />)}
                 </div>
               </div>
             ))}
@@ -132,12 +132,12 @@ export function Theme() {
 
         <Block id="interaccion" title="Estados de interacción" note="Un sistema se nota en los estados, no en el reposo.">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-            {INTERACCION.map(([nombre, token, nota]) => (
-              <Card key={nombre} padding="md" className="gap-2">
+            {INTERACTION.map(([name, token, note]) => (
+              <Card key={name} padding="md" className="gap-2">
                 <span className="h-10 rounded-lg border border-line" style={{ background: `var(${token})` }} />
-                <Text size="sm" weight="semibold">{nombre}</Text>
+                <Text size="sm" weight="semibold">{name}</Text>
                 <Text size="xs" className="font-mono text-ink-subtle">{token}</Text>
-                <Text size="xs" variant="muted">{nota}</Text>
+                <Text size="xs" variant="muted">{note}</Text>
               </Card>
             ))}
           </div>
@@ -148,17 +148,17 @@ export function Theme() {
             {[['--text-display', 'Aprender deja huella'], ['--text-2xl', 'Un título de pantalla'],
               ['--text-xl', 'Un título de sección'], ['--text-lg', 'Una bajada'],
               ['--text-base', 'El cuerpo del texto, que es lo que más se lee'],
-              ['--text-sm', 'Un texto secundario'], ['--text-xs', 'Un pie, una etiqueta']].map(([token, muestra]) => (
+              ['--text-sm', 'Un texto secundario'], ['--text-xs', 'Un pie, una etiqueta']].map(([token, sample]) => (
               <div key={token} className="flex items-baseline gap-5 border-b border-line pb-3">
                 <Text size="xs" className="w-32 shrink-0 font-mono text-ink-subtle">{token}</Text>
-                <span style={{ fontSize: `var(${token})`, fontFamily: token.includes('display') || token.includes('2xl') || token === '--text-xl' ? 'var(--font-display)' : undefined }}>{muestra}</span>
+                <span style={{ fontSize: `var(${token})`, fontFamily: token.includes('display') || token.includes('2xl') || token === '--text-xl' ? 'var(--font-display)' : undefined }}>{sample}</span>
               </div>
             ))}
           </div>
         </Block>
 
         <Block id="espaciado" title="Espaciado" note="Una escala, no números sueltos.">
-          <Escala nombres={['--space-1', '--space-2', '--space-3', '--space-4', '--space-5', '--space-6', '--space-8', '--space-10', '--space-12', '--space-16']} />
+          <Scale names={['--space-1', '--space-2', '--space-3', '--space-4', '--space-5', '--space-6', '--space-8', '--space-10', '--space-12', '--space-16']} />
         </Block>
 
         <Block id="radios" title="Radios" note="De la esquina apenas rota a la píldora.">
@@ -192,7 +192,7 @@ export function Theme() {
   )
 }
 
-const CLASES = [
+const MOTION_CLASSES = [
   ['ui-reveal', 'Aparecer', 'Lo que entra a la pantalla.'],
   ['ui-rise', 'Subir', 'Lo que llega desde abajo, más marcado.'],
   ['ui-correct', 'Bien', 'Late y destella en verde. Solo cuando algo salió bien de verdad.'],
@@ -213,13 +213,13 @@ function Motion() {
         Repetir
       </button>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {CLASES.map(([clase, nombre, nota]) => (
-          <Card key={clase} padding="md" className="gap-2">
-            <span key={nonce} className={`grid h-14 place-items-center rounded-lg bg-teal font-display text-sm font-semibold ${clase}`}>
-              {nombre}
+        {MOTION_CLASSES.map(([className, name, note]) => (
+          <Card key={className} padding="md" className="gap-2">
+            <span key={nonce} className={`grid h-14 place-items-center rounded-lg bg-teal font-display text-sm font-semibold ${className}`}>
+              {name}
             </span>
-            <Text size="xs" className="font-mono text-ink-subtle">.{clase}</Text>
-            <Text size="xs" variant="muted">{nota}</Text>
+            <Text size="xs" className="font-mono text-ink-subtle">.{className}</Text>
+            <Text size="xs" variant="muted">{note}</Text>
           </Card>
         ))}
       </div>

@@ -1,6 +1,6 @@
 import { Avatar, Button, Card, Chip, EmptyState, Field, Icon, IconButton, Input, SegmentedControl, SegmentedControlItem, Text } from '@melu/ui'
 import { Trash2, Users } from 'lucide-react'
-import { Block, Code, PageHead, Rule, SiNo } from '../pieces'
+import { Block, Code, PageHead, Rule, DoDont } from '../pieces'
 
 export function Guidelines() {
   return (
@@ -19,9 +19,9 @@ export function Guidelines() {
               Todo color sale de un token semántico. Si el que necesitás no existe, se agrega a la
               capa semántica: no se escribe el valor.
             </Rule>
-            <SiNo
-              si={<Code>{`<div className="bg-surface text-ink-muted" />`}</Code>}
-              no={<Code>{`<div style={{ background: '#fff', color: '#667' }} />`}</Code>}
+            <DoDont
+              good={<Code>{`<div className="bg-surface text-ink-muted" />`}</Code>}
+              bad={<Code>{`<div style={{ background: '#fff', color: '#667' }} />`}</Code>}
             />
           </div>
         </Block>
@@ -29,17 +29,17 @@ export function Guidelines() {
         <Block id="composicion" title="Composición"
           note="Los componentes se prestan, no se copian.">
           <div className="flex flex-col gap-4">
-            <Rule title="`asChild` para prestarle el estilo a otro elemento"
+            <Rule title={<><code className="font-mono text-sm">asChild</code> para prestarle el estilo a otro elemento</>}
               why="Un botón que en realidad es un link tiene que ser un <a> de verdad: se abre en pestaña nueva, se copia la dirección, y el lector de pantalla lo anuncia como lo que es.">
               Cuando la pieza correcta semánticamente no es la que trae el componente, se usa{' '}
               <code className="font-mono text-xs">asChild</code> y el estilo se presta.
             </Rule>
-            <SiNo
-              si={<Code>{`<Button asChild>\n  <Link to="/today">Ir a hoy</Link>\n</Button>`}</Code>}
-              no={<Code>{`<Button onClick={() => nav('/today')}>\n  Ir a hoy\n</Button>`}</Code>}
+            <DoDont
+              good={<Code>{`<Button asChild>\n  <Link to="/today">Ir a hoy</Link>\n</Button>`}</Code>}
+              bad={<Code>{`<Button onClick={() => nav('/today')}>\n  Ir a hoy\n</Button>`}</Code>}
             />
-            <Rule title="`cn()` para mezclar clases, nunca concatenar"
-              why="cn resuelve los conflictos de Tailwind: la última gana. Concatenando, `p-2 p-4` deja las dos y decide el orden del CSS, que no es el que escribiste.">
+            <Rule title={<><code className="font-mono text-sm">cn()</code> para mezclar clases, nunca concatenar</>}
+              why={<>cn resuelve los conflictos de Tailwind: la última gana. Concatenando, <code className="font-mono text-xs">p-2 p-4</code> deja las dos y decide el orden del CSS, que no es el que escribiste.</>}>
               Toda clase condicional pasa por <code className="font-mono text-xs">cn()</code>.
             </Rule>
           </div>
@@ -58,13 +58,13 @@ export function Guidelines() {
         <Block id="accesibilidad" title="Accesibilidad"
           note="No es una capa que se agrega al final: son props obligatorias.">
           <div className="flex flex-col gap-4">
-            <Rule title="Un botón sin texto lleva `aria-label`, y es obligatorio"
+            <Rule title={<>Un botón sin texto lleva <code className="font-mono text-sm">aria-label</code>, y es obligatorio</>}
               why="Es el nombre accesible del botón. Sin él, un lector de pantalla anuncia «botón» y nada más.">
               <code className="font-mono text-xs">IconButton</code> lo pide en el tipo: no compila sin él.
             </Rule>
-            <SiNo
-              si={<div className="flex items-center gap-3"><IconButton icon={<Icon icon={Trash2} />} label="Borrar la actividad" /><Text size="sm" variant="muted">se anuncia bien</Text></div>}
-              no={<div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-md border border-line"><Icon icon={Trash2} /></span><Text size="sm" variant="muted">«botón», y nada más</Text></div>}
+            <DoDont
+              good={<div className="flex items-center gap-3"><IconButton icon={<Icon icon={Trash2} />} label="Borrar la actividad" /><Text size="sm" variant="muted">se anuncia bien</Text></div>}
+              bad={<div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-md border border-line"><Icon icon={Trash2} /></span><Text size="sm" variant="muted">«botón», y nada más</Text></div>}
             />
             <Rule title="Un icono decorativo no se anuncia"
               why="Si al lado hay texto que dice lo mismo, el lector lo repite dos veces.">

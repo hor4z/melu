@@ -25,7 +25,7 @@ export function Block({ id, title, note, children }: { id: string; title: string
 }
 
 /** Una regla, con su porqué. El porqué es la mitad que se olvida y la que evita discutirla dos veces. */
-export function Rule({ title, children, why }: { title: string; children: ReactNode; why?: ReactNode }) {
+export function Rule({ title, children, why }: { title: ReactNode; children: ReactNode; why?: ReactNode }) {
   return (
     <Card padding="md" className="gap-1.5">
       <Text weight="semibold">{title}</Text>
@@ -36,10 +36,10 @@ export function Rule({ title, children, why }: { title: string; children: ReactN
 }
 
 /** Un par «así sí / así no». Vale más que cualquier párrafo. */
-export function SiNo({ si, no, children }: { si: ReactNode; no: ReactNode; children?: ReactNode }) {
+export function DoDont({ good, bad, children }: { good: ReactNode; bad: ReactNode; children?: ReactNode }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      {[['Así sí', si, 'success'], ['Así no', no, 'danger']].map(([label, node, tone]) => (
+      {[['Así sí', good, 'success'], ['Así no', bad, 'danger']].map(([label, node, tone]) => (
         <div key={label as string} className="flex flex-col gap-2">
           <Text size="xs" weight="semibold" className={cn('uppercase tracking-wide', tone === 'success' ? 'text-success' : 'text-danger')}>{label as string}</Text>
           <Card padding="md" className={cn('min-h-24 justify-center border-2', tone === 'success' ? 'border-success/40' : 'border-danger/40')}>{node as ReactNode}</Card>

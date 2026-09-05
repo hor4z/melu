@@ -28,7 +28,7 @@ export function Goals() {
               apareció. Ninguna está porque quedaba linda.
             </Rule>
             <Rule title="Que cambiar el tema no obligue a tocar componentes"
-              why="Los componentes se estilan contra roles, no contra valores. Cambiar `--accent` cambia la app entera sin abrir un solo .tsx.">
+              why={<>Los componentes se estilan contra roles, no contra valores. Cambiar <code className="font-mono text-xs">--accent</code> cambia la app entera sin abrir un solo .tsx.</>}>
               Los tokens son la única fuente de verdad visual. Un hex escrito a mano en un
               componente es un bug.
             </Rule>

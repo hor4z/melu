@@ -5,7 +5,7 @@ import { Block, Code, PageHead, Rule } from '../pieces'
 
 // Los que la app usa de verdad. La librería trae más de mil: mostrarlos todos sería un
 // catálogo de lucide, no la documentación de melu.
-const EN_USO = [
+const IN_USE = [
   'AlertTriangle', 'ArrowDown', 'ArrowRight', 'ArrowUp', 'Bell', 'BookOpen', 'Camera', 'Check',
   'CheckCircle', 'ChevronDown', 'ChevronLeft', 'ChevronsUpDown', 'CircleAlert', 'CircleCheck',
   'Clock', 'Compass', 'Copy', 'Download', 'Eye', 'EyeOff', 'Home', 'Inbox', 'Info', 'Layers',
@@ -14,11 +14,11 @@ const EN_USO = [
   'Trash2', 'TrendingDown', 'TrendingUp', 'Users', 'Volume2', 'X', 'Zap',
 ] as const
 
-const TAMANOS = ['xs', 'sm', 'md', 'lg'] as const
+const SIZES = ['xs', 'sm', 'md', 'lg'] as const
 
 export function Icons() {
   const [q, setQ] = useState('')
-  const visibles = EN_USO.filter((n) => n.toLowerCase().includes(q.toLowerCase()))
+  const shown = IN_USE.filter((n) => n.toLowerCase().includes(q.toLowerCase()))
 
   return (
     <>
@@ -41,7 +41,7 @@ export function Icons() {
 
         <Block id="tamanos" title="Tamaños" note="Cuatro. Van con la escala tipográfica, no con píxeles sueltos.">
           <div className="flex flex-wrap items-end gap-8">
-            {TAMANOS.map((s) => (
+            {SIZES.map((s) => (
               <div key={s} className="flex flex-col items-center gap-2">
                 <Icon icon={lucide.Sparkles} size={s} />
                 <Text size="xs" className="font-mono text-ink-subtle">{s}</Text>
@@ -72,11 +72,11 @@ export function Icons() {
         </Block>
 
         <Block id="set" title="Los que se usan"
-          note={`${EN_USO.length} de los más de mil de lucide. Cualquier otro se puede importar igual; estos son los que ya aparecen en melu.`}>
+          note={`${IN_USE.length} de los más de mil de lucide. Cualquier otro se puede importar igual; estos son los que ya aparecen en melu.`}>
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar un icono…"
             startIcon={<Icon icon={lucide.Search} size="sm" />} clearable onClear={() => setQ('')} className="mb-5 max-w-sm" />
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
-            {visibles.map((n) => {
+            {shown.map((n) => {
               const Cmp = lucide[n as keyof typeof lucide] as lucide.LucideIcon
               if (typeof Cmp !== 'function' && typeof Cmp !== 'object') return null
               return (
@@ -87,16 +87,16 @@ export function Icons() {
               )
             })}
           </div>
-          {visibles.length === 0 && <Text variant="muted" className="mt-4">Ninguno con ese nombre. Igual podés importarlo de lucide.</Text>}
+          {shown.length === 0 && <Text variant="muted" className="mt-4">Ninguno con ese nombre. Igual podés importarlo de lucide.</Text>}
         </Block>
 
         <Block id="doodles" title="Doodles"
           note="No son iconos: son ilustraciones de la marca. Van grandes, de a uno, y para dar aire — no para señalizar.">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-            {Object.entries(DOODLES).map(([nombre, D]) => (
-              <Card key={nombre} padding="md" className="items-center gap-2">
+            {Object.entries(DOODLES).map(([name, D]) => (
+              <Card key={name} padding="md" className="items-center gap-2">
                 <D size={56} className="text-ink" />
-                <Text size="xs" variant="subtle" className="font-mono">{nombre}</Text>
+                <Text size="xs" variant="subtle" className="font-mono">{name}</Text>
               </Card>
             ))}
           </div>

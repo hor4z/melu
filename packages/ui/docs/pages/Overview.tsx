@@ -3,13 +3,13 @@ import { Button, Card, DoodleBridge, DoodleBulb, DoodleSprout, Heading, Icon, Sq
 import { ArrowRight } from 'lucide-react'
 import { Code } from '../pieces'
 
-const PUERTAS = [
-  { to: '/goals', doodle: DoodleSprout, titulo: 'Objetivos',
-    bajada: 'Qué busca este sistema y, sobre todo, qué no. Empezá acá si venís a decidir algo.' },
-  { to: '/guidelines', doodle: DoodleBridge, titulo: 'Lineamientos',
-    bajada: 'Las reglas de uso, con el porqué de cada una. Lo que evita discutir dos veces lo mismo.' },
-  { to: '/theme', doodle: DoodleBulb, titulo: 'Theme',
-    bajada: 'Color, tipografía, espaciado y movimiento. Leído en vivo, así que no puede mentir.' },
+const DOORS = [
+  { to: '/goals', doodle: DoodleSprout, title: 'Objetivos',
+    subtitle: 'Qué busca este sistema y, sobre todo, qué no. Empezá acá si venís a decidir algo.' },
+  { to: '/guidelines', doodle: DoodleBridge, title: 'Lineamientos',
+    subtitle: 'Las reglas de uso, con el porqué de cada una. Lo que evita discutir dos veces lo mismo.' },
+  { to: '/theme', doodle: DoodleBulb, title: 'Theme',
+    subtitle: 'Color, tipografía, espaciado y movimiento. Leído en vivo, así que no puede mentir.' },
 ]
 
 export function Overview() {
@@ -31,12 +31,12 @@ export function Overview() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        {PUERTAS.map(({ to, doodle: D, titulo, bajada }) => (
+        {DOORS.map(({ to, doodle: D, title, subtitle }) => (
           <Card key={to} asChild interactive padding="lg" className="gap-3">
             <NavLink to={to}>
               <D size={56} className="text-ink" />
-              <Text weight="semibold" size="lg">{titulo}</Text>
-              <Text size="sm" variant="muted">{bajada}</Text>
+              <Text weight="semibold" size="lg">{title}</Text>
+              <Text size="sm" variant="muted">{subtitle}</Text>
             </NavLink>
           </Card>
         ))}
