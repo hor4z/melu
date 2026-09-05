@@ -99,7 +99,10 @@ export function Layout({ sections = [], children }: { sections?: Section[]; chil
 
         <main className="min-w-0">{children}</main>
 
-        <OnThisPage sections={sections} />
+        {/* La `key` remonta el índice al cambiar de página: `active` arranca de cero. Sin esto
+            React reconcilia —es el mismo componente en la misma posición— y queda resaltado
+            el id de la página anterior hasta que el observer alcance a corregirlo. */}
+        <OnThisPage key={pathname} sections={sections} />
       </div>
     </div>
   )

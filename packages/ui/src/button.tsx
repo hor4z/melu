@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn, Slot } from './lib'
+import { cn, Slot, Slottable } from './lib'
 import { Spinner } from './spinner'
 
 export const buttonVariants = cva(
@@ -46,7 +46,7 @@ export function Button({ className, variant, size, block, asChild, loading = fal
       {...props}
     >
       {loading ? <Spinner size={spinnerSize} /> : startIcon}
-      {children}
+      <Slottable>{children}</Slottable>
       {endIcon}
     </Cmp>
   )

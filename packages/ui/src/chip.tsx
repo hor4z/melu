@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn, Slot } from './lib'
+import { cn, Slot, Slottable } from './lib'
 import { Icon } from './icon'
 
 const chipVariants = cva('inline-flex max-w-full items-center gap-1.5 whitespace-nowrap rounded-md font-medium', {
@@ -31,7 +31,9 @@ export function Chip({ className, color, size, interactive, icon, onRemove, asCh
   return (
     <Cmp className={cn(chipVariants({ color, size, interactive: interactive ?? (props.onClick ? true : undefined) }), className)} {...props}>
       {icon}
-      <span className="truncate">{children}</span>
+      {/* Con `asChild` el hijo pasa a ser el chip, así que no lo envolvemos: el envoltorio
+          se comería el elemento que la persona quiso rendir. */}
+      {asChild ? <Slottable>{children}</Slottable> : <span className="truncate">{children}</span>}
       {onRemove && (
         <button type="button" onClick={(e) => { e.stopPropagation(); onRemove() }} aria-label="Quitar"
           className="-mr-1 rounded p-0.5 opacity-60 transition-opacity hover:opacity-100"><Icon icon={X} size="xs" /></button>

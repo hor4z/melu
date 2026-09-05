@@ -3,8 +3,10 @@
 El front: React 19 + Tailwind (solo layout) + React Router, servido por Vite.
 Los componentes y los tokens vienen de `@melu/ui`.
 
+Las dependencias se instalan una sola vez desde la raíz del repo (`npm install`): es un
+workspace, y adentro de un package `@melu/ui` no resuelve porque no está en ningún registry.
+
 ```sh
-npm install
 npm run dev      # :5173, proxea /api a http://localhost:8787
 npm run build    # escribe en packages/api/internal/web/dist
 npm run lint     # oxlint

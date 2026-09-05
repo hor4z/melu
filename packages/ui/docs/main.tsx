@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Route, Routes } from 'react-router'
-import { FloatingTree } from '@floating-ui/react'
+import { FloatingTree } from '@melu/ui'
 import '../src/theme.css'
 import { Layout } from './Layout'
 import { Overview } from './pages/Overview'

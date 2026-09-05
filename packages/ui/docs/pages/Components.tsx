@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import {
-  Bell, Bold, Camera, Check, Copy, Download, Eye, Italic, Mail, Pencil, Plus, Search, Send, Share2, Sparkles, Trash2, Underline, Users,
+  Bell, Bold, Camera, Check, Copy, Download, Eye, Italic, LogOut, Mail, Pencil, Plus, Search, Send, Share2, Sparkles, Trash2, Underline, Users,
 } from 'lucide-react'
 import {
   Alert, Avatar, AvatarGroup, Badge, Button, ButtonGroup, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
@@ -67,6 +67,7 @@ export function Components() {
               <Button variant="secondary" endIcon={<Icon icon={Send} size="sm" />}>Enviar</Button>
               <Button loading>Guardando</Button><Button disabled>Deshabilitado</Button>
               <Button asChild variant="link"><a href="#buttons">Soy un enlace</a></Button>
+              <Button asChild startIcon={<Icon icon={Plus} />}><a href="#buttons">Enlace con ícono</a></Button>
             </Row>
             <Row title="Grupo y botones de ícono">
               <ButtonGroup>
@@ -265,7 +266,7 @@ export function Components() {
                   <DropdownMenuItem icon={<Icon icon={Users} size="sm" />}>Mi perfil</DropdownMenuItem>
                   <DropdownMenuItem icon={<Icon icon={Copy} size="sm" />} shortcut="⌘E">Cambiar de espacio</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem icon={<Icon icon={Trash2} size="sm" />} destructive>Salir</DropdownMenuItem>
+                  <DropdownMenuItem icon={<Icon icon={LogOut} size="sm" />}>Salir</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               <Popover>

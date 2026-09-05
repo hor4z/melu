@@ -72,7 +72,7 @@ export function UserMenu({ name, email, subtitle, onProfile, onChangeSpace, onSi
         {onProfile && <DropdownMenuItem icon={<Icon icon={User} size="sm" />} onClick={onProfile}>Mi perfil</DropdownMenuItem>}
         {onChangeSpace && <DropdownMenuItem icon={<Icon icon={RefreshCw} size="sm" />} onClick={onChangeSpace}>Cambiar de espacio</DropdownMenuItem>}
         {(onProfile || onChangeSpace) && <DropdownMenuSeparator />}
-        <DropdownMenuItem icon={<Icon icon={LogOut} size="sm" />} destructive onClick={onSignOut}>Salir</DropdownMenuItem>
+        <DropdownMenuItem icon={<Icon icon={LogOut} size="sm" />} onClick={onSignOut}>Salir</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

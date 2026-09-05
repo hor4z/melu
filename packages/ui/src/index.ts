@@ -4,7 +4,10 @@
 //
 // One entry point on purpose: `@melu/ui` for everything, `@melu/ui/theme.css` for the styles.
 // The brand lives in its own folder even though this barrel is flat.
-export { cn, Slot, composeRefs, useControllableState, type SlotProps } from './lib'
+export { cn, Slot, Slottable, composeRefs, useControllableState, type SlotProps } from './lib'
+// El árbol que relaciona los flotantes anidados. Sale de acá y no de floating-ui: la app no
+// declara esa dependencia, la declara el sistema, que es quien la usa.
+export { FloatingTree } from '@floating-ui/react'
 export { Icon, type IconProps } from './icon'
 export { Spinner } from './spinner'
 export { Button, ButtonGroup, buttonVariants, type ButtonProps } from './button'

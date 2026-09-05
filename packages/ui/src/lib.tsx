@@ -24,12 +24,31 @@ const isHandler = (key: string) => /^on[A-Z]/.test(key)
  */
 export type SlotProps = { children?: ReactNode; className?: string; style?: CSSProperties; ref?: Ref<HTMLElement> } & Record<string, unknown>
 
+/**
+ * Marks which child is the one that `Slot` has to become. Un componente que dibuja adornos
+ * alrededor del contenido —Button con sus iconos, Chip con su span— envuelve acá lo que le
+ * pasaron: sin la marca, el slot no tiene forma de saber cuál de los hijos es el verdadero.
+ */
+export function Slottable({ children }: { children?: ReactNode }) {
+  return children
+}
+
 export function Slot({ children, ref, ...slotProps }: SlotProps) {
   // Un componente como Button siempre rinde tres hijos —icono, contenido, icono— aunque los
   // iconos sean undefined. Sin esto, `children` es un arreglo, no un elemento, y el slot
   // devolvía null: `<Button asChild>` no dibujaba nada y no avisaba.
   const nodes = Children.toArray(children)
-  const i = nodes.findIndex(isValidElement)
+
+  // Si hay marca, el objetivo es lo que la marca envuelve; el resto son los adornos y quedan
+  // alrededor. Sin marca —los triggers, que solo rinden `children`— vale el primer elemento.
+  const marked = nodes.findIndex((n) => isValidElement(n) && n.type === Slottable)
+  if (marked !== -1) {
+    const inner = (nodes[marked] as ReactElement<{ children?: ReactNode }>).props.children
+    if (!isValidElement(inner)) return null
+    nodes[marked] = inner
+  }
+
+  const i = marked !== -1 ? marked : nodes.findIndex(isValidElement)
   if (i === -1) return null
   const child = nodes[i] as ReactElement<Record<string, unknown>>
   const childProps = child.props
