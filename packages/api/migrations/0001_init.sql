@@ -1,7 +1,7 @@
 create extension if not exists pgcrypto;
 
 -- Table names are plural because `group` is a reserved word in SQL.
--- The product vocabulary (espacio, grupo, guía, aprendiz, lente) lives in CLAUDE.md;
+-- The product vocabulary (espacio, grupo, guía, aprendiz, lente) lives in AGENTS.md;
 -- here and everywhere else in the code we use its English representation.
 
 -- structure

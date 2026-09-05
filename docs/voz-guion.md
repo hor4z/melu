@@ -48,7 +48,7 @@ tiene que quedar claro cuál es la buena.
 arma la ruta solo (`/voice/samples/${key}.m4a`) y no hay una tabla de traducción entre el
 código y los audios, que es la clase de cosa que se desactualiza y nadie se entera.
 
-Las claves del código están en inglés (ver CLAUDE.md); los audios siguen esas claves.
+Las claves del código están en inglés (ver AGENTS.md); los audios siguen esas claves.
 Sin acentos ni eñes ni espacios: son URLs.
 
 ```
