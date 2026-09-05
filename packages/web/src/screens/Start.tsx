@@ -143,9 +143,9 @@ function script(band: Band, alreadyIn: boolean): StepView[] {
           <Character idleOnly={alreadyIn} className="h-[44vh] max-h-[26rem] min-h-60 shrink-0"
             alt="La guía de melu: entra, saluda, se pone el casco y se pone a medir" />
           <div className="flex max-w-md flex-col gap-3 text-center sm:text-left">
-            <Logomark size={40} className="kit-reveal mx-auto text-ink sm:mx-0" />
-            <Heading size="2xl" className="kit-reveal kit-retraso-2">Hola. Esto es melu.</Heading>
-            <Text size="xl" variant="muted" className="kit-reveal kit-retraso-3 text-balance">
+            <Logomark size={40} className="ui-reveal mx-auto text-ink sm:mx-0" />
+            <Heading size="2xl" className="ui-reveal ui-delay-2">Hola. Esto es melu.</Heading>
+            <Text size="xl" variant="muted" className="ui-reveal ui-delay-3 text-balance">
               Un lugar donde se aprende haciendo: tocás, probás, te equivocás y seguís. Nada de mirar una pantalla sin hacer nada.
             </Text>
           </div>
@@ -173,7 +173,7 @@ function script(band: Band, alreadyIn: boolean): StepView[] {
               { d: <DoodleBulb size={84} />, t: 'Vos la hacés a tu ritmo', p: small ? 'De a una cosa por vez. Te avisa si va bien.' : 'Un paso por pantalla. Te dice al toque si va bien.' },
               { d: <DoodleSprout size={84} />, t: 'melu se acomoda a vos', p: small ? 'Mira qué te sale mejor y te trae más de eso.' : 'Mira con qué te va mejor y te propone más de eso.' },
             ].map((x, i) => (
-              <div key={x.t} className={cn('kit-reveal flex flex-col items-center gap-3 rounded-xl border border-line p-5 text-center', `kit-retraso-${i + 1}`)}>
+              <div key={x.t} className={cn('ui-reveal flex flex-col items-center gap-3 rounded-xl border border-line p-5 text-center', `ui-delay-${i + 1}`)}>
                 <span className="flex h-20 items-center text-ink">{x.d}</span>
                 <div className="font-semibold leading-tight">{x.t}</div>
                 <Text size="sm" variant="muted">{x.p}</Text>
@@ -304,7 +304,7 @@ export function Start() {
           `m-auto` centra cuando hay lugar y no recorta cuando el contenido es más alto que la
           ventana, que es lo que pasa con `items-center` en una columna que desborda. */}
       <main className="flex flex-1 px-4 py-8 sm:px-8">
-        <div key={step.key} className={cn('m-auto flex w-full max-w-4xl flex-col items-center gap-9', !back && 'kit-reveal')}>
+        <div key={step.key} className={cn('m-auto flex w-full max-w-4xl flex-col items-center gap-9', !back && 'ui-reveal')}>
           {step.type === 'tell' && step.render}
           {step.type === 'pick' && <QuestionBlock step={step} pickedOne={reply[step.key]} onPick={pick} withVoice={small || step.key === 'band'} />}
           {step.type === 'building' && <Building />}
@@ -357,10 +357,10 @@ function QuestionBlock({ step, pickedOne, onPick, withVoice }: {
       <div role="radiogroup" className={cn('grid w-full gap-3', COLUMNS[Math.min(step.options.length, 4)])}>
         {step.options.map((o, k) => {
           const puesto = cn(
-            'kit-reveal flex flex-col gap-3 rounded-xl border-2 border-line bg-surface p-4 text-left transition',
+            'ui-reveal flex flex-col gap-3 rounded-xl border-2 border-line bg-surface p-4 text-left transition',
             pickedOne === o.value && 'border-ink bg-teal',
             step.boxHeight && 'min-h-[16rem]',
-            `kit-retraso-${Math.min(3, k + 1)}`,
+            `ui-delay-${Math.min(3, k + 1)}`,
           )
           // When the card carries something to play with, tapping it cannot mean "I pick this one":
           // the tap belongs to the content. The choice goes separately, below, and it shows.
@@ -414,7 +414,7 @@ function WowScreen({ sample }: { sample: SampleKey }) {
       <Card className="w-full max-w-md">
         <div className="flex h-52 flex-col items-center justify-center gap-3 p-6">
           <span className="text-xs font-bold uppercase tracking-[0.12em] text-ink-subtle">{modes[n].label}</span>
-          <div key={n} className="kit-reveal flex w-full items-center justify-center text-ink">{modes[n].nodo}</div>
+          <div key={n} className="ui-reveal flex w-full items-center justify-center text-ink">{modes[n].nodo}</div>
         </div>
       </Card>
       <div className="flex gap-1.5">
@@ -463,7 +463,7 @@ function Building() {
   }, [])
   return (
     <div className="flex w-full max-w-md flex-col items-center gap-8">
-      <Logomark size={56} className="kit-nudge text-ink" />
+      <Logomark size={56} className="ui-nudge text-ink" />
       <Heading size="lg">Armando tu forma de aprender…</Heading>
       <div className="flex w-full flex-col gap-3">
         {AXES.map((e, k) => (

@@ -86,7 +86,7 @@ export function DropdownMenuContent({ className, children, minWidth = 200, ...pr
     <Portal>
       <FloatingFocusManager context={m.context} modal={false} initialFocus={-1} returnFocus disabled={!m.positioned}>
         <div ref={m.refs.setFloating} style={{ ...m.floatingStyles, minWidth, visibility: m.positioned ? undefined : 'hidden' }} data-state="open"
-          className={cn('kit-pop z-50 overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-lg outline-none', className)}
+          className={cn('ui-pop z-50 overflow-y-auto rounded-xl border border-line bg-surface p-1.5 shadow-lg outline-none', className)}
           {...m.getFloatingProps(props as Record<string, unknown>)}>
           <FloatingList elementsRef={m.elementsRef} labelsRef={m.labelsRef}>{children}</FloatingList>
         </div>

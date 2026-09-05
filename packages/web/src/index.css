@@ -60,14 +60,14 @@ body { background: var(--bg); color: var(--text); font-family: var(--font-sans);
 h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
 .card-shadow { box-shadow: var(--shadow-card); }
 
-@keyframes kit-in { from { opacity: 0; transform: translateY(-2px) scale(.98) } to { opacity: 1; transform: none } }
-@keyframes kit-out { from { opacity: 1; transform: none } to { opacity: 0; transform: translateY(-2px) scale(.98) } }
-@keyframes kit-fade-in { from { opacity: 0 } to { opacity: 1 } }
-@keyframes kit-fade-out { from { opacity: 1 } to { opacity: 0 } }
-[data-state="open"].kit-pop { animation: kit-in 140ms cubic-bezier(.24,1,.4,1) }
-[data-state="closed"].kit-pop { animation: kit-out 110ms ease-in forwards }
-[data-state="open"].kit-fade { animation: kit-fade-in 140ms ease-out }
-[data-state="closed"].kit-fade { animation: kit-fade-out 110ms ease-in forwards }
+@keyframes ui-in { from { opacity: 0; transform: translateY(-2px) scale(.98) } to { opacity: 1; transform: none } }
+@keyframes ui-out { from { opacity: 1; transform: none } to { opacity: 0; transform: translateY(-2px) scale(.98) } }
+@keyframes ui-fade-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes ui-fade-out { from { opacity: 1 } to { opacity: 0 } }
+[data-state="open"].ui-pop { animation: ui-in 140ms cubic-bezier(.24,1,.4,1) }
+[data-state="closed"].ui-pop { animation: ui-out 110ms ease-in forwards }
+[data-state="open"].ui-fade { animation: ui-fade-in 140ms ease-out }
+[data-state="closed"].ui-fade { animation: ui-fade-out 110ms ease-in forwards }
 
 /* --------------------------------------------------------------------------
    Movimiento. El repertorio está tomado de los propios keyframes de Brilliant
@@ -75,26 +75,26 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; text-wra
    floatyNudge, borderGlow, endstate-*): sirven para que la corrección se
    sienta, no para decorar.
    -------------------------------------------------------------------------- */
-@keyframes kit-reveal { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
-@keyframes kit-pulse { 0% { transform: scale(1) } 40% { transform: scale(1.035) } 100% { transform: scale(1) } }
-@keyframes kit-flash { 0% { box-shadow: 0 0 0 0 var(--success) } 30% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 30%, transparent) } 100% { box-shadow: 0 0 0 0 transparent } }
-@keyframes kit-shake { 0%, 100% { transform: translateX(0) } 15% { transform: translateX(-7px) } 30% { transform: translateX(6px) } 45% { transform: translateX(-4px) } 60% { transform: translateX(3px) } 75% { transform: translateX(-2px) } }
-@keyframes kit-nudge { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
-@keyframes kit-glow { 0%, 100% { box-shadow: 0 0 0 0 transparent } 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-ink) 18%, transparent) } }
-@keyframes kit-rise { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: none } }
-@keyframes kit-flip-in { from { transform: rotateY(90deg) } to { transform: rotateY(0) } }
+@keyframes ui-reveal { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+@keyframes ui-pulse { 0% { transform: scale(1) } 40% { transform: scale(1.035) } 100% { transform: scale(1) } }
+@keyframes ui-flash { 0% { box-shadow: 0 0 0 0 var(--success) } 30% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 30%, transparent) } 100% { box-shadow: 0 0 0 0 transparent } }
+@keyframes ui-shake { 0%, 100% { transform: translateX(0) } 15% { transform: translateX(-7px) } 30% { transform: translateX(6px) } 45% { transform: translateX(-4px) } 60% { transform: translateX(3px) } 75% { transform: translateX(-2px) } }
+@keyframes ui-nudge { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
+@keyframes ui-glow { 0%, 100% { box-shadow: 0 0 0 0 transparent } 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-ink) 18%, transparent) } }
+@keyframes ui-rise { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: none } }
+@keyframes ui-flip-in { from { transform: rotateY(90deg) } to { transform: rotateY(0) } }
 
-.kit-reveal { animation: kit-reveal 240ms cubic-bezier(.24,1,.4,1) both }
-.kit-correcto { animation: kit-pulse 380ms cubic-bezier(.24,1,.4,1), kit-flash 700ms ease-out }
-.kit-error { animation: kit-shake 420ms cubic-bezier(.36,.07,.19,.97) }
-.kit-nudge { animation: kit-nudge 1.6s ease-in-out infinite }
-.kit-glow { animation: kit-glow 1.4s ease-in-out infinite }
-.kit-rise { animation: kit-rise 420ms cubic-bezier(.24,1,.4,1) both }
-.kit-flip { animation: kit-flip-in 220ms ease-out; backface-visibility: hidden }
-.kit-retraso-1 { animation-delay: 80ms } .kit-retraso-2 { animation-delay: 160ms } .kit-retraso-3 { animation-delay: 240ms }
+.ui-reveal { animation: ui-reveal 240ms cubic-bezier(.24,1,.4,1) both }
+.ui-correct { animation: ui-pulse 380ms cubic-bezier(.24,1,.4,1), ui-flash 700ms ease-out }
+.ui-error { animation: ui-shake 420ms cubic-bezier(.36,.07,.19,.97) }
+.ui-nudge { animation: ui-nudge 1.6s ease-in-out infinite }
+.ui-glow { animation: ui-glow 1.4s ease-in-out infinite }
+.ui-rise { animation: ui-rise 420ms cubic-bezier(.24,1,.4,1) both }
+.ui-flip { animation: ui-flip-in 220ms ease-out; backface-visibility: hidden }
+.ui-delay-1 { animation-delay: 80ms } .ui-delay-2 { animation-delay: 160ms } .ui-delay-3 { animation-delay: 240ms }
 
 @media (prefers-reduced-motion: reduce) {
-  .kit-pop, .kit-fade, .kit-reveal, .kit-correcto, .kit-error, .kit-nudge, .kit-glow, .kit-rise, .kit-flip { animation: none !important }
+  .ui-pop, .ui-fade, .ui-reveal, .ui-correct, .ui-error, .ui-nudge, .ui-glow, .ui-rise, .ui-flip { animation: none !important }
 }
 .squiggle { background: linear-gradient(transparent 62%, var(--color-yellow-400) 62%, var(--color-yellow-400) 88%, transparent 88%); }
 

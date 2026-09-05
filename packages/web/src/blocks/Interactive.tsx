@@ -86,7 +86,7 @@ type Props = {
 }
 
 const optionFrame = (picked: boolean, correct: boolean, status: StepState, reveal: boolean) => {
-  if (reveal && correct) return 'border-success bg-success-subtle kit-correcto'
+  if (reveal && correct) return 'border-success bg-success-subtle ui-correct'
   if (status !== 'editing' && picked && !correct) return 'border-danger bg-danger-subtle'
   if (picked) return 'border-ink bg-accent-subtle'
   return 'border-line bg-surface hover:border-ink'
@@ -118,7 +118,7 @@ function ChoiceBlock({ b, value, onChange, status, reveal }: Props) {
     <div className={cn('grid gap-3', ops.length > 3 ? 'sm:grid-cols-2' : 'grid-cols-1')}>
       {ops.map((o, i) => (
         <button key={i} type="button" disabled={status !== 'editing'} onClick={() => onChange(i)}
-          className={cn('kit-reveal flex items-center gap-3 rounded-md border px-4 py-4 text-left text-base transition-colors disabled:cursor-default', ['', 'kit-retraso-1', 'kit-retraso-2', 'kit-retraso-3'][i] ?? '', optionFrame(value === i, b.correct === i, status, Boolean(reveal)))}>
+          className={cn('ui-reveal flex items-center gap-3 rounded-md border px-4 py-4 text-left text-base transition-colors disabled:cursor-default', ['', 'ui-delay-1', 'ui-delay-2', 'ui-delay-3'][i] ?? '', optionFrame(value === i, b.correct === i, status, Boolean(reveal)))}>
           <span className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-current text-xs font-bold opacity-40">{String.fromCharCode(65 + i)}</span>
           <span className="flex-1">{o}</span>
           {reveal && b.correct === i && <Icon icon={Check} className="text-success" />}
@@ -138,7 +138,7 @@ function MultiBlock({ b, value, onChange, status, reveal }: Props) {
         return (
           <button key={i} type="button" disabled={status !== 'editing'}
             onClick={() => onChange(on ? pickedOnes.filter((x) => x !== i) : [...pickedOnes, i])}
-            className={cn('kit-reveal flex items-center gap-3 rounded-md border px-4 py-4 text-left text-base transition-colors disabled:cursor-default', ['', 'kit-retraso-1', 'kit-retraso-2', 'kit-retraso-3'][i] ?? '', optionFrame(on, (b.correctMulti ?? []).includes(i), status, Boolean(reveal)))}>
+            className={cn('ui-reveal flex items-center gap-3 rounded-md border px-4 py-4 text-left text-base transition-colors disabled:cursor-default', ['', 'ui-delay-1', 'ui-delay-2', 'ui-delay-3'][i] ?? '', optionFrame(on, (b.correctMulti ?? []).includes(i), status, Boolean(reveal)))}>
             <span className={cn('grid size-6 shrink-0 place-items-center rounded border-2', on ? 'border-ink bg-solid text-on-solid' : 'border-line-strong')}>{on && <Icon icon={Check} size="sm" />}</span>
             <span className="flex-1">{o}</span>
           </button>

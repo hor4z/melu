@@ -84,10 +84,10 @@ export function DialogContent({ className, children, size = 'md', ...props }: Co
   return (
     <FloatingNode id={d.nodeId}>
     <Portal>
-      <FloatingOverlay lockScroll data-state="open" className="kit-fade z-50 grid place-items-center bg-[var(--overlay)] p-4">
+      <FloatingOverlay lockScroll data-state="open" className="ui-fade z-50 grid place-items-center bg-[var(--overlay)] p-4">
         <FloatingFocusManager context={d.context} returnFocus={false} initialFocus={0}>
           <div ref={d.refs.setFloating} aria-labelledby={d.titleId} aria-describedby={d.descId} data-state="open"
-            className={cn('kit-pop flex max-h-[85dvh] w-full flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg outline-none', WIDTHS[size], className)}
+            className={cn('ui-pop flex max-h-[85dvh] w-full flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg outline-none', WIDTHS[size], className)}
             {...d.getFloatingProps(props as Record<string, unknown>)}>
             {children}
           </div>

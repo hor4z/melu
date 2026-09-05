@@ -136,7 +136,7 @@ export function SelectContent({ className, children, searchable, searchPlacehold
     <Portal>
       <FloatingFocusManager context={s.context} modal={false} initialFocus={searchable ? 0 : -1} returnFocus disabled={!s.positioned}>
         <div ref={s.refs.setFloating} style={{ ...s.floatingStyles, visibility: s.positioned ? undefined : 'hidden' }} data-state="open"
-          className={cn('kit-pop z-50 flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg outline-none', className)}
+          className={cn('ui-pop z-50 flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg outline-none', className)}
           {...s.getFloatingProps(props as Record<string, unknown>)}>
           {searchable && (
             <div className="flex items-center gap-2 border-b border-line px-3 py-2">

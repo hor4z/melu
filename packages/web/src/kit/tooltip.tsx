@@ -47,7 +47,7 @@ export function TooltipContent({ className, children, ...props }: ComponentProps
     <FloatingNode id={t.nodeId}>
     <Portal>
       <div ref={t.refs.setFloating} style={t.floatingStyles} data-state="open"
-        className={cn('kit-fade z-50 max-w-xs rounded-md bg-ink px-2.5 py-1.5 text-xs font-medium text-white shadow-md', className)}
+        className={cn('ui-fade z-50 max-w-xs rounded-md bg-ink px-2.5 py-1.5 text-xs font-medium text-white shadow-md', className)}
         {...t.getFloatingProps(props as Record<string, unknown>)}>
         {children}
       </div>
