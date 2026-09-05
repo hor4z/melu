@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, EmptyState } from '@/kit'
+import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, EmptyState } from '@melu/ui'
 
 /** Thin wrapper over the kit's Dialog, for the app's controlled modals. */
 export function Modal({ isOpen, onClose, title, description, children, footer, boxWidth = 480 }: {

@@ -12,6 +12,9 @@ nombres de archivo, assets y comentarios.
 Los catálogos son el puente: **clave técnica en inglés, etiqueta en español**. Están en
 `packages/web/src/lib/composition.ts` y `profile.ts`.
 
+Una consecuencia práctica del monorepo: `npm install` se corre **desde la raíz**, nunca adentro
+de un package. Adentro no sube al workspace y recrea un lockfile local.
+
 ## El glosario
 
 El vocabulario del producto es deliberado —«aprendiz» y «guía» se eligieron para no decir
@@ -30,12 +33,22 @@ eje/polo→`axis`/`pole` · franja→`band` (`small`/`medium`/`large`)
 
 ```
 packages/api    Go hexagonal: domain no importa nada, app usa port, adapter implementa port
-packages/web    React 19 + Astryx + Tailwind. Reglas de estilo en packages/web/.claude/CLAUDE.md
+packages/ui     el design system: componentes, tokens y el sitio que los documenta
+packages/web    React 19 + Tailwind + React Router. Consume @melu/ui
 ```
 
 El front escribe su build en `packages/api/internal/web/dist` y el binario lo embebe: un solo
 artefacto. La matemática del perfil vive en Go para que el número sea el mismo lo mire el
 aprendiz o el guía.
+
+**El design system es propio**, no una librería de terceros. Vive en `packages/ui` y se
+documenta solo: `make ui` levanta el sitio en :5174 con los objetivos, los lineamientos, el
+theme, los iconos y una página por componente. Esas páginas no se escriben a mano: los
+ejemplos salen de `docs/examples/` —el mismo archivo que se rinde es el que se muestra— y las
+props las lee el compilador de las fuentes. Al agregar un componente al barril, el índice
+avisa que falta documentarlo. Los estilos entran a la app con una línea
+(`@import "@melu/ui/theme.css"`) y los componentes desde el barril (`import { Button } from '@melu/ui'`).
+Un hex escrito a mano es un bug: todo color sale de un token semántico.
 
 ## Migraciones
 
@@ -54,7 +67,9 @@ nueva y estas dos no se tocan más.
 ## Correrlo
 
 ```sh
+npm install              # una vez, desde la raíz: es un workspace
 cp .env.example .env     # trae MELU_DEV_LOGIN=1: entrás con cualquier email
 make db                  # postgres en :5434
 make dev                 # api en :8787 + front en :5173
+make ui                  # el sitio del design system, en :5174
 ```

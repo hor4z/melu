@@ -7,7 +7,7 @@
 // is explained, and in how many words.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Play, Square, Volume2 } from 'lucide-react'
-import { cn, Icon, Text } from '@/kit'
+import { cn, Icon, Text } from '@melu/ui'
 
 export type Band = 'small' | 'medium' | 'large'
 export type SampleKey = 'half' | 'count' | 'third' | 'timesFour' | 'percent' | 'unknown'
@@ -310,7 +310,7 @@ function DoParts({ parts, goal, achievement }: { parts: number; goal: number; ac
         {painted.map((on, i) => (
           <button key={i} type="button"
             onClick={(e) => { e.stopPropagation(); setPainted((p) => p.map((v, k) => (k === i ? !v : v))) }}
-            className={cn('h-11 flex-1 rounded border-2 border-ink transition-colors', on ? 'bg-[var(--color-teal-500)]' : 'bg-surface hover:bg-hover')}
+            className={cn('h-11 flex-1 rounded-md border-2 border-ink transition-colors', on ? 'bg-[var(--color-teal-500)]' : 'bg-surface hover:bg-hover')}
             aria-label={`Parte ${i + 1}`} aria-pressed={on} />
         ))}
       </div>
@@ -350,14 +350,14 @@ function DoUnknown({ sum, equals }: { sum: number; equals: number }) {
   return (
     <div className="flex w-full flex-col items-center gap-3">
       <div className="flex items-center gap-2 font-display text-xl font-semibold tabular-nums">
-        <span className={cn('grid h-10 min-w-12 place-items-center rounded border-2 border-ink px-2', ready && 'bg-[var(--color-teal-500)] text-white')}>{x}</span>
+        <span className={cn('grid h-10 min-w-12 place-items-center rounded-md border-2 border-ink px-2', ready && 'bg-[var(--color-teal-500)] text-white')}>{x}</span>
         <span>+ {sum} =</span>
         <span className={ready ? 'text-accent' : 'text-ink-muted'}>{x + sum}</span>
       </div>
       <div className="flex gap-2">
         {([-1, 1] as const).map((d) => (
           <button key={d} type="button" onClick={(e) => { e.stopPropagation(); setX((v) => Math.max(0, v + d)) }}
-            className="grid size-9 place-items-center rounded border-2 border-ink text-lg font-bold leading-none transition hover:bg-ink hover:text-white"
+            className="grid size-9 place-items-center rounded-md border-2 border-ink text-lg font-bold leading-none transition hover:bg-ink hover:text-white"
             aria-label={d > 0 ? 'Subir x' : 'Bajar x'}>{d > 0 ? '+' : '−'}</button>
         ))}
       </div>

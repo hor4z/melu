@@ -1,0 +1,5 @@
+{
+  "name": "melu",
+  "private": true,
+  "workspaces": ["packages/*"]
+}

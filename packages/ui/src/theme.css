@@ -1,0 +1,123 @@
+/* El tema de melu: los tokens primero, después Tailwind leyéndolos.
+   El @source es obligatorio: Tailwind v4 arranca el escaneo automático en el root de Vite,
+   no en el directorio de este archivo, así que sin esto las clases que solo usan los
+   componentes de este package no se generan — y falla en silencio, sin estilos. */
+@import "./tokens/index.css";
+@import "tailwindcss";
+@source "./**/*.{ts,tsx}";
+
+@theme inline {
+  --color-*: initial;
+  --color-canvas: var(--bg);
+  --color-surface: var(--surface);
+  --color-muted: var(--surface-muted);
+  --color-hover: var(--surface-hover);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--text);
+  --color-ink-muted: var(--text-muted);
+  --color-ink-subtle: var(--text-subtle);
+  --color-solid: var(--solid);
+  --color-solid-hover: var(--solid-hover);
+  --color-on-solid: var(--solid-foreground);
+  --color-accent: var(--accent-text);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-focus: var(--focus);
+  --color-brand: var(--accent);
+  --color-brand-hover: var(--accent-hover);
+  --color-brand-subtle: var(--accent-subtle);
+  --color-brand-text: var(--accent-text);
+  --color-on-brand: var(--accent-foreground);
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-lilac: var(--tint-lilac);
+  --color-yellow: var(--tint-yellow);
+  --color-orange: var(--tint-orange);
+  --color-blue: var(--tint-blue);
+  --color-cyan: var(--tint-cyan);
+  --color-green: var(--tint-green);
+  --color-pink: var(--tint-pink);
+  --color-teal: var(--tint-teal);
+  --color-cream: var(--tint-yellow);
+  --color-white: #ffffff;
+  --color-teal-500: var(--color-teal-500);
+  --color-orange-500: var(--color-orange-500);
+  --color-purple-500: var(--color-purple-500);
+  --color-cyan-500: var(--color-cyan-500);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-display: var(--font-display);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+}
+
+* { box-sizing: border-box; }
+html, body, #root { min-height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font-sans); font-size: var(--text-base); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+::selection { background: var(--accent-subtle); }
+h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; text-wrap: balance; }
+.card-shadow { box-shadow: var(--shadow-card); }
+
+@keyframes ui-in { from { opacity: 0; transform: translateY(-2px) scale(.98) } to { opacity: 1; transform: none } }
+@keyframes ui-out { from { opacity: 1; transform: none } to { opacity: 0; transform: translateY(-2px) scale(.98) } }
+@keyframes ui-fade-in { from { opacity: 0 } to { opacity: 1 } }
+@keyframes ui-fade-out { from { opacity: 1 } to { opacity: 0 } }
+[data-state="open"].ui-pop { animation: ui-in 140ms cubic-bezier(.24,1,.4,1) }
+[data-state="closed"].ui-pop { animation: ui-out 110ms ease-in forwards }
+[data-state="open"].ui-fade { animation: ui-fade-in 140ms ease-out }
+[data-state="closed"].ui-fade { animation: ui-fade-out 110ms ease-in forwards }
+
+/* --------------------------------------------------------------------------
+   Movimiento. El repertorio está tomado de los propios keyframes de Brilliant
+   (evalPulse, evalFlashHighlight, shakeX, flyToTarget, reveal, fillProgress,
+   floatyNudge, borderGlow, endstate-*): sirven para que la corrección se
+   sienta, no para decorar.
+   -------------------------------------------------------------------------- */
+@keyframes ui-reveal { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+@keyframes ui-pulse { 0% { transform: scale(1) } 40% { transform: scale(1.035) } 100% { transform: scale(1) } }
+@keyframes ui-flash { 0% { box-shadow: 0 0 0 0 var(--success) } 30% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 30%, transparent) } 100% { box-shadow: 0 0 0 0 transparent } }
+@keyframes ui-shake { 0%, 100% { transform: translateX(0) } 15% { transform: translateX(-7px) } 30% { transform: translateX(6px) } 45% { transform: translateX(-4px) } 60% { transform: translateX(3px) } 75% { transform: translateX(-2px) } }
+@keyframes ui-nudge { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
+@keyframes ui-glow { 0%, 100% { box-shadow: 0 0 0 0 transparent } 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-ink) 18%, transparent) } }
+@keyframes ui-rise { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: none } }
+@keyframes ui-flip-in { from { transform: rotateY(90deg) } to { transform: rotateY(0) } }
+
+.ui-reveal { animation: ui-reveal 240ms cubic-bezier(.24,1,.4,1) both }
+.ui-correct { animation: ui-pulse 380ms cubic-bezier(.24,1,.4,1), ui-flash 700ms ease-out }
+.ui-error { animation: ui-shake 420ms cubic-bezier(.36,.07,.19,.97) }
+.ui-nudge { animation: ui-nudge 1.6s ease-in-out infinite }
+.ui-glow { animation: ui-glow 1.4s ease-in-out infinite }
+.ui-rise { animation: ui-rise 420ms cubic-bezier(.24,1,.4,1) both }
+.ui-flip { animation: ui-flip-in 220ms ease-out; backface-visibility: hidden }
+.ui-delay-1 { animation-delay: 80ms } .ui-delay-2 { animation-delay: 160ms } .ui-delay-3 { animation-delay: 240ms }
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-pop, .ui-fade, .ui-reveal, .ui-correct, .ui-error, .ui-nudge, .ui-glow, .ui-rise, .ui-flip { animation: none !important }
+}
+
+/* --------------------------------------------------------------------------
+   El cursor. En Tailwind v4 el preflight deja los <button> con el cursor por
+   defecto del navegador, que es la flecha: nada se siente clickeable al pasar
+   por encima. Se resuelve una vez acá, sobre los roles, en vez de acordarse
+   de ponerlo en cada componente nuevo.
+   -------------------------------------------------------------------------- */
+@layer base {
+  button,
+  summary,
+  select,
+  [role="button"], [role="radio"], [role="checkbox"], [role="switch"], [role="tab"],
+  [role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"], [role="option"],
+  label:has(> input[type="checkbox"]), label:has(> input[type="radio"]) {
+    cursor: pointer;
+  }
+  /* Después, para que gane sobre lo de arriba con la misma especificidad. */
+  :disabled, [aria-disabled="true"], [data-disabled] {
+    cursor: not-allowed;
+  }
+}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Check, RotateCcw, Timer, Trophy, X } from 'lucide-react'
-import { Button, Chip, Icon, Logomark, Progress, Text, cn } from '@/kit'
+import { Button, Chip, Icon, Logomark, Progress, Text, cn } from '@melu/ui'
 import type { Block, AnswerValue } from '../lib/api'
 import type { StepState } from './Interactive'
 
@@ -75,15 +75,15 @@ function SortGame({ b, value, onChange, status, reveal }: Props) {
             onDrop={(e) => { e.preventDefault(); const i = Number(e.dataTransfer.getData('text/item')); if (!Number.isNaN(i)) release(i, ci) }}
             onClick={() => taken !== null && release(taken, ci)}
             className={cn('flex min-h-28 flex-col gap-2 rounded-xl border border-line bg-surface p-3 transition-colors',
-              taken !== null && !locked && 'kit-glow cursor-pointer border-ink')}>
+              taken !== null && !locked && 'ui-glow cursor-pointer border-ink')}>
             <span className="flex items-center gap-2 text-sm font-bold">
               <span className={cn('size-2.5 rounded-full', MARKS[ci % MARKS.length])} aria-hidden="true" />{c.name}
             </span>
             <div className="flex flex-wrap gap-1.5">
               {items.map((it, i) => assigned[i] === ci && (
                 <button key={i} type="button" disabled={locked} onClick={(e) => { e.stopPropagation(); release(i, -1) }}
-                  className={cn('kit-reveal rounded-md border bg-muted px-2 py-1 text-xs font-medium',
-                    status === 'editing' ? 'border-line' : it.category === ci ? 'border-success bg-success-subtle kit-correcto' : 'border-danger bg-danger-subtle')}>
+                  className={cn('ui-reveal rounded-md border bg-muted px-2 py-1 text-xs font-medium',
+                    status === 'editing' ? 'border-line' : it.category === ci ? 'border-success bg-success-subtle ui-correct' : 'border-danger bg-danger-subtle')}>
                   {it.text}
                   {reveal && it.category !== ci && <span className="ml-1 font-semibold text-success">→ {b.categories?.[it.category]?.name}</span>}
                 </button>
@@ -92,7 +92,7 @@ function SortGame({ b, value, onChange, status, reveal }: Props) {
           </div>
         ))}
       </div>
-      {taken !== null && <Text size="sm" variant="muted" className="kit-nudge">Tocá la caja donde va «{items[taken].text}».</Text>}
+      {taken !== null && <Text size="sm" variant="muted" className="ui-nudge">Tocá la caja donde va «{items[taken].text}».</Text>}
     </div>
   )
 }
@@ -138,10 +138,10 @@ function MemoryGame({ b, value, onChange, status }: Props) {
             <button key={i} type="button" onClick={() => flip(i)} disabled={status !== 'editing' || matched}
               style={{ perspective: 600 }}
               className={cn('grid min-h-20 place-items-center rounded-md border p-3 text-center text-sm font-medium transition-colors',
-                matched ? 'border-success bg-success-subtle kit-correcto'
-                  : visible ? (failure && flipped.includes(i) ? 'border-danger bg-danger-subtle kit-error' : 'border-ink bg-accent-subtle')
+                matched ? 'border-success bg-success-subtle ui-correct'
+                  : visible ? (failure && flipped.includes(i) ? 'border-danger bg-danger-subtle ui-error' : 'border-ink bg-accent-subtle')
                     : 'border-line bg-muted hover:border-ink')}>
-              <span key={visible ? 'cara' : 'dorso'} className="kit-flip">
+              <span key={visible ? 'cara' : 'dorso'} className="ui-flip">
                 {visible ? c.text : <Logomark size={26} className="text-ink-subtle opacity-40" />}
               </span>
             </button>
@@ -177,7 +177,7 @@ function TimeAttack({ b, value, onChange, status }: Props) {
 
   if (!running && i === 0 && status === 'editing') {
     return (
-      <div className="kit-reveal flex flex-col items-center gap-4 rounded-xl border border-line bg-surface p-8 text-center">
+      <div className="ui-reveal flex flex-col items-center gap-4 rounded-xl border border-line bg-surface p-8 text-center">
         <Icon icon={Timer} size={40} color="accent" />
         <div><Text weight="semibold">{qs.length} preguntas en {total} segundos</Text><Text size="sm" variant="muted">Una por vez. Si se acaba el tiempo, cuenta lo que hayas respondido.</Text></div>
         <Button size="lg" onClick={() => setRunning(true)}>Empezar</Button>
@@ -187,7 +187,7 @@ function TimeAttack({ b, value, onChange, status }: Props) {
 
   if (finished) {
     return (
-      <div className="kit-rise flex flex-col items-center gap-3 rounded-xl border border-line bg-surface p-8 text-center">
+      <div className="ui-rise flex flex-col items-center gap-3 rounded-xl border border-line bg-surface p-8 text-center">
         <Icon icon={Trophy} size={40} color={accuracy === qs.length ? 'success' : 'muted'} />
         <Text weight="semibold" size="lg">{accuracy} de {qs.length}</Text>
         <div className="flex flex-wrap justify-center gap-2">
@@ -214,11 +214,11 @@ function TimeAttack({ b, value, onChange, status }: Props) {
         <Text size="sm" mono weight="semibold">{remaining}s</Text>
         <Text size="sm" variant="muted">{i + 1}/{qs.length}</Text>
       </div>
-      <p key={i} className="kit-reveal font-display text-xl font-semibold tracking-tight">{q.text}</p>
+      <p key={i} className="ui-reveal font-display text-xl font-semibold tracking-tight">{q.text}</p>
       <div className="grid gap-2.5 sm:grid-cols-2">
         {q.options.map((o, k) => (
           <button key={k} type="button" onClick={() => answerIt(k)}
-            className={cn('kit-reveal rounded-md border border-line bg-surface px-4 py-3.5 text-left transition-colors hover:border-ink', ['', 'kit-retraso-1', 'kit-retraso-2', 'kit-retraso-3'][k] ?? '')}>{o}</button>
+            className={cn('ui-reveal rounded-md border border-line bg-surface px-4 py-3.5 text-left transition-colors hover:border-ink', ['', 'ui-delay-1', 'ui-delay-2', 'ui-delay-3'][k] ?? '')}>{o}</button>
         ))}
       </div>
     </div>

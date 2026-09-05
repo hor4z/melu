@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ChevronLeft, FilePlus2 } from 'lucide-react'
-import { Button, Card, CardContent, CardMedia, Chip, Field, FormActions, Eyebrow, Heading, Icon, Input, Stepper, Text, Toggle } from '@/kit'
+import { Button, Card, CardContent, CardMedia, Chip, Field, FormActions, Eyebrow, Heading, Icon, Input, Text, Toggle } from '@melu/ui'
+import { Stepper } from '../blocks/Product'
 import { api, type Activity, type Composition, type Lens } from '../lib/api'
 import { useSpaceId } from '../lib/space'
 import { CompositionChips } from '../blocks/Chips'
@@ -82,7 +83,7 @@ export function NewActivity() {
             <Field label="Título"><Input placeholder="Puente de espagueti" value={title} onChange={(e) => setTitle(e.target.value)} required autoFocus /></Field>
             <AxisRow title="Experiencia" hint="qué van a hacer" options={EXPERIENCES} value={[comp.experience ?? '']} onPick={(v) => set('experience', v)} />
             <AxisRow title="Lente" hint="cómo se recorre; trae las fases" options={Object.fromEntries((lenses.data ?? []).map((l) => [l.key, l.name]))} value={[comp.lens ?? '']} onPick={(v) => set('lens', v)} />
-            {lensPhases.length > 1 && <div className="-mt-3 flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">Fases: {lensPhases.map((f, i) => <span key={f.key} className="flex items-center gap-1.5"><span className="rounded bg-teal px-1.5 py-0.5 font-medium text-brand-text">{f.name}</span>{i < lensPhases.length - 1 && '→'}</span>)}</div>}
+            {lensPhases.length > 1 && <div className="-mt-3 flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">Fases: {lensPhases.map((f, i) => <span key={f.key} className="flex items-center gap-1.5"><span className="rounded-sm bg-teal px-1.5 py-0.5 font-medium text-brand-text">{f.name}</span>{i < lensPhases.length - 1 && '→'}</span>)}</div>}
             <AxisRow title="Escenario" hint="dónde ocurre; puede ser más de uno" options={SETTINGS} value={comp.setting ?? []} onPick={toggleEsc} />
             <AxisRow title="Social" hint="con quién" options={SOCIAL} value={[comp.social ?? '']} onPick={(v) => set('social', v)} />
             <Field label="Disciplinas" description="Separadas por coma; todas las que toque." optional>

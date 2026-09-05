@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { cn } from '@/kit'
+import { cn } from '@melu/ui'
 import type { Block, AnswerValue } from '../lib/api'
 import type { StepState } from './Interactive'
 
@@ -52,7 +52,7 @@ function NumberLine({ b, value, onChange, status, reveal }: Props) {
       onPointerMove={moveBy} onPointerUp={() => setDragging(false)} onPointerCancel={() => setDragging(false)}>
       <line x1={M} y1={72} x2={W - M} y2={72} stroke="var(--border-strong)" strokeWidth="2.5" strokeLinecap="round" />
       {marks.map((m, i) => (
-        <g key={m.n} className="kit-reveal" style={{ animationDelay: `${Math.min(i * 14, 420)}ms` }}>
+        <g key={m.n} className="ui-reveal" style={{ animationDelay: `${Math.min(i * 14, 420)}ms` }}>
           <line x1={x(m.n)} y1={m.large ? 60 : 66} x2={x(m.n)} y2={m.large ? 84 : 78}
             stroke={m.large ? 'var(--text-muted)' : 'var(--border-strong)'} strokeWidth={m.large ? 2 : 1.5} strokeLinecap="round" />
           {m.large && <text x={x(m.n)} y={104} textAnchor="middle" fontSize="13" fill="var(--text-muted)">{m.n}</text>}
@@ -72,7 +72,7 @@ function NumberLine({ b, value, onChange, status, reveal }: Props) {
           <text x={x(min)} y={32} textAnchor="middle" fontSize="17" fontWeight="700" fill="var(--color-ink)">{v}</text>
         </g>
       )}
-      {v === undefined && <text x={W / 2} y={32} textAnchor="middle" fontSize="14" fill="var(--text-subtle)" className="kit-nudge">Tocá la recta para poner el punto</text>}
+      {v === undefined && <text x={W / 2} y={32} textAnchor="middle" fontSize="14" fill="var(--text-subtle)" className="ui-nudge">Tocá la recta para poner el punto</text>}
     </svg>
   )
 }
@@ -147,7 +147,7 @@ function Balance({ b, value, onChange, status }: Props) {
             </g>
           ))}
         </g>
-        {diff === 0 && <text x={W / 2} y={26} textAnchor="middle" fontSize="15" fontWeight="700" fill="var(--success)" className={cn(animating && 'kit-correcto')}>¡Equilibrada!</text>}
+        {diff === 0 && <text x={W / 2} y={26} textAnchor="middle" fontSize="15" fontWeight="700" fill="var(--success)" className={cn(animating && 'ui-correct')}>¡Equilibrada!</text>}
       </svg>
       <div className="flex items-center gap-3">
         <button type="button" disabled={locked || x === 0} onClick={() => change(-1)}
