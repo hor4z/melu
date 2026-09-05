@@ -10,7 +10,7 @@ const toggleVariantes = cva(
         default: 'data-[on=true]:bg-solid data-[on=true]:text-on-solid data-[on=false]:text-ink-muted data-[on=false]:hover:bg-hover data-[on=false]:hover:text-ink',
         outline: 'border-2 data-[on=true]:border-ink data-[on=true]:bg-accent-subtle data-[on=true]:text-ink data-[on=false]:border-line data-[on=false]:text-ink-muted data-[on=false]:hover:border-ink',
       },
-      size: { sm: 'h-8 px-2.5 text-[13px]', md: 'h-9.5 px-3 text-sm', lg: 'h-11 px-4 text-[15px]' },
+      size: { sm: 'h-8 px-2.5 text-sm', md: 'h-9.5 px-3 text-sm', lg: 'h-11 px-4 text-base' },
     },
     defaultVariants: { variant: 'default', size: 'md' },
   },

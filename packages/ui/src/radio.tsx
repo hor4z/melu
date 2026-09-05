@@ -64,7 +64,7 @@ export function RadioGroupItem({ value, children, description, disabled, classNa
         {isOn && <span className="size-2 rounded-full bg-solid" />}
       </span>
       {(children || description) && (
-        <span className="min-w-0">{children}{description && <span className="mt-0.5 block text-[13px] font-normal text-ink-muted">{description}</span>}</span>
+        <span className="min-w-0">{children}{description && <span className="mt-0.5 block text-sm font-normal text-ink-muted">{description}</span>}</span>
       )}
     </button>
   )
@@ -78,7 +78,7 @@ export function RadioCard({ value, children, description, disabled, className, .
     <RadioGroupItem value={value} disabled={disabled}
       className={cn('items-center rounded-xl border-2 p-4 transition-colors', isOn ? 'border-ink bg-accent-subtle' : 'border-line hover:border-ink', className)}
       {...props}>
-      <span className="min-w-0"><span className="block font-semibold">{children}</span>{description && <span className="mt-0.5 block text-[13px] font-normal text-ink-muted">{description}</span>}</span>
+      <span className="min-w-0"><span className="block font-semibold">{children}</span>{description && <span className="mt-0.5 block text-sm font-normal text-ink-muted">{description}</span>}</span>
     </RadioGroupItem>
   )
 }

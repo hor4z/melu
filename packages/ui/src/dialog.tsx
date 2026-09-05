@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, type ComponentPropsWithoutRef, type ReactNode, type RefObject } from 'react'
 import { FloatingFocusManager, FloatingNode, FloatingOverlay, useClick, useDismiss, useFloating, useFloatingNodeId, useInteractions, useRole } from '@floating-ui/react'
 import { Portal } from './portal'
 import { X } from 'lucide-react'
@@ -18,9 +18,13 @@ type Ctx = {
   nodeId: string | undefined
 }
 const DialogCtx = createContext<Ctx | null>(null)
-const useDialogCtx = () => {
+/**
+ * Not in the barrel: it is how Drawer reuses this machinery, not public surface. A drawer is
+ * the same modal —focus trap, scroll lock, focus returned on close— entering from an edge.
+ */
+export const useDialogCtx = () => {
   const c = useContext(DialogCtx)
-  if (!c) throw new Error('Usá los componentes de Dialog dentro de <Dialog>')
+  if (!c) throw new Error('Usá los componentes de Dialog dentro de <Dialog> o <Drawer>')
   return c
 }
 
@@ -78,14 +82,18 @@ export function DialogTrigger({ children, asChild = true, ...props }: ComponentP
 
 const WIDTHS = { sm: 'max-w-sm', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl', full: 'max-w-[calc(100vw-2rem)]' }
 
-export function DialogContent({ className, children, size = 'md', ...props }: ComponentPropsWithoutRef<'div'> & { size?: keyof typeof WIDTHS }) {
+export function DialogContent({ className, children, size = 'md', initialFocus, ...props }: ComponentPropsWithoutRef<'div'> & {
+  size?: keyof typeof WIDTHS
+  /** Qué se enfoca al abrir. Por defecto el primer elemento; una confirmación enfoca Cancelar. */
+  initialFocus?: RefObject<HTMLElement | null>
+}) {
   const d = useDialogCtx()
   if (!d.isOpen) return null
   return (
     <FloatingNode id={d.nodeId}>
     <Portal>
       <FloatingOverlay lockScroll data-state="open" className="ui-fade z-50 grid place-items-center bg-[var(--overlay)] p-4">
-        <FloatingFocusManager context={d.context} returnFocus={false} initialFocus={0}>
+        <FloatingFocusManager context={d.context} returnFocus={false} initialFocus={initialFocus ?? 0}>
           <div ref={d.refs.setFloating} aria-labelledby={d.titleId} aria-describedby={d.descId} data-state="open"
             className={cn('ui-pop flex max-h-[85dvh] w-full flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-lg outline-none', WIDTHS[size], className)}
             {...d.getFloatingProps(props as Record<string, unknown>)}>

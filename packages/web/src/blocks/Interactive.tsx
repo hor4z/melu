@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowDown, ArrowUp, Camera, Check, Mic, Paperclip, X } from 'lucide-react'
-import { Chip, Icon, Input, Textarea, cn } from '@melu/ui'
+import { Chip, cn, Heading, Icon, Input, Textarea } from '@melu/ui'
 import type { Block, AnswerValue } from '../lib/api'
 import { GameBlock, gameScore } from './Games'
 import { ManipulativeBlock } from './Manipulatives'
@@ -69,7 +69,7 @@ export function hasValue(v: AnswerValue | undefined): boolean {
 /** The blocks that are only read. */
 export function ReadingBlock({ b }: { b: Block }) {
   switch (b.type) {
-    case 'heading': return <h2 className="font-display text-2xl font-semibold tracking-tight">{b.text}</h2>
+    case 'heading': return <Heading level={2} size="xl">{b.text}</Heading>
     case 'list': return <ul className="list-disc space-y-1.5 pl-6 text-lg leading-relaxed">{b.text.split('\n').filter(Boolean).map((l, i) => <li key={i}>{l}</li>)}</ul>
     case 'callout': return <div className="rounded-xl border-l-4 border-accent bg-teal px-5 py-4"><p className="text-lg font-medium text-ink">{b.text}</p></div>
     default: return <p className="text-lg leading-relaxed">{b.text}</p>

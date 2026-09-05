@@ -13,7 +13,7 @@ const chipVariants = cva('inline-flex max-w-full items-center gap-1.5 whitespace
       orange: 'bg-orange text-ink', cyan: 'bg-cyan text-ink', green: 'bg-green text-ink', pink: 'bg-pink text-ink',
       success: 'bg-success-subtle text-success', warning: 'bg-warning-subtle text-warning', danger: 'bg-danger-subtle text-danger',
     },
-    size: { sm: 'h-5.5 px-2 text-[11px]', md: 'h-6.5 px-2.5 text-xs', lg: 'h-8 px-3 text-sm' },
+    size: { sm: 'h-5.5 px-2 text-xs', md: 'h-6.5 px-2.5 text-xs', lg: 'h-8 px-3 text-sm' },
     interactive: { true: 'cursor-pointer outline-none transition-colors hover:brightness-95 focus-visible:ring-3 focus-visible:ring-focus/30' },
   },
   defaultVariants: { color: 'default', size: 'md' },

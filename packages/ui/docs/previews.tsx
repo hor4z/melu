@@ -97,6 +97,24 @@ export const PREVIEWS: Record<string, () => React.ReactNode> = {
       <div className="mt-2 flex gap-1.5"><span className="rounded-md bg-ink px-2 py-1 text-[10px] text-white">Invitar</span></div>
     </div>
   ),
+  'alert-dialog': () => (
+    <div className="pointer-events-none w-52 rounded-xl border border-line bg-surface p-3 shadow-lg">
+      <Text size="sm" weight="semibold">¿Borrar la actividad?</Text>
+      <div className="mt-2 flex justify-end gap-1.5 text-2xs">
+        <span className="rounded-md px-2 py-1 text-ink-muted">Cancelar</span>
+        <span className="rounded-md bg-danger px-2 py-1 text-white">Borrar</span>
+      </div>
+    </div>
+  ),
+  drawer: () => (
+    <div className="pointer-events-none flex h-20 w-52 justify-end overflow-hidden rounded-lg border border-line bg-muted">
+      <div className="h-full w-28 border-l border-line bg-surface p-2 shadow-lg">
+        <Text size="2xs" weight="semibold">Editar el grupo</Text>
+        <div className="mt-1.5 h-2 w-full rounded-xs bg-muted" />
+        <div className="mt-1 h-2 w-2/3 rounded-xs bg-muted" />
+      </div>
+    </div>
+  ),
   dropdown: () => (
     <div className="pointer-events-none w-40 rounded-xl border border-line bg-surface p-1.5 text-sm shadow-lg">
       <span className="block rounded-lg bg-hover px-2 py-1">Editar</span>

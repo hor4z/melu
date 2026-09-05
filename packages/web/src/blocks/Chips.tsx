@@ -21,7 +21,3 @@ export function CompositionChips({ c, compact }: { c: Composition; compact?: boo
   )
 }
 
-// Small uppercase label in brand color, like the "RETO 1" / "CONSIGNA" ones.
-export function Rotulo({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <span className={`text-[11px] font-semibold uppercase tracking-wider text-brand-text ${className}`}>{children}</span>
-}

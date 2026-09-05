@@ -123,7 +123,7 @@ export function DropdownMenuItem({ className, children, label, icon, shortcut, d
       })}>
       {icon && <span className="text-ink-subtle">{icon}</span>}
       <span className="min-w-0 flex-1 truncate">{children}</span>
-      {shortcut && <kbd className="font-mono text-[11px] text-ink-subtle">{shortcut}</kbd>}
+      {shortcut && <kbd className="font-mono text-xs text-ink-subtle">{shortcut}</kbd>}
     </div>
   )
 }
@@ -138,7 +138,7 @@ export function DropdownMenuCheckboxItem({ checked, children, ...props }: Dropdo
 }
 
 export function DropdownMenuLabel({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
-  return <div className={cn('px-2.5 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-ink-subtle', className)} {...props} />
+  return <div className={cn('px-2.5 pb-1 pt-2 text-xs font-bold uppercase tracking-wider text-ink-subtle', className)} {...props} />
 }
 export function DropdownMenuSeparator({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   return <div role="separator" className={cn('-mx-1.5 my-1.5 h-px bg-line', className)} {...props} />
@@ -150,12 +150,6 @@ export function DropdownMenuGroup({ className, ...props }: ComponentPropsWithout
 export type MenuOption = { label: string; icon?: ReactNode; onSelect?: () => void; destructive?: boolean; disabled?: boolean; separatorBefore?: boolean }
 
 /** The three-dot menu: the “more actions” gesture on a row or a card. */
-DropdownMenu.Trigger = DropdownMenuTriggerBase
-DropdownMenu.Content = DropdownMenuContent
-DropdownMenu.Item = DropdownMenuItem
-DropdownMenu.Label = DropdownMenuLabel
-DropdownMenu.Separator = DropdownMenuSeparator
-
 export function MoreMenu({ items, label = 'Más acciones', orientation = 'horizontal', placement = 'bottom-end', size = 'md', variant = 'ghost' }: {
   items: MenuOption[]; label?: string; orientation?: 'horizontal' | 'vertical'; placement?: Placement
   size?: 'sm' | 'md' | 'lg'; variant?: 'ghost' | 'outline' | 'subtle'

@@ -55,6 +55,15 @@ export const COPY: Record<string, string> = {
   Eyebrow: 'El rótulo de sección en mayúsculas: el gesto que ordena la página.',
 
   // Capas
+  MoreMenu: 'El menú de tres puntos: el gesto de «más acciones» sobre una fila o una tarjeta.',
+  'Drawer.purpose': '`required` bloquea el cierre con Escape o con un clic afuera: solo cierran los botones.',
+  Drawer: 'Un panel pegado a un borde. Las partes son las de Dialog, con otro nombre para que se lea.',
+  'AlertDialog.trigger': 'Lo que abre la confirmación. Sin esto se controla de afuera con `open`.',
+  'AlertDialog.children': 'Contenido extra entre la explicación y los botones. Casi nunca hace falta.',
+  'AlertDialog.tone': '`danger` pinta el botón de confirmar en rojo: se borra, se expulsa, se pierde algo.',
+  'AlertDialog.loading': 'Deja el botón hilando mientras la acción viaja, y bloquea el cierre.',
+  'DialogContent.initialFocus': 'Qué se enfoca al abrir. Por defecto el primero; una confirmación enfoca Cancelar.',
+  'Slottable.children': 'El hijo de verdad, el que el slot tiene que pasar a ser.',
   'DropdownMenuItem.keepOpen': 'Deja el menú abierto al elegir: sirve para opciones que se tildan.',
   'DropdownMenuItem.label': 'El texto para buscar tecleando. Si los hijos no son texto plano, pasalo a mano.',
   'DropdownMenuCheckboxItem.keepOpen': 'Deja el menú abierto al elegir: sirve para opciones que se tildan.',

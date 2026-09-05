@@ -2,10 +2,9 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft } from 'lucide-react'
-import { Avatar, Button, Card, Chip, Eyebrow, Icon, Text, cn } from '@melu/ui'
+import { Avatar, Button, Card, Chip, cn, Eyebrow, Heading, Icon, Text } from '@melu/ui'
 import { api, type Assignment, type Submission, type Score } from '../lib/api'
 import { InteractiveBlock } from '../blocks/Interactive'
-import { Rotulo } from '../blocks/Chips'
 import { IS_INTERACTIVE } from '../lib/composition'
 import { Empty } from '../blocks/Modal'
 
@@ -33,7 +32,7 @@ export function Review() {
   return (
     <div className="flex flex-col gap-6">
       <Link to={`/groups/${a.groupId}`} className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> {a.groupName}</Link>
-      <header className="border-b border-line pb-4"><Eyebrow>Corregir</Eyebrow><h1 className="mt-1 font-display text-2xl font-semibold tracking-tight">{a.title}</h1><Text variant="muted">{lists.length} de {a.submissionsTotal} entregaron · {lists.filter((e) => e.status === 'graded').length} corregidas</Text></header>
+      <header className="border-b border-line pb-4"><Eyebrow>Corregir</Eyebrow><Heading level={1} size="xl" className="mt-1">{a.title}</Heading><Text variant="muted">{lists.length} de {a.submissionsTotal} entregaron · {lists.filter((e) => e.status === 'graded').length} corregidas</Text></header>
 
       {lists.length === 0 && <Empty title="Nadie entregó todavía" text="Cuando alguien entregue, aparece acá." />}
 
@@ -51,11 +50,11 @@ export function Review() {
 
           <div className="flex flex-col gap-6">
             <section className="flex flex-col gap-4">
-              <h2 className="text-xl font-semibold">{current.learner}</h2>
+              <Heading level={2} size="lg">{current.learner}</Heading>
               {answered.map((b) => { const p = current.steps?.[b.id]; return (
                 <div key={b.id} className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <Rotulo>{b.phase}</Rotulo>
+                    <Eyebrow className="text-brand-text">{b.phase}</Eyebrow>
                     {p && p.ok !== null && <Chip size="sm" color={p.ok ? 'success' : 'danger'}>{p.ok ? 'Bien' : 'Se trabó'}{p.attempts > 1 && ` · ${p.attempts} intentos`}{p.ms ? ` · ${duration(p.ms)}` : ''}</Chip>}
                   </div>
                   {b.type !== 'fill_in' && <p className="font-medium">{b.text}</p>}
@@ -65,7 +64,7 @@ export function Review() {
             </section>
             {rubric.length > 0 && (
               <Card padding="md" className="gap-4">
-                <h3 className="font-semibold">Rúbrica</h3>
+                <Heading level={3} size="sm">Rúbrica</Heading>
                 {rubric.map((c) => (
                   <div key={c.id} className="flex flex-col gap-2">
                     <span className="text-sm font-medium">{c.label}</span>

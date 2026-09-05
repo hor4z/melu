@@ -289,7 +289,7 @@ export function SampleListen({ sample }: { sample: SampleKey }) {
 export function SampleRead({ sample }: { sample: SampleKey }) {
   const t = DEFS[sample].hasRead
   // Short texts belong to the kids: they go big, which is how they are read at that age.
-  return <p className={cn('text-ink', t.length < 40 ? 'text-center font-display text-2xl font-semibold' : 'text-[15px] leading-relaxed')}>{t}</p>
+  return <p className={cn('text-ink', t.length < 40 ? 'text-center font-display text-2xl font-semibold' : 'text-base leading-relaxed')}>{t}</p>
 }
 
 /* ---------- hacer ---------- */

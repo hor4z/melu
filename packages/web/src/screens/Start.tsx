@@ -330,7 +330,7 @@ function Progress({ steps, chapter, position }: { steps: StepView[]; chapter: nu
               <div className="h-full rounded-full bg-[var(--color-teal-500)] transition-[width] duration-500 ease-out"
                 style={{ width: `${(facts / byChapter[c]) * 100}%` }} />
             </div>
-            <span className={cn('mt-1 hidden text-[11px] font-medium sm:block', c === chapter ? 'text-ink' : 'text-ink-subtle')}>{name}</span>
+            <span className={cn('mt-1 hidden text-xs font-medium sm:block', c === chapter ? 'text-ink' : 'text-ink-subtle')}>{name}</span>
           </div>
         )
       })}
@@ -381,7 +381,7 @@ function QuestionBlock({ step, pickedOne, onPick, withVoice }: {
               onClick={() => onPick(o.value)}
               className={cn(puesto, 'items-start justify-between hover:border-ink/40 hover:shadow-[var(--shadow-card)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus')}>
               {o.body && <span className="flex w-full flex-1 items-center justify-center text-ink">{o.body}</span>}
-              <span className="text-[15px] font-medium leading-snug text-ink">{o.title}</span>
+              <span className="text-base font-medium leading-snug text-ink">{o.title}</span>
               {o.footer && <span className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-subtle">{o.footer}</span>}
             </button>
           )
@@ -434,7 +434,7 @@ function StepsPanel({ steps }: { steps: string[] }) {
     <ol className="flex w-full flex-col gap-2 text-sm text-ink">
       {steps.map((t, i) => (
         <li key={t} className="flex gap-2.5">
-          <span className="grid size-5 shrink-0 place-items-center rounded-full bg-ink text-[11px] font-bold text-white tabular-nums">{i + 1}</span>
+          <span className="grid size-5 shrink-0 place-items-center rounded-full bg-ink text-xs font-bold text-white tabular-nums">{i + 1}</span>
           <span className="leading-snug">{t}</span>
         </li>
       ))}
@@ -519,7 +519,7 @@ export function ProfileBars({ profile, compact = false }: { profile: Record<stri
                 const v = profile[p] ?? 0
                 return (
                   <div key={p} title={`${POLES[p].name} · ${Math.round(v * 100)}%`}
-                    className={cn('flex items-center justify-center overflow-hidden whitespace-nowrap border-r border-surface px-1 text-[11px] font-semibold text-ink transition-[flex-grow] duration-700 ease-out last:border-r-0',
+                    className={cn('flex items-center justify-center overflow-hidden whitespace-nowrap border-r border-surface px-1 text-xs font-semibold text-ink transition-[flex-grow] duration-700 ease-out last:border-r-0',
                       v >= 0.05 ? e.tint : 'bg-muted')}
                     style={{ flexGrow: Math.max(v, 0.02), flexBasis: 0 }}>
                     {v > 0.3 && POLES[p].name}
@@ -527,7 +527,7 @@ export function ProfileBars({ profile, compact = false }: { profile: Record<stri
                 )
               })}
             </div>
-            <span className="text-[11px] tabular-nums text-ink-subtle">
+            <span className="text-xs tabular-nums text-ink-subtle">
               {withValue.map((p) => `${POLES[p].name} ${Math.round((profile[p] ?? 0) * 100)}`).join(' · ')}
             </span>
           </div>

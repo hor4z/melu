@@ -100,7 +100,7 @@ export function Select({ children, value, defaultValue = '', onValueChange, disa
   )
 }
 
-const HEIGHT = { sm: 'h-8 px-2.5 text-[13px]', md: 'h-9.5 px-3 text-sm', lg: 'h-11 px-3.5 text-[15px]' }
+const HEIGHT = { sm: 'h-8 px-2.5 text-sm', md: 'h-9.5 px-3 text-sm', lg: 'h-11 px-3.5 text-base' }
 
 export function SelectTrigger({ className, children, startIcon, ...props }: ComponentPropsWithoutRef<'button'> & { startIcon?: ReactNode }) {
   const s = useSelectCtx()
@@ -187,7 +187,7 @@ function SelectItemVisible({ value, className, children, icon, description, disa
       {icon && <span className="text-ink-subtle">{icon}</span>}
       <span className="min-w-0 flex-1">
         <span className="block truncate">{children}</span>
-        {description && <span className="block truncate text-[13px] font-normal text-ink-muted">{description}</span>}
+        {description && <span className="block truncate text-sm font-normal text-ink-muted">{description}</span>}
       </span>
       {pickedOne && <Icon icon={Check} size="sm" className="text-accent" />}
     </div>
@@ -198,7 +198,7 @@ export function SelectGroup({ className, ...props }: ComponentPropsWithoutRef<'d
   return <div role="group" className={cn('flex flex-col', className)} {...props} />
 }
 export function SelectLabel({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
-  return <div className={cn('px-2.5 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-ink-subtle', className)} {...props} />
+  return <div className={cn('px-2.5 pb-1 pt-2 text-xs font-bold uppercase tracking-wider text-ink-subtle', className)} {...props} />
 }
 export function SelectSeparator({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   return <div role="separator" className={cn('-mx-1.5 my-1.5 h-px bg-line', className)} {...props} />

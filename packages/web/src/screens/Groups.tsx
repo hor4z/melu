@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
-import { Button, Card, CardContent, CardMedia, Chip, Field, Icon, Input, Text, cn } from '@melu/ui'
+import { Button, Card, CardContent, CardMedia, Chip, cn, Field, Heading, Icon, Input, Text } from '@melu/ui'
 import { api, type Group } from '../lib/api'
 import { useSpace } from '../lib/space'
 import { Modal, Empty } from '../blocks/Modal'
@@ -17,7 +17,7 @@ export function Groups() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
-        <div><h1 className="text-2xl font-semibold tracking-tight">Mis grupos</h1><Text variant="muted">Gente que aprende junta: un aula, un taller, una sala de refuerzo.</Text></div>
+        <div><Heading level={1} size="xl">Mis grupos</Heading><Text variant="muted">Gente que aprende junta: un aula, un taller, una sala de refuerzo.</Text></div>
         <Button onClick={() => setFresh(true)} startIcon={<Icon icon={Plus} />}>Nuevo grupo</Button>
       </header>
 

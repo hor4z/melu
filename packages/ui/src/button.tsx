@@ -17,7 +17,7 @@ export const buttonVariants = cva(
         destructive: 'bg-danger text-white hover:brightness-110',
         link: 'h-auto rounded-none p-0 text-accent underline-offset-4 hover:underline',
       },
-      size: { sm: 'h-8 px-3 text-[13px]', md: 'h-9.5 px-4 text-sm', lg: 'h-11 px-5 text-[15px]' },
+      size: { sm: 'h-8 px-3 text-sm', md: 'h-9.5 px-4 text-sm', lg: 'h-11 px-5 text-base' },
       block: { true: 'w-full' },
     },
     defaultVariants: { variant: 'primary', size: 'md' },
