@@ -1,9 +1,9 @@
 import { createContext, useContext, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn, useControllableState } from './lib'
+import { cn, focusRing, useControllableState } from './lib'
 
 const toggleVariantes = cva(
-  'inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-focus/30 disabled:pointer-events-none disabled:opacity-45',
+  `inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium outline-none transition-colors disabled:pointer-events-none disabled:opacity-45 ${focusRing}`,
   {
     variants: {
       variant: {

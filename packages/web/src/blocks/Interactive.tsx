@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { ArrowDown, ArrowUp, Camera, Check, Mic, Paperclip, X } from 'lucide-react'
-import { Chip, cn, Heading, Icon, Input, Textarea } from '@melu/ui'
+import { Chip, cn, Heading, Icon, IconButton, Input, Textarea } from '@melu/ui'
 import type { Block, AnswerValue } from '../lib/api'
 import { GameBlock, gameScore } from './Games'
 import { ManipulativeBlock } from './Manipulatives'
@@ -210,8 +210,8 @@ function OrderGame({ b, value, onChange, status, reveal }: Props) {
             <span className="flex-1">{it}</span>
             {status === 'editing' && (
               <span className="flex gap-1">
-                <button type="button" onClick={() => moveBy(i, -1)} disabled={i === 0} aria-label="Subir" className="rounded-md p-1.5 hover:bg-hover disabled:opacity-30"><Icon icon={ArrowUp} size="sm" /></button>
-                <button type="button" onClick={() => moveBy(i, 1)} disabled={i === sequence.length - 1} aria-label="Bajar" className="rounded-md p-1.5 hover:bg-hover disabled:opacity-30"><Icon icon={ArrowDown} size="sm" /></button>
+                <IconButton size="sm" variant="ghost" label="Subir" onClick={() => moveBy(i, -1)} disabled={i === 0} icon={<Icon icon={ArrowUp} size="sm" />} />
+                <IconButton size="sm" variant="ghost" label="Bajar" onClick={() => moveBy(i, 1)} disabled={i === sequence.length - 1} icon={<Icon icon={ArrowDown} size="sm" />} />
               </span>
             )}
           </li>

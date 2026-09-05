@@ -1,13 +1,13 @@
 import { type ComponentPropsWithoutRef, type ReactNode, type Ref } from 'react'
 import { X } from 'lucide-react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn } from './lib'
+import { cn, focusRingWithin } from './lib'
 import { Icon } from './icon'
 import { Spinner } from './spinner'
 import { fieldAria, useField } from './field'
 
 const frameCls = cva(
-  'flex w-full items-center gap-2 rounded-md border bg-surface text-ink transition-[border-color,box-shadow] focus-within:ring-3 focus-within:ring-focus/25 has-disabled:bg-muted has-disabled:opacity-60',
+  `flex w-full items-center gap-2 rounded-md border bg-surface text-ink transition-[border-color,box-shadow] has-disabled:bg-muted has-disabled:opacity-60 ${focusRingWithin}`,
   {
     variants: {
       size: { sm: 'h-8 px-2.5 text-sm', md: 'h-9.5 px-3 text-sm', lg: 'h-11 px-3.5 text-base' },

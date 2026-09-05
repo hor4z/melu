@@ -1,10 +1,10 @@
 import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { cn, Slot } from './lib'
+import { cn, focusRing, Slot } from './lib'
 import { Spinner } from './spinner'
 
 const iconButtonVariantes = cva(
-  'inline-grid shrink-0 place-items-center rounded-md outline-none transition-colors focus-visible:ring-3 focus-visible:ring-focus/30 disabled:pointer-events-none disabled:opacity-45',
+  `inline-grid shrink-0 place-items-center rounded-md outline-none transition-colors disabled:pointer-events-none disabled:opacity-45 ${focusRing}`,
   {
     variants: {
       variant: {

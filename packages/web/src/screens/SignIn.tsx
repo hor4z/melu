@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useParams } from 'react-router'
-import { Button, DoodleGroup, DoodleWave, Heading, Input, Logo, Squiggle, Text } from '@melu/ui'
+import { Button, DoodleGroup, Heading, Input, Logo, Text } from '@melu/ui'
 import { api, type AuthOptions } from '../lib/api'
 
 export function SignIn() {
@@ -21,13 +21,17 @@ export function SignIn() {
     <div className="grid min-h-screen bg-surface lg:grid-cols-[1.15fr_1fr]">
       <section className="relative hidden flex-col justify-between overflow-hidden border-r border-line bg-canvas p-12 lg:flex">
         <Logo size="lg" />
-        <div className="relative">
-          <DoodleWave size={110} className="absolute -left-4 -top-28 text-ink" />
-          <DoodleGroup size={220} className="absolute -top-24 right-0 text-ink" />
-          <Heading level={1} size="display" className="max-w-xl text-balance lg:text-hero">Aprender deja <Squiggle>huella</Squiggle>.</Heading>
-          <p className="mt-6 max-w-md text-lg leading-relaxed text-ink-muted">Componé una actividad, dásela a un grupo y mirá qué pasa. Lo que los chicos hacen con las manos, en el barrio o en la pantalla queda registrado desde el primer día.</p>
+        <div>
+          <Heading level={1} size="display" className="max-w-xl text-balance lg:text-hero">Aprender deja huella.</Heading>
+          <Text variant="muted" className="mt-6 max-w-md text-lg leading-relaxed">
+            Componé una actividad, dásela a un grupo y mirá qué pasa. Lo que los chicos hacen con las
+            manos, en el barrio o en la pantalla queda registrado desde el primer día.
+          </Text>
         </div>
-        <div className="relative -mx-12 -mb-12 h-64 overflow-hidden"><img src="/ref/img_home_01.png" alt="" className="absolute bottom-0 left-0 w-[115%] max-w-none" /></div>
+
+        <div className="grid h-56 place-items-center rounded-xl bg-teal">
+          <DoodleGroup size={140} className="text-ink/70" />
+        </div>
       </section>
 
       <section className="grid place-items-center p-8">

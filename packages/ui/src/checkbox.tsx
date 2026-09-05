@@ -1,6 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { Check, Minus } from 'lucide-react'
-import { cn, useControllableState } from './lib'
+import { cn, focusRing, useControllableState } from './lib'
 import { Icon } from './icon'
 import { fieldAria, useField } from './field'
 
@@ -24,7 +24,7 @@ export function Checkbox({ checked, defaultChecked = false, onCheckedChange, siz
     <button
       type="button" role="checkbox" aria-checked={medium ? 'mixed' : marked} id={aria.id} aria-describedby={aria['aria-describedby']}
       disabled={disabled ?? aria.disabled} onClick={() => setVal(!marked)}
-      className={cn('group flex items-start gap-2.5 rounded-md text-left text-sm outline-none focus-visible:ring-3 focus-visible:ring-focus/30 disabled:cursor-not-allowed disabled:opacity-50', className)}
+      className={cn(`group flex items-start gap-2.5 rounded-md text-left text-sm disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`, className)}
       {...props}
     >
       <span className={cn('mt-px grid shrink-0 place-items-center rounded-sm border-2 transition-colors', box, marked || medium ? 'border-solid bg-solid text-on-solid' : 'border-line-strong bg-surface group-hover:border-ink')}>

@@ -1,12 +1,12 @@
-import { createContext, useContext, useRef, useState, type ComponentPropsWithoutRef, type ReactNode } from 'react'
+import { createContext, useContext, useRef, useState, type ComponentPropsWithoutRef, type ReactNode, type Ref } from 'react'
 import {
   FloatingFocusManager, FloatingList, FloatingNode, autoUpdate, flip, offset, shift, size as sizeMw,
   useClick, useDismiss, useFloating, useFloatingNodeId, useInteractions, useListItem, useListNavigation, useRole, useTypeahead,
   type Placement,
 } from '@floating-ui/react'
 import { Portal } from './portal'
-import { Check, MoreHorizontal, MoreVertical } from 'lucide-react'
-import { cn, Slot, useControllableState } from './lib'
+import { Check, ChevronDown, ChevronsUpDown, MoreHorizontal, MoreVertical } from 'lucide-react'
+import { cn, focusRing, Slot, useControllableState } from './lib'
 import { Icon } from './icon'
 import { IconButton } from './icon-button'
 
@@ -148,6 +148,47 @@ export function DropdownMenuGroup({ className, ...props }: ComponentPropsWithout
 }
 
 export type MenuOption = { label: string; icon?: ReactNode; onSelect?: () => void; destructive?: boolean; disabled?: boolean; separatorBefore?: boolean }
+
+/**
+ * The trigger for a menu that shows who or what is selected: a leading visual, a label, an
+ * optional line under it, and the chevron. Both the account menu and the space picker were
+ * writing this by hand, each with its own focus ring and its own padding.
+ */
+export interface MenuButtonProps extends ComponentPropsWithoutRef<'button'> {
+  /** What goes on the left: an Avatar, an Icon on a tile, a Logo. */
+  leading?: ReactNode
+  /** The second line, smaller and quieter. */
+  description?: ReactNode
+  /** Fills its container: the sidebar picker does, the one in a header does not. */
+  block?: boolean
+  /** Two chevrons for picking one of several; one for a plain menu. */
+  chevron?: 'down' | 'updown'
+  /** Below `sm` only the leading visual shows. For headers, where room runs out first. */
+  compact?: boolean
+  ref?: Ref<HTMLButtonElement>
+}
+
+export function MenuButton({ leading, description, block, chevron = 'down', compact, className, children, ...props }: MenuButtonProps) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        'flex items-center gap-2 rounded-md py-1 pl-1 pr-2 text-left outline-none transition-colors',
+        `hover:bg-hover data-[state=open]:bg-hover ${focusRing}`,
+        block && 'w-full gap-3 px-3 py-2.5',
+        className,
+      )}
+      {...props}
+    >
+      {leading}
+      <span className={cn('min-w-0 flex-1 leading-tight', compact && 'hidden sm:block')}>
+        <span className="block truncate text-sm font-medium">{children}</span>
+        {description && <span className="block truncate text-xs text-ink-subtle">{description}</span>}
+      </span>
+      <Icon icon={chevron === 'updown' ? ChevronsUpDown : ChevronDown} size="sm" color="subtle" />
+    </button>
+  )
+}
 
 /** The three-dot menu: the “more actions” gesture on a row or a card. */
 export function MoreMenu({ items, label = 'Más acciones', orientation = 'horizontal', placement = 'bottom-end', size = 'md', variant = 'ghost' }: {

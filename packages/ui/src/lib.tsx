@@ -16,6 +16,15 @@ export function composeRefs<T>(...refs: (Ref<T> | undefined)[]) {
   }
 }
 
+/**
+ * The focus ring, written once. Twelve components in the kit were repeating the same three
+ * classes and one of them had drifted to a different opacity — a difference nobody sees until
+ * they tab through. Anything focusable composes this instead of spelling it out.
+ */
+export const focusRing = 'outline-none focus-visible:ring-3 focus-visible:ring-focus/30'
+/** The same ring for a frame that lights up when a control inside it takes focus. */
+export const focusRingWithin = 'outline-none focus-within:ring-3 focus-within:ring-focus/30'
+
 const isHandler = (key: string) => /^on[A-Z]/.test(key)
 
 /**

@@ -1,5 +1,5 @@
 import { createContext, useContext, useRef, type ComponentPropsWithoutRef, type ReactNode } from 'react'
-import { cn, useControllableState } from './lib'
+import { cn, focusRing, useControllableState } from './lib'
 import { fieldAria, useField } from './field'
 
 type Ctx = { value: string; setValue: (v: string) => void; name: string; disabled?: boolean; size: 'sm' | 'md' }
@@ -57,7 +57,7 @@ export function RadioGroupItem({ value, children, description, disabled, classNa
       type="button" role="radio" aria-checked={isOn} name={ctx.name} value={value}
       disabled={disabled ?? ctx.disabled} tabIndex={isOn || !ctx.value ? 0 : -1}
       onClick={() => ctx.setValue(value)} onKeyDown={moveBy}
-      className={cn('group flex items-start gap-2.5 rounded-md text-left text-sm outline-none focus-visible:ring-3 focus-visible:ring-focus/30 disabled:cursor-not-allowed disabled:opacity-50', className)}
+      className={cn(`group flex items-start gap-2.5 rounded-md text-left text-sm disabled:cursor-not-allowed disabled:opacity-50 ${focusRing}`, className)}
       {...props}
     >
       <span className={cn('mt-px grid shrink-0 place-items-center rounded-full border-2 transition-colors', box, isOn ? 'border-solid' : 'border-line-strong group-hover:border-ink')}>

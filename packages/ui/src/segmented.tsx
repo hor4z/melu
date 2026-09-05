@@ -1,5 +1,5 @@
 import { createContext, useContext, type ComponentPropsWithoutRef, type ReactNode } from 'react'
-import { cn, useControllableState } from './lib'
+import { cn, focusRing, useControllableState } from './lib'
 
 type Ctx = { value: string; setValue: (v: string) => void; size: 'sm' | 'md' | 'lg'; fill: boolean }
 const SegCtx = createContext<Ctx | null>(null)
@@ -37,7 +37,7 @@ export function SegmentedControlItem({ value, className, children, disabled, ...
   const text = ctx.size === 'lg' ? 'text-base' : 'text-sm'
   return (
     <button type="button" role="radio" aria-checked={isOn} disabled={disabled} onClick={() => ctx.setValue(value)}
-      className={cn('inline-flex h-full items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-focus/30 disabled:opacity-45',
+      className={cn(`inline-flex h-full items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 font-medium outline-none transition-colors disabled:opacity-45 ${focusRing}`,
         text, ctx.fill && 'flex-1', isOn ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink', className)}
       {...props}>{children}</button>
   )

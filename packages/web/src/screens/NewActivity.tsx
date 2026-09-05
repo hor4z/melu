@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ChevronLeft, FilePlus2 } from 'lucide-react'
-import { Button, Card, CardContent, CardMedia, Chip, Field, FormActions, Eyebrow, Heading, Icon, Input, Text, Toggle } from '@melu/ui'
+import { Button, Card, CardContent, CardMedia, Chip, Field, FormActions, Eyebrow, Heading, Icon, Input, Text, Toggle, ToggleGroup, ToggleGroupItem } from '@melu/ui'
 import { Stepper } from '../blocks/Product'
 import { api, type Activity, type Composition, type Lens } from '../lib/api'
 import { useSpaceId } from '../lib/space'
@@ -109,7 +109,13 @@ function AxisRow({ title, hint, options, value, onPick }: { title: string; hint:
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="mb-1 text-sm font-semibold">{title} <span className="font-normal text-ink-subtle">— {hint}</span></legend>
-      <div className="flex flex-wrap gap-1.5">{Object.entries(options).map(([k, l]) => <button key={k} type="button" onClick={() => onPick(k)} className={`rounded-md border-2 px-3 py-1 text-sm font-medium transition ${value.includes(k) ? 'border-ink bg-ink text-white' : 'border-line hover:border-ink'}`}>{l}</button>)}</div>
+      <ToggleGroup type="multiple" variant="outline" value={value} onValueChange={(next) => {
+        // El grupo devuelve la selección entera; la pantalla razona de a una opción.
+        const changed = next.filter((k) => !value.includes(k)).concat(value.filter((k) => !next.includes(k)))
+        for (const k of changed) onPick(k)
+      }}>
+        {Object.entries(options).map(([k, l]) => <ToggleGroupItem key={k} value={k}>{l}</ToggleGroupItem>)}
+      </ToggleGroup>
     </fieldset>
   )
 }
