@@ -2,8 +2,8 @@ import type { ReactNode } from 'react'
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, EmptyState } from '@/kit'
 
 /** Thin wrapper over the kit's Dialog, for the app's controlled modals. */
-export function Modal({ isOpen, onClose, title, description, children, pie, boxWidth = 480 }: {
-  isOpen: boolean; onClose: () => void; title: string; description?: string; children: ReactNode; pie?: ReactNode; boxWidth?: number
+export function Modal({ isOpen, onClose, title, description, children, footer, boxWidth = 480 }: {
+  isOpen: boolean; onClose: () => void; title: string; description?: string; children: ReactNode; footer?: ReactNode; boxWidth?: number
 }) {
   const size = boxWidth >= 640 ? 'lg' : boxWidth >= 520 ? 'md' : 'sm'
   return (
@@ -14,7 +14,7 @@ export function Modal({ isOpen, onClose, title, description, children, pie, boxW
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <DialogBody>{children}</DialogBody>
-        {pie && <DialogFooter>{pie}</DialogFooter>}
+        {footer && <DialogFooter>{footer}</DialogFooter>}
       </DialogContent>
     </Dialog>
   )

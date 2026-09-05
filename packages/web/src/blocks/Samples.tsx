@@ -91,8 +91,8 @@ export const promptOf = (q: SampleKey) => DEFS[q].prompt
 
 /* ---------- ver ---------- */
 
-export function SampleSee({ que }: { que: SampleKey }) {
-  const d = DEFS[que]
+export function SampleSee({ sample }: { sample: SampleKey }) {
+  const d = DEFS[sample]
   if (d.see === 'cookie') {
     return (
       <svg viewBox="0 0 108 104" className="w-full" role="img" aria-label="Una galletita partida al medio, con una mitad pintada">
@@ -167,16 +167,16 @@ const audioOf = (q: SampleKey) => (WITH_AUDIO.has(q) ? `/voice/samples/${q}.m4a`
 /** Can the browser read out loud? On Linux with no voices installed, no: the answer
  *  can take a while, because the voice catalog arrives asynchronously. */
 export function useSystemVoice() {
-  const [any, setAny] = useState(false)
+  const [hasVoices, setHasVoices] = useState(false)
   useEffect(() => {
     const s = window.speechSynthesis
     if (!s) return
-    const read = () => setAny(s.getVoices().length > 0)
+    const read = () => setHasVoices(s.getVoices().length > 0)
     read()
     s.addEventListener('voiceschanged', read)
     return () => s.removeEventListener('voiceschanged', read)
   }, [])
-  return any
+  return hasVoices
 }
 
 /** Narrates a text: first with the recorded voice, and if there is no file or it fails, with the browser's.
@@ -260,8 +260,8 @@ export function VoiceButton({ text, src, className }: { text: string; src?: stri
   )
 }
 
-export function SampleListen({ que }: { que: SampleKey }) {
-  const { words, i, playing, toggle } = useNarration(DEFS[que].spoken, audioOf(que))
+export function SampleListen({ sample }: { sample: SampleKey }) {
+  const { words, i, playing, toggle } = useNarration(DEFS[sample].spoken, audioOf(sample))
   return (
     <div className="flex w-full flex-col items-center gap-3">
       <button type="button" onClick={(e) => { e.stopPropagation(); toggle() }}
@@ -286,16 +286,16 @@ export function SampleListen({ que }: { que: SampleKey }) {
 
 /* ---------- read ---------- */
 
-export function SampleRead({ que }: { que: SampleKey }) {
-  const t = DEFS[que].hasRead
+export function SampleRead({ sample }: { sample: SampleKey }) {
+  const t = DEFS[sample].hasRead
   // Short texts belong to the kids: they go big, which is how they are read at that age.
   return <p className={cn('text-ink', t.length < 40 ? 'text-center font-display text-2xl font-semibold' : 'text-[15px] leading-relaxed')}>{t}</p>
 }
 
 /* ---------- hacer ---------- */
 
-export function SampleDo({ que }: { que: SampleKey }) {
-  const h = DEFS[que].do
+export function SampleDo({ sample }: { sample: SampleKey }) {
+  const h = DEFS[sample].do
   if (h.kind === 'parts') return <DoParts {...h} />
   if (h.kind === 'count2') return <DoCount {...h} />
   return <DoUnknown {...h} />

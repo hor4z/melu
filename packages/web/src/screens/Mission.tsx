@@ -28,7 +28,7 @@ function buildSteps(phases: PhaseDoc[]): StepView[] {
 
 export function MissionScreen() {
   const { id } = useParams()
-  const q = useQuery({ queryKey: ['mision', id], queryFn: () => api.get<Mission>(`/api/missions/${id}`) })
+  const q = useQuery({ queryKey: ['mission', id], queryFn: () => api.get<Mission>(`/api/missions/${id}`) })
   if (!q.data) return null
   return <Runner key={q.data.submission.id} m={q.data} />
 }
@@ -49,7 +49,7 @@ function Runner({ m }: { m: Mission }) {
 
   const save = useMutation({
     mutationFn: (x: { answers: Answers; steps: Steps; submit: boolean }) => api.put<Submission>(`/api/submissions/${m.submission.id}`, x),
-    onSuccess: (e) => { if (e.status !== 'in_progress') qc.invalidateQueries({ queryKey: ['hoy'] }) },
+    onSuccess: (e) => { if (e.status !== 'in_progress') qc.invalidateQueries({ queryKey: ['today'] }) },
   })
   const saveSoon = (answers: Answers, next: Steps) => {
     window.clearTimeout(saved.current)

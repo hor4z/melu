@@ -23,7 +23,8 @@ export const api = {
 
 // ---- types mirroring the Go domain ----
 export type Person = { ID: string; Email: string; Name: string }
-export type Space = { id: string; name: string; slug: string; type: string }
+export type Space = { id: string; name: string; slug: string; kind: SpaceKind }
+export type SpaceKind = 'school' | 'club' | 'tutoring' | 'personal'
 export type Role = 'guide' | 'learner' | 'companion' | 'coordinator'
 export type Membership = { spaceId: string; groupId: string | null; role: Role }
 export type Group = { id: string; spaceId: string; name: string; code: string; tags: Record<string, string>; learners: number }

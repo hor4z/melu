@@ -22,8 +22,8 @@ export function evaluate(b: Block, v: AnswerValue | undefined): boolean | null {
       return b.correct === undefined ? null : v === b.correct
     case 'multi': {
       const expected = [...(b.correctMulti ?? [])].sort()
-      const die = [...(v as number[])].sort()
-      return expected.length > 0 && expected.length === die.length && expected.every((x, i) => x === die[i])
+      const given = [...(v as number[])].sort()
+      return expected.length > 0 && expected.length === given.length && expected.every((x, i) => x === given[i])
     }
     case 'number': {
       if (b.answer === undefined) return null
@@ -32,16 +32,16 @@ export function evaluate(b: Block, v: AnswerValue | undefined): boolean | null {
     }
     case 'fill_in': {
       const expected = b.blanks ?? []
-      const die = v as string[]
-      return expected.length > 0 && expected.every((h, i) => norm(die?.[i] ?? '') === norm(h))
+      const given = v as string[]
+      return expected.length > 0 && expected.every((h, i) => norm(given?.[i] ?? '') === norm(h))
     }
     case 'order': {
-      const die = v as string[]
-      return (b.items ?? []).every((it, i) => die?.[i] === it)
+      const given = v as string[]
+      return (b.items ?? []).every((it, i) => given?.[i] === it)
     }
     case 'match': {
-      const die = v as number[]
-      return (b.pairs ?? []).length > 0 && (b.pairs ?? []).every((_, i) => die?.[i] === i)
+      const given = v as number[]
+      return (b.pairs ?? []).length > 0 && (b.pairs ?? []).every((_, i) => given?.[i] === i)
     }
     case 'manipulative': {
       if (b.figure === 'balance') return (b.coefA ?? 1) * Number(v) + (b.coefB ?? 0) === (b.coefC ?? 0)
@@ -161,7 +161,7 @@ function NumberBlock({ b, value, onChange, status }: Props) {
 
 function FillIn({ b, value, onChange, status, reveal }: Props) {
   const chunks = splitBlanks(b.text)
-  const die = (value as string[]) ?? []
+  const given = (value as string[]) ?? []
   let n = -1
   return (
     <p className="flex flex-wrap items-center gap-x-1.5 gap-y-3 text-lg leading-relaxed">
@@ -169,11 +169,11 @@ function FillIn({ b, value, onChange, status, reveal }: Props) {
         if (!t.blank) return <span key={i}>{t.text}</span>
         n += 1
         const k = n
-        const ok = norm(die[k] ?? '') === norm(b.blanks?.[k] ?? '')
+        const ok = norm(given[k] ?? '') === norm(b.blanks?.[k] ?? '')
         return (
           <span key={i} className="inline-flex flex-col items-center">
-            <input value={die[k] ?? ''} disabled={status !== 'editing'} aria-label={`Hueco ${k + 1}`}
-              onChange={(e) => { const c = [...die]; c[k] = e.target.value; onChange(c) }}
+            <input value={given[k] ?? ''} disabled={status !== 'editing'} aria-label={`Hueco ${k + 1}`}
+              onChange={(e) => { const c = [...given]; c[k] = e.target.value; onChange(c) }}
               style={{ width: `${Math.max(4, (b.blanks?.[k]?.length ?? 6) + 2)}ch` }}
               className={cn('rounded-md border bg-surface px-2 py-1 text-center outline-none focus:border-ink',
                 status === 'editing' ? 'border-line' : ok ? 'border-success bg-success-subtle' : 'border-danger bg-danger-subtle')} />

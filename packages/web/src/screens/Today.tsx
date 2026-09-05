@@ -11,7 +11,7 @@ const STATUS = { null: ['Empezar', 'primary'], in_progress: ['Continuar', 'prima
 
 export function Today({ me }: { me: Me }) {
   const nav = useNavigate()
-  const q = useQuery({ queryKey: ['hoy'], queryFn: () => api.get<Room[]>('/api/today') })
+  const q = useQuery({ queryKey: ['today'], queryFn: () => api.get<Room[]>('/api/today') })
   const everyOne = q.data?.flatMap((s) => s.missions) ?? []
   const pending = everyOne.filter((m) => m.myStatus !== 'submitted' && m.myStatus !== 'graded')
   const done = everyOne.length - pending.length
@@ -68,7 +68,7 @@ function OtherGroup() {
   const qc = useQueryClient()
   const [code, setCode] = useState('')
   const [isOpen, setIsOpen] = useState(false)
-  const joinIt = useMutation({ mutationFn: () => api.post<Group>('/api/join', { code }), onSuccess: () => { setCode(''); setIsOpen(false); qc.invalidateQueries({ queryKey: ['hoy'] }) } })
+  const joinIt = useMutation({ mutationFn: () => api.post<Group>('/api/join', { code }), onSuccess: () => { setCode(''); setIsOpen(false); qc.invalidateQueries({ queryKey: ['today'] }) } })
   if (!isOpen) return <Button variant="ghost" size="sm" className="self-start" onClick={() => setIsOpen(true)}>+ Unirme a otro grupo con un código</Button>
   return (
     <form className="flex flex-wrap items-center gap-2" onSubmit={(e) => { e.preventDefault(); joinIt.mutate() }}>

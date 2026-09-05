@@ -13,10 +13,10 @@ import {
 } from '@/kit'
 import { Logo } from '@/kit'
 
-function Section({ id, title, tone, children }: { id: string; title: string; tone?: string; children: ReactNode }) {
+function Section({ id, title, note, children }: { id: string; title: string; note?: string; children: ReactNode }) {
   return (
     <section id={id} className="flex scroll-mt-24 flex-col gap-4 border-t border-line pt-8">
-      <div><Eyebrow>{id}</Eyebrow><Heading size="xl" className="mt-1">{title}</Heading>{tone && <Text variant="muted" className="mt-1 max-w-2xl">{tone}</Text>}</div>
+      <div><Eyebrow>{id}</Eyebrow><Heading size="xl" className="mt-1">{title}</Heading>{note && <Text variant="muted" className="mt-1 max-w-2xl">{note}</Text>}</div>
       {children}
     </section>
   )
@@ -69,7 +69,7 @@ export function Kit() {
             <Text variant="muted" className="mt-2 max-w-2xl">Cada componente se compone de piezas, se le puede prestar el estilo a otro elemento con <Kbd>asChild</Kbd>, y funciona controlado o no. Los colores salen de los tokens: cambiás el tema y cambia todo.</Text>
           </div>
 
-          <Section id="buttons" title="Botones" tone="Un solo primario por vista. El secundario lleva borde de 2px, como en la referencia.">
+          <Section id="buttons" title="Botones" note="Un solo primario por vista. El secundario lleva borde de 2px, como en la referencia.">
             <Row title="Variantes">
               <Button>Primario</Button><Button variant="secondary">Secundario</Button><Button variant="outline">Contorno</Button>
               <Button variant="subtle">Suave</Button><Button variant="ghost">Fantasma</Button><Button variant="accent">Acento</Button>
@@ -98,7 +98,7 @@ export function Kit() {
             </Row>
           </Section>
 
-          <Section id="icons" title="Íconos" tone="Set único: lucide-react. Tamaños xs a xl y colores semánticos.">
+          <Section id="icons" title="Íconos" note="Set único: lucide-react. Tamaños xs a xl y colores semánticos.">
             <Row>
               {(['xs', 'sm', 'md', 'lg', 'xl'] as const).map((s) => <span key={s} className="flex flex-col items-center gap-1"><Icon icon={Camera} size={s} /><Text size="xs" variant="subtle">{s}</Text></span>)}
               <Separator orientation="vertical" className="h-8" />
@@ -106,7 +106,7 @@ export function Kit() {
             </Row>
           </Section>
 
-          <Section id="typography" title="Tipografía" tone="Inter para el cuerpo, Inter Tight para títulos. El rótulo en mayúsculas ordena la página.">
+          <Section id="typography" title="Tipografía" note="Inter para el cuerpo, Inter Tight para títulos. El rótulo en mayúsculas ordena la página.">
             <div className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-6">
               <Eyebrow>Rótulo de sección</Eyebrow>
               <Heading level={2} size="display">Título de display</Heading>
@@ -120,7 +120,7 @@ export function Kit() {
             </div>
           </Section>
 
-          <Section id="forms" title="Formularios" tone="Field arma etiqueta, descripción, estado y aria. Los controles adentro se cablean solos.">
+          <Section id="forms" title="Formularios" note="Field arma etiqueta, descripción, estado y aria. Los controles adentro se cablean solos.">
             <div className="rounded-xl border border-line bg-surface p-6">
               <Form onSubmit={(e) => e.preventDefault()}>
                 <FormRow>
@@ -162,7 +162,7 @@ export function Kit() {
             </div>
           </Section>
 
-          <Section id="selection" title="Selección" tone="Switch, checkbox, radios y toggles. Todo navegable con teclado.">
+          <Section id="selection" title="Selección" note="Switch, checkbox, radios y toggles. Todo navegable con teclado.">
             <Row title="Switch y checkbox">
               <Switch checked={sw} onCheckedChange={setSw}>Avisarme de cada entrega</Switch>
               <Separator orientation="vertical" className="h-8" />
@@ -206,7 +206,7 @@ export function Kit() {
             </Row>
           </Section>
 
-          <Section id="slider" title="Slider" tone="Valor único o rango, con marcas y teclado (flechas, Inicio/Fin, ±10 con Shift).">
+          <Section id="slider" title="Slider" note="Valor único o rango, con marcas y teclado (flechas, Inicio/Fin, ±10 con Shift).">
             <div className="grid gap-8 rounded-xl border border-line bg-surface p-6 sm:grid-cols-2">
               <Field label="Dificultad" description="Un solo valor, con globo al pasar.">
                 <Slider value={one} onValueChange={(v) => setOne(v as number)} marks={[{ value: 0, label: 'Suave' }, { value: 50 }, { value: 100, label: 'Duro' }]} />
@@ -217,7 +217,7 @@ export function Kit() {
             </div>
           </Section>
 
-          <Section id="chips" title="Chips y avatares" tone="Los chips usan los tintes del tema; los avatares derivan color e iniciales del nombre.">
+          <Section id="chips" title="Chips y avatares" note="Los chips usan los tintes del tema; los avatares derivan color e iniciales del nombre.">
             <Row title="Chips">
               {(['default', 'outline', 'solid', 'accent', 'teal', 'yellow', 'blue', 'lilac', 'orange', 'cyan', 'green', 'pink', 'success', 'warning', 'danger'] as const).map((c) => <Chip key={c} color={c}>{c}</Chip>)}
             </Row>
@@ -236,7 +236,7 @@ export function Kit() {
             </Row>
           </Section>
 
-          <Section id="cards" title="Tarjetas" tone="Cabecera, contenido y pie; variantes con tinte para portadas y destacados.">
+          <Section id="cards" title="Tarjetas" note="Cabecera, contenido y pie; variantes con tinte para portadas y destacados.">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <Card>
                 <CardHeader><CardTitle>Puente de espagueti</CardTitle><CardDescription>Reto · Design thinking</CardDescription></CardHeader>
@@ -257,7 +257,7 @@ export function Kit() {
             </div>
           </Section>
 
-          <Section id="menus" title="Menús" tone="Menú de tres puntos, menú de avatar y popover. Teclado, tecleo para buscar y cierre por Escape.">
+          <Section id="menus" title="Menús" note="Menú de tres puntos, menú de avatar y popover. Teclado, tecleo para buscar y cierre por Escape.">
             <Row>
               <MoreMenu items={[
                 { label: 'Editar', icon: <Icon icon={Pencil} size="sm" /> },
@@ -296,7 +296,7 @@ export function Kit() {
             </Row>
           </Section>
 
-          <Section id="modals" title="Modales" tone="Bloquean el scroll, atrapan el foco y lo devuelven al cerrar.">
+          <Section id="modals" title="Modales" note="Bloquean el scroll, atrapan el foco y lo devuelven al cerrar.">
             <Row>
               <Dialog>
                 <DialogTrigger><Button>Abrir modal</Button></DialogTrigger>
@@ -328,7 +328,7 @@ export function Kit() {
             </Row>
           </Section>
 
-          <Section id="navigation" title="Navegación" tone="Pestañas de línea o de píldora, con flechas para moverse.">
+          <Section id="navigation" title="Navegación" note="Pestañas de línea o de píldora, con flechas para moverse.">
             <div className="rounded-xl border border-line bg-surface p-6">
               <Tabs value={tab} onValueChange={setTab}>
                 <TabsList>
@@ -343,7 +343,7 @@ export function Kit() {
             </div>
           </Section>
 
-          <Section id="feedback" title="Estados" tone="Avisos, progreso, esqueletos y vacíos que explican qué hacer.">
+          <Section id="feedback" title="Estados" note="Avisos, progreso, esqueletos y vacíos que explican qué hacer.">
             <div className="flex flex-col gap-3">
               <Alert title="Todo en orden">Las entregas se guardan solas mientras los chicos trabajan.</Alert>
               <Alert variant="success" title="Actividad asignada">La van a ver en «Hoy» apenas entren.</Alert>

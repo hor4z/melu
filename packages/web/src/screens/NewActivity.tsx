@@ -13,9 +13,9 @@ import { Cover } from '../blocks/Cover'
 export function NewActivity() {
   const nav = useNavigate()
   const spaceId = useSpaceId()
-  const q = useQuery({ queryKey: ['actividades', spaceId], queryFn: () => api.get<{ recipes: Activity[]; mine: Activity[] }>(`/api/activities?espacio=${spaceId}`) })
-  const lenses = useQuery({ queryKey: ['lentes'], queryFn: () => api.get<Lens[]>('/api/lenses') })
-  const [paso, setStep] = useState(0)
+  const q = useQuery({ queryKey: ['activities', spaceId], queryFn: () => api.get<{ recipes: Activity[]; mine: Activity[] }>(`/api/activities?space=${spaceId}`) })
+  const lenses = useQuery({ queryKey: ['lenses'], queryFn: () => api.get<Lens[]>('/api/lenses') })
+  const [step, setStep] = useState(0)
   const [base, setBase] = useState<Activity | null>(null)
   const [title, setTitle] = useState('')
   const [comp, setComp] = useState<Composition>({ experience: 'challenge', lens: 'no_lens', setting: ['screen'], social: 'alone', disciplines: [] })
@@ -40,11 +40,11 @@ export function NewActivity() {
     <div className="flex flex-col gap-6">
       <Link to="/activities" className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> Actividades</Link>
       <header className="flex flex-wrap items-end justify-between gap-4">
-        <div><Eyebrow>Nueva actividad</Eyebrow><Heading level={1} size="2xl" className="mt-1">{paso === 0 ? 'Empezá desde una plantilla' : 'Ajustá la composición'}</Heading><Text variant="muted">{paso === 0 ? 'Cada plantilla es una combinación que funciona: qué hacen, cómo se recorre, dónde, con quién. La copiás y la hacés tuya.' : 'Seis decisiones. Lo que elijas acá define las fases y qué evidencia vuelve. Todo se puede cambiar después.'}</Text></div>
-        <Stepper steps={['Plantilla', 'Ajustar', 'Editar']} current={paso} />
+        <div><Eyebrow>Nueva actividad</Eyebrow><Heading level={1} size="2xl" className="mt-1">{step === 0 ? 'Empezá desde una plantilla' : 'Ajustá la composición'}</Heading><Text variant="muted">{step === 0 ? 'Cada plantilla es una combinación que funciona: qué hacen, cómo se recorre, dónde, con quién. La copiás y la hacés tuya.' : 'Seis decisiones. Lo que elijas acá define las fases y qué evidencia vuelve. Todo se puede cambiar después.'}</Text></div>
+        <Stepper steps={['Plantilla', 'Ajustar', 'Editar']} current={step} />
       </header>
 
-      {paso === 0 && (
+      {step === 0 && (
         <>
           <div className="flex flex-wrap items-center gap-2">
             <Toggle pressed={!query} onPressedChange={() => setQuery('')} variant="outline" size="sm">Todas</Toggle>
@@ -76,7 +76,7 @@ export function NewActivity() {
         </>
       )}
 
-      {paso === 1 && (
+      {step === 1 && (
         <form className="grid gap-6 lg:grid-cols-[1fr_320px]" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
           <Card padding="lg" className="gap-6">
             <Field label="Título"><Input placeholder="Puente de espagueti" value={title} onChange={(e) => setTitle(e.target.value)} required autoFocus /></Field>

@@ -13,12 +13,12 @@ import { Empty } from '../blocks/Modal'
 export function Review() {
   const { id } = useParams()
   const qc = useQueryClient()
-  const q = useQuery({ queryKey: ['entregas', id], queryFn: () => api.get<{ assignment: Assignment; submissions: Submission[] }>(`/api/assignments/${id}/entregas`) })
+  const q = useQuery({ queryKey: ['submissions', id], queryFn: () => api.get<{ assignment: Assignment; submissions: Submission[] }>(`/api/assignments/${id}/submissions`) })
   const [sel, setSel] = useState<string | null>(null)
   const [scores, setScores] = useState<Record<string, number>>({})
   const gradeIt = useMutation({
     mutationFn: (e: Submission) => api.put(`/api/submissions/${e.id}/scores`, { scores: Object.entries(scores).map(([cid, level]): Score => ({ id: cid, level })) }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['entregas', id] }); setScores({}); setSel(null) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['submissions', id] }); setScores({}); setSel(null) },
   })
   if (!q.data) return null
   const { assignment: a, submissions } = q.data
@@ -41,7 +41,7 @@ export function Review() {
               <li key={e.id}><button type="button" onClick={() => { setSel(e.id); setScores(Object.fromEntries(e.scores.map((p) => [p.id, p.level]))) }}
                 className={cn('flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm', current.id === e.id ? 'bg-teal font-medium text-accent' : 'hover:bg-hover')}>
                 <Avatar name={e.learner ?? '?'} size="sm" /><span className="flex-1 truncate">{e.learner}</span>
-                <span className={`size-2 rounded-full ${e.status === 'graded' ? 'bg-success' : 'bg-warning'}`} aria-label={e.status} />
+                <span className={`size-2 rounded-full ${e.status === 'graded' ? 'bg-success' : 'bg-warning'}`} aria-label={e.status === 'graded' ? 'Corregida' : 'Para mirar'} />
               </button></li>
             ))}
           </ul></Card>

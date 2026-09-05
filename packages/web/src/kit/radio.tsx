@@ -48,8 +48,8 @@ export function RadioGroupItem({ value, children, description, disabled, classNa
     const group = e.currentTarget.closest('[role="radiogroup"]')
     const items = [...(group?.querySelectorAll<HTMLButtonElement>('[role="radio"]:not(:disabled)') ?? [])]
     const i = items.indexOf(e.currentTarget)
-    const paso = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : -1
-    const next = items[(i + paso + items.length) % items.length]
+    const step = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : -1
+    const next = items[(i + step + items.length) % items.length]
     next?.focus(); next?.click()
   }
   return (

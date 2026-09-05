@@ -8,7 +8,8 @@ import {
 } from '@/kit'
 import { useSignOut } from './lib/session'
 import { useSpace } from './lib/space'
-import { api, type Space, type Dashboard, type Me } from './lib/api'
+import { api, type Space, type SpaceKind, type Dashboard, type Me } from './lib/api'
+import { SPACE_KINDS } from './lib/composition'
 import { Modal } from './blocks/Modal'
 
 const item = ({ isActive }: { isActive: boolean }) =>
@@ -16,7 +17,7 @@ const item = ({ isActive }: { isActive: boolean }) =>
 
 function NotificationsBell({ spaceId }: { spaceId: string }) {
   const nav = useNavigate()
-  const q = useQuery({ queryKey: ['panel', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?espacio=${spaceId}`), staleTime: 30_000 })
+  const q = useQuery({ queryKey: ['dashboard', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?space=${spaceId}`), staleTime: 30_000 })
   const n = q.data?.toReview ?? 0
   return (
     <button type="button" onClick={() => nav('/home')} className="relative grid size-9 place-items-center rounded-lg hover:bg-hover" aria-label={`${n} entregas para mirar`}>
@@ -64,20 +65,20 @@ function NewSpace({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
   const qc = useQueryClient()
   const { change } = useSpace()
   const [name, setName] = useState('')
-  const [type, setKind] = useState('personal')
+  const [kind, setKind] = useState<SpaceKind>('personal')
   const create = useMutation({
-    mutationFn: () => api.post<Space>('/api/spaces', { name, type }),
-    onSuccess: async (e) => { await qc.invalidateQueries({ queryKey: ['yo'] }); change(e.id); setName(''); onClose() },
+    mutationFn: () => api.post<Space>('/api/spaces', { name, kind }),
+    onSuccess: async (e) => { await qc.invalidateQueries({ queryKey: ['me'] }); change(e.id); setName(''); onClose() },
   })
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Nuevo espacio" description="Un espacio es quien organiza: una escuela, un club, un centro de apoyo, o vos."
-      pie={<><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button form="new-space" type="submit" loading={create.isPending}>Crear</Button></>}>
+      footer={<><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button form="new-space" type="submit" loading={create.isPending}>Crear</Button></>}>
       <form id="new-space" className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
         <Field label="Nombre"><Input placeholder="Taller de los sábados" value={name} onChange={(e) => setName(e.target.value)} required autoFocus /></Field>
         <fieldset className="flex flex-wrap gap-2">
-          {[['personal', 'Soy yo'], ['support', 'Apoyo / refuerzo'], ['club', 'Club / taller'], ['escuela', 'Escuela']].map(([v, l]) => (
-            <label key={v} className={cn('cursor-pointer rounded-md border-2 px-3 py-1.5 text-sm font-medium', type === v ? 'border-ink bg-solid text-on-solid' : 'border-line hover:border-ink')}>
-              <input type="radio" className="sr-only" name="space-kind" value={v} checked={type === v} onChange={() => setKind(v)} />{l}
+          {(Object.entries(SPACE_KINDS) as [SpaceKind, string][]).map(([v, l]) => (
+            <label key={v} className={cn('cursor-pointer rounded-md border-2 px-3 py-1.5 text-sm font-medium', kind === v ? 'border-ink bg-solid text-on-solid' : 'border-line hover:border-ink')}>
+              <input type="radio" className="sr-only" name="space-kind" value={v} checked={kind === v} onChange={() => setKind(v)} />{l}
             </label>
           ))}
         </fieldset>
@@ -130,14 +131,14 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
       </div>
 
       <Modal isOpen={changing} onClose={() => setChanging(false)} title="Cambiar de espacio" description="Los grupos, las actividades y el panel se filtran por el espacio elegido."
-        pie={<Button variant="ghost" onClick={() => setChanging(false)}>Cerrar</Button>}>
+        footer={<Button variant="ghost" onClick={() => setChanging(false)}>Cerrar</Button>}>
         <ul className="flex flex-col gap-2">
           {spaces.map((e) => (
             <li key={e.id}>
               <Card asChild interactive padding="sm" variant={e.id === space?.id ? 'teal' : 'default'}>
                 <button type="button" onClick={() => { change(e.id); setChanging(false) }} className="w-full flex-row items-center gap-3">
                   <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-white/70"><Icon icon={School} size="lg" /></span>
-                  <span className="min-w-0 flex-1 text-left"><span className="block truncate font-medium">{e.name}</span><span className="block text-xs text-ink-subtle">{e.type}</span></span>
+                  <span className="min-w-0 flex-1 text-left"><span className="block truncate font-medium">{e.name}</span><span className="block text-xs text-ink-subtle">{SPACE_KINDS[e.kind] ?? e.kind}</span></span>
                   {e.id === space?.id && <Chip size="sm" color="accent">Acá estás</Chip>}
                 </button>
               </Card>

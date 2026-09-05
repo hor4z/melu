@@ -57,5 +57,10 @@ export const FIGURES: Record<string, { name: string; hint: string; emoji: string
   balance:      { name: 'Balanza', hint: 'Equilibrar una ecuación probando valores', emoji: '⚖️' },
 }
 
+/** Qué organiza un espacio. La clave viaja a la base (ver el check de `spaces.kind`). */
+export const SPACE_KINDS: Record<string, string> = {
+  personal: 'Soy yo', tutoring: 'Apoyo / refuerzo', club: 'Club / taller', school: 'Escuela',
+}
+
 /** Los tres medios de evidencia, con su etiqueta. La clave viaja a la base; el texto se muestra. */
 export const EVIDENCE_MEDIA: Record<string, string> = { photo: 'foto', audio: 'audio', file: 'archivo' }

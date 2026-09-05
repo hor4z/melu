@@ -51,13 +51,13 @@ function SortGame({ b, value, onChange, status, reveal }: Props) {
   const locked = status !== 'editing'
 
   const release = (item: number, cat: number) => { const c = [...assigned]; c[item] = cat; onChange(c); setTaken(null) }
-  const loose = items.map((_, i) => i).filter((i) => assigned[i] < 0)
+  const unassigned = items.map((_, i) => i).filter((i) => assigned[i] < 0)
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex min-h-14 flex-wrap items-start gap-2 rounded-xl border border-dashed border-line-strong bg-muted p-3">
-        {loose.length === 0 && <Text size="sm" variant="muted">Ya clasificaste todo.</Text>}
-        {loose.map((i) => (
+        {unassigned.length === 0 && <Text size="sm" variant="muted">Ya clasificaste todo.</Text>}
+        {unassigned.map((i) => (
           <button key={i} type="button" disabled={locked} draggable={!locked}
             onDragStart={(e) => { e.dataTransfer.setData('text/item', String(i)); setTaken(i) }}
             onClick={() => setTaken(taken === i ? null : i)}
@@ -101,29 +101,29 @@ function SortGame({ b, value, onChange, status, reveal }: Props) {
 function MemoryGame({ b, value, onChange, status }: Props) {
   const pairs = b.pairs ?? []
   const cards = useMemo(() => {
-    const everyOne = pairs.flatMap((p, i) => [{ duo: i, text: p.left }, { duo: i, text: p.right }])
-    for (let i = everyOne.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [everyOne[i], everyOne[j]] = [everyOne[j], everyOne[i]] }
-    return everyOne
+    const deck = pairs.flatMap((p, i) => [{ pair: i, text: p.left }, { pair: i, text: p.right }])
+    for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]] }
+    return deck
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [b.id])
   const found = (value as number[]) ?? []
-  const [given, setGiven] = useState<number[]>([])
+  const [flipped, setFlipped] = useState<number[]>([])
   const [failure, setFailure] = useState(false)
   const timer = useRef<number | undefined>(undefined)
   useEffect(() => () => window.clearTimeout(timer.current), [])
 
-  const deal = (i: number) => {
-    if (status !== 'editing' || given.includes(i) || found.includes(cards[i].duo) || given.length === 2) return
-    const next = [...given, i]
-    setGiven(next)
+  const flip = (i: number) => {
+    if (status !== 'editing' || flipped.includes(i) || found.includes(cards[i].pair) || flipped.length === 2) return
+    const next = [...flipped, i]
+    setFlipped(next)
     if (next.length < 2) return
     const [a, z] = next
-    if (cards[a].duo === cards[z].duo) {
-      onChange([...found, cards[a].duo])
-      timer.current = window.setTimeout(() => setGiven([]), 350)
+    if (cards[a].pair === cards[z].pair) {
+      onChange([...found, cards[a].pair])
+      timer.current = window.setTimeout(() => setFlipped([]), 350)
     } else {
       setFailure(true)
-      timer.current = window.setTimeout(() => { setGiven([]); setFailure(false) }, 800)
+      timer.current = window.setTimeout(() => { setFlipped([]); setFailure(false) }, 800)
     }
   }
 
@@ -132,14 +132,14 @@ function MemoryGame({ b, value, onChange, status }: Props) {
       <Progress value={found.length} max={pairs.length} label="Parejas encontradas" showValue />
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         {cards.map((c, i) => {
-          const hit = found.includes(c.duo)
-          const visible = hit || given.includes(i) || status !== 'editing'
+          const matched = found.includes(c.pair)
+          const visible = matched || flipped.includes(i) || status !== 'editing'
           return (
-            <button key={i} type="button" onClick={() => deal(i)} disabled={status !== 'editing' || hit}
+            <button key={i} type="button" onClick={() => flip(i)} disabled={status !== 'editing' || matched}
               style={{ perspective: 600 }}
               className={cn('grid min-h-20 place-items-center rounded-md border p-3 text-center text-sm font-medium transition-colors',
-                hit ? 'border-success bg-success-subtle kit-correcto'
-                  : visible ? (failure && given.includes(i) ? 'border-danger bg-danger-subtle kit-error' : 'border-ink bg-accent-subtle')
+                matched ? 'border-success bg-success-subtle kit-correcto'
+                  : visible ? (failure && flipped.includes(i) ? 'border-danger bg-danger-subtle kit-error' : 'border-ink bg-accent-subtle')
                     : 'border-line bg-muted hover:border-ink')}>
               <span key={visible ? 'cara' : 'dorso'} className="kit-flip">
                 {visible ? c.text : <Logomark size={26} className="text-ink-subtle opacity-40" />}

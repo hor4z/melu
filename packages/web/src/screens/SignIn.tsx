@@ -7,13 +7,13 @@ import { api, type AuthOptions } from '../lib/api'
 export function SignIn() {
   const qc = useQueryClient()
   const { code } = useParams()
-  const options = useQuery({ queryKey: ['auth-opciones'], queryFn: () => api.get<AuthOptions>('/api/auth/options') })
+  const options = useQuery({ queryKey: ['auth-options'], queryFn: () => api.get<AuthOptions>('/api/auth/options') })
   const [email, setEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const devSignIn = async () => {
     setError(null)
-    try { await api.post('/api/auth/dev', { email }); await qc.invalidateQueries({ queryKey: ['yo'] }) }
+    try { await api.post('/api/auth/dev', { email }); await qc.invalidateQueries({ queryKey: ['me'] }) }
     catch { setError('No se pudo entrar. Revisá el email.') }
   }
 

@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowRight, Check, Copy } from 'lucide-react'
 import { Button, Card, CardContent, CardMedia, DoodleGroup, DoodleWave, Field, Heading, Icon, Input, Logo, Stepper, Text, cn } from '@/kit'
-import { api, type Activity, type Space, type Group, type Invite, type Me } from '../lib/api'
+import { api, type Activity, type Space, type SpaceKind, type Group, type Invite, type Me } from '../lib/api'
+import { SPACE_KINDS } from '../lib/composition'
 import { useSignOut } from '../lib/session'
 import { CompositionChips } from '../blocks/Chips'
 
@@ -51,19 +52,19 @@ function Door({ illustration, tint, title, text, onClick }: { illustration: Reac
 // Teacher onboarding in three steps: space → group (with an invite) → first assigned activity.
 function Onboarding({ onBack }: { onBack: () => void }) {
   const qc = useQueryClient()
-  const [paso, setStep] = useState(0)
+  const [step, setStep] = useState(0)
   const [name, setName] = useState('')
-  const [type, setKind] = useState('personal')
+  const [kind, setKind] = useState<SpaceKind>('personal')
   const [groupName, setGroupName] = useState('')
   const [space, setSpace] = useState<Space | null>(null)
   const [group, setGroup] = useState<Group | null>(null)
   const [inv, setInv] = useState<Invite | null>(null)
   const [copied, setCopied] = useState(false)
-  const recipes = useQuery({ queryKey: ['actividades'], queryFn: () => api.get<{ recipes: Activity[]; mine: Activity[] }>('/api/activities'), enabled: paso === 2 })
+  const recipes = useQuery({ queryKey: ['activities'], queryFn: () => api.get<{ recipes: Activity[]; mine: Activity[] }>('/api/activities'), enabled: step === 2 })
 
   const create = useMutation({
     mutationFn: async () => {
-      const e = await api.post<Space>('/api/spaces', { name, type })
+      const e = await api.post<Space>('/api/spaces', { name, kind })
       const g = await api.post<Group>('/api/groups', { spaceId: e.id, name: groupName || 'Mi primer grupo' })
       const i = await api.get<Invite>(`/api/groups/${g.id}/invite`)
       return { e, g, i }
@@ -71,23 +72,23 @@ function Onboarding({ onBack }: { onBack: () => void }) {
     onSuccess: ({ e, g, i }) => { setSpace(e); setGroup(g); setInv(i); setStep(1) },
   })
   const assign = useMutation({
-    mutationFn: async (recipeId: string) => { const a = await api.post<Activity>('/api/activities', { spaceId: space!.id, desdeReceta: recipeId }); await api.post(`/api/activities/${a.id}/assign`, { groupId: group!.id }); return a },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['yo'] }),
+    mutationFn: async (recipeId: string) => { const a = await api.post<Activity>('/api/activities', { spaceId: space!.id, fromRecipe: recipeId }); await api.post(`/api/activities/${a.id}/assign`, { groupId: group!.id }); return a },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['me'] }),
   })
-  const finish = () => qc.invalidateQueries({ queryKey: ['yo'] })
+  const finish = () => qc.invalidateQueries({ queryKey: ['me'] })
 
   return (
     <div className="flex flex-col gap-6">
-      <Stepper steps={['Tu espacio', 'Invitá a los chicos', 'Primera actividad']} current={paso} />
+      <Stepper steps={['Tu espacio', 'Invitá a los chicos', 'Primera actividad']} current={step} />
 
-      {paso === 0 && (
+      {step === 0 && (
         <Card asChild padding="lg"><form className="grid gap-6 lg:grid-cols-[1fr_260px]" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
           <div className="flex flex-col gap-5">
             <div><Heading size="xl">Tu espacio y tu primer grupo</Heading><Text variant="muted">El espacio es quien organiza (vos, tu escuela, tu club). El grupo es la gente que aprende junta.</Text></div>
             <Field label="Nombre del espacio"><Input placeholder="Taller de los sábados" value={name} onChange={(e) => setName(e.target.value)} required autoFocus /></Field>
             <fieldset className="flex flex-wrap gap-2">
-              {[['personal', 'Soy yo'], ['support', 'Apoyo / refuerzo'], ['club', 'Club / taller'], ['escuela', 'Escuela']].map(([v, l]) => (
-                <label key={v} className={cn('cursor-pointer rounded-md border-2 px-3 py-1.5 text-sm font-medium', type === v ? 'border-ink bg-solid text-on-solid' : 'border-line hover:border-ink')}><input type="radio" className="sr-only" name="kind" value={v} checked={type === v} onChange={() => setKind(v)} />{l}</label>
+              {(Object.entries(SPACE_KINDS) as [SpaceKind, string][]).map(([v, l]) => (
+                <label key={v} className={cn('cursor-pointer rounded-md border-2 px-3 py-1.5 text-sm font-medium', kind === v ? 'border-ink bg-solid text-on-solid' : 'border-line hover:border-ink')}><input type="radio" className="sr-only" name="kind" value={v} checked={kind === v} onChange={() => setKind(v)} />{l}</label>
               ))}
             </fieldset>
             <Field label="Tu primer grupo"><Input placeholder="4° A · Matemática" value={groupName} onChange={(e) => setGroupName(e.target.value)} required /></Field>
@@ -98,7 +99,7 @@ function Onboarding({ onBack }: { onBack: () => void }) {
         </form></Card>
       )}
 
-      {paso === 1 && inv && (
+      {step === 1 && inv && (
         <Card padding="lg" className="grid gap-6 lg:grid-cols-[1fr_240px]">
           <div className="flex flex-col gap-5">
             <div><h2 className="font-display text-2xl font-semibold">Invitá a los chicos a «{group?.name}»</h2><Text variant="muted">Entran con Google y escriben este código, o escanean el QR. Sin registros, sin contraseñas.</Text></div>
@@ -115,7 +116,7 @@ function Onboarding({ onBack }: { onBack: () => void }) {
         </Card>
       )}
 
-      {paso === 2 && (
+      {step === 2 && (
         <Card padding="lg" className="gap-5">
           <div><Heading size="xl">Elegí una primera actividad</Heading><Text variant="muted">Son recetas: combinaciones que funcionan. Se asigna al grupo ya mismo y la podés editar después como un documento.</Text></div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -137,7 +138,7 @@ function Onboarding({ onBack }: { onBack: () => void }) {
 function Join({ onBack }: { onBack: () => void }) {
   const qc = useQueryClient()
   const [code, setCode] = useState('')
-  const joinIt = useMutation({ mutationFn: () => api.post<Group>('/api/join', { code: code.trim() }), onSuccess: () => qc.invalidateQueries({ queryKey: ['yo'] }) })
+  const joinIt = useMutation({ mutationFn: () => api.post<Group>('/api/join', { code: code.trim() }), onSuccess: () => qc.invalidateQueries({ queryKey: ['me'] }) })
   return (
     <Card asChild padding="lg"><form className="mx-auto grid max-w-2xl gap-6 sm:grid-cols-[1fr_200px]" onSubmit={(e) => { e.preventDefault(); joinIt.mutate() }}>
       <div className="flex flex-col gap-5">

@@ -27,7 +27,7 @@ function Join() {
   const { code } = useParams()
   const qc = useQueryClient()
   const nav = useNavigate()
-  useEffect(() => { if (code) api.post<Group>('/api/join', { code }).finally(async () => { await qc.invalidateQueries({ queryKey: ['yo'] }); nav('/today', { replace: true }) }) }, [code, qc, nav])
+  useEffect(() => { if (code) api.post<Group>('/api/join', { code }).finally(async () => { await qc.invalidateQueries({ queryKey: ['me'] }); nav('/today', { replace: true }) }) }, [code, qc, nav])
   return <div className="grid min-h-screen place-items-center"><Spinner /></div>
 }
 

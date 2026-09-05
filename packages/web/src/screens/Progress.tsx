@@ -9,8 +9,8 @@ import type { LiveProfile } from '../lib/profile'
 
 export function Progress() {
   const nav = useNavigate()
-  const q = useQuery({ queryKey: ['progreso'], queryFn: () => api.get<P>('/api/my-progress') })
-  const profile = useQuery({ queryKey: ['perfil'], queryFn: () => api.get<LiveProfile>('/api/profile') })
+  const q = useQuery({ queryKey: ['progress'], queryFn: () => api.get<P>('/api/my-progress') })
+  const profile = useQuery({ queryKey: ['profile'], queryFn: () => api.get<LiveProfile>('/api/profile') })
   const p = q.data
   if (!p) return null
   const total = p.done + p.inProgress

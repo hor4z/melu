@@ -22,12 +22,12 @@ import {
 
 /* ═══════════ the script ═══════════ */
 
-type Option = { value: string; title: string; pie?: string; body?: ReactNode }
+type Option = { value: string; title: string; footer?: string; body?: ReactNode }
 type StepView =
   | { type: 'tell'; key: string; chapter: number; render: ReactNode; cta: string }
-  | { type: 'elegir'; key: string; chapter: number; title: string; subtitle?: string; options: Option[]; boxHeight?: boolean }
-  | { type: 'armando'; key: string; chapter: number }
-  | { type: 'perfil'; key: string; chapter: number }
+  | { type: 'pick'; key: string; chapter: number; title: string; subtitle?: string; options: Option[]; boxHeight?: boolean }
+  | { type: 'building'; key: string; chapter: number }
+  | { type: 'profile'; key: string; chapter: number }
 
 const CHAPTERS = ['Qué es esto', 'Cómo aprendés', 'Tu perfil']
 
@@ -51,12 +51,12 @@ function Illustration({ src }: { src: string }) {
   )
 }
 
-function sampleOptions(que: SampleKey): Option[] {
+function sampleOptions(sample: SampleKey): Option[] {
   return [
-    { value: 'see', title: 'Mirá', body: <SampleSee que={que} /> },
-    { value: 'listen', title: 'Escuchá', body: <SampleListen que={que} /> },
-    { value: 'read', title: 'Leé', body: <SampleRead que={que} /> },
-    { value: 'do', title: promptOf(que), body: <SampleDo que={que} /> },
+    { value: 'see', title: 'Mirá', body: <SampleSee sample={sample} /> },
+    { value: 'listen', title: 'Escuchá', body: <SampleListen sample={sample} /> },
+    { value: 'read', title: 'Leé', body: <SampleRead sample={sample} /> },
+    { value: 'do', title: promptOf(sample), body: <SampleDo sample={sample} /> },
   ]
 }
 
@@ -71,10 +71,10 @@ const BY_BAND: Record<Band, {
       title: 'Cuatro maneras de empezar lo mismo.',
       subtitle: 'Contar los pasos que hay hasta el patio. ¿Cuál te dan ganas de abrir?',
       options: [
-        { value: 'challenge', title: '«¿Podés adivinar cuántos pasos son, antes de contarlos?»', pie: 'Un desafío' },
-        { value: 'story', title: '«Un pingüino se perdió y tiene que contar los pasos para volver a casa.»', pie: 'Un cuento' },
-        { value: 'game', title: '«Nivel 1. Un punto por cada paso bien contado.»', pie: 'Un juego' },
-        { value: 'real', title: '«Salimos al patio de verdad y los contamos.»', pie: 'De verdad' },
+        { value: 'challenge', title: '«¿Podés adivinar cuántos pasos son, antes de contarlos?»', footer: 'Un desafío' },
+        { value: 'story', title: '«Un pingüino se perdió y tiene que contar los pasos para volver a casa.»', footer: 'Un cuento' },
+        { value: 'game', title: '«Nivel 1. Un punto por cada paso bien contado.»', footer: 'Un juego' },
+        { value: 'real', title: '«Salimos al patio de verdad y los contamos.»', footer: 'De verdad' },
       ],
     },
     pace: {
@@ -91,10 +91,10 @@ const BY_BAND: Record<Band, {
       title: 'La misma actividad, empezada de cuatro formas.',
       subtitle: 'Medir la altura de un árbol. ¿Cuál abrirías?',
       options: [
-        { value: 'challenge', title: '«¿Podés saber cuánto mide el árbol sin subirte? Tenés quince minutos.»', pie: 'Un reto' },
-        { value: 'story', title: '«Tales se paró frente a una pirámide gigante y dijo: yo sé cuánto mide.»', pie: 'Una historia' },
-        { value: 'game', title: '«Nivel 1 de 3. Diez puntos por cada sombra bien medida.»', pie: 'Un juego' },
-        { value: 'real', title: '«El patio de tu escuela, una cinta métrica, y hoy salís sabiendo cuánto mide ese árbol.»', pie: 'Algo real' },
+        { value: 'challenge', title: '«¿Podés saber cuánto mide el árbol sin subirte? Tenés quince minutos.»', footer: 'Un reto' },
+        { value: 'story', title: '«Tales se paró frente a una pirámide gigante y dijo: yo sé cuánto mide.»', footer: 'Una historia' },
+        { value: 'game', title: '«Nivel 1 de 3. Diez puntos por cada sombra bien medida.»', footer: 'Un juego' },
+        { value: 'real', title: '«El patio de tu escuela, una cinta métrica, y hoy salís sabiendo cuánto mide ese árbol.»', footer: 'Algo real' },
       ],
     },
     pace: {
@@ -111,10 +111,10 @@ const BY_BAND: Record<Band, {
       title: 'La misma actividad, planteada de cuatro formas.',
       subtitle: 'Medir la altura del edificio de enfrente. ¿Cuál abrirías?',
       options: [
-        { value: 'challenge', title: '«¿Podés medir el edificio de enfrente sin salir del aula? Quince minutos.»', pie: 'Un reto' },
-        { value: 'story', title: '«Tales se paró frente a una pirámide y dijo: yo sé cuánto mide. No tenía más que su propia sombra.»', pie: 'Una historia' },
-        { value: 'game', title: '«Nivel 1 de 3. Diez puntos por cada medición dentro del margen de error.»', pie: 'Un juego' },
-        { value: 'real', title: '«Tu escuela, una cinta métrica y trigonometría: hoy salís con el dato real.»', pie: 'Algo real' },
+        { value: 'challenge', title: '«¿Podés medir el edificio de enfrente sin salir del aula? Quince minutos.»', footer: 'Un reto' },
+        { value: 'story', title: '«Tales se paró frente a una pirámide y dijo: yo sé cuánto mide. No tenía más que su propia sombra.»', footer: 'Una historia' },
+        { value: 'game', title: '«Nivel 1 de 3. Diez puntos por cada medición dentro del margen de error.»', footer: 'Un juego' },
+        { value: 'real', title: '«Tu escuela, una cinta métrica y trigonometría: hoy salís con el dato real.»', footer: 'Algo real' },
       ],
     },
     pace: {
@@ -135,7 +135,7 @@ function script(band: Band, alreadyIn: boolean): StepView[] {
 
   return [
     {
-      type: 'tell', key: 'hola', chapter: 0, cta: 'Empezar',
+      type: 'tell', key: 'hello', chapter: 0, cta: 'Empezar',
       // She walks in and waves; the text arrives behind. First the person, then the app.
       render: (
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:gap-2">
@@ -153,17 +153,17 @@ function script(band: Band, alreadyIn: boolean): StepView[] {
       ),
     },
     {
-      type: 'elegir', key: 'band', chapter: 0, boxHeight: true,
+      type: 'pick', key: 'band', chapter: 0, boxHeight: true,
       title: '¿Por dónde andás?',
       subtitle: 'Para mostrarte ejemplos que te sirvan y no cosas que todavía no viste.',
       options: [
-        { value: 'small', title: 'Recién empiezo', pie: 'Estoy aprendiendo a leer y a contar', body: <Illustration src="/cards/beginner.webp" /> },
-        { value: 'medium', title: 'Voy a la primaria', pie: 'Leo bien y ya sé multiplicar', body: <Illustration src="/cards/primary.png" /> },
-        { value: 'large', title: 'Secundaria o más', pie: 'Me manejo con fracciones y ecuaciones', body: <Illustration src="/cards/secondary.png" /> },
+        { value: 'small', title: 'Recién empiezo', footer: 'Estoy aprendiendo a leer y a contar', body: <Illustration src="/cards/beginner.webp" /> },
+        { value: 'medium', title: 'Voy a la primaria', footer: 'Leo bien y ya sé multiplicar', body: <Illustration src="/cards/primary.png" /> },
+        { value: 'large', title: 'Secundaria o más', footer: 'Me manejo con fracciones y ecuaciones', body: <Illustration src="/cards/secondary.png" /> },
       ],
     },
     {
-      type: 'tell', key: 'como', chapter: 0, cta: 'Entendido',
+      type: 'tell', key: 'how', chapter: 0, cta: 'Entendido',
       render: (
         <div className="flex w-full max-w-2xl flex-col gap-8">
           <Heading size="xl" className="text-center">Funciona así</Heading>
@@ -183,61 +183,61 @@ function script(band: Band, alreadyIn: boolean): StepView[] {
         </div>
       ),
     },
-    { type: 'tell', key: 'wow', chapter: 0, cta: 'Buscar la mía', render: <WowScreen que={sampleA} /> },
+    { type: 'tell', key: 'wow', chapter: 0, cta: 'Buscar la mía', render: <WowScreen sample={sampleA} /> },
 
     {
-      type: 'elegir', key: 'canal1', chapter: 1, boxHeight: true,
+      type: 'pick', key: 'channel1', chapter: 1, boxHeight: true,
       title: `${titleOf(sampleA)}, explicado de cuatro maneras.`,
       subtitle: small ? 'Probá las cuatro. Después tocá «con esta» abajo de la que más te gustó.' : 'Probá las cuatro. Después marcá «con esta» en la que te lo hizo entender más rápido.',
       options: sampleOptions(sampleA),
     },
     {
-      type: 'elegir', key: 'canal2', chapter: 1, boxHeight: true,
+      type: 'pick', key: 'channel2', chapter: 1, boxHeight: true,
       title: 'Otra cosa, las mismas cuatro maneras.',
       subtitle: `${titleOf(sampleB)}. Probalas de nuevo y marcá con cuál lo agarrás.`,
       options: sampleOptions(sampleB),
     },
-    { type: 'elegir', key: 'spark', chapter: 1, title: b.spark.title, subtitle: b.spark.subtitle, options: b.spark.options },
+    { type: 'pick', key: 'spark', chapter: 1, title: b.spark.title, subtitle: b.spark.subtitle, options: b.spark.options },
     {
-      type: 'elegir', key: 'pace', chapter: 1, boxHeight: true,
+      type: 'pick', key: 'pace', chapter: 1, boxHeight: true,
       title: b.pace.title, subtitle: b.pace.subtitle,
       options: [
         { value: 'step', title: 'Paso a paso', body: <StepsPanel steps={b.pace.steps} /> },
-        { value: 'map', title: 'Todo junto', body: <MapPanel text={b.pace.map} pie={b.pace.mapFooter} /> },
+        { value: 'map', title: 'Todo junto', body: <MapPanel text={b.pace.map} footer={b.pace.mapFooter} /> },
       ],
     },
     {
-      type: 'elegir', key: 'company', chapter: 1,
+      type: 'pick', key: 'company', chapter: 1,
       title: b.stuck,
       subtitle: '¿Qué hacés, en general?',
       options: [
-        { value: 'think', title: small ? 'Sigo probando hasta que sale' : 'Le sigo dando vueltas hasta que sale', pie: 'Solo' },
-        { value: 'search', title: small ? 'Miro cómo lo hizo otro' : 'Busco un ejemplo parecido', pie: 'Solo, con ayuda' },
-        { value: 'ask', title: 'Le pregunto a alguien', pie: 'Con otros' },
-        { value: 'tell', title: small ? 'Lo cuento en voz alta y ahí me doy cuenta' : 'Se lo cuento a alguien en voz alta y ahí me doy cuenta', pie: 'Con otros' },
+        { value: 'think', title: small ? 'Sigo probando hasta que sale' : 'Le sigo dando vueltas hasta que sale', footer: 'Solo' },
+        { value: 'search', title: small ? 'Miro cómo lo hizo otro' : 'Busco un ejemplo parecido', footer: 'Solo, con ayuda' },
+        { value: 'ask', title: 'Le pregunto a alguien', footer: 'Con otros' },
+        { value: 'tell', title: small ? 'Lo cuento en voz alta y ahí me doy cuenta' : 'Se lo cuento a alguien en voz alta y ahí me doy cuenta', footer: 'Con otros' },
       ],
     },
     {
-      type: 'elegir', key: 'scaffold', chapter: 1,
+      type: 'pick', key: 'scaffold', chapter: 1,
       title: small ? 'Algo que nunca hiciste.' : 'Algo nuevo que nunca viste.',
       subtitle: '¿Cómo preferís arrancar?',
       options: [
-        { value: 'example', title: 'Mostrame uno hecho y después lo hago yo', pie: 'Con un ejemplo' },
-        { value: 'try', title: 'Dejame probar y me doy cuenta solo', pie: 'Descubriendo' },
+        { value: 'example', title: 'Mostrame uno hecho y después lo hago yo', footer: 'Con un ejemplo' },
+        { value: 'try', title: 'Dejame probar y me doy cuenta solo', footer: 'Descubriendo' },
       ],
     },
     {
-      type: 'elegir', key: 'dose', chapter: 1,
+      type: 'pick', key: 'dose', chapter: 1,
       title: 'Última.',
       subtitle: small ? '¿Cuándo te sale mejor?' : '¿Cuándo te rinde más?',
       options: [
-        { value: 'bite', title: 'Un ratito, varias veces', pie: 'Diez minutos y listo' },
-        { value: 'session', title: small ? 'Un rato largo y no me interrumpas' : 'Una sentada larga y no me saques', pie: 'Meterme y no salir' },
+        { value: 'bite', title: 'Un ratito, varias veces', footer: 'Diez minutos y listo' },
+        { value: 'session', title: small ? 'Un rato largo y no me interrumpas' : 'Una sentada larga y no me saques', footer: 'Meterme y no salir' },
       ],
     },
 
-    { type: 'armando', key: 'armando', chapter: 2 },
-    { type: 'perfil', key: 'perfil', chapter: 2 },
+    { type: 'building', key: 'building', chapter: 2 },
+    { type: 'profile', key: 'profile', chapter: 2 },
   ]
 }
 
@@ -259,7 +259,7 @@ export function Start() {
 
   const band = (reply.band as Band) ?? 'medium'
   const STEPS = useMemo(() => script(band, alreadyIn), [band, alreadyIn])
-  const paso = STEPS[i]
+  const step = STEPS[i]
   const small = band === 'small'
 
   // Careful: ['me'] is not invalidated on save. If it were, the app would see `profile: true`, stop
@@ -270,7 +270,7 @@ export function Start() {
   })
 
   async function signOut() {
-    await qc.invalidateQueries({ queryKey: ['yo'] })
+    await qc.invalidateQueries({ queryKey: ['me'] })
     nav('/', { replace: true })
   }
 
@@ -278,15 +278,15 @@ export function Start() {
 
   // on reaching "building" it saves; the screen lasts as long as the animation
   useEffect(() => {
-    if (paso.type !== 'armando') return
+    if (step.type !== 'building') return
     save.mutate(reply)
     const t = window.setTimeout(advance, 2600)
     return () => window.clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paso.type])
+  }, [step.type])
 
   function pick(value: string) {
-    setReply((r) => ({ ...r, [paso.key]: value }))
+    setReply((r) => ({ ...r, [step.key]: value }))
     window.setTimeout(advance, 220)
   }
 
@@ -295,7 +295,7 @@ export function Start() {
       <header className="mx-auto flex w-full max-w-4xl items-center gap-4 px-4 pt-5 sm:px-8">
         <IconButton icon={<Icon icon={ArrowLeft} />} label="Volver" variant="ghost"
           onClick={() => { setBack(true); setI((n) => Math.max(0, n - 1)) }} className={cn(i === 0 && 'invisible')} />
-        <Progress steps={STEPS} chapter={paso.chapter} position={i} />
+        <Progress steps={STEPS} chapter={step.chapter} position={i} />
       </header>
 
       {/* The button sits against the content, not pinned to the bottom of the screen. A fixed footer
@@ -304,14 +304,14 @@ export function Start() {
           `m-auto` centra cuando hay lugar y no recorta cuando el contenido es más alto que la
           ventana, que es lo que pasa con `items-center` en una columna que desborda. */}
       <main className="flex flex-1 px-4 py-8 sm:px-8">
-        <div key={paso.key} className={cn('m-auto flex w-full max-w-4xl flex-col items-center gap-9', !back && 'kit-reveal')}>
-          {paso.type === 'tell' && paso.render}
-          {paso.type === 'elegir' && <QuestionBlock paso={paso} pickedOne={reply[paso.key]} onPick={pick} withVoice={small || paso.key === 'band'} />}
-          {paso.type === 'armando' && <Building />}
-          {paso.type === 'perfil' && <YourProfile profile={profile} error={save.isError} onRetry={() => save.mutate(reply)} />}
+        <div key={step.key} className={cn('m-auto flex w-full max-w-4xl flex-col items-center gap-9', !back && 'kit-reveal')}>
+          {step.type === 'tell' && step.render}
+          {step.type === 'pick' && <QuestionBlock step={step} pickedOne={reply[step.key]} onPick={pick} withVoice={small || step.key === 'band'} />}
+          {step.type === 'building' && <Building />}
+          {step.type === 'profile' && <YourProfile profile={profile} error={save.isError} onRetry={() => save.mutate(reply)} />}
 
-          {paso.type === 'tell' && <Button size="lg" onClick={advance} endIcon={<Icon icon={ChevronRight} />}>{paso.cta}</Button>}
-          {paso.type === 'perfil' && <Button size="lg" onClick={signOut} disabled={!profile}>Ir a mis misiones</Button>}
+          {step.type === 'tell' && <Button size="lg" onClick={advance} endIcon={<Icon icon={ChevronRight} />}>{step.cta}</Button>}
+          {step.type === 'profile' && <Button size="lg" onClick={signOut} disabled={!profile}>Ir a mis misiones</Button>}
         </div>
       </main>
     </div>
@@ -339,32 +339,32 @@ function Progress({ steps, chapter, position }: { steps: StepView[]; chapter: nu
   )
 }
 
-function QuestionBlock({ paso, pickedOne, onPick, withVoice }: {
-  paso: Extract<StepView, { type: 'elegir' }>; pickedOne?: string; onPick: (v: string) => void; withVoice?: boolean
+function QuestionBlock({ step, pickedOne, onPick, withVoice }: {
+  step: Extract<StepView, { type: 'pick' }>; pickedOne?: string; onPick: (v: string) => void; withVoice?: boolean
 }) {
   return (
     <div className="flex w-full flex-col items-center gap-7">
       <div className="flex max-w-2xl flex-col items-center gap-2 text-center">
         <div className="flex items-center gap-2">
-          <Heading size="lg" className="text-balance">{paso.title}</Heading>
+          <Heading size="lg" className="text-balance">{step.title}</Heading>
           {/* For whoever cannot read fluently yet, the prompt can also be heard. */}
-          {withVoice && <VoiceButton text={`${paso.title} ${paso.subtitle ?? ''}`} />}
+          {withVoice && <VoiceButton text={`${step.title} ${step.subtitle ?? ''}`} />}
         </div>
-        {paso.subtitle && <Text variant="muted" className="text-balance">{paso.subtitle}</Text>}
+        {step.subtitle && <Text variant="muted" className="text-balance">{step.subtitle}</Text>}
       </div>
       {/* There are as many columns as options: with one column too many, the cards end up
           corridas a un lado y la fila se ve rota. */}
-      <div role="radiogroup" className={cn('grid w-full gap-3', COLUMNS[Math.min(paso.options.length, 4)])}>
-        {paso.options.map((o, k) => {
+      <div role="radiogroup" className={cn('grid w-full gap-3', COLUMNS[Math.min(step.options.length, 4)])}>
+        {step.options.map((o, k) => {
           const puesto = cn(
             'kit-reveal flex flex-col gap-3 rounded-xl border-2 border-line bg-surface p-4 text-left transition',
             pickedOne === o.value && 'border-ink bg-teal',
-            paso.boxHeight && 'min-h-[16rem]',
+            step.boxHeight && 'min-h-[16rem]',
             `kit-retraso-${Math.min(3, k + 1)}`,
           )
           // When the card carries something to play with, tapping it cannot mean "I pick this one":
           // the tap belongs to the content. The choice goes separately, below, and it shows.
-          const isInteractive = o.body && !o.pie
+          const isInteractive = o.body && !o.footer
           return isInteractive ? (
             <div key={o.value} className={puesto}>
               <span className="text-xs font-bold uppercase tracking-[0.1em] text-ink-subtle">{o.title}</span>
@@ -383,7 +383,7 @@ function QuestionBlock({ paso, pickedOne, onPick, withVoice }: {
               className={cn(puesto, 'items-start justify-between hover:border-ink/40 hover:shadow-[var(--shadow-card)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus')}>
               {o.body && <span className="flex w-full flex-1 items-center justify-center text-ink">{o.body}</span>}
               <span className="text-[15px] font-medium leading-snug text-ink">{o.title}</span>
-              {o.pie && <span className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-subtle">{o.pie}</span>}
+              {o.footer && <span className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-subtle">{o.footer}</span>}
             </button>
           )
         })}
@@ -395,18 +395,18 @@ function QuestionBlock({ paso, pickedOne, onPick, withVoice }: {
 /* ═══════════ pantallas propias ═══════════ */
 
 /** The moment the idea lands: the same thing, three times, alone. */
-function WowScreen({ que }: { que: SampleKey }) {
+function WowScreen({ sample }: { sample: SampleKey }) {
   const modes = [
-    { k: 'see', label: 'Viéndolo', nodo: <SampleSee que={que} /> },
-    { k: 'read', label: 'Leyéndolo', nodo: <SampleRead que={que} /> },
-    { k: 'do', label: 'Haciéndolo', nodo: <SampleDo que={que} /> },
+    { k: 'see', label: 'Viéndolo', nodo: <SampleSee sample={sample} /> },
+    { k: 'read', label: 'Leyéndolo', nodo: <SampleRead sample={sample} /> },
+    { k: 'do', label: 'Haciéndolo', nodo: <SampleDo sample={sample} /> },
   ]
   const [n, setN] = useState(0)
   useEffect(() => {
     const t = window.setInterval(() => setN((x) => (x + 1) % modes.length), 2000)
     return () => window.clearInterval(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [que])
+  }, [sample])
   return (
     <div className="flex w-full max-w-2xl flex-col items-center gap-6 text-center">
       <Eyebrow>La idea</Eyebrow>
@@ -443,13 +443,13 @@ function StepsPanel({ steps }: { steps: string[] }) {
   )
 }
 
-function MapPanel({ text, pie }: { text: string; pie: string }) {
+function MapPanel({ text, footer }: { text: string; footer: string }) {
   return (
     <div className="flex w-full flex-col items-center gap-3 text-ink">
       <DoodleMap size={96} />
       <p className="text-center text-sm leading-snug">
         {text}
-        <span className="block text-ink-muted">{pie}</span>
+        <span className="block text-ink-muted">{footer}</span>
       </p>
     </div>
   )

@@ -10,8 +10,8 @@ import { Cover } from '../blocks/Cover'
 export function Library() {
   const nav = useNavigate()
   const spaceId = useSpaceId()
-  const q = useQuery({ queryKey: ['actividades', spaceId], queryFn: () => api.get<{ recipes: Activity[]; mine: Activity[] }>(`/api/activities?espacio=${spaceId}`) })
-  const useIt = useMutation({ mutationFn: (recipeId: string) => api.post<Activity>('/api/activities', { spaceId, desdeReceta: recipeId }), onSuccess: (a) => nav(`/activities/${a.id}`) })
+  const q = useQuery({ queryKey: ['activities', spaceId], queryFn: () => api.get<{ recipes: Activity[]; mine: Activity[] }>(`/api/activities?space=${spaceId}`) })
+  const useIt = useMutation({ mutationFn: (recipeId: string) => api.post<Activity>('/api/activities', { spaceId, fromRecipe: recipeId }), onSuccess: (a) => nav(`/activities/${a.id}`) })
   const mine = q.data?.mine.filter((a) => !a.isRecipe) ?? []
   const templates = q.data?.mine.filter((a) => a.isRecipe) ?? []
 

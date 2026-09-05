@@ -5,7 +5,7 @@ import { SETTINGS, EXPERIENCES, SOCIAL, labelOf } from '../lib/composition'
 
 // The axes of an activity, as chips. The experience gets the brand color; the rest stay neutral.
 export function CompositionChips({ c, compact }: { c: Composition; compact?: boolean }) {
-  const lenses = useQuery({ queryKey: ['lentes'], queryFn: () => api.get<Lens[]>('/api/lenses'), staleTime: Infinity })
+  const lenses = useQuery({ queryKey: ['lenses'], queryFn: () => api.get<Lens[]>('/api/lenses'), staleTime: Infinity })
   const lens = lenses.data?.find((l) => l.key === c.lens)
   const size = compact ? 'sm' : 'md'
   const exp = labelOf(EXPERIENCES, c.experience)

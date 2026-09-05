@@ -14,7 +14,7 @@ type Ctx = {
   setValue: (v: string) => void
   isOpen: boolean
   setIsOpen: (v: boolean) => void
-  tags: Map<string, ReactNode>
+  labels: Map<string, ReactNode>
   search: string
   setSearch: (s: string) => void
   activeIndex: number | null
@@ -73,7 +73,7 @@ export function Select({ children, value, defaultValue = '', onValueChange, disa
   const elementsRef = useRef<(HTMLElement | null)[]>([])
   const labelsRef = useRef<(string | null)[]>([])
   const nodeId = useFloatingNodeId()
-  const tags = useMemo(() => { const m = new Map<string, ReactNode>(); collect(children, m); return m }, [children])
+  const labels = useMemo(() => { const m = new Map<string, ReactNode>(); collect(children, m); return m }, [children])
 
   const { refs, floatingStyles, context, isPositioned } = useFloating({
     nodeId, open: isOpen, onOpenChange: (o) => { setIsOpen(o); if (!o) setSearch('') }, placement: 'bottom-start', whileElementsMounted: autoUpdate,
@@ -94,7 +94,7 @@ export function Select({ children, value, defaultValue = '', onValueChange, disa
   ])
 
   return (
-    <SelectCtx.Provider value={{ value: val, setValue: setVal, isOpen, setIsOpen, tags, search, setSearch, activeIndex, disabled, size, invalid, refs, floatingStyles, context, positioned: isPositioned, getReferenceProps, getFloatingProps, getItemProps, elementsRef, labelsRef, nodeId }}>
+    <SelectCtx.Provider value={{ value: val, setValue: setVal, isOpen, setIsOpen, labels, search, setSearch, activeIndex, disabled, size, invalid, refs, floatingStyles, context, positioned: isPositioned, getReferenceProps, getFloatingProps, getItemProps, elementsRef, labelsRef, nodeId }}>
       {children}
     </SelectCtx.Provider>
   )
@@ -122,7 +122,7 @@ export function SelectTrigger({ className, children, startIcon, ...props }: Comp
 
 export function SelectValue({ placeholder = 'Elegir…' }: { placeholder?: string }) {
   const s = useSelectCtx()
-  const label = s.tags.get(s.value)
+  const label = s.labels.get(s.value)
   return label ? <>{label}</> : <span className="text-ink-subtle">{placeholder}</span>
 }
 
@@ -130,7 +130,7 @@ export function SelectContent({ className, children, searchable, searchPlacehold
   const s = useSelectCtx()
   if (!s.isOpen) return null
   const q = s.search.toLowerCase()
-  const isEmpty = q.length > 0 && ![...s.tags.values()].some((e) => textOf(e).toLowerCase().includes(q))
+  const isEmpty = q.length > 0 && ![...s.labels.values()].some((e) => textOf(e).toLowerCase().includes(q))
   return (
     <FloatingNode id={s.nodeId}>
     <Portal>

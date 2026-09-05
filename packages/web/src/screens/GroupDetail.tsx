@@ -12,11 +12,11 @@ import type { LiveProfile } from '../lib/profile'
 export function GroupDetail() {
   const { id } = useParams()
   const nav = useNavigate()
-  const q = useQuery({ queryKey: ['grupo', id], queryFn: () => api.get<GD>(`/api/groups/${id}/detail`) })
+  const q = useQuery({ queryKey: ['group', id], queryFn: () => api.get<GD>(`/api/groups/${id}/detail`) })
   const [tab, setTab] = useState('misiones')
   const [invite, setInvite] = useState(false)
   const [isOpen, setIsOpen] = useState<string | null>(null)
-  const profiles = useQuery({ queryKey: ['perfiles', id], queryFn: () => api.get<LiveProfile[]>(`/api/groups/${id}/profiles`), enabled: tab === 'perfiles' })
+  const profiles = useQuery({ queryKey: ['profiles', id], queryFn: () => api.get<LiveProfile[]>(`/api/groups/${id}/profiles`), enabled: tab === 'perfiles' })
   if (!q.data) return null
   const { group: g, assignments, learners } = q.data
   const pending = assignments.reduce((n, a) => n + a.submissions, 0)
@@ -94,12 +94,12 @@ export function GroupDetail() {
 }
 
 function InviteDialog({ isOpen, onClose, groupId }: { isOpen: boolean; onClose: () => void; groupId: string }) {
-  const q = useQuery({ queryKey: ['invitacion', groupId], queryFn: () => api.get<Invite>(`/api/groups/${groupId}/invite`), enabled: isOpen })
+  const q = useQuery({ queryKey: ['invite', groupId], queryFn: () => api.get<Invite>(`/api/groups/${groupId}/invite`), enabled: isOpen })
   const [copied, setCopied] = useState(false)
   const i = q.data
   return (
     <Modal isOpen={isOpen} onClose={onClose} boxWidth={560} title="Invitar al grupo" description="Los chicos entran con Google y escriben el código, o escanean el QR. Sin registro ni contraseñas."
-      pie={<><Button variant="ghost" onClick={() => window.print()} startIcon={<Icon icon={Printer} />}>Imprimir tarjeta</Button><Button onClick={onClose}>Listo</Button></>}>
+      footer={<><Button variant="ghost" onClick={() => window.print()} startIcon={<Icon icon={Printer} />}>Imprimir tarjeta</Button><Button onClick={onClose}>Listo</Button></>}>
       {i && (
         <div className="grid gap-5 sm:grid-cols-[1fr_180px]">
           <div className="flex flex-col gap-4">

@@ -16,7 +16,7 @@ const KIND = {
 export function Home({ me }: { me: Me }) {
   const nav = useNavigate()
   const spaceId = useSpaceId()
-  const q = useQuery({ queryKey: ['panel', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?espacio=${spaceId}`) })
+  const q = useQuery({ queryKey: ['dashboard', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?space=${spaceId}`) })
   const p = q.data
   if (!p) return null
   const signals = p.signals ?? []
@@ -24,11 +24,11 @@ export function Home({ me }: { me: Me }) {
   const recent = p.recentSubmissions ?? []
   const series = p.weekSeries ?? []
   const steps: [string, string, string, string][] = [
-    ['grupo', 'Creá un grupo', 'Un aula, un taller, tres alumnos: gente que aprende junta.', '/groups'],
-    ['invitar', 'Invitá a los chicos', 'Compartí el código o el QR del grupo. Entran con Google.', '/groups'],
-    ['actividad', 'Armá una actividad', 'Empezá desde una receta y editala como un documento.', '/activities/new'],
-    ['asignar', 'Asignala al grupo', 'Los chicos la ven en «Hoy» y la hacen a su ritmo.', '/activities'],
-    ['corregir', 'Mirá la primera entrega', 'La rúbrica es una botonera: dos minutos por entrega.', '/groups'],
+    ['group', 'Creá un grupo', 'Un aula, un taller, tres alumnos: gente que aprende junta.', '/groups'],
+    ['invite', 'Invitá a los chicos', 'Compartí el código o el QR del grupo. Entran con Google.', '/groups'],
+    ['activity', 'Armá una actividad', 'Empezá desde una receta y editala como un documento.', '/activities/new'],
+    ['assign', 'Asignala al grupo', 'Los chicos la ven en «Hoy» y la hacen a su ritmo.', '/activities'],
+    ['grade', 'Mirá la primera entrega', 'La rúbrica es una botonera: dos minutos por entrega.', '/groups'],
   ]
   const facts = steps.filter(([k]) => p.checklist[k]).length
   const firstTime = facts < steps.length

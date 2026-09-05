@@ -12,7 +12,7 @@ const TINTS = ['bg-teal', 'bg-yellow', 'bg-lilac', 'bg-blue']
 export function Groups() {
   const qc = useQueryClient()
   const { space } = useSpace()
-  const groups = useQuery({ queryKey: ['grupos', space?.id], queryFn: () => api.get<Group[]>(`/api/groups?espacio=${space?.id ?? ''}`) })
+  const groups = useQuery({ queryKey: ['groups', space?.id], queryFn: () => api.get<Group[]>(`/api/groups?space=${space?.id ?? ''}`) })
   const [nuevo, setFresh] = useState(false)
   return (
     <div className="flex flex-col gap-6">
@@ -39,7 +39,7 @@ export function Groups() {
         ))}
       </div>
 
-      <NewGroup isOpen={nuevo} onClose={() => setFresh(false)} onReady={() => { setFresh(false); qc.invalidateQueries({ queryKey: ['grupos'] }) }} />
+      <NewGroup isOpen={nuevo} onClose={() => setFresh(false)} onReady={() => { setFresh(false); qc.invalidateQueries({ queryKey: ['groups'] }) }} />
     </div>
   )
 }
@@ -51,7 +51,7 @@ function NewGroup({ isOpen, onClose, onReady }: { isOpen: boolean; onClose: () =
   const create = useMutation({ mutationFn: () => api.post<Group>('/api/groups', { spaceId, name }), onSuccess: () => { setName(''); onReady() } })
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Nuevo grupo" description="Vas a recibir un código para que los chicos se unan."
-      pie={<><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button form="new-group" type="submit" loading={create.isPending}>Crear</Button></>}>
+      footer={<><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button form="new-group" type="submit" loading={create.isPending}>Crear</Button></>}>
       <form id="new-group" className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
         <Field label="Nombre" description={space ? `Se crea en «${space.name}».` : undefined}>
           <Input placeholder="Robótica de los sábados" value={name} onChange={(e) => setName(e.target.value)} required autoFocus />

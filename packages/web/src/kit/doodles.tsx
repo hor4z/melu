@@ -89,5 +89,5 @@ export function DoodleSprout({ size = 120, ...p }: P) {
     </svg>
   )
 }
-export const DOODLES = { wave: DoodleWave, group: DoodleGroup, focusRef: DoodleBulb, bridge: DoodleBridge, map: DoodleMap, robot: DoodleRobot, kitchen: DoodleKitchen, lock: DoodleLock, libro: DoodleBook, sprout: DoodleSprout }
+export const DOODLES = { wave: DoodleWave, group: DoodleGroup, bulb: DoodleBulb, bridge: DoodleBridge, map: DoodleMap, robot: DoodleRobot, kitchen: DoodleKitchen, lock: DoodleLock, book: DoodleBook, sprout: DoodleSprout }
 export type DoodleName = keyof typeof DOODLES

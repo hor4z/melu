@@ -13,7 +13,7 @@ import { Cover } from '../blocks/Cover'
 // The editor: a Notion-style page. Cover, title, properties, phases, blocks with "/" and drag.
 export function Editor() {
   const { id } = useParams()
-  const q = useQuery({ queryKey: ['actividad', id], queryFn: () => api.get<Activity>(`/api/activities/${id}`) })
+  const q = useQuery({ queryKey: ['activity', id], queryFn: () => api.get<Activity>(`/api/activities/${id}`) })
   if (!q.data) return null
   return <EditorLoaded key={q.data.id} initial={q.data} />
 }
@@ -23,7 +23,7 @@ const newBlock = (type: BlockType): Block => ({
   ...(type === 'check' || type === 'choice' ? { options: ['', ''], correct: 0 } : {}),
   ...(type === 'evidence' ? { media: 'photo' as const } : {}),
   ...(type === 'game' ? { engine: 'sort' as GameEngine, categories: [{ name: '', items: [] }, { name: '', items: [] }] } : {}),
-  ...(type === 'manipulative' ? { figure: 'number_line' as ManipulativeFigure, min: 0, max: 5, paso: 0.25, answer: 2.5, tolerance: 0 } : {}),
+  ...(type === 'manipulative' ? { figure: 'number_line' as ManipulativeFigure, min: 0, max: 5, step: 0.25, answer: 2.5, tolerance: 0 } : {}),
 })
 
 function EditorLoaded({ initial }: { initial: Activity }) {
@@ -36,7 +36,7 @@ function EditorLoaded({ initial }: { initial: Activity }) {
   const [preview, setPreview] = useState(false)
   const [focusRef, setFocusRef] = useState<string | null>(null)
   const timer = useRef<number | undefined>(undefined)
-  const lenses = useQuery({ queryKey: ['lentes'], queryFn: () => api.get<Lens[]>('/api/lenses'), staleTime: Infinity })
+  const lenses = useQuery({ queryKey: ['lenses'], queryFn: () => api.get<Lens[]>('/api/lenses'), staleTime: Infinity })
 
   const save = useMutation({ mutationFn: (x: Activity) => api.put(`/api/activities/${x.id}`, x), onMutate: () => setStatus('saving'), onSuccess: () => setStatus('saved'), onError: () => setStatus('editing') })
   const template = useMutation({ mutationFn: () => api.post<Activity>(`/api/activities/${a.id}/template`) })
@@ -451,12 +451,12 @@ function GameConfig({ b, onChange }: { b: Block; onChange: (p: Partial<Block>, s
 }
 
 function AssignDialog({ isOpen, onClose, activityId, onAssigned }: { isOpen: boolean; onClose: () => void; activityId: string; onAssigned: (groupId: string) => void }) {
-  const groups = useQuery({ queryKey: ['grupos'], queryFn: () => api.get<Group[]>('/api/groups'), enabled: isOpen })
+  const groups = useQuery({ queryKey: ['groups'], queryFn: () => api.get<Group[]>('/api/groups'), enabled: isOpen })
   const [ready, setReady] = useState<string | null>(null)
   const assign = useMutation({ mutationFn: (groupId: string) => api.post(`/api/activities/${activityId}/assign`, { groupId }), onSuccess: (_, gid) => setReady(gid) })
   const groupList = useMemo(() => groups.data ?? [], [groups.data])
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Asignar a un grupo" description="Los chicos la ven en «Hoy». Se congela una copia: si editás después, lo asignado no cambia." pie={<>{ready && <Button onClick={() => onAssigned(ready)}>Ir al grupo</Button>}<Button variant="ghost" onClick={onClose}>Cerrar</Button></>}>
+    <Modal isOpen={isOpen} onClose={onClose} title="Asignar a un grupo" description="Los chicos la ven en «Hoy». Se congela una copia: si editás después, lo asignado no cambia." footer={<>{ready && <Button onClick={() => onAssigned(ready)}>Ir al grupo</Button>}<Button variant="ghost" onClick={onClose}>Cerrar</Button></>}>
       <div className="flex flex-col gap-2">
         {groupList.length === 0 && <Text variant="muted">Todavía no tenés grupos.</Text>}
         {groupList.map((g) => (
