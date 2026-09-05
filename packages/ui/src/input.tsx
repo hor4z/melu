@@ -10,7 +10,7 @@ const frameCls = cva(
   'flex w-full items-center gap-2 rounded-md border bg-surface text-ink transition-[border-color,box-shadow] focus-within:ring-3 focus-within:ring-focus/25 has-disabled:bg-muted has-disabled:opacity-60',
   {
     variants: {
-      size: { sm: 'h-8 px-2.5 text-[13px]', md: 'h-9.5 px-3 text-sm', lg: 'h-11 px-3.5 text-[15px]' },
+      size: { sm: 'h-8 px-2.5 text-sm', md: 'h-9.5 px-3 text-sm', lg: 'h-11 px-3.5 text-base' },
       invalid: { true: 'border-danger focus-within:ring-danger/25', false: 'border-line focus-within:border-ink' },
     },
     defaultVariants: { size: 'md', invalid: false },

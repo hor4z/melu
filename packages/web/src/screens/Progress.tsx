@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Clock, Flame, Target, Trophy } from 'lucide-react'
-import { Button, Card, Chip, DoodleSprout, Eyebrow, Icon, ProgressRing, Text } from '@melu/ui'
+import { Button, Card, Chip, DoodleSprout, Eyebrow, Heading, Icon, ProgressRing, Text } from '@melu/ui'
 import { StatTile } from '../blocks/Product'
 import { api, type Progress as P } from '../lib/api'
 import { EXPERIENCES } from '../lib/composition'
@@ -19,7 +19,7 @@ export function Progress() {
     <div className="flex flex-col gap-8">
       <header className="flex items-center gap-5">
         <ProgressRing value={total ? p.done / total : 0} size={84}>{p.done}/{total || 0}</ProgressRing>
-        <div><Eyebrow>Mi progreso</Eyebrow><h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">Lo que hiciste hasta ahora</h1><Text variant="muted">Solo vos y tu docente ven esto. No se compara con nadie.</Text></div>
+        <div><Eyebrow>Mi progreso</Eyebrow><Heading level={1} size="2xl" className="mt-1">Lo que hiciste hasta ahora</Heading><Text variant="muted">Solo vos y tu docente ven esto. No se compara con nadie.</Text></div>
       </header>
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile label="Misiones hechas" value={p.done} tint="bg-orange" icon={<Icon icon={Trophy} size="lg" />} />

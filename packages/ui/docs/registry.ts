@@ -249,6 +249,38 @@ export const REGISTRY: Entry[] = [
     whenNot: ['Si no hay que decidir nada, un `Popover` no interrumpe.'],
   },
   {
+    slug: 'alert-dialog',
+    title: 'AlertDialog',
+    group: 'Diálogos y capas',
+    summary: 'La confirmación. Una forma fija, porque una confirmación siempre tiene la misma.',
+    exports: ['AlertDialog'],
+    demos: [
+      { id: 'basic', title: 'Confirmar algo destructivo', note: 'El foco entra en Cancelar, que es la salida segura; un clic afuera no lo cierra.' },
+      { id: 'loading', title: 'Mientras la acción viaja', note: '`loading` hila el botón y bloquea el cierre hasta que termine.' },
+    ],
+    when: ['Hay que responder sí o no antes de seguir, y equivocarse cuesta.'],
+    whenNot: [
+      'Si no hay una decisión, no interrumpas: un `Alert` en la página alcanza.',
+      'Si la confirmación tiene campos, es un `Dialog`: esto no es un formulario.',
+    ],
+  },
+  {
+    slug: 'drawer',
+    title: 'Drawer',
+    group: 'Diálogos y capas',
+    summary: 'Un panel pegado a un borde. El mismo modal, entrando de costado.',
+    exports: ['Drawer', 'DrawerTrigger', 'DrawerContent', 'DrawerHeader', 'DrawerTitle', 'DrawerDescription', 'DrawerBody', 'DrawerFooter', 'DrawerClose'],
+    demos: [
+      { id: 'basic', title: 'Lo habitual', note: 'Las partes son las mismas del `Dialog`: la cabecera, el cuerpo y el pie de un panel no son otra cosa.' },
+      { id: 'sides', title: 'De qué borde entra', note: 'Derecha por defecto. `bottom` es el que sirve en el teléfono.' },
+    ],
+    when: [
+      'El contenido acompaña a lo que hay atrás y conviene poder mirar las dos cosas: editar algo de una lista, un filtro largo.',
+      'Es más alto que ancho, o más ancho que alto, y un modal centrado lo desperdicia.',
+    ],
+    whenNot: ['Si hay que decidir antes de seguir, interrumpí de verdad: `Dialog` o `AlertDialog`.'],
+  },
+  {
     slug: 'dropdown',
     title: 'DropdownMenu',
     group: 'Diálogos y capas',

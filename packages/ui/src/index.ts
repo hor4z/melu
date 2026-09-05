@@ -33,6 +33,11 @@ export {
   type SelectProps, type SelectItemProps,
 } from './select'
 export { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter, DialogClose, type DialogProps } from './dialog'
+export { AlertDialog, type AlertDialogProps } from './alert-dialog'
+export {
+  Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription,
+  DrawerBody, DrawerFooter, DrawerClose,
+} from './drawer'
 export { Tooltip, TooltipTrigger, TooltipContent } from './tooltip'
 export { Popover, PopoverAnchor, PopoverTrigger, PopoverContent, PopoverClose } from './popover'
 export { Portal } from './portal'

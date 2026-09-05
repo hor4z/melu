@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowRight, Check, Copy } from 'lucide-react'
-import { Button, Card, CardContent, CardMedia, DoodleGroup, DoodleWave, Field, Heading, Icon, Input, Logo, Text, cn } from '@melu/ui'
-import { Stepper } from '../blocks/Product'
+import { Button, Card, CardContent, CardMedia, DoodleGroup, DoodleWave, Field, Heading, Icon, Input, Logo, RadioGroup, RadioGroupItem, Text } from '@melu/ui'
+import { Stepper, UserMenu } from '../blocks/Product'
 import { api, type Activity, type Space, type SpaceKind, type Group, type Invite, type Me } from '../lib/api'
 import { SPACE_KINDS } from '../lib/composition'
 import { useSignOut } from '../lib/session'
@@ -10,11 +10,14 @@ import { CompositionChips } from '../blocks/Chips'
 
 // First time: you are nothing yet. You pick where to come in.
 export function Welcome({ me }: { me: Me }) {
-  const [door, setDoor] = useState<'ensenio' | 'aprendo' | null>(null)
+  const [door, setDoor] = useState<'teach' | 'learn' | null>(null)
   const signOut = useSignOut()
   return (
     <div className="min-h-screen bg-canvas">
-      <header className="flex items-center justify-between px-8 py-5"><Logo /><Button variant="ghost" size="sm" onClick={signOut}>Salir ({me.person.Email})</Button></header>
+      <header className="flex items-center justify-between px-8 py-5">
+        <Logo />
+        <UserMenu name={me.person.Name} email={me.person.Email} onSignOut={signOut} />
+      </header>
       <div className="mx-auto w-full max-w-3xl px-6 pb-16 pt-6">
         {!door && (
           <>
@@ -23,13 +26,13 @@ export function Welcome({ me }: { me: Me }) {
               <Text variant="muted" className="mt-2">Elegí una puerta. Después podés ser las dos cosas.</Text>
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
-              <Door illustration={<DoodleWave size={96} className="text-ink" />} tint="bg-teal" title="Enseño" text="Armo actividades y las doy a un grupo: mi aula, mi taller, mis alumnos particulares. Veo cómo les va y qué les cuesta." onClick={() => setDoor('ensenio')} />
-              <Door illustration={<DoodleGroup size={150} className="text-ink" />} tint="bg-yellow" title="Aprendo" text="Mi docente me dio un código de seis letras. Quiero ver mis misiones y hacerlas." onClick={() => setDoor('aprendo')} />
+              <Door illustration={<DoodleWave size={96} className="text-ink" />} tint="bg-teal" title="Enseño" text="Armo actividades y las doy a un grupo: mi aula, mi taller, mis alumnos particulares. Veo cómo les va y qué les cuesta." onClick={() => setDoor('teach')} />
+              <Door illustration={<DoodleGroup size={150} className="text-ink" />} tint="bg-yellow" title="Aprendo" text="Mi docente me dio un código de seis letras. Quiero ver mis misiones y hacerlas." onClick={() => setDoor('learn')} />
             </div>
           </>
         )}
-        {door === 'ensenio' && <Onboarding onBack={() => setDoor(null)} />}
-        {door === 'aprendo' && <Join onBack={() => setDoor(null)} />}
+        {door === 'teach' && <Onboarding onBack={() => setDoor(null)} />}
+        {door === 'learn' && <Join onBack={() => setDoor(null)} />}
       </div>
     </div>
   )
@@ -87,11 +90,13 @@ function Onboarding({ onBack }: { onBack: () => void }) {
           <div className="flex flex-col gap-5">
             <div><Heading size="xl">Tu espacio y tu primer grupo</Heading><Text variant="muted">El espacio es quien organiza (vos, tu escuela, tu club). El grupo es la gente que aprende junta.</Text></div>
             <Field label="Nombre del espacio"><Input placeholder="Taller de los sábados" value={name} onChange={(e) => setName(e.target.value)} required autoFocus /></Field>
-            <fieldset className="flex flex-wrap gap-2">
-              {(Object.entries(SPACE_KINDS) as [SpaceKind, string][]).map(([v, l]) => (
-                <label key={v} className={cn('cursor-pointer rounded-md border-2 px-3 py-1.5 text-sm font-medium', kind === v ? 'border-ink bg-solid text-on-solid' : 'border-line hover:border-ink')}><input type="radio" className="sr-only" name="kind" value={v} checked={kind === v} onChange={() => setKind(v)} />{l}</label>
-              ))}
-            </fieldset>
+            <Field asGroup label="Qué es">
+              <RadioGroup value={kind} onValueChange={(v) => setKind(v as SpaceKind)} orientation="horizontal">
+                {(Object.entries(SPACE_KINDS) as [SpaceKind, string][]).map(([v, l]) => (
+                  <RadioGroupItem key={v} value={v}>{l}</RadioGroupItem>
+                ))}
+              </RadioGroup>
+            </Field>
             <Field label="Tu primer grupo"><Input placeholder="4° A · Matemática" value={groupName} onChange={(e) => setGroupName(e.target.value)} required /></Field>
             {create.isError && <Text size="sm" variant="danger">No se pudo crear. Probá de nuevo.</Text>}
             <div className="flex gap-2"><Button type="submit" loading={create.isPending}>Crear y seguir</Button><Button variant="ghost" onClick={onBack}>Volver</Button></div>
@@ -103,7 +108,7 @@ function Onboarding({ onBack }: { onBack: () => void }) {
       {step === 1 && inv && (
         <Card padding="lg" className="grid gap-6 lg:grid-cols-[1fr_240px]">
           <div className="flex flex-col gap-5">
-            <div><h2 className="font-display text-2xl font-semibold">Invitá a los chicos a «{group?.name}»</h2><Text variant="muted">Entran con Google y escriben este código, o escanean el QR. Sin registros, sin contraseñas.</Text></div>
+            <div><Heading level={2} size="xl">Invitá a los chicos a «{group?.name}»</Heading><Text variant="muted">Entran con Google y escriben este código, o escanean el QR. Sin registros, sin contraseñas.</Text></div>
             <Card variant="yellow" padding="md" className="flex-row flex-wrap items-center gap-6">
               <div><div className="text-xs font-bold uppercase tracking-wider text-ink-subtle">Código del grupo</div><div className="font-mono text-4xl font-semibold tracking-[0.3em]">{inv.code}</div></div>
               <div className="flex flex-col gap-2">
@@ -144,8 +149,8 @@ function Join({ onBack }: { onBack: () => void }) {
     <Card asChild padding="lg"><form className="mx-auto grid max-w-2xl gap-6 sm:grid-cols-[1fr_200px]" onSubmit={(e) => { e.preventDefault(); joinIt.mutate() }}>
       <div className="flex flex-col gap-5">
         <div><Heading size="xl">El código de tu grupo</Heading><Text variant="muted">Te lo da tu docente. Son seis letras y números, tipo <span className="font-mono font-semibold">DEMO4A</span>. Si te mandaron un link, con tocarlo alcanza.</Text></div>
-        <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={6} autoFocus aria-label="Código" placeholder="ABC123"
-          className="w-full rounded-lg border-2 border-line bg-surface px-4 py-4 text-center font-mono text-3xl tracking-[0.4em] uppercase outline-none focus:border-ink" />
+        <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={6} autoFocus aria-label="Código" placeholder="ABC123"
+          className="h-auto px-4 py-4 text-center font-mono text-3xl uppercase tracking-[0.4em]" />
         {joinIt.isError && <Text size="sm" variant="danger">Ese código no existe. Revisalo con tu docente.</Text>}
         <div className="flex gap-2"><Button type="submit" loading={joinIt.isPending} disabled={code.length < 6}>Entrar al grupo</Button><Button variant="ghost" onClick={onBack}>Volver</Button></div>
       </div>

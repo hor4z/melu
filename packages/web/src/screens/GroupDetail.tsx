@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Check, ChevronLeft, Copy, Printer, QrCode } from 'lucide-react'
-import { Avatar, Button, Card, Eyebrow, Icon, Tabs, TabsList, TabsTrigger, Text } from '@melu/ui'
+import { Avatar, Button, Card, Eyebrow, Heading, Icon, Tabs, TabsList, TabsTrigger, Text } from '@melu/ui'
 import { api, type GroupDetail as GD, type Invite } from '../lib/api'
 import { CompositionChips } from '../blocks/Chips'
 import { Modal, Empty } from '../blocks/Modal'
@@ -25,7 +25,7 @@ export function GroupDetail() {
     <div className="flex flex-col gap-6">
       <Link to="/groups" className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> Mis grupos</Link>
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div><Eyebrow>Grupo</Eyebrow><h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">{g.name}</h1><Text variant="muted">{learners.length} {learners.length === 1 ? 'aprendiz' : 'aprendices'} · {assignments.length} {assignments.length === 1 ? 'misión' : 'misiones'}{pending > 0 && ` · ${pending} entregas para mirar`}</Text></div>
+        <div><Eyebrow>Grupo</Eyebrow><Heading level={1} size="2xl" className="mt-1">{g.name}</Heading><Text variant="muted">{learners.length} {learners.length === 1 ? 'aprendiz' : 'aprendices'} · {assignments.length} {assignments.length === 1 ? 'misión' : 'misiones'}{pending > 0 && ` · ${pending} entregas para mirar`}</Text></div>
         <div className="flex gap-2"><Button variant="secondary" onClick={() => setInvite(true)} startIcon={<Icon icon={QrCode} />}>Invitar</Button><Button onClick={() => nav('/activities/new')}>Nueva actividad</Button></div>
       </header>
 

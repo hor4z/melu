@@ -145,10 +145,19 @@ export function Theme() {
 
         <Block id="tipografia" title="Tipografía" note="Inter para leer, Inter Tight para los títulos, JetBrains Mono para el código.">
           <div className="flex flex-col gap-4">
-            {[['--text-display', 'Aprender deja huella'], ['--text-2xl', 'Un título de pantalla'],
+            <Rule title="Un tamaño escrito en píxeles es un bug, igual que un hex"
+              why={<Ticks>{'`--text-2xs`, `--text-md` y `--text-display` estaban definidos pero Tailwind solo genera la utilidad para los nombres que ya conoce: el token existía y `text-2xs` no hacía nada. Eso llevó a 35 `text-[11px]` escritos a mano por el kit y la app.'}</Ticks>}>
+              Los tres se declaran en el <code className="font-mono text-xs">@theme</code> de{' '}
+              <code className="font-mono text-xs">theme.css</code>. Si hace falta un escalón que no
+              está, se agrega ahí y se usa por nombre.
+            </Rule>
+            {[['--text-hero', 'La portada'], ['--text-display', 'Aprender deja huella'],
+              ['--text-3xl', 'Un título grande'], ['--text-2xl', 'Un título de pantalla'],
               ['--text-xl', 'Un título de sección'], ['--text-lg', 'Una bajada'],
+              ['--text-md', 'Un texto que respira'],
               ['--text-base', 'El cuerpo del texto, que es lo que más se lee'],
-              ['--text-sm', 'Un texto secundario'], ['--text-xs', 'Un pie, una etiqueta']].map(([token, sample]) => (
+              ['--text-sm', 'Un texto secundario'], ['--text-xs', 'Un pie, una etiqueta'],
+              ['--text-2xs', 'Lo más chico que se lee']].map(([token, sample]) => (
               <div key={token} className="flex items-baseline gap-5 border-b border-line pb-3">
                 <Text size="xs" className="w-32 shrink-0 font-mono text-ink-subtle">{token}</Text>
                 <span style={{ fontSize: `var(${token})`, fontFamily: token.includes('display') || token.includes('2xl') || token === '--text-xl' ? 'var(--font-display)' : undefined }}>{sample}</span>

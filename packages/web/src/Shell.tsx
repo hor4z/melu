@@ -2,7 +2,11 @@ import { useState, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bell, BookOpen, Check, ChevronsUpDown, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
-import { Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, Field, Icon, Input, Logo, Text, cn } from '@melu/ui'
+import {
+  Badge, Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, IconButton, Input, Kbd, Logo, RadioGroup,
+  RadioGroupItem, Text,
+} from '@melu/ui'
 import { UserMenu } from './blocks/Product'
 import { useSignOut } from './lib/session'
 import { useSpace } from './lib/space'
@@ -18,10 +22,10 @@ function NotificationsBell({ spaceId }: { spaceId: string }) {
   const q = useQuery({ queryKey: ['dashboard', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?space=${spaceId}`), staleTime: 30_000 })
   const n = q.data?.toReview ?? 0
   return (
-    <button type="button" onClick={() => nav('/home')} className="relative grid size-9 place-items-center rounded-lg hover:bg-hover" aria-label={`${n} entregas para mirar`}>
-      <Icon icon={Bell} size="lg" color="muted" />
-      {n > 0 && <span className="absolute right-0.5 top-0.5 grid min-w-4.5 place-items-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">{n}</span>}
-    </button>
+    <span className="relative inline-flex">
+      <IconButton label={`${n} entregas para mirar`} variant="ghost" icon={<Icon icon={Bell} size="lg" color="muted" />} onClick={() => nav('/home')} />
+      {n > 0 && <Badge className="pointer-events-none absolute -right-0.5 -top-0.5">{n}</Badge>}
+    </span>
   )
 }
 
@@ -32,7 +36,7 @@ function SpacePicker() {
   return (
     <>
       <DropdownMenu placement="bottom-start">
-        <DropdownMenu.Trigger asChild>
+        <DropdownMenuTrigger>
           <button type="button" className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left outline-none hover:bg-hover focus-visible:ring-3 focus-visible:ring-focus/30">
             <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-lilac"><Icon icon={School} size="lg" /></span>
             <span className="min-w-0 flex-1">
@@ -41,7 +45,7 @@ function SpacePicker() {
             </span>
             <Icon icon={ChevronsUpDown} size="sm" color="subtle" />
           </button>
-        </DropdownMenu.Trigger>
+        </DropdownMenuTrigger>
         <DropdownMenuContent minWidth={240}>
           <DropdownMenuLabel>Espacios</DropdownMenuLabel>
           {spaces.map((e) => (
@@ -73,13 +77,13 @@ function NewSpace({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
       footer={<><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button form="new-space" type="submit" loading={create.isPending}>Crear</Button></>}>
       <form id="new-space" className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
         <Field label="Nombre"><Input placeholder="Taller de los sábados" value={name} onChange={(e) => setName(e.target.value)} required autoFocus /></Field>
-        <fieldset className="flex flex-wrap gap-2">
-          {(Object.entries(SPACE_KINDS) as [SpaceKind, string][]).map(([v, l]) => (
-            <label key={v} className={cn('cursor-pointer rounded-md border-2 px-3 py-1.5 text-sm font-medium', kind === v ? 'border-ink bg-solid text-on-solid' : 'border-line hover:border-ink')}>
-              <input type="radio" className="sr-only" name="space-kind" value={v} checked={kind === v} onChange={() => setKind(v)} />{l}
-            </label>
-          ))}
-        </fieldset>
+        <Field asGroup label="Qué es">
+          <RadioGroup value={kind} onValueChange={(v) => setKind(v as SpaceKind)} orientation="horizontal">
+            {(Object.entries(SPACE_KINDS) as [SpaceKind, string][]).map(([v, l]) => (
+              <RadioGroupItem key={v} value={v}>{l}</RadioGroupItem>
+            ))}
+          </RadioGroup>
+        </Field>
         {create.isError && <Text size="sm" variant="danger">No se pudo crear.</Text>}
       </form>
     </Modal>
@@ -97,7 +101,7 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
           <div className="px-5 py-5"><Logo /></div>
           <div className="px-2"><SpacePicker /></div>
           <nav className="mt-3 flex flex-col gap-0.5 px-3">
-            <p className="px-3 pb-1 pt-2 text-[11px] font-bold uppercase tracking-wider text-ink-subtle">Enseñar</p>
+            <p className="px-3 pb-1 pt-2 text-xs font-bold uppercase tracking-wider text-ink-subtle">Enseñar</p>
             <NavLink to="/home" className={item}><Icon icon={LayoutDashboard} size="lg" /> Inicio</NavLink>
             <NavLink to="/groups" className={item}><Icon icon={Users} size="lg" /> Grupos</NavLink>
             <NavLink to="/activities" className={item}><Icon icon={BookOpen} size="lg" /> Actividades</NavLink>
@@ -113,11 +117,8 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
         <div className="min-w-0 flex-1">
           <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-line bg-surface/90 px-6 backdrop-blur">
             <div className="flex items-center gap-3 md:hidden"><Logo size="sm" /></div>
-            <label className="hidden max-w-md flex-1 items-center gap-2 rounded-lg border border-line bg-canvas px-3 py-2 text-sm text-ink-subtle md:flex">
-              <Icon icon={Search} size="sm" />
-              <input placeholder="Buscar grupos, actividades, aprendices…" className="w-full bg-transparent outline-none placeholder:text-ink-subtle" />
-              <kbd className="rounded-sm border border-line bg-surface px-1.5 font-mono text-[10px]">⌘K</kbd>
-            </label>
+            <Input className="hidden max-w-md flex-1 md:flex" placeholder="Buscar grupos, actividades, aprendices…"
+              startIcon={<Icon icon={Search} size="sm" />} endIcon={<Kbd>⌘K</Kbd>} />
             <div className="flex items-center gap-2">
               <NotificationsBell spaceId={space?.id ?? ''} />
               <UserMenu name={me.person.Name} email={me.person.Email} subtitle={space?.name ?? 'Docente'}

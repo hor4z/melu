@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowRight, Check, ChevronLeft, Lightbulb, X } from 'lucide-react'
-import { Button, Chip, Eyebrow, Icon, ProgressRing, Text, cn } from '@melu/ui'
+import { Button, Chip, cn, Eyebrow, Heading, Icon, ProgressRing, Text } from '@melu/ui'
 import { api, type Block, type Submission, type PhaseDoc, type Mission, type Steps, type Answers, type AnswerValue } from '../lib/api'
 import { SELF_GRADED, IS_INTERACTIVE } from '../lib/composition'
 import { InteractiveBlock, ReadingBlock, evaluate, hasValue, type StepState } from '../blocks/Interactive'
@@ -104,7 +104,7 @@ function Runner({ m }: { m: Mission }) {
         </ProgressRing>
         <div>
           <Eyebrow>{graded ? 'Con devolución' : 'Entregada'}</Eyebrow>
-          <h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">{graded ? 'Ya la miró tu guía' : '¡Listo!'}</h1>
+          <Heading level={1} size="2xl" className="mt-1">{graded ? 'Ya la miró tu guía' : '¡Listo!'}</Heading>
           <Text variant="muted" className="mt-1">
             {graded ? 'Abajo está lo que te dejó.' : 'Tu guía la va a mirar. Cuando tenga devolución, te aparece acá y en «Mi progreso».'}
           </Text>
@@ -166,7 +166,7 @@ function Runner({ m }: { m: Mission }) {
           {i === 0 && (
             <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-4">
               <Cover title={m.assignment.title} className="size-16 shrink-0 rounded-xl" size={40} />
-              <div><Eyebrow>{m.assignment.groupName}</Eyebrow><h1 className="font-display text-xl font-semibold tracking-tight">{m.assignment.title}</h1></div>
+              <div><Eyebrow>{m.assignment.groupName}</Eyebrow><Heading level={1} size="lg">{m.assignment.title}</Heading></div>
             </div>
           )}
           {phases.length > 1 && <Eyebrow>{current.phaseName}</Eyebrow>}

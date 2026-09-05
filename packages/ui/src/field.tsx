@@ -74,7 +74,7 @@ export function FieldLabel({ className, children, optional, asLegend, ...props }
 
 export function FieldDescription({ className, ...props }: ComponentPropsWithoutRef<'p'>) {
   const f = useField()
-  return <p id={f?.descId} className={cn('text-[13px] leading-snug text-ink-muted', className)} {...props} />
+  return <p id={f?.descId} className={cn('text-sm leading-snug text-ink-muted', className)} {...props} />
 }
 
 const STATUS_ICON = { error: CircleAlert, warning: TriangleAlert, success: CircleCheck }
@@ -84,7 +84,7 @@ export function FieldStatus({ type = 'error', className, children, ...props }: C
   const f = useField()
   return (
     <p id={f?.msgId} role={type === 'error' ? 'alert' : undefined}
-      className={cn('flex items-start gap-1.5 text-[13px] leading-snug', STATUS_COLOR[type], className)} {...props}>
+      className={cn('flex items-start gap-1.5 text-sm leading-snug', STATUS_COLOR[type], className)} {...props}>
       <Icon icon={STATUS_ICON[type]} size="sm" className="mt-px" />
       <span>{children}</span>
     </p>

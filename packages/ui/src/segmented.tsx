@@ -33,7 +33,8 @@ export function SegmentedControlItem({ value, className, children, disabled, ...
   const ctx = useContext(SegCtx)
   if (!ctx) throw new Error('SegmentedControlItem necesita un SegmentedControl alrededor')
   const isOn = ctx.value === value
-  const text = ctx.size === 'sm' ? 'text-[13px]' : ctx.size === 'lg' ? 'text-[15px]' : 'text-sm'
+  // sm y md comparten tamaño de texto y se diferencian por el alto, como en Button e Input.
+  const text = ctx.size === 'lg' ? 'text-base' : 'text-sm'
   return (
     <button type="button" role="radio" aria-checked={isOn} disabled={disabled} onClick={() => ctx.setValue(value)}
       className={cn('inline-flex h-full items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-focus/30 disabled:opacity-45',

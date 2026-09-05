@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowRight } from 'lucide-react'
-import { Button, Card, Chip, DoodleGroup, EmptyState, Eyebrow, Icon, Input, ProgressRing, Text } from '@melu/ui'
+import { Button, Card, Chip, DoodleGroup, EmptyState, Eyebrow, Heading, Icon, Input, ProgressRing, Text } from '@melu/ui'
 import { api, type Assignment, type Group, type Room, type Me } from '../lib/api'
 import { CompositionChips } from '../blocks/Chips'
 import { Cover } from '../blocks/Cover'
@@ -20,7 +20,7 @@ export function Today({ me }: { me: Me }) {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex items-center justify-between gap-4">
-        <div><Eyebrow>Hoy</Eyebrow><h1 className="mt-1 font-display text-3xl font-semibold tracking-tight">Hola, {me.person.Name.split(' ')[0]}</h1><Text variant="muted">{pending.length === 0 ? 'Nada pendiente. Bien hecho.' : pending.length === 1 ? 'Tenés una misión pendiente.' : `Tenés ${pending.length} misiones pendientes.`}</Text></div>
+        <div><Eyebrow>Hoy</Eyebrow><Heading level={1} size="2xl" className="mt-1">Hola, {me.person.Name.split(' ')[0]}</Heading><Text variant="muted">{pending.length === 0 ? 'Nada pendiente. Bien hecho.' : pending.length === 1 ? 'Tenés una misión pendiente.' : `Tenés ${pending.length} misiones pendientes.`}</Text></div>
         {everyOne.length > 0 && <ProgressRing value={done / everyOne.length} size={64}>{done}/{everyOne.length}</ProgressRing>}
       </header>
 
@@ -29,7 +29,7 @@ export function Today({ me }: { me: Me }) {
           <Cover title={upcoming.title} className="h-40 sm:h-auto" size={110} />
           <div className="flex flex-col gap-3 p-6">
             <Eyebrow>{upcoming.myStatus === 'in_progress' ? 'Seguí donde estabas' : 'Empezá por acá'}</Eyebrow>
-            <h2 className="font-display text-2xl font-semibold">{upcoming.title}</h2>
+            <Heading level={2} size="xl">{upcoming.title}</Heading>
             <CompositionChips c={upcoming.composition} compact />
             <Text size="sm" variant="muted">{upcoming.groupName}. Se guarda solo mientras trabajás: podés parar y volver.</Text>
             <div className="mt-auto pt-2"><Button size="lg" onClick={() => nav(`/mission/${upcoming.id}`)} endIcon={<Icon icon={ArrowRight} size="sm" />}>{upcoming.myStatus === 'in_progress' ? 'Continuar' : 'Empezar'}</Button></div>
@@ -43,7 +43,7 @@ export function Today({ me }: { me: Me }) {
 
       {q.data?.map((s) => (
         <section key={s.group.id} className="flex flex-col gap-3">
-          <div className="flex items-baseline justify-between"><h2 className="font-display text-xl font-semibold">{s.group.name}</h2><Text size="xs" variant="muted">{s.group.learners} en el grupo</Text></div>
+          <div className="flex items-baseline justify-between"><Heading level={2} size="lg">{s.group.name}</Heading><Text size="xs" variant="muted">{s.group.learners} en el grupo</Text></div>
           {s.missions.length === 0 && <div className="rounded-xl border border-dashed border-line-strong p-6 text-center text-sm text-ink-muted">Todavía no hay misiones en este grupo.</div>}
           <ul className="grid gap-3 sm:grid-cols-2">
             {s.missions.map((m) => { const [label, variant] = STATUS[String(m.myStatus) as keyof typeof STATUS]; return (

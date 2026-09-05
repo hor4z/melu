@@ -6,6 +6,24 @@
 @import "tailwindcss";
 @source "./**/*.{ts,tsx}";
 
+/* Los tres escalones que Tailwind no trae por nombre. El resto de la escala vive en
+   `tokens/scales.css` y funciona porque solo redefine variables que Tailwind ya usa
+   (`--text-sm` y compañía); estas no existen para Tailwind, así que si no se declaran acá la
+   utilidad no se genera: el token queda definido y `text-2xs` no hace nada. Es lo que llevó a
+   escribir `text-[10px]` y `text-[56px]` a mano por todo el código. */
+@theme {
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 1.4;
+  --text-md: 1rem;
+  --text-md--line-height: 1.5;
+  --text-display: 2.5rem;
+  --text-display--line-height: 1.05;
+  /* Un escalón más arriba del display, solo para la portada. Existe como token y no como
+     píxel suelto por lo mismo que todo lo demás: el día que cambie, cambia en un lugar. */
+  --text-hero: 3.5rem;
+  --text-hero--line-height: 1.05;
+}
+
 @theme inline {
   --color-*: initial;
   --color-canvas: var(--bg);
@@ -51,6 +69,7 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-display: var(--font-display);
+
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
   --radius-lg: var(--radius-lg);
@@ -72,6 +91,21 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; text-wra
 [data-state="closed"].ui-pop { animation: ui-out 110ms ease-in forwards }
 [data-state="open"].ui-fade { animation: ui-fade-in 140ms ease-out }
 [data-state="closed"].ui-fade { animation: ui-fade-out 110ms ease-in forwards }
+
+/* El panel lateral entra del borde al que está pegado. Es la única animación del kit que
+   depende de dónde está la pieza, por eso son tres y no una. */
+@keyframes ui-slide-in-right { from { transform: translateX(100%) } to { transform: none } }
+@keyframes ui-slide-out-right { from { transform: none } to { transform: translateX(100%) } }
+@keyframes ui-slide-in-left { from { transform: translateX(-100%) } to { transform: none } }
+@keyframes ui-slide-out-left { from { transform: none } to { transform: translateX(-100%) } }
+@keyframes ui-slide-in-bottom { from { transform: translateY(100%) } to { transform: none } }
+@keyframes ui-slide-out-bottom { from { transform: none } to { transform: translateY(100%) } }
+[data-state="open"].ui-slide-right { animation: ui-slide-in-right 220ms cubic-bezier(.24,1,.4,1) }
+[data-state="closed"].ui-slide-right { animation: ui-slide-out-right 170ms ease-in forwards }
+[data-state="open"].ui-slide-left { animation: ui-slide-in-left 220ms cubic-bezier(.24,1,.4,1) }
+[data-state="closed"].ui-slide-left { animation: ui-slide-out-left 170ms ease-in forwards }
+[data-state="open"].ui-slide-bottom { animation: ui-slide-in-bottom 220ms cubic-bezier(.24,1,.4,1) }
+[data-state="closed"].ui-slide-bottom { animation: ui-slide-out-bottom 170ms ease-in forwards }
 
 /* --------------------------------------------------------------------------
    Movimiento. El repertorio está tomado de los propios keyframes de Brilliant
@@ -98,7 +132,8 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.02em; text-wra
 .ui-delay-1 { animation-delay: 80ms } .ui-delay-2 { animation-delay: 160ms } .ui-delay-3 { animation-delay: 240ms }
 
 @media (prefers-reduced-motion: reduce) {
-  .ui-pop, .ui-fade, .ui-reveal, .ui-correct, .ui-error, .ui-nudge, .ui-glow, .ui-rise, .ui-flip { animation: none !important }
+  .ui-pop, .ui-fade, .ui-reveal, .ui-correct, .ui-error, .ui-nudge, .ui-glow, .ui-rise, .ui-flip,
+  .ui-slide-right, .ui-slide-left, .ui-slide-bottom { animation: none !important }
 }
 
 /* --------------------------------------------------------------------------

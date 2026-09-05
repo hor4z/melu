@@ -2,7 +2,7 @@ import { useState, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn, Slot } from './lib'
 
-const SIZES = { xs: 'size-6 text-[10px]', sm: 'size-8 text-xs', md: 'size-10 text-sm', lg: 'size-12 text-base', xl: 'size-16 text-xl' }
+const SIZES = { xs: 'size-6 text-2xs', sm: 'size-8 text-xs', md: 'size-10 text-sm', lg: 'size-12 text-base', xl: 'size-16 text-xl' }
 const TINTS = ['bg-teal', 'bg-yellow', 'bg-blue', 'bg-lilac', 'bg-orange', 'bg-cyan', 'bg-green', 'bg-pink']
 
 const avatarVariants = cva('relative inline-grid shrink-0 place-items-center overflow-hidden font-semibold text-ink select-none', {

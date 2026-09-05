@@ -33,7 +33,7 @@ export function Checkbox({ checked, defaultChecked = false, onCheckedChange, siz
       {(children || description) && (
         <span className="min-w-0">
           {children}
-          {description && <span className="mt-0.5 block text-[13px] font-normal text-ink-muted">{description}</span>}
+          {description && <span className="mt-0.5 block text-sm font-normal text-ink-muted">{description}</span>}
         </span>
       )}
     </button>

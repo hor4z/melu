@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ArrowDown, ArrowUp, ChevronLeft, Eye, EyeOff, GripVertical, LayoutTemplate, Plus, Send, X } from 'lucide-react'
-import { Button, Card, Chip, Eyebrow, Icon, Kbd, Popover, PopoverAnchor, PopoverContent, PopoverTrigger, Text, Toggle, cn } from '@melu/ui'
+import { Button, Card, Chip, Eyebrow, Icon, Input, Kbd, Popover, PopoverAnchor, PopoverContent, PopoverTrigger, Text, Textarea, Toggle, cn } from '@melu/ui'
 import { api, newId, type Activity, type Block, type Criterion, type ManipulativeFigure, type Group, type Lens, type GameEngine, type BlockType } from '../lib/api'
 import { IS_INTERACTIVE, SETTINGS, EXPERIENCES, FIGURES, GAMES, SOCIAL, BLOCK_TYPES, EVIDENCE_MEDIA } from '../lib/composition'
-import { CompositionChips, Rotulo } from '../blocks/Chips'
+import { CompositionChips } from '../blocks/Chips'
 import { InteractiveBlock, ReadingBlock, splitBlanks } from '../blocks/Interactive'
 import { Modal } from '../blocks/Modal'
 import { Cover } from '../blocks/Cover'
@@ -77,7 +77,7 @@ function EditorLoaded({ initial }: { initial: Activity }) {
           <Cover title={a.title} className="h-36" size={96} />
           <div className="flex flex-col gap-4 p-6 sm:p-8">
             <input value={a.title} onChange={(e) => change((x) => ({ ...x, title: e.target.value }), false)} aria-label="Título" placeholder="Sin título" readOnly={preview}
-              className="w-full bg-transparent font-display text-4xl font-semibold tracking-tight outline-none placeholder:text-ink-subtle" />
+              className="w-full bg-transparent font-display text-display font-semibold tracking-tight outline-none placeholder:text-ink-subtle" />
             {/* Properties, Notion-style: each one is an inline menu */}
             <div className="grid gap-y-1 text-sm sm:grid-cols-[130px_1fr]">
               <Prop name="Experiencia"><Picker options={EXPERIENCES} value={a.composition.experience} onPick={(v) => setComp({ experience: v })} disabled={preview} /></Prop>
@@ -94,7 +94,7 @@ function EditorLoaded({ initial }: { initial: Activity }) {
           <div className="flex flex-wrap items-center gap-1 border-b border-line px-4 pt-2" role="tablist" aria-label="Fases">
             {a.document.phases.map((ff, i) => (
               <button key={ff.key} type="button" role="tab" aria-selected={i === phase} onClick={() => setPhase(i)} className={`-mb-px flex items-center gap-2 border-b-2 px-3 py-2.5 text-sm ${i === phase ? 'border-ink font-semibold' : 'border-transparent text-ink-muted hover:text-ink'}`}>
-                <span className={`grid size-5 place-items-center rounded-sm text-[11px] font-bold ${i === phase ? 'bg-ink text-white' : 'bg-muted'}`}>{i + 1}</span>
+                <span className={`grid size-5 place-items-center rounded-sm text-xs font-bold ${i === phase ? 'bg-ink text-white' : 'bg-muted'}`}>{i + 1}</span>
                 {i === phase && !preview ? <input value={ff.name} onChange={(e) => renamePhase(i, e.target.value)} onClick={(e) => e.stopPropagation()} className="w-28 bg-transparent outline-none" aria-label="Nombre de la fase" /> : ff.name}
               </button>
             ))}
@@ -135,9 +135,16 @@ function EditorLoaded({ initial }: { initial: Activity }) {
           <div><Eyebrow>Rúbrica</Eyebrow><Text size="xs" variant="muted">Qué vas a mirar cuando corrijas. Tres niveles por criterio.</Text></div>
           {a.rubric.map((c, i) => (
             <div key={c.id} className="flex flex-col gap-2 rounded-lg border border-line bg-canvas p-3">
-              <textarea value={c.label} rows={2} onChange={(e) => setRubric(a.rubric.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} aria-label="Criterio" placeholder="Qué mirás" className="w-full resize-none bg-transparent text-sm font-medium outline-none placeholder:text-ink-subtle" />
-              <div className="flex gap-1">{c.levels.map((n, k) => <input key={k} value={n} aria-label={`Nivel ${k + 1}`} onChange={(e) => setRubric(a.rubric.map((x, j) => (j === i ? { ...x, levels: x.levels.map((nn, kk) => (kk === k ? e.target.value : nn)) } : x)))} className="min-w-0 flex-1 rounded-sm border border-line bg-surface px-1.5 py-1 text-xs" />)}</div>
-              <button type="button" onClick={() => setRubric(a.rubric.filter((_, j) => j !== i))} className="self-end text-xs text-ink-subtle hover:text-danger">quitar</button>
+              <Textarea value={c.label} rows={2} autoGrow onChange={(e) => setRubric(a.rubric.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} aria-label="Criterio" placeholder="Qué mirás" className="resize-none border-0 bg-transparent px-0 py-0 font-medium focus:ring-0" />
+              <div className="flex flex-col gap-1">
+                {c.levels.map((n, k) => (
+                  <Input key={k} size="sm" value={n} aria-label={`Nivel ${k + 1}`} className="bg-surface"
+                    startIcon={<span className="text-2xs font-bold tabular-nums text-ink-subtle">{k + 1}</span>}
+                    onChange={(e) => setRubric(a.rubric.map((x, j) => (j === i ? { ...x, levels: x.levels.map((nn, kk) => (kk === k ? e.target.value : nn)) } : x)))} />
+                ))}
+              </div>
+              <Button size="sm" variant="ghost" className="self-end text-ink-subtle hover:text-danger"
+                onClick={() => setRubric(a.rubric.filter((_, j) => j !== i))}>Quitar</Button>
             </div>
           ))}
           <Button size="sm" variant="secondary" onClick={() => setRubric([...a.rubric, { id: newId(), label: '', levels: ['Todavía no', 'A veces', 'Siempre'] }])} startIcon={<Icon icon={Plus} />}>Agregar criterio</Button>
@@ -236,7 +243,7 @@ function BlockEditor({ b, idx, focused, isFirst, isLast, onChange, onEnter, onRe
       </div>
       <Popover open={menu !== null} onOpenChange={(o) => !o && setMenu(null)} placement="bottom-start" role="menu">
       <div className={`relative min-w-0 flex-1 ${frameCls}`}>
-        {t.semantic && <div className="mb-1 flex items-center justify-between"><Rotulo>{t.name}{b.type === 'evidence' && ` · ${EVIDENCE_MEDIA[b.media ?? 'photo']}`}</Rotulo><span className="flex opacity-0 group-hover:opacity-100"><button type="button" onClick={() => onMove(-1)} disabled={isFirst} className="rounded-sm p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Subir"><Icon icon={ArrowUp} size="xs" /></button><button type="button" onClick={() => onMove(1)} disabled={isLast} className="rounded-sm p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Bajar"><Icon icon={ArrowDown} size="xs" /></button><button type="button" onClick={onRemove} className="rounded-sm p-0.5 text-ink-subtle hover:text-danger" aria-label="Borrar"><Icon icon={X} size="xs" /></button></span></div>}
+        {t.semantic && <div className="mb-1 flex items-center justify-between"><Eyebrow className="text-brand-text">{t.name}{b.type === 'evidence' && ` · ${EVIDENCE_MEDIA[b.media ?? 'photo']}`}</Eyebrow><span className="flex opacity-0 group-hover:opacity-100"><button type="button" onClick={() => onMove(-1)} disabled={isFirst} className="rounded-sm p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Subir"><Icon icon={ArrowUp} size="xs" /></button><button type="button" onClick={() => onMove(1)} disabled={isLast} className="rounded-sm p-0.5 text-ink-subtle hover:bg-hover disabled:opacity-30" aria-label="Bajar"><Icon icon={ArrowDown} size="xs" /></button><button type="button" onClick={onRemove} className="rounded-sm p-0.5 text-ink-subtle hover:text-danger" aria-label="Borrar"><Icon icon={X} size="xs" /></button></span></div>}
         <PopoverAnchor>
           <textarea ref={ref} value={menu !== null ? '/' + menu : b.text} rows={1} onChange={(e) => onInput(e.target.value)} onKeyDown={onKey} onPaste={onPaste} aria-label={t.name} placeholder={b.type === 'list' ? 'Un ítem por línea' : b.type === 'paragraph' ? 'Escribí, o "/" para elegir un bloque' : t.hint}
             className={`w-full resize-none bg-transparent leading-relaxed outline-none placeholder:text-ink-subtle ${classes[b.type] ?? (t.semantic ? 'font-medium' : 'text-base')}`} />
@@ -250,7 +257,7 @@ function BlockEditor({ b, idx, focused, isFirst, isLast, onChange, onEnter, onRe
           if (!vis.length) return null
           return (
             <div key={cat}>
-              <div className="px-2 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-ink-subtle">{cat}</div>
+              <div className="px-2 pb-1 pt-2 text-2xs font-bold uppercase tracking-wider text-ink-subtle">{cat}</div>
               {vis.map((k) => (
                 <button key={k} type="button" role="menuitem" onMouseDown={(e) => { e.preventDefault(); pick(k) }}
                   className="flex w-full items-center gap-3 rounded-lg px-2 py-1.5 text-left hover:bg-hover">
