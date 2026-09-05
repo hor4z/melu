@@ -1,6 +1,7 @@
 # melu · web
 
-El front: React 19 + Astryx + Tailwind (solo layout) + React Router, servido por Vite.
+El front: React 19 + Tailwind (solo layout) + React Router, servido por Vite.
+Los componentes y los tokens vienen de `@melu/ui`.
 
 ```sh
 npm install
@@ -15,10 +16,9 @@ quien lo embebe en el binario. Es el único punto de contacto entre los dos pack
 ```
 src/screens     una pantalla por ruta
 src/blocks      piezas grandes que arman pantallas
-src/kit         componentes y tokens
 src/lib         api, sesión, perfil, composición
 public          estático tal cual (voice, character, cards)
 ```
 
-Astryx manda en componentes y tokens; Tailwind lee los tokens de Astryx vía
-`tailwind-theme.css`. Un hex escrito a mano es un bug — ver `.claude/CLAUDE.md`.
+Los componentes y los tokens salen de `@melu/ui`; Tailwind lee esos tokens. Un hex escrito
+a mano es un bug. El sistema se documenta solo: `make ui`, en :5174.
