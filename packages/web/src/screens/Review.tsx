@@ -10,6 +10,9 @@ import { IS_INTERACTIVE } from '../lib/composition'
 import { Empty } from '../blocks/Modal'
 
 // One submission at a time, the rubric as a button bar. Built for the thumb.
+/** A step stores milliseconds; here they are read the way a person reads them. */
+const duration = (ms: number) => (ms < 60_000 ? `${Math.round(ms / 1000)} s` : `${Math.round(ms / 60_000)} min`)
+
 export function Review() {
   const { id } = useParams()
   const qc = useQueryClient()
@@ -53,7 +56,7 @@ export function Review() {
                 <div key={b.id} className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <Rotulo>{b.phase}</Rotulo>
-                    {p && p.ok !== null && <Chip size="sm" color={p.ok ? 'success' : 'danger'}>{p.ok ? 'Bien' : 'Se trabó'}{p.attempts > 1 && ` · ${p.attempts} intentos`}{p.ms ? ` · ${p.ms}s` : ''}</Chip>}
+                    {p && p.ok !== null && <Chip size="sm" color={p.ok ? 'success' : 'danger'}>{p.ok ? 'Bien' : 'Se trabó'}{p.attempts > 1 && ` · ${p.attempts} intentos`}{p.ms ? ` · ${duration(p.ms)}` : ''}</Chip>}
                   </div>
                   {b.type !== 'fill_in' && <p className="font-medium">{b.text}</p>}
                   <InteractiveBlock b={b} value={current.answers?.[b.id]} onChange={() => {}} status="review" reveal />

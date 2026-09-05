@@ -26,7 +26,7 @@ func scanActivity(row pgx.CollectableRow) (domain.Activity, error) {
 }
 
 func (x *Activities) Recipes(ctx context.Context) ([]domain.Activity, error) {
-	rows, err := x.r.db.Query(ctx, `select `+activityCols+` from activities where is_recipe and space_id is null order by created_at`)
+	rows, err := x.r.db.Query(ctx, `select `+activityCols+` from activities where is_recipe and space_id is null order by created_at, title`)
 	if err != nil {
 		return nil, err
 	}

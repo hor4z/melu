@@ -74,7 +74,7 @@ packages/api              Go, hexagonal
   internal/app            casos de uso; orquesta domain a través de port
   internal/port           interfaces
   internal/adapter        postgres · http · google
-  migrations              SQL numerado, embebido, se aplica al arrancar
+  migrations              0001 el esquema · 0002 las recetas · demo/ datos de ejemplo
 
 packages/web              React 19 + Astryx + Tailwind (solo layout) + React Router
   src/screens             una pantalla por ruta
@@ -97,6 +97,16 @@ make db                  # postgres en :5434
 make dev                 # api en :8787 + front en :5173
 ```
 
-Las tablas están en plural porque `group` es palabra reservada en SQL. Las migraciones se
-aplican solas al arrancar; si cambiás una que ya corrió, recreá la base
-(`docker exec melu-db psql -U melu -d postgres -c 'drop database melu' -c 'create database melu owner melu'`).
+Las tablas están en plural porque `group` es palabra reservada en SQL.
+
+Las migraciones se aplican solas al arrancar y `schema_migrations` las indexa por nombre de
+archivo. Mientras melu no tenga una base que preservar, **el esquema se edita en el lugar**:
+`0001_init.sql` es el esquema y `0002_recipes.sql` el contenido que viene de fábrica. Cambiar
+una que ya corrió pide recrear la base:
+
+```sh
+docker exec melu-db psql -U melu -d postgres -c 'drop database melu' -c 'create database melu owner melu'
+```
+
+El día que haya datos que no se puedan perder, esto se invierte: a partir de ahí cada cambio
+es una migración nueva y las dos primeras no se tocan más.

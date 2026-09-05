@@ -27,7 +27,7 @@ packages/api              Go · un módulo, hexagonal
   internal/port            interfaces
   internal/adapter         postgres · http · google
   internal/web             embebe el build del front (dist/ no se versiona)
-  migrations               SQL numerado, embebido, se aplica al arrancar
+  migrations               0001 el esquema · 0002 las recetas · demo/ datos de ejemplo
 
 packages/web             React 19 + Astryx + Tailwind (solo layout) + React Router
   src/screens              una pantalla por ruta

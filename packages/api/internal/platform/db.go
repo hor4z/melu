@@ -47,7 +47,7 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool, fs embed.FS, dir string) e
 		}
 		if _, err := tx.Exec(ctx, string(sql)); err != nil {
 			tx.Rollback(ctx)
-			return fmt.Errorf("migración %s: %w", e.Name(), err)
+			return fmt.Errorf("migration %s: %w", e.Name(), err)
 		}
 		if _, err := tx.Exec(ctx, `insert into schema_migrations(name) values($1)`, e.Name()); err != nil {
 			tx.Rollback(ctx)
