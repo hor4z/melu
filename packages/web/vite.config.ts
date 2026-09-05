@@ -8,6 +8,11 @@ import { fileURLToPath, URL } from 'node:url'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
+  // `@melu/ui` se consume como fuente, no como paquete publicado. Sin esto Vite lo pre-empaqueta
+  // igual —está en node_modules, aunque sea un symlink del workspace— y ese pre-empaquetado no se
+  // invalida al editar el kit: la app se queda con el barril viejo y la pantalla sale en blanco
+  // con un «does not provide an export named …» que no tiene nada que ver con el código de hoy.
+  optimizeDeps: { exclude: ['@melu/ui'] },
   build: {
     outDir: fileURLToPath(new URL('../api/internal/web/dist', import.meta.url)),
     emptyOutDir: true,
