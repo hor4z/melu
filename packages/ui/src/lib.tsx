@@ -1,4 +1,4 @@
-import { cloneElement, isValidElement, useCallback, useState, type CSSProperties, type ReactElement, type ReactNode, type Ref } from 'react'
+import { Children, Fragment, cloneElement, isValidElement, useCallback, useState, type CSSProperties, type ReactElement, type ReactNode, type Ref } from 'react'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -25,8 +25,13 @@ const isHandler = (key: string) => /^on[A-Z]/.test(key)
 export type SlotProps = { children?: ReactNode; className?: string; style?: CSSProperties; ref?: Ref<HTMLElement> } & Record<string, unknown>
 
 export function Slot({ children, ref, ...slotProps }: SlotProps) {
-  if (!isValidElement(children)) return null
-  const child = children as ReactElement<Record<string, unknown>>
+  // Un componente como Button siempre rinde tres hijos —icono, contenido, icono— aunque los
+  // iconos sean undefined. Sin esto, `children` es un arreglo, no un elemento, y el slot
+  // devolvía null: `<Button asChild>` no dibujaba nada y no avisaba.
+  const nodes = Children.toArray(children)
+  const i = nodes.findIndex(isValidElement)
+  if (i === -1) return null
+  const child = nodes[i] as ReactElement<Record<string, unknown>>
   const childProps = child.props
   const merged: Record<string, unknown> = { ...slotProps, ...childProps }
 
@@ -43,6 +48,17 @@ export function Slot({ children, ref, ...slotProps }: SlotProps) {
   merged.className = cn(slotProps.className, childProps.className as string)
   merged.style = { ...slotProps.style, ...(childProps.style as object) }
   merged.ref = composeRefs(ref, (childProps as { ref?: Ref<HTMLElement> }).ref)
+  // Lo que rodeaba al hijo pasa a estar adentro: los iconos del botón terminan dentro del <a>,
+  // que es donde tienen que estar.
+  if (nodes.length > 1) {
+    merged.children = (
+      <Fragment>
+        {nodes.slice(0, i)}
+        {childProps.children as ReactNode}
+        {nodes.slice(i + 1)}
+      </Fragment>
+    )
+  }
   return cloneElement(child, merged)
 }
 

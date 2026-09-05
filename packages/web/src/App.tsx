@@ -19,7 +19,6 @@ import { Lenses } from './screens/Lenses'
 import { Today } from './screens/Today'
 import { MissionScreen } from './screens/Mission'
 import { Progress } from './screens/Progress'
-import { Kit } from './screens/Kit'
 import { Start } from './screens/Start'
 
 // If someone arrives with an invite code and already has a session, they join and go on to Today.
@@ -38,8 +37,6 @@ export function App() {
   const { pathname } = useLocation()
   const mode = me.data?.mode
   useEffect(() => { if (mode === 'learner') document.documentElement.dataset.mode = 'learner'; else delete document.documentElement.dataset.mode }, [mode])
-
-  if (pathname.startsWith('/kit')) return <Kit />
 
   if (me.isPending) return <div className="grid min-h-screen place-items-center"><Spinner /></div>
   if (!me.data) return <Routes><Route path="/join/:code" element={<SignIn />} /><Route path="*" element={<SignIn />} /></Routes>

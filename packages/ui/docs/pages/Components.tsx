@@ -11,7 +11,6 @@ import {
   Select, SelectContent, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue, Separator, Skeleton, Slider,
   Switch, Tabs, TabsContent, TabsList, TabsTrigger, Text, Textarea, Toggle, ToggleGroup, ToggleGroupItem, Tooltip, TooltipContent, TooltipTrigger,
 } from '@melu/ui'
-import { Logo } from '@melu/ui'
 
 function Section({ id, title, note, children }: { id: string; title: string; note?: string; children: ReactNode }) {
   return (
@@ -30,13 +29,13 @@ function Row({ title, children }: { title?: string; children: ReactNode }) {
   )
 }
 
-const SECTIONS: [string, string][] = [
+export const SECTIONS: [string, string][] = [
   ['buttons', 'Botones'], ['icons', 'Íconos'], ['typography', 'Tipografía'], ['forms', 'Formularios'],
   ['selection', 'Selección'], ['slider', 'Slider'], ['chips', 'Chips y avatares'], ['cards', 'Tarjetas'],
   ['menus', 'Menús'], ['modals', 'Modales y capas'], ['navigation', 'Navegación'], ['feedback', 'Estados'],
 ]
 
-export function Kit() {
+export function Components() {
   const [sw, setSw] = useState(true)
   const [check, setCheck] = useState<boolean | 'indeterminate'>('indeterminate')
   const [radio, setRadio] = useState('cpa')
@@ -50,20 +49,7 @@ export function Kit() {
   const [tab, setTab] = useState('resumen')
 
   return (
-    <div className="min-h-screen bg-canvas">
-      <header className="sticky top-0 z-30 border-b border-line bg-surface/90 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-          <div className="flex items-center gap-3"><Logo /><Chip color="accent" size="sm">UI kit</Chip></div>
-          <Text size="sm" variant="muted">Componentes compuestos sobre los tokens del tema</Text>
-        </div>
-      </header>
-
-      <div className="mx-auto grid max-w-6xl gap-10 px-6 py-10 lg:grid-cols-[180px_minmax(0,1fr)]">
-        <nav className="sticky top-24 hidden h-fit flex-col gap-0.5 lg:flex">
-          {SECTIONS.map(([id, t]) => <a key={id} href={`#${id}`} className="rounded-md px-3 py-1.5 text-sm text-ink-muted hover:bg-hover hover:text-ink">{t}</a>)}
-        </nav>
-
-        <main className="flex min-w-0 flex-col gap-10">
+<div className="flex min-w-0 flex-col gap-10">
           <div>
             <Heading level={1} size="display">El kit</Heading>
             <Text variant="muted" className="mt-2 max-w-2xl">Cada componente se compone de piezas, se le puede prestar el estilo a otro elemento con <Kbd>asChild</Kbd>, y funciona controlado o no. Los colores salen de los tokens: cambiás el tema y cambia todo.</Text>
@@ -358,8 +344,6 @@ export function Kit() {
               description="Compartí el código del grupo o el QR. Entran con Google y aparecen acá."
               actions={<><Button>Invitar</Button><Button variant="ghost">Ver el código</Button></>} />
           </Section>
-        </main>
-      </div>
-    </div>
+</div>
   )
 }
