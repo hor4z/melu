@@ -1,5 +1,8 @@
 .env
 /bin/
-/web/node_modules/
-/web/dist/
 /data/
+/packages/web/node_modules/
+# el build del front vive acá adentro para que el binario lo embeba;
+# el marcador queda para que `go build` funcione sin haber compilado el front
+/packages/api/internal/web/dist/*
+!/packages/api/internal/web/dist/.gitkeep

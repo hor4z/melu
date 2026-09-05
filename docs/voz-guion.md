@@ -43,7 +43,7 @@ Sirve el celular (nota de voz), Audacity, o lo que tengas. Lo que importa:
 `melu-voz-2026-09-05-toma2.wav`. La fecha importa porque va a haber regrabaciones y
 tiene que quedar claro cuál es la buena.
 
-**Los que salen del corte** los armo yo y viven en `web/public/voz/`. Una sola regla:
+**Los que salen del corte** los armo yo y viven en `packages/web/public/voz/`. Una sola regla:
 **el nombre del archivo es la clave que ya usa el código**, literal. Así el reproductor
 arma la ruta solo (`/voz/muestra/${que}.m4a`) y no hay una tabla de traducción entre el
 código y los audios, que es la clase de cosa que se desactualiza y nadie se entera.
@@ -51,7 +51,7 @@ código y los audios, que es la clase de cosa que se desactualiza y nadie se ent
 Minúsculas, sin acentos ni eñes ni espacios: son URLs.
 
 ```
-web/public/voz/
+packages/web/public/voz/
 ├── muestra/            las seis explicaciones
 │   ├── mitad.m4a
 │   ├── contar.m4a
@@ -90,7 +90,7 @@ Las consignas de las tarjetas del grupo C van con su concepto, no sueltas:
 
 Son las que se escuchan al tocar ▶ en la tarjeta «Escuchá».
 
-Ya están en `web/public/voz/muestra/`. Voces sintéticas de ElevenLabs: **Gaby** para las
+Ya están en `packages/web/public/voz/muestra/`. Voces sintéticas de ElevenLabs: **Gaby** para las
 cuatro de chicos y primaria, **Martin Alvarez** para las dos de secundaria. Vinieron con casi
 6 LUFS de diferencia entre una voz y otra, así que se normalizaron todas a −18 LUFS y se les
 recortó la cola de silencio.
@@ -154,7 +154,7 @@ Se sacan del mismo guion cambiando la franja; te las paso si decidís grabarlas.
 
 1. Corto la toma por silencio y verifico cada corte contra el texto de esta tabla.
 2. Normalizo el volumen (parejo entre frases) y recorto los silencios de los extremos.
-3. Convierto a AAC y las dejo en `web/public/voz/<archivo>.m4a`.
+3. Convierto a AAC y las dejo en `packages/web/public/voz/<archivo>.m4a`.
 4. Cambio la tarjeta «Escuchá» para que reproduzca el archivo, y sincronizo el resaltado
    palabra por palabra **contra la duración real del audio** (hoy corre con un temporizador
    fijo de 330 ms por palabra, así que aunque haya voz, la palabra iluminada se despega).

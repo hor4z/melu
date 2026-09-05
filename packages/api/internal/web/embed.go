@@ -1,4 +1,5 @@
-// Package web embebe el build de Vite. Si dist no existe, Dist es nil y el server solo expone /api.
+// Package web embebe el build de packages/web (vite lo escribe acá).
+// Si dist no existe, Dist es nil y el server solo expone /api.
 package web
 
 import (

@@ -12,8 +12,8 @@ import (
 	"melu/internal/adapter/postgres"
 	"melu/internal/app"
 	"melu/internal/platform"
+	"melu/internal/web"
 	"melu/migrations"
-	"melu/web"
 )
 
 func main() {
