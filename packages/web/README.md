@@ -13,11 +13,11 @@ npm run lint     # oxlint
 quien lo embebe en el binario. Es el único punto de contacto entre los dos packages.
 
 ```
-src/pantallas   una pantalla por ruta
-src/bloques     piezas grandes que arman pantallas
+src/screens     una pantalla por ruta
+src/blocks      piezas grandes que arman pantallas
 src/kit         componentes y tokens
-src/lib         api, sesión, perfil
-public          estático tal cual (voz, personaje, tarjetas)
+src/lib         api, sesión, perfil, composición
+public          estático tal cual (voice, character, cards)
 ```
 
 Astryx manda en componentes y tokens; Tailwind lee los tokens de Astryx vía
