@@ -3,7 +3,7 @@
 // Nada de esta página transcribe los tokens: los lee con getComputedStyle. Así no puede
 // desfasarse de tokens/. Si alguien cambia un valor, esta página cambia sola — y eso la
 // convierte en verificación además de documentación.
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Card, Heading, Text } from '@melu/ui'
 import { Block, Code, PageHead } from '../pieces'
 
@@ -45,8 +45,9 @@ const INTERACCION: [string, string, string][] = [
 ]
 
 function Muestra({ nombre }: { nombre: string }) {
-  const [valor, setValor] = useState('')
-  useEffect(() => setValor(leer(nombre)), [nombre])
+  // Se lee una vez al montar: el theme ya está aplicado cuando React monta, y los tokens no
+  // cambian en caliente. Un efecto acá solo agregaría un render de más.
+  const [valor] = useState(() => leer(nombre))
   return (
     <div className="flex items-center gap-3">
       <span className="size-9 shrink-0 rounded-lg border border-line" style={{ background: `var(${nombre})` }} />
@@ -59,8 +60,7 @@ function Muestra({ nombre }: { nombre: string }) {
 }
 
 function Escala({ nombres, unidad }: { nombres: string[]; unidad?: string }) {
-  const [vals, setVals] = useState<Record<string, string>>({})
-  useEffect(() => setVals(Object.fromEntries(nombres.map((n) => [n, leer(n)]))), [nombres])
+  const [vals] = useState(() => Object.fromEntries(nombres.map((n) => [n, leer(n)])))
   return (
     <div className="flex flex-col gap-2">
       {nombres.map((n) => (
