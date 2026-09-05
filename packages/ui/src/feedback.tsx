@@ -60,7 +60,9 @@ export function Progress({ value, max = 100, className, label, showValue, ...pro
 }
 
 /** Empty state with an explanation: always say what is missing and what can be done. */
-export function EmptyState({ className, icon, title, description, actions, ...props }: ComponentPropsWithoutRef<'div'> & { icon?: ReactNode; title: ReactNode; description?: ReactNode; actions?: ReactNode }) {
+// `title` se saca del div antes de redefinirla: si no, se cruza con el atributo `title` de
+// HTML —que es un string— y el ReactNode termina colapsado en string sin que nadie avise.
+export function EmptyState({ className, icon, title, description, actions, ...props }: Omit<ComponentPropsWithoutRef<'div'>, 'title'> & { icon?: ReactNode; title: ReactNode; description?: ReactNode; actions?: ReactNode }) {
   return (
     <div className={cn('flex flex-col items-center gap-3 rounded-xl border-2 border-dashed border-line-strong px-6 py-10 text-center', className)} {...props}>
       {icon}

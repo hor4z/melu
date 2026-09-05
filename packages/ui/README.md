@@ -28,7 +28,29 @@ src/            los componentes, planos, uno por archivo
   charts/       sparkline, anillo de progreso, contador
   tokens/       primitivos · semánticos · escalas
   theme.css     los tokens + el @theme de Tailwind + base + animaciones
-docs/           el sitio: seis páginas y su marco
+docs/           el sitio
+  registry.ts   una entrada por pieza: grupo, resumen, ejemplos, cuándo no
+  examples/     un archivo por ejemplo; se rinde y se muestra el mismo módulo
+  props-plugin  las props, leídas del compilador (`virtual:melu-props`)
+```
+
+## Las páginas de componente
+
+Cada pieza tiene su página en `/components/<slug>`, todas con la misma estructura: cómo se
+importa, ejemplos, props, cuándo sí y cuándo no, y la fuente.
+
+Para agregar una: una entrada en `docs/registry.ts` y un archivo por ejemplo en
+`docs/examples/<slug>/<id>.tsx` que exporte el demo por default. La página importa ese archivo
+dos veces —el módulo y su `?raw`— así que **el código que se muestra es el que se está
+rindiendo**: no puede desfasarse. Si falta el archivo, la página lo dice en su lugar.
+
+La tabla de props no se escribe. `docs/props-plugin.ts` levanta un programa de TypeScript sobre
+`src/index.ts` y saca de ahí el tipo, el default —del destructuring— y el JSDoc de cada prop.
+Las que llegan de `ComponentPropsWithoutRef` se cuentan y no se listan: son los atributos de
+HTML, no del sistema. Corriéndolo suelto muestra el resumen:
+
+```sh
+node --experimental-strip-types docs/props-plugin.ts
 ```
 
 ## Dos cosas que hay que saber antes de tocar el CSS

@@ -43,7 +43,10 @@ aprendiz o el guía.
 
 **El design system es propio**, no una librería de terceros. Vive en `packages/ui` y se
 documenta solo: `make ui` levanta el sitio en :5174 con los objetivos, los lineamientos, el
-theme, los iconos y los componentes. Los estilos entran a la app con una línea
+theme, los iconos y una página por componente. Esas páginas no se escriben a mano: los
+ejemplos salen de `docs/examples/` —el mismo archivo que se rinde es el que se muestra— y las
+props las lee el compilador de las fuentes. Al agregar un componente al barril, el índice
+avisa que falta documentarlo. Los estilos entran a la app con una línea
 (`@import "@melu/ui/theme.css"`) y los componentes desde el barril (`import { Button } from '@melu/ui'`).
 Un hex escrito a mano es un bug: todo color sale de un token semántico.
 

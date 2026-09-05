@@ -58,3 +58,20 @@ export function Code({ children }: { children: string }) {
     </pre>
   )
 }
+
+/**
+ * Los textos del registry se escriben en markdown mínimo: solo `código` entre backticks. Esto
+ * lo convierte en `<code>`. Sin esto los backticks se rinden literales, que es peor que no
+ * marcarlos: parecen un error de tipeo.
+ */
+export function Ticks({ children }: { children: string }) {
+  return (
+    <>
+      {children.split(/(`[^`]+`)/).map((part, i) =>
+        part.startsWith('`') && part.endsWith('`')
+          ? <code key={`${i}-${part}`} className="font-mono text-[0.92em] text-accent">{part.slice(1, -1)}</code>
+          : part,
+      )}
+    </>
+  )
+}

@@ -25,9 +25,9 @@ const isHandler = (key: string) => /^on[A-Z]/.test(key)
 export type SlotProps = { children?: ReactNode; className?: string; style?: CSSProperties; ref?: Ref<HTMLElement> } & Record<string, unknown>
 
 /**
- * Marks which child is the one that `Slot` has to become. Un componente que dibuja adornos
- * alrededor del contenido —Button con sus iconos, Chip con su span— envuelve acá lo que le
- * pasaron: sin la marca, el slot no tiene forma de saber cuál de los hijos es el verdadero.
+ * Marks which child is the one `Slot` has to become. A component that draws decoration around
+ * the content —Button with its icons, Chip with its span— wraps here what it was given:
+ * without the mark, the slot has no way of knowing which of the children is the real one.
  */
 export function Slottable({ children }: { children?: ReactNode }) {
   return children

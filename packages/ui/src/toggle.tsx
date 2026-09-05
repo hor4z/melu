@@ -55,7 +55,7 @@ export function ToggleGroup({ type = 'single', value, defaultValue = [], onValue
   )
 }
 
-export function ToggleGroupItem({ value, className, children, ...props }: Omit<ToggleProps, 'pressed' | 'onPressedChange'> & { value: string }) {
+export function ToggleGroupItem({ value, className, children, ...props }: Omit<ToggleProps, 'pressed' | 'onPressedChange' | 'value'> & { value: string }) {
   const ctx = useContext(ToggleGroupCtx)
   if (!ctx) throw new Error('ToggleGroupItem necesita un ToggleGroup alrededor')
   return <Toggle pressed={ctx.values.includes(value)} onPressedChange={() => ctx.toggle(value)} size={ctx.size} variant={ctx.variant} className={className} {...props}>{children}</Toggle>
