@@ -48,7 +48,10 @@ export function DropdownMenu({ children, open, defaultOpen = false, onOpenChange
   const nodeId = useFloatingNodeId()
 
   const { refs, floatingStyles, context, isPositioned } = useFloating({
-    nodeId, open: isOpen, onOpenChange: setIsOpen, placement, whileElementsMounted: autoUpdate,
+    // `transform: false`: positioning with top/left, not translate. The ui-pop keyframes
+    // animate `transform`, and an animation beats an inline style: while it ran, the panel
+    // lost its offset and painted at the top of the page before dropping into place.
+    nodeId, open: isOpen, onOpenChange: setIsOpen, placement, whileElementsMounted: autoUpdate, transform: false,
     middleware: [
       offset(6), flip({ padding: 8 }), shift({ padding: 8 }),
       sizeMw({ padding: 8, apply({ availableHeight, elements }) { elements.floating.style.maxHeight = `${Math.max(160, availableHeight)}px` } }),
