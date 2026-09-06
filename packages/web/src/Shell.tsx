@@ -26,7 +26,7 @@ function SpacePicker() {
     <>
       <DropdownMenu placement="bottom-start">
         <DropdownMenuTrigger>
-          <MenuButton block chevron="updown"
+          <MenuButton compact chevron="updown"
             leading={<span className="grid size-9 shrink-0 place-items-center rounded-lg bg-lilac"><Icon icon={School} size="lg" /></span>}
             description={spaces.length > 1 ? `${spaces.length} espacios` : 'Tu espacio'}>
             {space?.name ?? 'Sin espacio'}
@@ -86,7 +86,6 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
       <div className="flex">
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-surface md:flex">
           <div className="px-5 py-5"><Logo /></div>
-          <div className="px-2"><SpacePicker /></div>
           <nav className="mt-3 flex flex-col gap-0.5 px-3">
             <p className="px-3 pb-1 pt-2 text-xs font-bold uppercase tracking-wider text-ink-subtle">Enseñar</p>
             <NavLink to="/home" className={item}><Icon icon={LayoutDashboard} size="lg" /> Inicio</NavLink>
@@ -101,7 +100,8 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
             {/* El logo solo aparece abajo de md, donde el sidebar no está. El `mr-auto` es lo que
                 lo manda a la izquierda sin que el header dependa de que haya algo más al lado. */}
             <div className="mr-auto flex items-center gap-3 md:hidden"><Logo size="sm" /></div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
+              <SpacePicker />
               <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
                 onProfile={() => nav('/profile')}
                 onChangeSpace={spaces.length > 1 ? () => setChanging(true) : undefined} onSignOut={signOut} />
