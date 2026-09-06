@@ -176,14 +176,7 @@ func (s *Server) yo(w http.ResponseWriter, r *http.Request, p domain.Person) {
 	js(w, 200, c)
 }
 
-// updateMe answers with the whole account and not with the person alone: the header, the space
-// picker and the profile screen all read the same `me`, so giving back less would leave the
-// screen showing the new name over the old avatar until the next reload.
 func (s *Server) updateMe(w http.ResponseWriter, r *http.Request, p domain.Person) {
-	// Decoded into a Person and not into a struct of its own so that adding a field to the
-	// profile is one change and not three. What the person is allowed to write is decided by
-	// UpdateMe, which copies field by field onto the row it already read from the session:
-	// anything else that arrives in this body (an id, an email) is read and dropped here.
 	var in domain.Person
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
 		http.Error(w, "invalid data", 400)

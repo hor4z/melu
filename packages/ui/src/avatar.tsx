@@ -20,9 +20,6 @@ export function initials(name: string) {
   if (!p.length) return '?'
   return (p.length === 1 ? p[0].slice(0, 1) : p[0][0] + p[p.length - 1][0]).toUpperCase()
 }
-// The figure for whoever has no photo. The library decides the contrast of the face by parsing
-// each colour as hex, so it does not take `var(--token)`: the values are read once from the
-// tokens already in the document instead of being written by hand here.
 const ART_TOKENS = ['--color-teal-500', '--color-cyan-500', '--color-purple-500', '--color-orange-500', '--color-yellow-400', '--color-green-500']
 let artCache: string[] | null = null
 function artColors() {

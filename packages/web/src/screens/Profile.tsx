@@ -1,15 +1,3 @@
-// Mi perfil: lo que la persona puede ver y cambiar de sí misma.
-//
-// Se entra tocando el propio avatar, arriba a la derecha, que es donde todo el mundo lo busca.
-//
-// Dos columnas, y la división es una sola: a la izquierda lo que se mira (cómo te ve el resto y
-// dónde estás), a la derecha lo que se toca.
-//
-// Qué se edita no lo decide esta pantalla, lo decide de dónde viene cada dato. El nombre lo
-// eligió la persona, así que se edita. El email es la identidad de Google y es lo que ata la
-// fila a la cuenta: se muestra y no se toca. Los espacios y los roles los da de alta quien te
-// sumó, así que se leen. Y la cara sale del nombre, así que tampoco se elige: cambia sola
-// cuando cambia el nombre.
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, School } from 'lucide-react'
@@ -24,15 +12,11 @@ export function Profile({ me }: { me: Me }) {
   const [last, setLast] = useState(person.lastName ?? '')
   const [nick, setNick] = useState(person.nickname ?? '')
 
-  // El mismo cálculo que hace el backend. Se repite acá para que la pantalla pueda mostrar el
-  // nombre que va a quedar antes de guardar, que es cuando sirve verlo.
   const shown = nick.trim() || `${first.trim()} ${last.trim()}`.trim()
   const rolesOf = (spaceId: string) => [...new Set(me.memberships.filter((m) => m.spaceId === spaceId).map((m) => m.role))]
 
   const save = useMutation({
     mutationFn: () => api.patch<Me>('/api/me', { firstName: first.trim(), lastName: last.trim(), nickname: nick.trim() }),
-    // El header, el selector de espacios y esta pantalla leen el mismo `me`: se escribe la
-    // respuesta en la cache y los tres cambian juntos, sin un segundo viaje.
     onSuccess: (up) => qc.setQueryData(['me'], up),
   })
 
@@ -63,8 +47,6 @@ export function Profile({ me }: { me: Me }) {
         </div>
       </header>
 
-      {/* El `top-24` despeja el header del shell, que es sticky y mide `h-16`. Es el mismo número
-          que usa el editor de actividades, que tiene este mismo layout espejado. */}
       <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="flex flex-col gap-5 lg:sticky lg:top-24 lg:self-start">
           <Card padding="lg" className="items-center gap-3 text-center">
@@ -83,8 +65,6 @@ export function Profile({ me }: { me: Me }) {
                   <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-lilac"><Icon icon={School} size="lg" /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium">{e.name}</span>
-                    {/* El rol va acá y no arriba con el nombre: se es guía de un espacio, no guía
-                        a secas, y quien está en dos puede ser una cosa en uno y otra en el otro. */}
                     <span className="block text-xs text-ink-subtle">{rolesOf(e.id).map((r) => ROLES[r] ?? r).join(' · ') || SPACE_KINDS[e.kind] || e.kind}</span>
                   </span>
                 </li>
@@ -101,8 +81,6 @@ export function Profile({ me }: { me: Me }) {
               El apellido es para el guía que tiene dos Sofías en el mismo grupo. El apodo, si lo ponés, gana: es como te vamos a llamar.
             </Text>
           </div>
-          {/* Nombre y apellido juntos, que son la misma pregunta partida en dos, y el apodo
-              abajo y solo, que es otra: la que gana cuando está puesta. */}
           <div className="flex max-w-lg flex-col gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Nombre"><Input value={first} onChange={(e) => setFirst(e.target.value)} maxLength={60} /></Field>

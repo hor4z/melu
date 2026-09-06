@@ -62,7 +62,6 @@ export const SPACE_KINDS: Record<string, string> = {
   personal: 'Soy yo', tutoring: 'Apoyo / refuerzo', club: 'Club / taller', school: 'Escuela',
 }
 
-/** Qué es cada quien en un espacio. La clave viaja a la base (ver el check de `memberships.role`). */
 export const ROLES: Record<string, string> = {
   guide: 'Guía', learner: 'Aprendiz', companion: 'Acompañante', coordinator: 'Coordinador',
 }

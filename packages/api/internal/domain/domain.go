@@ -30,20 +30,13 @@ type Person struct {
 	ID        string `json:"id"`
 	Email     string `json:"email"`
 	GoogleSub string `json:"-"`
-	// Name is what the product shows. It is written from the parts below, never by hand: see
-	// DisplayName for the rule.
 	Name      string `json:"name"`
 	FirstName string `json:"firstName,omitempty"`
 	LastName  string `json:"lastName,omitempty"`
 	Nickname  string `json:"nickname,omitempty"`
-	// The photo. Whoever has none gets a figure drawn from their name, which is the kit's job
-	// and not a column: there is nothing to store about a drawing that the name already decides.
 	AvatarURL string `json:"avatarUrl,omitempty"`
 }
 
-// DisplayName is the one rule about how somebody is called: the nickname wins over the name on
-// the paper. Whoever wrote "Bruno" in that field is Bruno on their guide's screen, and the
-// surname is there for the guide with two Sofías in the same group, not for the greeting.
 func DisplayName(first, last, nickname string) string {
 	if n := strings.TrimSpace(nickname); n != "" {
 		return n
@@ -51,10 +44,6 @@ func DisplayName(first, last, nickname string) string {
 	return strings.TrimSpace(strings.TrimSpace(first) + " " + strings.TrimSpace(last))
 }
 
-// SplitName is the guess made on what Google hands over: one string with everything. It is the
-// same guess 0005 made on the rows that were already here, and it is wrong with a compound
-// surname. It is worth making anyway, because it leaves everybody with something reasonable on
-// day one, and the first person to correct it is the owner of the name.
 func SplitName(full string) (first, last string) {
 	f := strings.Fields(strings.TrimSpace(full))
 	if len(f) == 0 {

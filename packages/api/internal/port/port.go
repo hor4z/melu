@@ -11,8 +11,6 @@ type People interface {
 	ByEmail(ctx context.Context, email string) (*domain.Person, error)
 	Create(ctx context.Context, p domain.Person) (*domain.Person, error)
 	LinkGoogle(ctx context.Context, id, sub, name, avatar string) error
-	// SaveProfile writes what a person can change about themselves. The email is not here: it is
-	// the Google identity, and it is what ties the row to the account.
 	SaveProfile(ctx context.Context, id, name, first, last, nickname string) error
 }
 

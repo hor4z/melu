@@ -91,9 +91,6 @@ func (r *Repos) Create(ctx context.Context, p domain.Person) (*domain.Person, er
 // to anything a person chose.
 func (r *Repos) LinkGoogle(ctx context.Context, id, sub, name, avatar string) error {
 	first, last := domain.SplitName(name)
-	// The parts follow the same rule as the picture: they fill a gap and never overwrite. The
-	// row may have been seeded by a guide who wrote the surname, and Google's single string is
-	// a worse source than that.
 	_, err := r.db.Exec(ctx,
 		`update people set google_sub=$2, name=coalesce(nullif($3,''), name), avatar_url=coalesce(avatar_url, nullif($4,'')),
 		        first_name=coalesce(first_name, nullif($5,'')), last_name=coalesce(last_name, nullif($6,'')) where id=$1`,
@@ -101,9 +98,6 @@ func (r *Repos) LinkGoogle(ctx context.Context, id, sub, name, avatar string) er
 	return err
 }
 
-// SaveProfile writes the name and the avatar choice. The empty string is stored as null and not
-// as ”: null is what the rest of the code reads as "not chosen", and an empty text would make
-// `avatar_style is null` false and leave the person with a figure they did not pick.
 func (r *Repos) SaveProfile(ctx context.Context, id, name, first, last, nickname string) error {
 	_, err := r.db.Exec(ctx,
 		`update people set name=$2, first_name=nullif($3,''), last_name=nullif($4,''), nickname=nullif($5,'') where id=$1`,

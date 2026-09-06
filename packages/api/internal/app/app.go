@@ -43,12 +43,6 @@ func startOfDay(t time.Time, z *time.Location) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, z)
 }
 
-// UpdateMe saves what a person can change about themselves: how they are called. The rest of
-// the row is identity (the email, the Google sub), history, or drawn from the name.
-//
-// The three name fields are three questions, not one split in three: the surname is for the
-// guide with two Sofías in the same group, and the nickname is for the person who wants to be
-// called what everybody calls them. `Name` is written here from those, never received.
 func (s *Services) UpdateMe(ctx context.Context, p domain.Person, in domain.Person) (*domain.Person, error) {
 	first, last := strings.TrimSpace(in.FirstName), strings.TrimSpace(in.LastName)
 	nick := strings.TrimSpace(in.Nickname)

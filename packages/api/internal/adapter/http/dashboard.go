@@ -3,7 +3,6 @@ package http
 import (
 	"net/http"
 
-
 	"melu/internal/domain"
 )
 
@@ -40,4 +39,3 @@ func (s *Server) template(w http.ResponseWriter, r *http.Request, p domain.Perso
 	}
 	js(w, 201, a)
 }
-
