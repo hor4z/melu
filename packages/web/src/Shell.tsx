@@ -1,10 +1,10 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Activity, BookOpen, Check, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
+import { Activity, BookOpen, Check, Compass, Home, LayoutDashboard, Plus, School, Users } from 'lucide-react'
 import {
   Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
-  DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, Input, Kbd, Logo, MenuButton, RadioGroup,
+  DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, Input, Logo, MenuButton, RadioGroup,
   RadioGroupItem, Text, cn, focusRing,
 } from '@melu/ui'
 import { UserMenu } from './blocks/Product'
@@ -97,10 +97,10 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
           </nav>
         </aside>
         <div className="min-w-0 flex-1">
-          <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-line bg-surface/90 px-6 backdrop-blur">
-            <div className="flex items-center gap-3 md:hidden"><Logo size="sm" /></div>
-            <Input className="hidden max-w-md flex-1 md:flex" placeholder="Buscar grupos, actividades, aprendices…"
-              startIcon={<Icon icon={Search} size="sm" />} endIcon={<Kbd>⌘K</Kbd>} />
+          <header className="sticky top-0 z-20 flex h-16 items-center justify-end gap-4 border-b border-line bg-surface/90 px-6 backdrop-blur">
+            {/* El logo solo aparece abajo de md, donde el sidebar no está. El `mr-auto` es lo que
+                lo manda a la izquierda sin que el header dependa de que haya algo más al lado. */}
+            <div className="mr-auto flex items-center gap-3 md:hidden"><Logo size="sm" /></div>
             <div className="flex items-center gap-2">
               <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
                 onProfile={() => nav('/profile')}
