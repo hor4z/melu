@@ -24,7 +24,6 @@ type Services struct {
 	Submissions port.Submissions
 	Memberships port.Memberships
 	Dashboard   port.Dashboard
-	Profiles    port.Profiles
 	// TZ: if nil, the process time zone is used.
 	TZ *time.Location
 }
@@ -41,6 +40,26 @@ func (s *Services) zone() *time.Location {
 func startOfDay(t time.Time, z *time.Location) time.Time {
 	t = t.In(z)
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, z)
+}
+
+func (s *Services) UpdateMe(ctx context.Context, p domain.Person, in domain.Person) (*domain.Person, error) {
+	first, last := strings.TrimSpace(in.FirstName), strings.TrimSpace(in.LastName)
+	nick := strings.TrimSpace(in.Nickname)
+	for _, f := range []string{first, last, nick} {
+		if len([]rune(f)) > 60 {
+			return nil, domain.ErrInvalid
+		}
+	}
+	name := domain.DisplayName(first, last, nick)
+	if name == "" || len([]rune(name)) > 120 {
+		return nil, domain.ErrInvalid
+	}
+	if err := s.People.SaveProfile(ctx, p.ID, name, first, last, nick); err != nil {
+		return nil, err
+	}
+	p.Name, p.FirstName, p.LastName, p.Nickname = name, first, last, nick
+	_ = s.Events.Emit(ctx, domain.Event{PersonID: &p.ID, Verb: "person.updated", Source: "declared", OccurredAt: time.Now()})
+	return &p, nil
 }
 
 // SignInWithIdentity resolves or creates the person behind a Google account and opens a session.
@@ -70,7 +89,8 @@ func (s *Services) SignInWithIdentity(ctx context.Context, sub, email, name, ava
 		if name == "" {
 			name = strings.Split(email, "@")[0]
 		}
-		p, err = s.People.Create(ctx, domain.Person{Email: email, GoogleSub: sub, Name: name, AvatarURL: avatar})
+		first, last := domain.SplitName(name)
+		p, err = s.People.Create(ctx, domain.Person{Email: email, GoogleSub: sub, Name: name, FirstName: first, LastName: last, AvatarURL: avatar})
 		if err != nil {
 			return "", err
 		}

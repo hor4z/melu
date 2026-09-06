@@ -11,6 +11,7 @@ type People interface {
 	ByEmail(ctx context.Context, email string) (*domain.Person, error)
 	Create(ctx context.Context, p domain.Person) (*domain.Person, error)
 	LinkGoogle(ctx context.Context, id, sub, name, avatar string) error
+	SaveProfile(ctx context.Context, id, name, first, last, nickname string) error
 }
 
 type Sessions interface {
@@ -71,10 +72,7 @@ type Dashboard interface {
 	FactsOfGuide(ctx context.Context, guideID, spaceID string) ([]domain.Fact, error)
 	FactsOfLearner(ctx context.Context, learnerID string) ([]domain.Fact, error)
 	HasAssignments(ctx context.Context, guideID string) bool
-}
-
-type Profiles interface {
-	ByPerson(ctx context.Context, personID string) (*domain.Profile, error)
-	Save(ctx context.Context, p domain.Profile) error
-	OfGroup(ctx context.Context, groupID string) (map[string]domain.Profile, error)
+	// Assigned cuenta las misiones puestas, una por chico: si la asignación eligió destinatarios
+	// son esos, y si no, todos los aprendices del grupo.
+	Assigned(ctx context.Context, guideID, spaceID string) (int, error)
 }

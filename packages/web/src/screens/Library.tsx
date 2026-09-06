@@ -18,7 +18,9 @@ export function Library() {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
-        <div><Eyebrow>Actividades</Eyebrow><Heading level={1} size="2xl" className="mt-1">Tus actividades y las plantillas</Heading><Text variant="muted">Una actividad es un documento con fases y bloques. La componés desde una plantilla, la editás como un doc y la asignás a un grupo.</Text></div>
+        {/* El `max-w-2xl` es lo que mantiene el botón en la misma línea: sin tope, la bajada
+            ocupaba todo el ancho y lo empujaba abajo del título. */}
+        <div className="max-w-2xl"><Eyebrow>Actividades</Eyebrow><Heading level={1} size="2xl" className="mt-1">Tus actividades y las plantillas</Heading><Text variant="muted">Una actividad es un documento con fases y bloques. La componés desde una plantilla, la editás como un doc y la asignás a un grupo.</Text></div>
         <Button onClick={() => nav('/activities/new')} startIcon={<Icon icon={Plus} />}>Nueva actividad</Button>
       </header>
 

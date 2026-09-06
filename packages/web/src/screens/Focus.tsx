@@ -3,15 +3,13 @@
 // Inicio responde "qué tengo que hacer ahora". Esto responde "quién necesita una mano", que se
 // lee más despacio y no debería estar compitiendo con lo urgente. La regla de lo que entra acá:
 // nada se muestra si no termina en algo que el docente pueda hacer. Por eso el orden es el de la
-// urgencia y no el de la prolijidad: primero quien se traba, al final los promedios.
-import { useQueries, useQuery } from '@tanstack/react-query'
-import { AlertTriangle, Clock, Layers, Target, TrendingDown, Zap } from 'lucide-react'
-import { Avatar, Card, Chip, Eyebrow, Heading, Icon, Text } from '@melu/ui'
-import { GroupSummary } from '../blocks/Profile'
+// urgencia: primero quien se traba.
+import { useQuery } from '@tanstack/react-query'
+import { AlertTriangle, Clock, Layers, TrendingDown, Zap } from 'lucide-react'
+import { Card, Chip, Eyebrow, Heading, Icon, Text } from '@melu/ui'
 import { SignalAction } from '../blocks/SignalAction'
-import { api, type Dashboard, type Group } from '../lib/api'
+import { api, type Dashboard } from '../lib/api'
 import { EXPERIENCES } from '../lib/composition'
-import type { LiveProfile } from '../lib/profile'
 import { useSpaceId } from '../lib/space'
 
 const KIND = {
@@ -25,15 +23,6 @@ export function Focus() {
   const spaceId = useSpaceId()
   // La misma clave que Inicio: entrar acá no dispara una request nueva, react-query ya la tiene.
   const q = useQuery({ queryKey: ['dashboard', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?space=${spaceId}`) })
-  const groups = useQuery({ queryKey: ['groups', spaceId], queryFn: () => api.get<Group[]>(`/api/groups?space=${spaceId}`) })
-  // Un perfil por grupo. Es la lectura más rica que tiene melu sobre su gente y hasta ahora vivía
-  // enterrada en una pestaña de cada grupo, donde nadie la encontraba.
-  const profiles = useQueries({
-    queries: (groups.data ?? []).map((g) => ({
-      queryKey: ['profiles', g.id],
-      queryFn: () => api.get<LiveProfile[]>(`/api/groups/${g.id}/profiles`),
-    })),
-  })
   const p = q.data
   if (!p) return null
   const signals = p.signals ?? []
@@ -88,71 +77,6 @@ export function Focus() {
           )}
         </Card>
       </section>
-
-      {(groups.data ?? []).length > 0 && (
-        <section className="flex flex-col gap-4">
-          <div>
-            <Eyebrow>Perfiles</Eyebrow>
-            <Heading level={2} size="lg" className="mt-1">Cómo aprenden</Heading>
-            <Text variant="muted" className="mt-1">No es un diagnóstico ni una etiqueta: arranca con lo que cada uno eligió en su recorrido de bienvenida y se corrige con cómo le va de verdad. Sirve para decidir con qué formato armar la próxima actividad.</Text>
-          </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            {(groups.data ?? []).map((g, i) => {
-              const data = profiles[i]?.data
-              if (!data || data.length === 0) return null
-              return (
-                <div key={g.id} className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2"><Avatar name={g.name} size="sm" /><span className="font-semibold">{g.name}</span></div>
-                  <GroupSummary profiles={data} />
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      )}
-
-      <section className="flex flex-col gap-4">
-        <div>
-          <Eyebrow>La semana</Eyebrow>
-          <Heading level={2} size="lg" className="mt-1">Cómo viene el promedio</Heading>
-          <Text variant="muted" className="mt-1">Un promedio solo no dice nada: lo que importa es si se movió.</Text>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Average icon={Clock} label="Tiempo por misión" value={p.avgMinutes > 0 ? String(p.avgMinutes) : null} unit="min"
-            delta={delta(p.avgMinutes, p.prevAvgMinutes)} unitLabel="min" higherIsBetter={null}
-            hint="desde que abren la misión hasta que la entregan" />
-          <Average icon={Target} label="Aciertos en chequeos" value={p.accuracy >= 0 ? String(Math.round(p.accuracy * 100)) : null} unit="%"
-            delta={delta(pct(p.accuracy), pct(p.prevAccuracy))} unitLabel="puntos" higherIsBetter
-            hint="sobre los bloques que tienen opción correcta" />
-        </div>
-      </section>
     </div>
-  )
-}
-
-const pct = (n: number) => (n >= 0 ? Math.round(n * 100) : -1)
-/** null cuando falta alguno de los dos: la semana pasada vacía no es un cero, es que no sabemos. */
-const delta = (now: number, prev: number) => (now >= 0 && prev >= 0 ? Math.round((now - prev) * 10) / 10 : null)
-
-function Average({ icon, label, value, unit, delta, unitLabel, higherIsBetter, hint }: {
-  icon: typeof Clock; label: string; value: string | null; unit: string
-  delta: number | null; unitLabel: string; higherIsBetter: boolean | null; hint: string
-}) {
-  // Bajar el tiempo no es bueno ni malo por sí solo (puede ser que se apuren), así que ese caso
-  // se muestra en gris. Los aciertos sí tienen una dirección deseable.
-  const good = higherIsBetter === null || delta === null ? null : (higherIsBetter ? delta > 0 : delta < 0)
-  return (
-    <Card padding="lg" className="gap-2">
-      <div className="flex items-center gap-2 text-ink-muted"><Icon icon={icon} size="lg" /><span className="text-sm font-medium">{label}</span></div>
-      <div className="font-display text-4xl font-semibold tracking-tight tabular-nums">
-        {value ?? '-'}{value && <span className="ml-1 text-lg font-medium text-ink-muted">{unit}</span>}
-      </div>
-      {delta === null || delta === 0
-        ? <Text size="sm" variant="subtle">{delta === 0 ? 'Igual que la semana pasada.' : 'Todavía no hay con qué comparar: es la primera semana con entregas.'}</Text>
-        : <Text size="sm" variant={good === null ? 'muted' : good ? 'success' : 'danger'}>
-            {delta > 0 ? '↑' : '↓'} {Math.abs(delta)} {unitLabel} {delta > 0 ? 'más' : 'menos'} que la semana pasada
-          </Text>}
-      <Text size="xs" variant="subtle">{hint}</Text>
-    </Card>
   )
 }

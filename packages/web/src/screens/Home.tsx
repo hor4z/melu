@@ -6,24 +6,12 @@
 // min" no.
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Check, CheckCheck, Hourglass, Inbox, Plus, Users } from 'lucide-react'
+import { ArrowRight, Check, CheckCheck, Hourglass, Inbox, Plus, Users } from 'lucide-react'
 import { Avatar, Button, Card, Chip, DoodleBulb, Eyebrow, Heading, Icon, Text } from '@melu/ui'
 import { StatTile } from '../blocks/Product'
 import { api, type Dashboard } from '../lib/api'
 import { useSpaceId } from '../lib/space'
-
-// Cuánto hace que llegó. En una lista de lo último que pasó, "hace 2 h" ubica mejor que una
-// fecha completa, y a partir de la semana la fecha vuelve a ser lo más claro.
-function ago(iso: string) {
-  const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000)
-  if (min < 1) return 'recién'
-  if (min < 60) return `hace ${min} min`
-  const h = Math.round(min / 60)
-  if (h < 24) return `hace ${h} h`
-  const d = Math.round(h / 24)
-  if (d < 7) return `hace ${d} ${d === 1 ? 'día' : 'días'}`
-  return new Date(iso).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
-}
+import { ago } from '../lib/time'
 
 export function Home() {
   const nav = useNavigate()
@@ -32,7 +20,8 @@ export function Home() {
   const p = q.data
   if (!p) return null
   const recent = p.recentSubmissions ?? []
-  const series = p.weekSeries ?? []
+  const entregadas = p.toReview + p.graded
+  const faltan = Math.max(0, p.assigned - entregadas)
   const steps: [string, string, string, string][] = [
     ['group', 'Creá un grupo', 'Un aula, un taller, tres alumnos: gente que aprende junta.', '/groups'],
     ['invite', 'Sumá a los chicos', 'Escribí sus emails. Entran con Google y el grupo ya los espera.', '/groups'],
@@ -42,9 +31,6 @@ export function Home() {
   ]
   const facts = steps.filter(([k]) => p.checklist[k]).length
   const firstTime = facts < steps.length
-  const maxSeries = Math.max(1, ...series.map((d) => d.opened))
-  const weekOut = series.reduce((n, d) => n + d.opened, 0)
-  const weekBack = series.reduce((n, d) => n + d.submitted, 0)
 
   return (
     <div className="flex flex-col gap-8">
@@ -79,32 +65,23 @@ export function Home() {
         <StatTile label="Aprendices" value={p.learners} hint={`${p.groups} ${p.groups === 1 ? 'grupo' : 'grupos'} · ${p.spaces} ${p.spaces === 1 ? 'espacio' : 'espacios'}`} tint="bg-teal" icon={<Icon icon={Users} size="lg" />} />
       </section>
 
-      <Card padding="lg">
-        <Eyebrow>Esta semana</Eyebrow>
-        <Heading level={2} size="lg" className="mt-1">
-          {weekBack} de {weekOut} {weekOut === 1 ? 'misión ya volvió' : 'misiones ya volvieron'}
-        </Heading>
-        <Text size="sm" variant="muted">La parte llena de cada día es lo que ya entregaron.</Text>
-        <div className="mt-5 flex h-28 items-stretch gap-2">
-          {series.map((d) => (
-            <div key={d.day} className="flex flex-1 flex-col items-center gap-2"
-              title={`${d.submitted} de ${d.opened} entregadas`}>
-              <div className="flex w-full flex-1 items-end">
-                <div className="flex w-full flex-col justify-end rounded-md bg-muted"
-                  style={{ height: `${Math.max(4, (d.opened / maxSeries) * 100)}%` }}>
-                  <div className="w-full rounded-md bg-accent"
-                    style={{ height: d.opened ? `${(d.submitted / d.opened) * 100}%` : '0%' }} />
-                </div>
-              </div>
-              <span className="text-2xs text-ink-subtle">{['D', 'L', 'M', 'X', 'J', 'V', 'S'][new Date(d.day + 'T12:00:00').getDay()]}</span>
-            </div>
-          ))}
-        </div>
-      </Card>
 
       {recent.length > 0 && (
         <Card padding="lg">
-          <div className="flex items-end justify-between"><div><Eyebrow>Entregas recientes</Eyebrow><Heading level={2} size="lg" className="mt-1">Lo último que llegó</Heading></div></div>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <Eyebrow>Entregas</Eyebrow>
+              <Heading level={2} size="lg" className="mt-1">
+                {entregadas} de {p.assigned} {p.assigned === 1 ? 'misión entregada' : 'misiones entregadas'}
+              </Heading>
+              {/* Lo que falta es el dato que el docente busca acá, y con la resta hecha: si tiene
+                  que restar dos números para saber a cuántos chicos esperar, no lo hace. */}
+              <Text size="sm" variant="muted">
+                {faltan > 0 ? `Faltan ${faltan}.` : 'Están todas.'} {p.toReview > 0 ? `${p.toReview} esperan tu devolución.` : 'Ninguna espera devolución.'}
+              </Text>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => nav('/submissions')} endIcon={<Icon icon={ArrowRight} size="sm" />}>Ver todas</Button>
+          </div>
           <ul className="mt-4 divide-y divide-line">
             {recent.map((e) => (
               <li key={e.submissionId} className="flex flex-wrap items-center gap-4 py-3">

@@ -4,6 +4,7 @@ package domain
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 )
 
@@ -30,7 +31,25 @@ type Person struct {
 	Email     string `json:"email"`
 	GoogleSub string `json:"-"`
 	Name      string `json:"name"`
+	FirstName string `json:"firstName,omitempty"`
+	LastName  string `json:"lastName,omitempty"`
+	Nickname  string `json:"nickname,omitempty"`
 	AvatarURL string `json:"avatarUrl,omitempty"`
+}
+
+func DisplayName(first, last, nickname string) string {
+	if n := strings.TrimSpace(nickname); n != "" {
+		return n
+	}
+	return strings.TrimSpace(strings.TrimSpace(first) + " " + strings.TrimSpace(last))
+}
+
+func SplitName(full string) (first, last string) {
+	f := strings.Fields(strings.TrimSpace(full))
+	if len(f) == 0 {
+		return "", ""
+	}
+	return f[0], strings.Join(f[1:], " ")
 }
 
 type Space struct {
@@ -142,16 +161,4 @@ type Fact struct {
 	OpenedAt, SubmittedAt                                                         *time.Time
 	Answers, Document, Steps, Composition                                         json.RawMessage
 	UpdatedAt                                                                     time.Time
-}
-
-// ---- learning profile ----
-
-// Profile is a snapshot of how content reaches someone, not a label.
-// Declared comes from the onboarding; the observed side is always recomputed from submissions.
-type Profile struct {
-	PersonID  string             `json:"personId"`
-	Declared  map[string]float64 `json:"declared"`
-	Answers   json.RawMessage    `json:"answers"`
-	CreatedAt time.Time          `json:"createdAt"`
-	UpdatedAt time.Time          `json:"updatedAt"`
 }

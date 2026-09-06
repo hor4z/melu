@@ -33,7 +33,11 @@ export const api = {
 }
 
 // ---- types mirroring the Go domain ----
-export type Person = { id: string; email: string; name: string; avatarUrl?: string }
+export type Person = {
+  id: string; email: string; name: string
+  firstName?: string; lastName?: string; nickname?: string
+  avatarUrl?: string
+}
 export type Space = { id: string; name: string; slug: string; kind: SpaceKind }
 export type SpaceKind = 'school' | 'club' | 'tutoring' | 'personal'
 export type Role = 'guide' | 'learner' | 'companion' | 'coordinator'
@@ -41,7 +45,7 @@ export type Membership = { spaceId: string; groupId: string | null; role: Role }
 export type Group = { id: string; spaceId: string; name: string; tags: Record<string, string>; learners: number }
 export type Phase = { key: string; name: string; asks: string }
 export type Lens = { key: string; name: string; description: string; phases: Phase[] }
-export type Me = { person: Person; mode: 'guide' | 'learner' | 'new'; spaces: Space[]; memberships: Membership[]; profile: boolean }
+export type Me = { person: Person; mode: 'guide' | 'learner' | 'new'; spaces: Space[]; memberships: Membership[] }
 
 export type BlockType =
   | 'paragraph' | 'heading' | 'list' | 'callout'
@@ -117,7 +121,6 @@ export const newId = () => Math.random().toString(36).slice(2, 10)
 // ---- dashboard and progress ----
 export type Signal = { learnerId: string; learner: string; groupId: string; group: string; kind: 'dropout' | 'misses' | 'slow' | 'shines'; detail: string; suggestion: string; recipeTitle?: string; recipeId?: string; assignmentId?: string }
 export type ByKind = { experience: string; submissions: number; avgMinutes: number; accuracy: number }
-export type DaySeries = { day: string; opened: number; submitted: number }
 export type SubmissionSummary = { submissionId: string; assignmentId: string; learner?: string; title: string; group: string; status: 'in_progress' | 'submitted' | 'graded'; minutes: number; accuracy: number; when: string }
-export type Dashboard = { spaces: number; groups: number; learners: number; toReview: number; unfinished: number; graded: number; avgMinutes: number; accuracy: number; prevAvgMinutes: number; prevAccuracy: number; weekSeries: DaySeries[]; signals: Signal[]; byKind: ByKind[]; checklist: Record<string, boolean>; recentSubmissions: SubmissionSummary[] }
+export type Dashboard = { spaces: number; groups: number; learners: number; toReview: number; unfinished: number; graded: number; assigned: number; signals: Signal[]; byKind: ByKind[]; checklist: Record<string, boolean>; recentSubmissions: SubmissionSummary[] }
 export type Progress = { done: number; inProgress: number; minutes: number; accuracy: number; streak: number; missions: SubmissionSummary[]; experiences: Record<string, number> }
