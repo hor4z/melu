@@ -81,7 +81,7 @@ export function Profile({ me }: { me: Me }) {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <Heading level={1} size="2xl">Mi perfil</Heading>
-          <Text variant="muted">Cómo te ve el resto de melu.</Text>
+          <Text variant="muted">Cómo te ve el resto.</Text>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {shown === '' && <Text size="sm" variant="danger">Poné al menos un nombre o un apodo.</Text>}
@@ -148,29 +148,28 @@ export function Profile({ me }: { me: Me }) {
           </Card>
 
           <Card padding="lg" className="gap-4">
-            <div>
-              <Heading level={2} size="lg">Tu avatar</Heading>
-              <Text variant="muted">Tu foto de Google, o una figura que armás parte por parte.</Text>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Sin foto de Google no hay entre qué elegir, y un segmentado de una sola opción
-                  es una decisión que no existe: queda solo el botón. */}
+            {/* Sin bajada: de dónde salió la foto es asunto nuestro, no de quien la mira, y
+                nombrar a Google acá manda a pensar en un lugar donde esto no se resuelve. */}
+            <Heading level={2} size="lg">Tu avatar</Heading>
+            {/* La elección va al pie, y armar cuelga de ella: aparece cuando elegís la figura y
+                no está cuando elegís la foto, porque no hay nada que armar. Van en la misma
+                línea y el botón es fantasma a propósito: son un solo gesto, no dos bloques
+                enfrentados. Sin foto de Google no hay entre qué elegir, así que el segmentado
+                no está y queda solo el botón. */}
+            <div className="flex flex-wrap items-center gap-1">
               {person.avatarUrl && (
                 <SegmentedControl label="Qué avatar usás" value={style ? 'art' : 'photo'}
                   onValueChange={(v) => setStyle(v === 'art' ? (style ?? ART_STYLES[0]) : null)}>
-                  <SegmentedControlItem value="photo">Mi foto de Google</SegmentedControlItem>
+                  <SegmentedControlItem value="photo">Mi foto</SegmentedControlItem>
                   <SegmentedControlItem value="art">Una figura</SegmentedControlItem>
                 </SegmentedControl>
               )}
-              <Button variant="secondary" startIcon={<Icon icon={Palette} size="sm" />} onClick={() => setBuilding(true)}>
-                {style ? 'Cambiar la figura' : 'Armar una figura'}
-              </Button>
+              {style && (
+                <Button variant="ghost" startIcon={<Icon icon={Palette} size="sm" />} onClick={() => setBuilding(true)}>
+                  Armar mi figura
+                </Button>
+              )}
             </div>
-            <Text size="sm" variant="muted">
-              {style
-                ? 'Los ojos, la boca, el pelo y los accesorios los elegís vos.'
-                : 'Estás usando tu foto de Google. Si armás una figura, la figura gana.'}
-            </Text>
           </Card>
         </div>
       </div>
