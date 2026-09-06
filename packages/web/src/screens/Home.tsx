@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Check, Clock, Inbox, Layers, Plus, Target, TrendingDown, UserPlus, Users, Zap } from 'lucide-react'
 import { Avatar, Button, Card, Chip, DoodleBulb, Eyebrow, Heading, Icon, Text } from '@melu/ui'
 import { StatTile } from '../blocks/Product'
-import { api, type Dashboard, type Me } from '../lib/api'
+import { api, type Dashboard } from '../lib/api'
 import { useSpaceId } from '../lib/space'
 import { EXPERIENCES } from '../lib/composition'
 
@@ -16,7 +16,7 @@ const KIND = {
   shines: { icon: Zap, ink: 'text-success', label: 'Vuela' },
 } as const
 
-export function Home({ me }: { me: Me }) {
+export function Home() {
   const nav = useNavigate()
   const spaceId = useSpaceId()
   const q = useQuery({ queryKey: ['dashboard', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?space=${spaceId}`) })
@@ -41,11 +41,8 @@ export function Home({ me }: { me: Me }) {
 
   return (
     <div className="flex flex-col gap-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <Heading level={1} size="2xl">Hola, {me.person.name.split(' ')[0]} 👋</Heading>
-          <Text variant="muted">{p.toReview > 0 ? `Tenés ${p.toReview} ${p.toReview === 1 ? 'entrega' : 'entregas'} para mirar.` : 'Nada pendiente para corregir. Buen momento para armar algo nuevo.'}</Text>
-        </div>
+      <header className="flex flex-wrap items-end justify-end gap-4">
+        <Heading level={1} size="2xl" className="sr-only">Inicio</Heading>
         <div className="flex gap-2"><Button variant="secondary" onClick={() => nav('/groups')} startIcon={<Icon icon={UserPlus} />}>Invitar al grupo</Button><Button onClick={() => nav('/activities/new')} startIcon={<Icon icon={Plus} />}>Nueva actividad</Button></div>
       </header>
 
@@ -77,7 +74,7 @@ export function Home({ me }: { me: Me }) {
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
         <section className="flex flex-col gap-4">
-          <div className="flex items-start justify-between"><div><Eyebrow>Necesitan una mano</Eyebrow><Heading level={2} size="lg" className="mt-1">Señales y sugerencias</Heading></div><Text size="xs" variant="muted">Reglas simples sobre lo que pasó. Nada inferido.</Text></div>
+          <div><Eyebrow>Necesitan una mano</Eyebrow><Heading level={2} size="lg" className="mt-1">Señales y sugerencias</Heading></div>
           {signals.length === 0 && <div className="rounded-xl bg-canvas p-6 text-center text-sm text-ink-muted">Sin señales por ahora. Aparecen cuando alguien se traba, tarda mucho, abandona… o vuela.</div>}
           <ul className="flex flex-col gap-3">
             {signals.map((s) => { const t = KIND[s.kind]; return (
