@@ -19,10 +19,21 @@ export function initials(name: string) {
   if (!p.length) return '?'
   return (p.length === 1 ? p[0].slice(0, 1) : p[0][0] + p[p.length - 1][0]).toUpperCase()
 }
+// FNV-1a con una mezcla final. El `h * 31` de toda la vida alcanza para repartir en ocho
+// tintes, pero acá se le piden seis rasgos a la vez leyendo pedacitos del número, y un nombre
+// corto da un número chico: los bits de arriba quedaban en cero y "Ana", "Leo" y "Sol" caían
+// en la misma boca y la misma separación de ojos. La mezcla lleva entropía a todos los bits.
 function hashOf(name: string) {
-  let h = 0
-  for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0
-  return h
+  let h = 2166136261
+  for (const c of name) {
+    h ^= c.charCodeAt(0)
+    h = Math.imul(h, 16777619)
+  }
+  h ^= h >>> 15
+  h = Math.imul(h, 2246822507)
+  h ^= h >>> 13
+  h = Math.imul(h, 3266489909)
+  return (h ^ (h >>> 16)) >>> 0
 }
 /** The same name always lands on the same tint: the group's face does not dance between reloads. */
 export function tintOf(name: string) {
@@ -33,17 +44,20 @@ const FACE_COLORS = [
   'var(--color-teal-500)', 'var(--color-cyan-500)', 'var(--color-purple-500)',
   'var(--color-orange-500)', 'var(--color-green-500)', 'var(--color-red-500)',
 ]
-const digit = (h: number, n: number) => Math.floor(h / 10 ** n) % 10
+// Bit slices and not decimal digits: a short name gives a small hash, and the tens of
+// thousands place of `Ana` is always zero. With digits, every three-letter name shared the same
+// mouth and the same eye spacing, and short names are the norm here.
+const slice = (h: number, at: number) => (h >>> at) & 7
 
 function Figure({ name }: { name: string }) {
   const h = hashOf(name)
   const color = FACE_COLORS[h % FACE_COLORS.length]
-  const dx = (digit(h, 1) % 5) - 2
-  const dy = (digit(h, 2) % 5) - 2
-  const tilt = (digit(h, 3) % 7) - 3
-  const eyeY = 14 + (digit(h, 4) % 3)
-  const gap = 5 + (digit(h, 5) % 3)
-  const mouth = digit(h, 6) % 3
+  const dx = (slice(h, 3) % 5) - 2
+  const dy = (slice(h, 6) % 5) - 2
+  const tilt = slice(h, 9) - 3
+  const eyeY = 14 + (slice(h, 12) % 3)
+  const gap = 5 + (slice(h, 15) % 3)
+  const mouth = slice(h, 18) % 3
   return (
     <svg viewBox="0 0 36 36" className="size-full" aria-hidden="true">
       <rect width="36" height="36" fill={color} />

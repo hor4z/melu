@@ -5,27 +5,33 @@ import { Avatar, Button, Card, Field, Heading, Icon, Input, Text } from '@melu/u
 import { api, type Me } from '../lib/api'
 import { ROLES, SPACE_KINDS } from '../lib/composition'
 
+function splitName(full: string): [string, string] {
+  const f = full.trim().split(/\s+/).filter(Boolean)
+  return f.length === 0 ? ['', ''] : [f[0], f.slice(1).join(' ')]
+}
+
 export function Profile({ me }: { me: Me }) {
   const qc = useQueryClient()
   const { person } = me
-  const [first, setFirst] = useState(person.firstName ?? '')
-  const [last, setLast] = useState(person.lastName ?? '')
+  const guess = splitName(person.name)
+  const [first, setFirst] = useState(person.firstName ?? guess[0])
+  const [last, setLast] = useState(person.lastName ?? guess[1])
   const [nick, setNick] = useState(person.nickname ?? '')
 
   const shown = nick.trim() || `${first.trim()} ${last.trim()}`.trim()
   const rolesOf = (spaceId: string) => [...new Set(me.memberships.filter((m) => m.spaceId === spaceId).map((m) => m.role))]
 
   const save = useMutation({
-    mutationFn: () => api.patch<Me>('/api/me', { firstName: first.trim(), lastName: last.trim(), nickname: nick.trim() }),
+    mutationFn: () => api.put<Me>('/api/me', { firstName: first.trim(), lastName: last.trim(), nickname: nick.trim() }),
     onSuccess: (up) => qc.setQueryData(['me'], up),
   })
 
-  const dirty = first.trim() !== (person.firstName ?? '') || last.trim() !== (person.lastName ?? '')
+  const dirty = first.trim() !== (person.firstName ?? guess[0]) || last.trim() !== (person.lastName ?? guess[1])
     || nick.trim() !== (person.nickname ?? '')
   const canSave = shown !== '' && dirty && !save.isPending
 
   function revert() {
-    setFirst(person.firstName ?? ''); setLast(person.lastName ?? ''); setNick(person.nickname ?? '')
+    setFirst(person.firstName ?? guess[0]); setLast(person.lastName ?? guess[1]); setNick(person.nickname ?? '')
     save.reset()
   }
 

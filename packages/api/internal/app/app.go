@@ -52,7 +52,7 @@ func (s *Services) UpdateMe(ctx context.Context, p domain.Person, in domain.Pers
 		}
 	}
 	name := domain.DisplayName(first, last, nick)
-	if name == "" {
+	if name == "" || len([]rune(name)) > 120 {
 		return nil, domain.ErrInvalid
 	}
 	if err := s.People.SaveProfile(ctx, p.ID, name, first, last, nick); err != nil {

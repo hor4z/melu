@@ -75,6 +75,9 @@ func (r *Repos) ByEmail(ctx context.Context, email string) (*domain.Person, erro
 	return r.person(ctx, "lower(email)=lower($1)", email)
 }
 func (r *Repos) Create(ctx context.Context, p domain.Person) (*domain.Person, error) {
+	if p.FirstName == "" && p.LastName == "" {
+		p.FirstName, p.LastName = domain.SplitName(p.Name)
+	}
 	var id string
 	err := r.db.QueryRow(ctx, `insert into people(email, google_sub, name, avatar_url, first_name, last_name)
 	        values(nullif(lower($1),''), nullif($2,''), $3, nullif($4,''), nullif($5,''), nullif($6,'')) returning id`,
