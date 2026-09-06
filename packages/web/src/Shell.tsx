@@ -1,34 +1,22 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Activity, Bell, BookOpen, Check, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Activity, BookOpen, Check, Compass, Home, LayoutDashboard, Plus, School, Users } from 'lucide-react'
 import {
-  Badge, Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
-  DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, IconButton, Input, Kbd, Logo, MenuButton, RadioGroup,
+  Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, Input, Logo, MenuButton, RadioGroup,
   RadioGroupItem, Text, cn, focusRing,
 } from '@melu/ui'
 import { UserMenu } from './blocks/Product'
 import { useSignOut } from './lib/session'
 import { useSpace } from './lib/space'
-import { api, type Space, type SpaceKind, type Dashboard, type Me } from './lib/api'
+import { api, type Space, type SpaceKind, type Me } from './lib/api'
 import { SPACE_KINDS } from './lib/composition'
 import { Modal } from './blocks/Modal'
 
 const item = ({ isActive }: { isActive: boolean }) =>
   cn('flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors', focusRing,
     isActive ? 'bg-teal font-semibold text-accent' : 'text-ink-muted hover:bg-hover hover:text-ink')
-
-function NotificationsBell({ spaceId }: { spaceId: string }) {
-  const nav = useNavigate()
-  const q = useQuery({ queryKey: ['dashboard', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?space=${spaceId}`), staleTime: 30_000 })
-  const n = q.data?.toReview ?? 0
-  return (
-    <span className="relative inline-flex">
-      <IconButton label={`${n} entregas para mirar`} variant="ghost" icon={<Icon icon={Bell} size="lg" color="muted" />} onClick={() => nav('/home')} />
-      {n > 0 && <Badge className="pointer-events-none absolute -right-0.5 -top-0.5">{n}</Badge>}
-    </span>
-  )
-}
 
 /** Picks which space you work in. Everything below is filtered by this. */
 function SpacePicker() {
@@ -38,7 +26,7 @@ function SpacePicker() {
     <>
       <DropdownMenu placement="bottom-start">
         <DropdownMenuTrigger>
-          <MenuButton block chevron="updown"
+          <MenuButton compact chevron="updown"
             leading={<span className="grid size-9 shrink-0 place-items-center rounded-lg bg-lilac"><Icon icon={School} size="lg" /></span>}
             description={spaces.length > 1 ? `${spaces.length} espacios` : 'Tu espacio'}>
             {space?.name ?? 'Sin espacio'}
@@ -98,7 +86,6 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
       <div className="flex">
         <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-surface md:flex">
           <div className="px-5 py-5"><Logo /></div>
-          <div className="px-2"><SpacePicker /></div>
           <nav className="mt-3 flex flex-col gap-0.5 px-3">
             <p className="px-3 pb-1 pt-2 text-xs font-bold uppercase tracking-wider text-ink-subtle">Enseñar</p>
             <NavLink to="/home" className={item}><Icon icon={LayoutDashboard} size="lg" /> Inicio</NavLink>
@@ -109,12 +96,12 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
           </nav>
         </aside>
         <div className="min-w-0 flex-1">
-          <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-line bg-surface/90 px-6 backdrop-blur">
-            <div className="flex items-center gap-3 md:hidden"><Logo size="sm" /></div>
-            <Input className="hidden max-w-md flex-1 md:flex" placeholder="Buscar grupos, actividades, aprendices…"
-              startIcon={<Icon icon={Search} size="sm" />} endIcon={<Kbd>⌘K</Kbd>} />
-            <div className="flex items-center gap-2">
-              <NotificationsBell spaceId={space?.id ?? ''} />
+          <header className="sticky top-0 z-20 flex h-16 items-center justify-end gap-4 border-b border-line bg-surface/90 px-6 backdrop-blur">
+            {/* El logo solo aparece abajo de md, donde el sidebar no está. El `mr-auto` es lo que
+                lo manda a la izquierda sin que el header dependa de que haya algo más al lado. */}
+            <div className="mr-auto flex items-center gap-3 md:hidden"><Logo size="sm" /></div>
+            <div className="flex items-center gap-4">
+              <SpacePicker />
               <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
                 onProfile={() => nav('/profile')}
                 onChangeSpace={spaces.length > 1 ? () => setChanging(true) : undefined} onSignOut={signOut} />

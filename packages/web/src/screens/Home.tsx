@@ -32,7 +32,6 @@ export function Home() {
   const p = q.data
   if (!p) return null
   const recent = p.recentSubmissions ?? []
-  const series = p.weekSeries ?? []
   const steps: [string, string, string, string][] = [
     ['group', 'Creá un grupo', 'Un aula, un taller, tres alumnos: gente que aprende junta.', '/groups'],
     ['invite', 'Sumá a los chicos', 'Escribí sus emails. Entran con Google y el grupo ya los espera.', '/groups'],
@@ -42,9 +41,6 @@ export function Home() {
   ]
   const facts = steps.filter(([k]) => p.checklist[k]).length
   const firstTime = facts < steps.length
-  const maxSeries = Math.max(1, ...series.map((d) => d.opened))
-  const weekOut = series.reduce((n, d) => n + d.opened, 0)
-  const weekBack = series.reduce((n, d) => n + d.submitted, 0)
 
   return (
     <div className="flex flex-col gap-8">
@@ -79,28 +75,6 @@ export function Home() {
         <StatTile label="Aprendices" value={p.learners} hint={`${p.groups} ${p.groups === 1 ? 'grupo' : 'grupos'} · ${p.spaces} ${p.spaces === 1 ? 'espacio' : 'espacios'}`} tint="bg-teal" icon={<Icon icon={Users} size="lg" />} />
       </section>
 
-      <Card padding="lg">
-        <Eyebrow>Esta semana</Eyebrow>
-        <Heading level={2} size="lg" className="mt-1">
-          {weekBack} de {weekOut} {weekOut === 1 ? 'misión ya volvió' : 'misiones ya volvieron'}
-        </Heading>
-        <Text size="sm" variant="muted">La parte llena de cada día es lo que ya entregaron.</Text>
-        <div className="mt-5 flex h-28 items-stretch gap-2">
-          {series.map((d) => (
-            <div key={d.day} className="flex flex-1 flex-col items-center gap-2"
-              title={`${d.submitted} de ${d.opened} entregadas`}>
-              <div className="flex w-full flex-1 items-end">
-                <div className="flex w-full flex-col justify-end rounded-md bg-muted"
-                  style={{ height: `${Math.max(4, (d.opened / maxSeries) * 100)}%` }}>
-                  <div className="w-full rounded-md bg-accent"
-                    style={{ height: d.opened ? `${(d.submitted / d.opened) * 100}%` : '0%' }} />
-                </div>
-              </div>
-              <span className="text-2xs text-ink-subtle">{['D', 'L', 'M', 'X', 'J', 'V', 'S'][new Date(d.day + 'T12:00:00').getDay()]}</span>
-            </div>
-          ))}
-        </div>
-      </Card>
 
       {recent.length > 0 && (
         <Card padding="lg">
