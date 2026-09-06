@@ -21,7 +21,7 @@ export function useSignOut() {
 
 /**
  * Todo lo que quedó de la persona que se va. Sin esto, quien entre después en la misma pestaña
- * ve los datos del anterior —el panel, las entregas, el espacio elegido— hasta que cada query se
+ * ve los datos del anterior (el panel, las entregas, el espacio elegido) hasta que cada query se
  * refresque sola.
  */
 export function forgetEverything(qc: QueryClient) {

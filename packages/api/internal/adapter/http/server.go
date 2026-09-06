@@ -134,8 +134,8 @@ func token16() string {
 	return hex.EncodeToString(b)
 }
 
-// safeNext keeps only a path inside melu. Anything else —an absolute URL, a protocol-relative
-// `//host`— falls back to the root.
+// safeNext keeps only a path inside melu. Anything else (an absolute URL, a protocol-relative
+// `//host`) falls back to the root.
 func safeNext(next string) string {
 	if !strings.HasPrefix(next, "/") || strings.HasPrefix(next, "//") {
 		return "/"

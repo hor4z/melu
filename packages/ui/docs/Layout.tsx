@@ -1,5 +1,5 @@
 // El marco del sitio: nav lateral persistente a la izquierda, contenido en el medio,
-// y el índice de la página a la derecha. Los tres salen del propio kit — el sitio se
+// y el índice de la página a la derecha. Los tres salen del propio kit: el sitio se
 // construye con lo que documenta, que es la única prueba honesta de que sirve.
 import { useEffect, useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router'
@@ -100,7 +100,7 @@ export function Layout({ sections = [], children }: { sections?: Section[]; chil
         <main className="min-w-0">{children}</main>
 
         {/* La `key` remonta el índice al cambiar de página: `active` arranca de cero. Sin esto
-            React reconcilia —es el mismo componente en la misma posición— y queda resaltado
+            React reconcilia (es el mismo componente en la misma posición) y queda resaltado
             el id de la página anterior hasta que el observer alcance a corregirlo. */}
         <OnThisPage key={pathname} sections={sections} />
       </div>

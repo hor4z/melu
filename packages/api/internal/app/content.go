@@ -47,8 +47,8 @@ func (s *Services) Me(ctx context.Context, p domain.Person) (*Me, error) {
 // group and each of those people finds it waiting the first time they sign in with Google.
 //
 // The person is created if this is the first time melu hears of that email, with a placeholder
-// name taken from the local part. `SignInWithIdentity` then adopts that row —real name, real
-// picture— instead of making a second one, which is why the email match has to be
+// name taken from the local part. `SignInWithIdentity` then adopts that row (real name, real
+// picture) instead of making a second one, which is why the email match has to be
 // case-insensitive on both sides.
 func (s *Services) AddLearners(ctx context.Context, p domain.Person, groupID string, emails []string) (added, already []string, err error) {
 	g, err := s.Groups.ByID(ctx, groupID)

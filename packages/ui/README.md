@@ -3,7 +3,7 @@
 El design system: los componentes, los tokens y el sitio que los documenta.
 
 ```sh
-npm run dev      # el sitio, en :5174 — o `make ui` desde la raíz
+npm run dev      # el sitio, en :5174, o `make ui` desde la raíz
 npm run typecheck
 npm run lint
 ```
@@ -41,11 +41,11 @@ importa, ejemplos, props, cuándo sí y cuándo no, y la fuente.
 
 Para agregar una: una entrada en `docs/registry.ts` y un archivo por ejemplo en
 `docs/examples/<slug>/<id>.tsx` que exporte el demo por default. La página importa ese archivo
-dos veces —el módulo y su `?raw`— así que **el código que se muestra es el que se está
+dos veces (el módulo y su `?raw`) así que **el código que se muestra es el que se está
 rindiendo**: no puede desfasarse. Si falta el archivo, la página lo dice en su lugar.
 
 La tabla de props no se escribe. `docs/props-plugin.ts` levanta un programa de TypeScript sobre
-`src/index.ts` y saca de ahí el tipo, el default —del destructuring— y el JSDoc de cada prop.
+`src/index.ts` y saca de ahí el tipo, el default (del destructuring) y el JSDoc de cada prop.
 Las que llegan de `ComponentPropsWithoutRef` se cuentan y no se listan: son los atributos de
 HTML, no del sistema. Corriéndolo suelto muestra el resumen:
 
@@ -57,7 +57,7 @@ node --experimental-strip-types docs/props-plugin.ts
 
 **El `@source` de `theme.css` no es decorativo.** Tailwind v4 arranca el escaneo automático en
 el root de Vite, no en el directorio del CSS. Sin esa línea, las clases que solo usan los
-componentes de este package no se generan cuando compila `web` — y falla en silencio: compila,
+componentes de este package no se generan cuando compila `web`, y falla en silencio: compila,
 arranca, y se ve sin estilo.
 
 **El `inline` de `@theme inline` tampoco.** `--color-ink` existe en las dos capas con valores

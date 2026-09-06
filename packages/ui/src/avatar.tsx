@@ -43,8 +43,8 @@ export function Avatar({ name, src, size, shape, status, asChild, className, ...
     <Cmp className={cn(avatarVariants({ size, shape }), !src || fails ? tintOf(name) : 'bg-muted', className)} title={name} {...props}>
       {src && !fails
         ? <img src={src} alt={name} onError={() => setFails(true)} className="size-full object-cover"
-            // Sin esto el navegador manda el referrer y los avatares de terceros —Google entre
-            // ellos— contestan con un error. La foto se cae a las iniciales y parece un bug del kit.
+            // Sin esto el navegador manda el referrer y los avatares de terceros (Google entre
+            // ellos) contestan con un error. La foto se cae a las iniciales y parece un bug del kit.
             referrerPolicy="no-referrer" loading="lazy" />
         : <span aria-hidden="true">{initials(name)}</span>}
       <span className="sr-only">{name}</span>

@@ -1,5 +1,5 @@
-// El panel lateral. Es el mismo modal que Dialog —la trampa de foco, el bloqueo del scroll y
-// la devolución del foco al cerrar salen de ahí— con otra presentación: pegado a un borde y
+// El panel lateral. Es el mismo modal que Dialog (la trampa de foco, el bloqueo del scroll y
+// la devolución del foco al cerrar salen de ahí) con otra presentación: pegado a un borde y
 // entrando desde afuera. Por eso sus partes son literalmente las de Dialog: la cabecera, el
 // cuerpo y el pie de un panel no tienen por qué ser otra cosa.
 import type { ComponentPropsWithoutRef } from 'react'

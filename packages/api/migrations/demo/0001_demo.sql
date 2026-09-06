@@ -2,7 +2,7 @@
 --
 -- The submissions are built so the dashboard has something real to say: the answers point at the
 -- blocks that actually exist in each activity, and the spread of hits and times makes every signal
--- rule fire at least once — shines, misses, slow and dropout.
+-- rule fire at least once: shines, misses, slow and dropout.
 do $$
 declare
   guide uuid; space uuid; g1 uuid; g2 uuid; a1 uuid; a2 uuid; a3 uuid; s1 uuid; s2 uuid; s3 uuid; s4 uuid;

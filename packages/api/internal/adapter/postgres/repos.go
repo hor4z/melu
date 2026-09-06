@@ -72,7 +72,7 @@ func (r *Repos) Create(ctx context.Context, p domain.Person) (*domain.Person, er
 	p.ID = id
 	return &p, nil
 }
-// LinkGoogle adopts a person who was already here —added by a guide, or seeded— the first time
+// LinkGoogle adopts a person who was already here (added by a guide, or seeded) the first time
 // they sign in. The picture only fills a gap: what Google knows beats a placeholder and loses
 // to anything a person chose.
 func (r *Repos) LinkGoogle(ctx context.Context, id, sub, name, avatar string) error {

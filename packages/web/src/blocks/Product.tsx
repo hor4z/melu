@@ -1,5 +1,5 @@
-// Piezas de melu armadas sobre el design system. Codifican decisiones de producto —la
-// unidad del panel, el copy del menú de cuenta— así que viven acá y no en @melu/ui.
+// Piezas de melu armadas sobre el design system. Codifican decisiones de producto (la
+// unidad del panel, el copy del menú de cuenta) así que viven acá y no en @melu/ui.
 import type { ReactNode } from 'react'
 import { LogOut, RefreshCw, User } from 'lucide-react'
 import { Avatar, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Icon, MenuButton, Sparkline, cn } from '@melu/ui'

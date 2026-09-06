@@ -19,19 +19,19 @@ Cloud Console → Credentials → OAuth client ID, tipo *Web application*, con
 
 Con `MELU_DEMO=1` la base trae un espacio de ejemplo cuyo docente es
 `horacio.rivero@educabot.com`: entrando con esa cuenta de Google aparece todo el demo. Es el
-mismo mecanismo que usa cualquiera — la persona ya está en la base con su email, y el primer
+mismo mecanismo que usa cualquiera: la persona ya está en la base con su email, y el primer
 ingreso con Google la adopta.
 
 ## Estructura
 
-Monorepo con dos packages: el back (Go) y el front (React). Cada uno se para solo —
-tiene su build, sus dependencias y sus reglas— y el único punto de contacto es el
-directorio donde vite deja el build.
+Monorepo con dos packages: el back (Go) y el front (React). Cada uno se para solo, con su
+build, sus dependencias y sus reglas, y el único punto de contacto es el directorio donde
+vite deja el build.
 
 ```
 packages/api              Go · un módulo, hexagonal
   cmd/server               arma todo y arranca
-  internal/domain          entidades y reglas — cero imports externos
+  internal/domain          entidades y reglas, cero imports externos
   internal/app             casos de uso, orquesta domain a través de port
   internal/port            interfaces
   internal/adapter         postgres · http · google

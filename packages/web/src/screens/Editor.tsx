@@ -178,8 +178,8 @@ function Picker(p: PickerProps) {
       <PopoverTrigger>
         {/* El único control de la app que no es una pieza del kit, y a propósito: en una fila de
             propiedades tiene que leerse como contenido, no como un control, hasta que se lo pasa
-            por encima. Lo visual sale igual del tema —el hover y el anillo de foco son los del
-            sistema— y lo que muestra adentro son Chips. */}
+            por encima. Lo visual sale igual del tema (el hover y el anillo de foco son los del
+            sistema) y lo que muestra adentro son Chips. */}
         <button type="button" disabled={p.disabled} className={cn('flex flex-wrap items-center gap-1 rounded-sm px-1.5 py-0.5 text-left hover:bg-hover disabled:hover:bg-transparent', focusRing)}>
           {activeOnes.length === 0 && <span className="text-ink-subtle">Elegir…</span>}
           {activeOnes.map((k) => <Chip key={k} size="sm">{p.options[k] ?? k}</Chip>)}

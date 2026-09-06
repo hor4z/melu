@@ -108,7 +108,7 @@ export function NewActivity() {
 function AxisRow({ title, hint, options, value, onPick }: { title: string; hint: string; options: Record<string, string>; value: string[]; onPick: (v: string) => void }) {
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-1 text-sm font-semibold">{title} <span className="font-normal text-ink-subtle">— {hint}</span></legend>
+      <legend className="mb-1 text-sm font-semibold">{title} <span className="font-normal text-ink-subtle">· {hint}</span></legend>
       <ToggleGroup type="multiple" variant="outline" value={value} onValueChange={(next) => {
         // El grupo devuelve la selección entera; la pantalla razona de a una opción.
         const changed = next.filter((k) => !value.includes(k)).concat(value.filter((k) => !next.includes(k)))

@@ -12,7 +12,7 @@ type Config struct {
 	DatabaseURL string
 	// BaseURL: where melu answers from, seen from outside. It exists for one reason: the Google
 	// redirect has to be an absolute URL matching character for character the one registered in
-	// the console, and the server cannot work out its own — behind a proxy the Host that arrives
+	// the console, and the server cannot work out its own: behind a proxy the Host that arrives
 	// is the proxy's, and it is picked by whoever makes the request anyway.
 	// Whether cookies carry `Secure` comes from here too: https yes, http no.
 	BaseURL            string
@@ -43,8 +43,8 @@ func env(k, def string) string {
 	return def
 }
 
-// loadDotEnv walks up looking for a .env. The server runs from packages/api —that is what the
-// Makefile does— and the file lives at the root of the monorepo, next to the other one nobody
+// loadDotEnv walks up looking for a .env. The server runs from packages/api (that is what the
+// Makefile does) and the file lives at the root of the monorepo, next to the other one nobody
 // wants to keep in sync.
 func loadDotEnv() {
 	path := ".env"

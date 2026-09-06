@@ -69,8 +69,8 @@ export function Home({ me }: { me: Me }) {
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile label="Aprendices" value={p.learners} hint={`${p.groups} ${p.groups === 1 ? 'grupo' : 'grupos'} · ${p.spaces} ${p.spaces === 1 ? 'espacio' : 'espacios'}`} tint="bg-teal" icon={<Icon icon={Users} size="lg" />} />
         <StatTile label="Para mirar" value={p.toReview} hint="entregas sin corregir" tint="bg-yellow" icon={<Icon icon={Inbox} size="lg" />} series={submittedSeries} />
-        <StatTile label="Tiempo por misión" value={p.avgMinutes || '—'} unit={p.avgMinutes ? 'min' : undefined} hint="promedio desde que abren hasta que entregan" tint="bg-blue" icon={<Icon icon={Clock} size="lg" />} />
-        <StatTile label="Aciertos en chequeos" value={p.accuracy >= 0 ? Math.round(p.accuracy * 100) : '—'} unit={p.accuracy >= 0 ? '%' : undefined} hint="sobre los bloques con opción correcta" tint="bg-lilac" icon={<Icon icon={Target} size="lg" />} />
+        <StatTile label="Tiempo por misión" value={p.avgMinutes || '-'} unit={p.avgMinutes ? 'min' : undefined} hint="promedio desde que abren hasta que entregan" tint="bg-blue" icon={<Icon icon={Clock} size="lg" />} />
+        <StatTile label="Aciertos en chequeos" value={p.accuracy >= 0 ? Math.round(p.accuracy * 100) : '-'} unit={p.accuracy >= 0 ? '%' : undefined} hint="sobre los bloques con opción correcta" tint="bg-lilac" icon={<Icon icon={Target} size="lg" />} />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
@@ -114,7 +114,7 @@ export function Home({ me }: { me: Me }) {
             <Heading level={2} size="lg" className="mt-1">Qué les cuesta más</Heading>
             {byKind.length === 0 ? <p className="mt-3 text-sm text-ink-muted">Cuando haya entregas, acá ves tiempo y aciertos por experiencia.</p> : (
               <table className="mt-3 w-full text-sm"><thead><tr className="text-left text-xs text-ink-subtle"><th className="pb-2 font-medium">Experiencia</th><th className="pb-2 font-medium text-right">Entregas</th><th className="pb-2 font-medium text-right">Min</th><th className="pb-2 font-medium text-right">Aciertos</th></tr></thead>
-                <tbody>{byKind.map((t) => <tr key={t.experience} className="border-t border-line"><td className="py-2 font-medium"><span className="flex items-center gap-2"><Icon icon={Layers} size="sm" color="subtle" />{EXPERIENCES[t.experience] ?? t.experience ?? '—'}</span></td><td className="py-2 text-right tabular-nums">{t.submissions}</td><td className="py-2 text-right tabular-nums">{t.avgMinutes || '—'}</td><td className={`py-2 text-right tabular-nums ${t.accuracy >= 0 && t.accuracy < 0.6 ? 'font-semibold text-danger' : ''}`}>{t.accuracy >= 0 ? `${Math.round(t.accuracy * 100)}%` : '—'}</td></tr>)}</tbody></table>
+                <tbody>{byKind.map((t) => <tr key={t.experience} className="border-t border-line"><td className="py-2 font-medium"><span className="flex items-center gap-2"><Icon icon={Layers} size="sm" color="subtle" />{EXPERIENCES[t.experience] ?? t.experience ?? '-'}</span></td><td className="py-2 text-right tabular-nums">{t.submissions}</td><td className="py-2 text-right tabular-nums">{t.avgMinutes || '-'}</td><td className={`py-2 text-right tabular-nums ${t.accuracy >= 0 && t.accuracy < 0.6 ? 'font-semibold text-danger' : ''}`}>{t.accuracy >= 0 ? `${Math.round(t.accuracy * 100)}%` : '-'}</td></tr>)}</tbody></table>
             )}
           </Card>
         </div>

@@ -45,7 +45,7 @@ func startOfDay(t time.Time, z *time.Location) time.Time {
 
 // SignInWithIdentity resolves or creates the person behind a Google account and opens a session.
 //
-// The second lookup —by email, when the sub is unknown— is what makes the whole thing work
+// The second lookup (by email, when the sub is unknown) is what makes the whole thing work
 // without codes: a guide writes down the emails of their group, and when one of those people
 // signs in for the first time the membership is already waiting. That first sign-in is also
 // what fills in their real name and their picture.

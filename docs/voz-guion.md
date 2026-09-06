@@ -15,7 +15,7 @@ una tarjeta muda se lee como «a esta persona no le entra por el oído», que es
 Decidido: habla la nena de la pantalla, no una narradora. Eso manda sobre todo lo demás.
 
 No explica **a** alguien: comparte **con** alguien. Por eso las frases están escritas en
-primera persona y repartiendo — «tengo una galletita y somos dos», «contemos juntos»,
+primera persona y repartiendo: «tengo una galletita y somos dos», «contemos juntos»,
 «sacale cinco al doce y aparece». Es una compañera contándote algo que ya sabe, no una
 maestra tomando lección.
 
@@ -87,7 +87,7 @@ Las consignas de las tarjetas del grupo C van con su concepto, no sueltas:
 
 ---
 
-## Grupo A — Las seis explicaciones ✅ GRABADO (31/08/2026)
+## Grupo A· Las seis explicaciones ✅ GRABADO (31/08/2026)
 
 Son las que se escuchan al tocar ▶ en la tarjeta «Escuchá».
 
@@ -105,7 +105,7 @@ recortó la cola de silencio.
 | 5 | `samples/percent.m4a` | Veinticinco por ciento son veinticinco de cada cien. O sea, la cuarta parte. Si una pizza se reparte entre cuatro, tu porción es el veinticinco por ciento. |
 | 6 | `samples/unknown.m4a` | Hay un número escondido ahí. Le sumás cinco y te da doce. ¿Cuál es? Sacale cinco al doce y aparece: siete. |
 
-## Grupo B — Las consignas ⬜ PENDIENTE
+## Grupo B· Las consignas ⬜ PENDIENTE
 
 Sin estas, la franja «recién empieza» no tiene lectura en voz alta: el altavoz al lado de
 la consigna directamente no se dibuja cuando no hay ni archivo ni voz del sistema.
@@ -125,7 +125,7 @@ justamente la de quien no lee.
 | 13 | `prompts/small/scaffold.m4a` | Algo que nunca hiciste. ¿Cómo preferís arrancar? |
 | 14 | `prompts/small/dose.m4a` | Última. ¿Cuándo te sale mejor? |
 
-## Grupo C — Las etiquetas de las tarjetas (opcional)
+## Grupo C· Las etiquetas de las tarjetas (opcional)
 
 Para quien no lee **nada**. Hoy no hay control para reproducirlas: si se graban, hay que
 agregarles un altavoz a cada tarjeta. Son cortas y ya vas a estar frente al micrófono.
@@ -142,7 +142,7 @@ agregarles un altavoz a cada tarjeta. Son cortas y ya vas a estar frente al micr
 | 22 | `samples/percent-prompt.m4a` | Pintá el veinticinco por ciento. |
 | 23 | `samples/unknown-prompt.m4a` | Buscá el valor de equis. |
 
-## Grupo D — Las consignas de primaria y secundaria (opcional)
+## Grupo D· Las consignas de primaria y secundaria (opcional)
 
 Hoy esas franjas no muestran altavoz, porque se supone que leen. Si querés que también
 lo tengan, son estas doce. No las necesito para arrancar.

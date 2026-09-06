@@ -17,8 +17,8 @@ de un package. Adentro no sube al workspace y recrea un lockfile local.
 
 ## El glosario
 
-El vocabulario del producto es deliberado —«aprendiz» y «guía» se eligieron para no decir
-alumno y maestro— así que los conceptos se piensan en español y el código usa una sola
+El vocabulario del producto es deliberado: «aprendiz» y «guía» se eligieron para no decir
+alumno y maestro. Los conceptos se piensan en español y el código usa una sola
 traducción por concepto:
 
 espacio→`space` · grupo→`group` · persona→`person` · aprendiz→`learner` · guía→`guide` ·
@@ -44,7 +44,7 @@ aprendiz o el guía.
 **El design system es propio**, no una librería de terceros. Vive en `packages/ui` y se
 documenta solo: `make ui` levanta el sitio en :5174 con los objetivos, los lineamientos, el
 theme, los iconos y una página por componente. Esas páginas no se escriben a mano: los
-ejemplos salen de `docs/examples/` —el mismo archivo que se rinde es el que se muestra— y las
+ejemplos salen de `docs/examples/` (el mismo archivo que se rinde es el que se muestra) y las
 props las lee el compilador de las fuentes. Al agregar un componente al barril, el índice
 avisa que falta documentarlo. Los estilos entran a la app con una línea
 (`@import "@melu/ui/theme.css"`) y los componentes desde el barril (`import { Button } from '@melu/ui'`).

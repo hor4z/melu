@@ -1,6 +1,6 @@
 // La prosa del sitio, en español.
 //
-// El código de `src/` está en inglés —identificadores, comentarios y JSDoc— y así se queda:
+// El código de `src/` está en inglés (identificadores, comentarios y JSDoc) y así se queda:
 // eso lo lee un programa y quien lo edita. Pero el sitio lo lee una persona, así que lo que
 // se muestra sale de acá y no del JSDoc. Es la misma frontera que el resto del repo: clave
 // técnica en inglés, etiqueta en español.
@@ -14,7 +14,7 @@ export const COPY: Record<string, string> = {
   // Primitivas
   Slottable:
     'Marca cuál de los hijos es el que `Slot` tiene que pasar a ser. Un componente que dibuja '
-    + 'adornos alrededor del contenido —Button con sus íconos, Chip con su span— envuelve acá lo '
+    + 'adornos alrededor del contenido (Button con sus íconos, Chip con su span) envuelve acá lo '
     + 'que le pasaron: sin la marca, el slot no tiene forma de saber cuál es el verdadero.',
 
   // Íconos
@@ -22,13 +22,13 @@ export const COPY: Record<string, string> = {
   'Icon.label': 'Solo para íconos con significado propio. Si al lado hay texto, dejalo vacío.',
 
   // Botones
-  'Button.asChild': 'Rinde el hijo —un `<a>`, un `<Link>`— con los estilos del botón, en vez de un `<button>`.',
+  'Button.asChild': 'Rinde el hijo (un `<a>`, un `<Link>`) con los estilos del botón, en vez de un `<button>`.',
   'Button.loading': 'Muestra el spinner, deshabilita y anuncia el estado.',
   ButtonGroup: 'Botones pegados en una fila: comparten bordes y redondeo.',
   'IconButton.label': 'Obligatoria: es el nombre accesible del botón, porque no hay texto visible.',
 
   // Formulario
-  'Field.asGroup': 'Para grupos —radios, checkboxes—: rinde fieldset y legend en vez de label.',
+  'Field.asGroup': 'Para grupos (radios, checkboxes): rinde fieldset y legend en vez de label.',
   'Field.label': 'La etiqueta corta. Si no la pasás, usá `<FieldLabel>` como hijo.',
   'Field.status': 'Un mensaje con tono: rojo para el error, ámbar para el aviso, verde para la confirmación.',
   Form: 'Las filas de un formulario, con el espaciado parejo.',
@@ -79,7 +79,7 @@ export const COPY: Record<string, string> = {
   'DropdownMenuCheckboxItem.label': 'El texto para buscar tecleando. Si los hijos no son texto plano, pasalo a mano.',
   'Dialog.purpose': '`required` bloquea el cierre con Escape o con un clic afuera: solo cierran los botones.',
   PopoverAnchor:
-    'Ancla el panel a un elemento sin convertirlo en disparador: lo abre otra cosa —tipear «/», por ejemplo—.',
+    'Ancla el panel a un elemento sin convertirlo en disparador: lo abre otra cosa (tipear «/», por ejemplo).',
   Portal:
     'Saca el contenido del árbol del DOM y lo cuelga al final del body. Es lo que evita que un menú '
     + 'quede recortado por un `overflow: hidden` o tapado por el `z-index` de un padre. También deja '

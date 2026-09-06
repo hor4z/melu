@@ -10,7 +10,7 @@ import { useSignOut } from '../lib/session'
 import { CompositionChips } from '../blocks/Chips'
 
 // First time: nobody has put you anywhere yet. Either you are the one who sets things up, or
-// somebody has to add you — and the only thing they need from you is the email you just used.
+// somebody has to add you, and the only thing they need from you is the email you just used.
 export function Welcome({ me }: { me: Me }) {
   const [door, setDoor] = useState<'teach' | null>(null)
   const [copied, setCopied] = useState(false)
@@ -38,7 +38,7 @@ export function Welcome({ me }: { me: Me }) {
             <Card variant="yellow" padding="lg" className="mt-5 gap-3">
               <Heading level={2} size="lg">¿Te están por sumar a un grupo?</Heading>
               <Text size="sm" variant="muted">
-                Pasale este email a tu docente. Cuando te sume, tus misiones aparecen acá solas —
+                Pasale este email a tu docente. Cuando te sume, tus misiones aparecen acá solas :
                 no hay nada que escribir.
               </Text>
               <div className="flex flex-wrap items-center gap-3">

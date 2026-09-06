@@ -97,7 +97,7 @@ export function GroupDetail() {
 function AddDialog({ isOpen, onClose, groupId, groupName }: { isOpen: boolean; onClose: () => void; groupId: string; groupName: string }) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} boxWidth={560} title="Sumar al grupo"
-      description="Escribí los emails. Entran con Google y el grupo ya los espera — no tienen que tipear nada."
+      description="Escribí los emails. Entran con Google y el grupo ya los espera: no tienen que tipear nada."
       footer={<Button variant="ghost" onClick={onClose}>Listo</Button>}>
       <AddLearners groupId={groupId} groupName={groupName} />
     </Modal>

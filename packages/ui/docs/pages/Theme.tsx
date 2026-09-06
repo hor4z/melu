@@ -1,7 +1,7 @@
 // El theme, leído en vivo de las custom properties del documento.
 //
 // Nada de esta página transcribe los tokens: los lee con getComputedStyle. Así no puede
-// desfasarse de tokens/. Si alguien cambia un valor, esta página cambia sola — y eso la
+// desfasarse de tokens/. Si alguien cambia un valor, esta página cambia sola, y eso la
 // convierte en verificación además de documentación.
 import { useState } from 'react'
 import { Card, Heading, Text } from '@melu/ui'
@@ -53,7 +53,7 @@ function Swatch({ name }: { name: string }) {
       <span className="size-9 shrink-0 rounded-lg border border-line" style={{ background: `var(${name})` }} />
       <span className="min-w-0">
         <Text size="sm" className="block truncate font-mono">{name}</Text>
-        <Text size="xs" variant="subtle" className="block truncate font-mono">{value || '—'}</Text>
+        <Text size="xs" variant="subtle" className="block truncate font-mono">{value || '-'}</Text>
       </span>
     </div>
   )

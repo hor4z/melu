@@ -1,4 +1,4 @@
-// @melu/ui — the design system. Composed components, styled with Tailwind on top of the
+// @melu/ui: the design system. Composed components, styled with Tailwind on top of the
 // theme tokens. Conventions: `asChild` to lend the styles to another element, `cn()` to merge
 // classes, and controlled or uncontrolled state in every one that holds something.
 //

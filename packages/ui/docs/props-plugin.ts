@@ -75,7 +75,7 @@ function isComponentName(name: string) {
 
 /**
  * De qué elemento hereda los atributos. Se lee del texto de la declaración porque es donde
- * está escrito —`ComponentPropsWithoutRef<'button'>`—; el tipo ya resuelto no lo recuerda.
+ * está escrito (`ComponentPropsWithoutRef<'button'>`); el tipo ya resuelto no lo recuerda.
  */
 const ELEMENT_RE = /Component(?:PropsWithoutRef|Props|PropsWithRef)<'([a-z0-9]+)'>/
 

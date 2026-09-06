@@ -23,7 +23,7 @@ const (
 )
 
 // Person is who is using melu. `GoogleSub` carries `json:"-"`: it is how Google names this
-// person to us and the browser has no use for it — the rest of the API is camelCase, and this
+// person to us and the browser has no use for it: the rest of the API is camelCase, and this
 // one used to leak in PascalCase along with the sub.
 type Person struct {
 	ID        string `json:"id"`

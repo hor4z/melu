@@ -1,7 +1,7 @@
 // El índice de piezas: una entrada por componente, y de acá salen tanto la lista como cada
 // página. Lo que NO vive acá es la lista de props ni la firma: eso lo lee el compilador de
-// las fuentes (`virtual:melu-props`). Acá va solo lo que un humano tiene que decidir —a qué
-// grupo pertenece, para qué sirve, cuándo no usarlo— que es justamente lo que ninguna
+// las fuentes (`virtual:melu-props`). Acá va solo lo que un humano tiene que decidir (a qué
+// grupo pertenece, para qué sirve, cuándo no usarlo) que es justamente lo que ninguna
 // herramienta puede deducir.
 
 export type Group = 'Acciones' | 'Formulario' | 'Contenido' | 'Diálogos y capas' | 'Navegación' | 'Estado' | 'Datos' | 'Marca' | 'Primitivas'
@@ -48,7 +48,7 @@ export const REGISTRY: Entry[] = [
     ],
     whenNot: [
       'Si navega a otro lado, es un enlace: `asChild` con un `<Link>`.',
-      'Si no tiene texto visible, es un `IconButton` — que pide `label` y no compila sin él.',
+      'Si no tiene texto visible, es un `IconButton`, que pide `label` y no compila sin él.',
     ],
   },
   {

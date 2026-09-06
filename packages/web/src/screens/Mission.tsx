@@ -120,7 +120,7 @@ function Runner({ m }: { m: Mission }) {
             <Eyebrow>Tu devolución</Eyebrow>
             <ul className="mt-2 flex flex-col gap-2">
               {rubric.map((c) => { const p = scores.find((x) => x.id === c.id); return (
-                <li key={c.id} className="flex flex-wrap items-baseline justify-between gap-2 text-sm"><span>{c.label}</span><span className="font-semibold">{p ? c.levels[p.level] : '—'}</span></li>
+                <li key={c.id} className="flex flex-wrap items-baseline justify-between gap-2 text-sm"><span>{c.label}</span><span className="font-semibold">{p ? c.levels[p.level] : '-'}</span></li>
               )})}
             </ul>
           </div>
