@@ -1,4 +1,4 @@
-import { useMemo, useState, type ComponentPropsWithoutRef, type KeyboardEvent, type ReactNode } from 'react'
+import { useMemo, useRef, useState, type ComponentPropsWithoutRef, type KeyboardEvent, type ReactNode } from 'react'
 import { Check, ListFilter, Search, X } from 'lucide-react'
 import { cn, focusRing, useControllableState } from './lib'
 import { Icon } from './icon'
@@ -257,6 +257,7 @@ export function FilterSet({ filters, value, defaultValue = {}, onValueChange, la
   const [applied, setApplied] = useControllableState<Record<string, string[]>>({ value, defaultValue, onChange: onValueChange })
   // The one just added opens its panel by itself: it was chosen to be answered, not to be looked at.
   const [added, setAdded] = useState<string | null>(null)
+  const addRef = useRef<HTMLButtonElement>(null)
 
   const on = filters.filter((f) => applied[f.name] !== undefined)
   const off = filters.filter((f) => applied[f.name] === undefined)
@@ -266,6 +267,10 @@ export function FilterSet({ filters, value, defaultValue = {}, onValueChange, la
     const rest = { ...applied }
     delete rest[name]
     setApplied(rest)
+    // The X takes its own button with it, and the focus was falling to the body: whoever moves
+    // with the keyboard lost their place and had to tab from the top of the page again. It goes
+    // to the button that adds, which is the one thing that is always there after a removal.
+    requestAnimationFrame(() => addRef.current?.focus())
   }
 
   return (
@@ -282,7 +287,7 @@ export function FilterSet({ filters, value, defaultValue = {}, onValueChange, la
         <DropdownMenu placement="bottom-start">
           <DropdownMenuTrigger>
             <button
-              type="button" aria-label={label}
+              ref={addRef} type="button" aria-label={label}
               className={cn(
                 `inline-flex items-center gap-2 rounded-md border border-dashed border-line-strong px-2.5 text-sm font-medium text-ink-muted transition-colors hover:border-ink hover:text-ink ${focusRing}`,
                 HEIGHT[size],
