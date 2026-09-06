@@ -1,7 +1,7 @@
 // Placeholders, on purpose.
 //
 // These used to be hand-drawn SVG figures. They did not hold up: at the sizes the app uses
-// them —110 to 220 px— the strokes read as crude rather than as a style. Until there are real
+// them (110 to 220 px) the strokes read as crude rather than as a style. Until there are real
 // assets, each one renders a lucide icon with a hairline stroke: neutral, clean, and obviously
 // a placeholder instead of a drawing pretending to be finished.
 //

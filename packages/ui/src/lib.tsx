@@ -18,7 +18,7 @@ export function composeRefs<T>(...refs: (Ref<T> | undefined)[]) {
 
 /**
  * The focus ring, written once. Twelve components in the kit were repeating the same three
- * classes and one of them had drifted to a different opacity — a difference nobody sees until
+ * classes and one of them had drifted to a different opacity: a difference nobody sees until
  * they tab through. Anything focusable composes this instead of spelling it out.
  */
 export const focusRing = 'outline-none focus-visible:ring-3 focus-visible:ring-focus/30'
@@ -35,7 +35,7 @@ export type SlotProps = { children?: ReactNode; className?: string; style?: CSSP
 
 /**
  * Marks which child is the one `Slot` has to become. A component that draws decoration around
- * the content —Button with its icons, Chip with its span— wraps here what it was given:
+ * the content (Button with its icons, Chip with its span) wraps here what it was given:
  * without the mark, the slot has no way of knowing which of the children is the real one.
  */
 export function Slottable({ children }: { children?: ReactNode }) {
@@ -43,13 +43,13 @@ export function Slottable({ children }: { children?: ReactNode }) {
 }
 
 export function Slot({ children, ref, ...slotProps }: SlotProps) {
-  // Un componente como Button siempre rinde tres hijos —icono, contenido, icono— aunque los
+  // Un componente como Button siempre rinde tres hijos (icono, contenido, icono) aunque los
   // iconos sean undefined. Sin esto, `children` es un arreglo, no un elemento, y el slot
   // devolvía null: `<Button asChild>` no dibujaba nada y no avisaba.
   const nodes = Children.toArray(children)
 
   // Si hay marca, el objetivo es lo que la marca envuelve; el resto son los adornos y quedan
-  // alrededor. Sin marca —los triggers, que solo rinden `children`— vale el primer elemento.
+  // alrededor. Sin marca (los triggers, que solo rinden `children`) vale el primer elemento.
   const marked = nodes.findIndex((n) => isValidElement(n) && n.type === Slottable)
   if (marked !== -1) {
     const inner = (nodes[marked] as ReactElement<{ children?: ReactNode }>).props.children

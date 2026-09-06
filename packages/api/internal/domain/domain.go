@@ -22,11 +22,15 @@ const (
 	RoleCoordinator Role = "coordinator"
 )
 
+// Person is who is using melu. `GoogleSub` carries `json:"-"`: it is how Google names this
+// person to us and the browser has no use for it: the rest of the API is camelCase, and this
+// one used to leak in PascalCase along with the sub.
 type Person struct {
-	ID        string
-	Email     string
-	GoogleSub string
-	Name      string
+	ID        string `json:"id"`
+	Email     string `json:"email"`
+	GoogleSub string `json:"-"`
+	Name      string `json:"name"`
+	AvatarURL string `json:"avatarUrl,omitempty"`
 }
 
 type Space struct {
@@ -40,7 +44,6 @@ type Group struct {
 	ID       string          `json:"id"`
 	SpaceID  string          `json:"spaceId"`
 	Name     string          `json:"name"`
-	Code     string          `json:"code"`
 	Tags     json.RawMessage `json:"tags"`
 	Learners int             `json:"learners"`
 }

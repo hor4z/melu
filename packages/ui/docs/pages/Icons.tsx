@@ -25,7 +25,7 @@ export function Icons() {
       <PageHead title="Iconos">
         El set es <strong>lucide</strong>, entero y sin envolver de a uno. Lo que el sistema aporta
         es <code className="font-mono text-sm">Icon</code>: un envoltorio que fija los tamaños, los
-        colores y —lo más importante— el comportamiento accesible por defecto.
+        colores y (lo más importante) el comportamiento accesible por defecto.
       </PageHead>
 
       <div className="flex flex-col gap-12">
@@ -91,7 +91,7 @@ export function Icons() {
         </Block>
 
         <Block id="doodles" title="Doodles"
-          note="Van grandes, de a uno, y para dar aire — no para señalizar. Hoy son placeholders: hasta que haya arte propio, cada uno rinde un ícono de lucide con el trazo fino.">
+          note="Van grandes, de a uno, y para dar aire, no para señalizar. Hoy son placeholders: hasta que haya arte propio, cada uno rinde un ícono de lucide con el trazo fino.">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
             {Object.entries(DOODLES).map(([name, D]) => (
               <Card key={name} padding="md" className="items-center gap-2">

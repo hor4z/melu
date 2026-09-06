@@ -26,7 +26,7 @@ export function Home({ me }: { me: Me }) {
   const series = p.weekSeries ?? []
   const steps: [string, string, string, string][] = [
     ['group', 'Creá un grupo', 'Un aula, un taller, tres alumnos: gente que aprende junta.', '/groups'],
-    ['invite', 'Invitá a los chicos', 'Compartí el código o el QR del grupo. Entran con Google.', '/groups'],
+    ['invite', 'Sumá a los chicos', 'Escribí sus emails. Entran con Google y el grupo ya los espera.', '/groups'],
     ['activity', 'Armá una actividad', 'Empezá desde una receta y editala como un documento.', '/activities/new'],
     ['assign', 'Asignala al grupo', 'Los chicos la ven en «Hoy» y la hacen a su ritmo.', '/activities'],
     ['grade', 'Mirá la primera entrega', 'La rúbrica es una botonera: dos minutos por entrega.', '/groups'],
@@ -41,7 +41,7 @@ export function Home({ me }: { me: Me }) {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <Eyebrow>Inicio</Eyebrow>
-          <Heading level={1} size="2xl" className="mt-1">Hola, {me.person.Name.split(' ')[0]} 👋</Heading>
+          <Heading level={1} size="2xl" className="mt-1">Hola, {me.person.name.split(' ')[0]} 👋</Heading>
           <Text variant="muted">{p.toReview > 0 ? `Tenés ${p.toReview} ${p.toReview === 1 ? 'entrega' : 'entregas'} para mirar.` : 'Nada pendiente para corregir. Buen momento para armar algo nuevo.'}</Text>
         </div>
         <div className="flex gap-2"><Button variant="secondary" onClick={() => nav('/groups')} startIcon={<Icon icon={UserPlus} />}>Invitar al grupo</Button><Button onClick={() => nav('/activities/new')} startIcon={<Icon icon={Sparkles} />}>Nueva actividad</Button></div>
@@ -69,8 +69,8 @@ export function Home({ me }: { me: Me }) {
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile label="Aprendices" value={p.learners} hint={`${p.groups} ${p.groups === 1 ? 'grupo' : 'grupos'} · ${p.spaces} ${p.spaces === 1 ? 'espacio' : 'espacios'}`} tint="bg-teal" icon={<Icon icon={Users} size="lg" />} />
         <StatTile label="Para mirar" value={p.toReview} hint="entregas sin corregir" tint="bg-yellow" icon={<Icon icon={Inbox} size="lg" />} series={submittedSeries} />
-        <StatTile label="Tiempo por misión" value={p.avgMinutes || '—'} unit={p.avgMinutes ? 'min' : undefined} hint="promedio desde que abren hasta que entregan" tint="bg-blue" icon={<Icon icon={Clock} size="lg" />} />
-        <StatTile label="Aciertos en chequeos" value={p.accuracy >= 0 ? Math.round(p.accuracy * 100) : '—'} unit={p.accuracy >= 0 ? '%' : undefined} hint="sobre los bloques con opción correcta" tint="bg-lilac" icon={<Icon icon={Target} size="lg" />} />
+        <StatTile label="Tiempo por misión" value={p.avgMinutes || '-'} unit={p.avgMinutes ? 'min' : undefined} hint="promedio desde que abren hasta que entregan" tint="bg-blue" icon={<Icon icon={Clock} size="lg" />} />
+        <StatTile label="Aciertos en chequeos" value={p.accuracy >= 0 ? Math.round(p.accuracy * 100) : '-'} unit={p.accuracy >= 0 ? '%' : undefined} hint="sobre los bloques con opción correcta" tint="bg-lilac" icon={<Icon icon={Target} size="lg" />} />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
@@ -114,7 +114,7 @@ export function Home({ me }: { me: Me }) {
             <Heading level={2} size="lg" className="mt-1">Qué les cuesta más</Heading>
             {byKind.length === 0 ? <p className="mt-3 text-sm text-ink-muted">Cuando haya entregas, acá ves tiempo y aciertos por experiencia.</p> : (
               <table className="mt-3 w-full text-sm"><thead><tr className="text-left text-xs text-ink-subtle"><th className="pb-2 font-medium">Experiencia</th><th className="pb-2 font-medium text-right">Entregas</th><th className="pb-2 font-medium text-right">Min</th><th className="pb-2 font-medium text-right">Aciertos</th></tr></thead>
-                <tbody>{byKind.map((t) => <tr key={t.experience} className="border-t border-line"><td className="py-2 font-medium"><span className="flex items-center gap-2"><Icon icon={Layers} size="sm" color="subtle" />{EXPERIENCES[t.experience] ?? t.experience ?? '—'}</span></td><td className="py-2 text-right tabular-nums">{t.submissions}</td><td className="py-2 text-right tabular-nums">{t.avgMinutes || '—'}</td><td className={`py-2 text-right tabular-nums ${t.accuracy >= 0 && t.accuracy < 0.6 ? 'font-semibold text-danger' : ''}`}>{t.accuracy >= 0 ? `${Math.round(t.accuracy * 100)}%` : '—'}</td></tr>)}</tbody></table>
+                <tbody>{byKind.map((t) => <tr key={t.experience} className="border-t border-line"><td className="py-2 font-medium"><span className="flex items-center gap-2"><Icon icon={Layers} size="sm" color="subtle" />{EXPERIENCES[t.experience] ?? t.experience ?? '-'}</span></td><td className="py-2 text-right tabular-nums">{t.submissions}</td><td className="py-2 text-right tabular-nums">{t.avgMinutes || '-'}</td><td className={`py-2 text-right tabular-nums ${t.accuracy >= 0 && t.accuracy < 0.6 ? 'font-semibold text-danger' : ''}`}>{t.accuracy >= 0 ? `${Math.round(t.accuracy * 100)}%` : '-'}</td></tr>)}</tbody></table>
             )}
           </Card>
         </div>

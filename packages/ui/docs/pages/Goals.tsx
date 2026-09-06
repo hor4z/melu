@@ -6,7 +6,7 @@ export function Goals() {
     <>
       <PageHead title="Objetivos">
         Un design system es un acuerdo, no una carpeta de componentes. Esto es lo que este acuerdo
-        se propone — y lo que deja explícitamente afuera, que suele ser lo más útil de escribir.
+        se propone, y lo que deja explícitamente afuera, que suele ser lo más útil de escribir.
       </PageHead>
 
       <div className="flex flex-col gap-12">

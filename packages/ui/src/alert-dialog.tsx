@@ -1,9 +1,9 @@
-// La confirmación. Es un Dialog con la forma fija —título, explicación, cancelar y confirmar—
+// La confirmación. Es un Dialog con la forma fija (título, explicación, cancelar y confirmar)
 // porque esa forma no varía nunca: darla por props evita que cada pantalla la vuelva a armar
 // y la arme distinto. Es la misma decisión que MoreMenu sobre DropdownMenu.
 //
 // Tres diferencias con un Dialog cualquiera, y las tres son de accesibilidad:
-// el rol es `alertdialog`, un clic afuera no lo cierra —una confirmación se responde— y el
+// el rol es `alertdialog`, un clic afuera no lo cierra (una confirmación se responde) y el
 // foco entra en Cancelar, que es la salida segura cuando lo que se confirma es destructivo.
 import { useRef, type ReactNode } from 'react'
 import { Button } from './button'

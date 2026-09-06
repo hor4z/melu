@@ -20,7 +20,7 @@ type Ctx = {
 const DialogCtx = createContext<Ctx | null>(null)
 /**
  * Not in the barrel: it is how Drawer reuses this machinery, not public surface. A drawer is
- * the same modal —focus trap, scroll lock, focus returned on close— entering from an edge.
+ * the same modal (focus trap, scroll lock, focus returned on close) entering from an edge.
  */
 export const useDialogCtx = () => {
   const c = useContext(DialogCtx)

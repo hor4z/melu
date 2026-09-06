@@ -2,7 +2,7 @@
 --
 -- The submissions are built so the dashboard has something real to say: the answers point at the
 -- blocks that actually exist in each activity, and the spread of hits and times makes every signal
--- rule fire at least once — shines, misses, slow and dropout.
+-- rule fire at least once: shines, misses, slow and dropout.
 do $$
 declare
   guide uuid; space uuid; g1 uuid; g2 uuid; a1 uuid; a2 uuid; a3 uuid; s1 uuid; s2 uuid; s3 uuid; s4 uuid;
@@ -49,14 +49,14 @@ declare
 begin
   select id into guide from people where email='horacio.rivero@educabot.com';
   if guide is null then
-    insert into people(email, google_sub, name) values('horacio.rivero@educabot.com','dev:horacio.rivero@educabot.com','Horacio') returning id into guide;
+    insert into people(email, name) values('horacio.rivero@educabot.com','Horacio') returning id into guide;
   end if;
   if exists (select 1 from spaces where slug='school-demo') then return; end if;
 
   insert into spaces(name, slug, kind) values('Escuela 12 · Demo','school-demo','school') returning id into space;
   insert into memberships(person_id, space_id, role) values(guide, space, 'coordinator'),(guide, space, 'guide');
-  insert into groups(space_id, name, code, tags) values(space,'4° A · Matemática','DEMO4A','{"grado":"4°","materia":"Matemática"}') returning id into g1;
-  insert into groups(space_id, name, code, tags) values(space,'Taller de robótica','ROBOT1','{"turno":"sábados"}') returning id into g2;
+  insert into groups(space_id, name, tags) values(space,'4° A · Matemática','{"grado":"4°","materia":"Matemática"}') returning id into g1;
+  insert into groups(space_id, name, tags) values(space,'Taller de robótica','{"turno":"sábados"}') returning id into g2;
   insert into memberships(person_id, space_id, group_id, role) values(guide, space, g1, 'guide'),(guide, space, g2, 'guide');
 
   -- space activities, copied from three recipes
@@ -75,8 +75,9 @@ begin
 
   for i in 0..jsonb_array_length(roster)-1 loop
     who := roster->i;
-    insert into people(email, google_sub, name)
-      values(lower(who->>'name')||'@demo.melu','dev:'||lower(who->>'name')||'@demo.melu', who->>'name') returning id into learner;
+    -- Sin google_sub: son personas esperando, igual que las que suma un guía por email.
+    insert into people(email, name)
+      values(lower(who->>'name')||'@demo.melu', who->>'name') returning id into learner;
     grp := case when (who->>'group')::int = 1 then g1 else g2 end;
     insert into memberships(person_id, space_id, group_id, role) values(learner, space, grp, 'learner');
 

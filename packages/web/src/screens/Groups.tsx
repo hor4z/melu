@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
-import { Button, Card, CardContent, CardMedia, Chip, cn, Field, Heading, Icon, Input, Text } from '@melu/ui'
+import { Button, Card, CardContent, CardMedia, cn, Field, Heading, Icon, Input, Text } from '@melu/ui'
 import { api, type Group } from '../lib/api'
 import { useSpace } from '../lib/space'
 import { Modal, Empty } from '../blocks/Modal'
@@ -28,7 +28,6 @@ export function Groups() {
           <Card key={g.id} asChild interactive>
             <Link to={`/groups/${g.id}`}>
               <CardMedia className={cn('h-24 items-end justify-start p-3', TINTS[i % TINTS.length])}>
-                <Chip color="default" className="bg-white/80 font-mono tracking-widest">{g.code}</Chip>
               </CardMedia>
               <CardContent className="p-4">
                 <div className="font-semibold">{g.name}</div>

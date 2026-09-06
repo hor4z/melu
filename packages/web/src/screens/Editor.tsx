@@ -178,8 +178,8 @@ function Picker(p: PickerProps) {
       <PopoverTrigger>
         {/* El único control de la app que no es una pieza del kit, y a propósito: en una fila de
             propiedades tiene que leerse como contenido, no como un control, hasta que se lo pasa
-            por encima. Lo visual sale igual del tema —el hover y el anillo de foco son los del
-            sistema— y lo que muestra adentro son Chips. */}
+            por encima. Lo visual sale igual del tema (el hover y el anillo de foco son los del
+            sistema) y lo que muestra adentro son Chips. */}
         <button type="button" disabled={p.disabled} className={cn('flex flex-wrap items-center gap-1 rounded-sm px-1.5 py-0.5 text-left hover:bg-hover disabled:hover:bg-transparent', focusRing)}>
           {activeOnes.length === 0 && <span className="text-ink-subtle">Elegir…</span>}
           {activeOnes.map((k) => <Chip key={k} size="sm">{p.options[k] ?? k}</Chip>)}
@@ -480,7 +480,7 @@ function AssignDialog({ isOpen, onClose, activityId, onAssigned }: { isOpen: boo
         {groupList.length === 0 && <Text variant="muted">Todavía no tenés grupos.</Text>}
         {groupList.map((g) => (
           <div key={g.id} className="flex items-center justify-between rounded-xl border border-line px-4 py-3">
-            <div><div className="font-medium">{g.name}</div><Text size="xs" variant="muted">{g.learners} aprendices · código {g.code}</Text></div>
+            <div><div className="font-medium">{g.name}</div><Text size="xs" variant="muted">{g.learners} aprendices</Text></div>
             {ready === g.id ? <Text size="sm" className="font-semibold text-success">Asignada ✓</Text> : <Button size="sm" onClick={() => assign.mutate(g.id)} loading={assign.isPending && assign.variables === g.id}>Asignar</Button>}
           </div>
         ))}

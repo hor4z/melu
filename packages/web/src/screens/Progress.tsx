@@ -25,7 +25,7 @@ export function Progress() {
         <StatTile label="Misiones hechas" value={p.done} tint="bg-orange" icon={<Icon icon={Trophy} size="lg" />} />
         <StatTile label="Racha" value={p.streak} unit={p.streak === 1 ? 'día' : 'días'} hint="días seguidos entregando" tint="bg-yellow" icon={<Icon icon={Flame} size="lg" />} />
         <StatTile label="Tiempo" value={p.minutes} unit="min" hint="en total, trabajando" tint="bg-blue" icon={<Icon icon={Clock} size="lg" />} />
-        <StatTile label="Aciertos" value={p.accuracy >= 0 ? Math.round(p.accuracy * 100) : '—'} unit={p.accuracy >= 0 ? '%' : undefined} hint="en los chequeos" tint="bg-lilac" icon={<Icon icon={Target} size="lg" />} />
+        <StatTile label="Aciertos" value={p.accuracy >= 0 ? Math.round(p.accuracy * 100) : '-'} unit={p.accuracy >= 0 ? '%' : undefined} hint="en los chequeos" tint="bg-lilac" icon={<Icon icon={Target} size="lg" />} />
       </section>
       {profile.data && (
         <div className="flex flex-col gap-2">

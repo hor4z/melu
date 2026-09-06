@@ -10,7 +10,6 @@ import (
 
 func (s *Server) contentRoutes() {
 	m := s.mux
-	m.Handle("POST /api/join", s.withSession(s.join))
 	m.Handle("GET /api/today", s.withSession(s.today))
 	m.Handle("GET /api/missions/{id}", s.withSession(s.mission))
 	m.Handle("PUT /api/submissions/{id}", s.withSession(s.saveSubmission))
@@ -23,19 +22,25 @@ func (s *Server) contentRoutes() {
 	m.Handle("POST /api/activities/{id}/assign", s.withSession(s.assign))
 	m.Handle("GET /api/assignments/{id}/submissions", s.withSession(s.submissions))
 	m.Handle("GET /api/groups/{id}/detail", s.withSession(s.groupDetail))
+	m.Handle("POST /api/groups/{id}/members", s.withSession(s.addLearners))
 }
 
-func (s *Server) join(w http.ResponseWriter, r *http.Request, p domain.Person) {
+// addLearners takes the emails a guide wrote down and leaves each of those people with the
+// group already waiting for them.
+func (s *Server) addLearners(w http.ResponseWriter, r *http.Request, p domain.Person) {
 	var in struct {
-		Code string `json:"code"`
+		Emails []string `json:"emails"`
 	}
-	json.NewDecoder(r.Body).Decode(&in)
-	g, err := s.svc.Join(r.Context(), p, in.Code)
+	if json.NewDecoder(r.Body).Decode(&in) != nil {
+		http.Error(w, "invalid body", 400)
+		return
+	}
+	added, already, err := s.svc.AddLearners(r.Context(), p, r.PathValue("id"), in.Emails)
 	if err != nil {
 		fail(w, err)
 		return
 	}
-	js(w, 200, g)
+	js(w, 200, map[string]any{"added": added, "already": already})
 }
 
 func (s *Server) today(w http.ResponseWriter, r *http.Request, p domain.Person) {

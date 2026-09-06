@@ -1,7 +1,7 @@
 /* El tema de melu: los tokens primero, después Tailwind leyéndolos.
    El @source es obligatorio: Tailwind v4 arranca el escaneo automático en el root de Vite,
    no en el directorio de este archivo, así que sin esto las clases que solo usan los
-   componentes de este package no se generan — y falla en silencio, sin estilos. */
+   componentes de este package no se generan, y falla en silencio, sin estilos. */
 @import "./tokens/index.css";
 @import "tailwindcss";
 @source "./**/*.{ts,tsx}";

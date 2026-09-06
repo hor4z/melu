@@ -100,7 +100,7 @@ function PropsTable({ name }: { name: string }) {
                       {COPY[`${name}.${p.name}`] && <Text size="xs" variant="muted" className="mt-1 max-w-md"><Ticks>{COPY[`${name}.${p.name}`]}</Ticks></Text>}
                     </td>
                     <td className="px-4 py-2.5"><span className="font-mono text-xs text-accent">{p.type}</span></td>
-                    <td className="px-4 py-2.5"><span className="font-mono text-xs text-ink-subtle">{p.default ?? '—'}</span></td>
+                    <td className="px-4 py-2.5"><span className="font-mono text-xs text-ink-subtle">{p.default ?? '-'}</span></td>
                   </tr>
                 ))}
               </tbody>
