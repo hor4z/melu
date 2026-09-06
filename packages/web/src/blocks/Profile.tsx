@@ -88,21 +88,29 @@ export function GroupSummary({ profiles }: { profiles: LiveProfile[] }) {
   }
   const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5)
   const withEvidence = profiles.filter((v) => v.missions >= 3).length
+  // Sin recorrido de bienvenida los perfiles arrancan todos parejos, así que no hay ni un polo que
+  // contar. Antes eso dejaba una fila de fichas vacía, que se lee como un bloque roto y no como lo
+  // que es: que falta el dato y hay algo concreto para hacer al respecto.
+  const noWelcome = profiles.filter((v) => !v.has).length
   return (
     <Card padding="lg" className="gap-3">
       <Eyebrow>El grupo, de un vistazo</Eyebrow>
-      <div className="flex flex-wrap gap-2">
-        {top.map(([pole, n]) => (
-          <span key={pole} className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm">
-            <strong className="font-display text-lg tabular-nums">{n}</strong>
-            <span className="text-ink-muted">de {profiles.length} · {POLES[pole as Pole]?.name}</span>
-          </span>
-        ))}
-      </div>
+      {top.length === 0
+        ? <Text size="sm">Todavía no se despega nadie en nada: los perfiles vienen todos parejos.</Text>
+        : <div className="flex flex-wrap gap-2">
+            {top.map(([pole, n]) => (
+              <span key={pole} className="flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-sm">
+                <strong className="font-display text-lg tabular-nums">{n}</strong>
+                <span className="text-ink-muted">de {profiles.length} · {POLES[pole as Pole]?.name}</span>
+              </span>
+            ))}
+          </div>}
       <Text size="sm" variant="muted">
-        {withEvidence === 0
-          ? 'Por ahora todo esto es lo que dijeron de sí mismos. Se va a acomodar con las misiones que hagan.'
-          : `${withEvidence} de ${profiles.length} ya tienen suficiente trabajo hecho como para que el perfil se apoye en datos y no solo en lo que dijeron.`}
+        {noWelcome > 0
+          ? `${noWelcome} de ${profiles.length} todavía no hicieron el recorrido de bienvenida. Son dos minutos y es de donde sale casi todo esto: pedíselos y el grupo empieza a distinguirse.`
+          : withEvidence === 0
+            ? 'Por ahora todo esto es lo que dijeron de sí mismos. Se va a acomodar con las misiones que hagan.'
+            : `${withEvidence} de ${profiles.length} ya tienen suficiente trabajo hecho como para que el perfil se apoye en datos y no solo en lo que dijeron.`}
       </Text>
     </Card>
   )

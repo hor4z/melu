@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell, BookOpen, Check, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
+import { Activity, Bell, BookOpen, Check, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
 import {
   Badge, Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, IconButton, Input, Kbd, Logo, MenuButton, RadioGroup,
@@ -101,6 +101,7 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
           <nav className="mt-3 flex flex-col gap-0.5 px-3">
             <p className="px-3 pb-1 pt-2 text-xs font-bold uppercase tracking-wider text-ink-subtle">Enseñar</p>
             <NavLink to="/home" className={item}><Icon icon={LayoutDashboard} size="lg" /> Inicio</NavLink>
+            <NavLink to="/focus" className={item}><Icon icon={Activity} size="lg" /> Cómo vienen</NavLink>
             <NavLink to="/groups" className={item}><Icon icon={Users} size="lg" /> Grupos</NavLink>
             <NavLink to="/activities" className={item}><Icon icon={BookOpen} size="lg" /> Actividades</NavLink>
             <NavLink to="/lenses" className={item}><Icon icon={Compass} size="lg" /> Lentes</NavLink>

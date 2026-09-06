@@ -7,6 +7,7 @@ import { SpaceProvider } from './lib/space'
 import { SignIn } from './screens/SignIn'
 import { Welcome } from './screens/Welcome'
 import { Home } from './screens/Home'
+import { Focus } from './screens/Focus'
 import { Groups } from './screens/Groups'
 import { GroupDetail } from './screens/GroupDetail'
 import { Library } from './screens/Library'
@@ -63,6 +64,7 @@ export function App() {
     <GuideShell me={me.data}>
       <Routes>
         <Route path="/home" element={<Home />} />
+        <Route path="/focus" element={<Focus />} />
         <Route path="/groups" element={<Groups />} />
         <Route path="/groups/:id" element={<GroupDetail />} />
         <Route path="/activities" element={<Library />} />
