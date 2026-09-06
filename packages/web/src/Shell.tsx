@@ -119,7 +119,7 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
               startIcon={<Icon icon={Search} size="sm" />} endIcon={<Kbd>⌘K</Kbd>} />
             <div className="flex items-center gap-2">
               <NotificationsBell spaceId={space?.id ?? ''} />
-              <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl} subtitle={space?.name ?? 'Docente'}
+              <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
                 onChangeSpace={spaces.length > 1 ? () => setChanging(true) : undefined} onSignOut={signOut} />
             </div>
           </header>
@@ -163,7 +163,7 @@ export function LearnerShell({ me, children }: { me: Me; children: ReactNode }) 
               <NavLink to="/progress" className={item}><Icon icon={Compass} size="md" /> <span className="hidden sm:inline">Mi progreso</span></NavLink>
             </nav>
           </div>
-          <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl} subtitle="Aprendiz" onSignOut={signOut} />
+          <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl} onSignOut={signOut} />
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-5 py-8">{children}</main>

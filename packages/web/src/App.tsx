@@ -62,7 +62,7 @@ export function App() {
     <SpaceProvider me={me.data}>
     <GuideShell me={me.data}>
       <Routes>
-        <Route path="/home" element={<Home me={me.data} />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/groups" element={<Groups />} />
         <Route path="/groups/:id" element={<GroupDetail />} />
         <Route path="/activities" element={<Library />} />
