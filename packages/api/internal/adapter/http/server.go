@@ -20,8 +20,7 @@ import (
 type Server struct {
 	svc     *app.Services
 	google  *google.Client
-	web     fs.FS // Vite build, may be nil in dev
-	baseURL string
+	web fs.FS // Vite build, may be nil in dev
 	// secure marks the cookies when melu is served over https. Deriving it from the base URL
 	// keeps local development working over plain http without a second flag to forget.
 	secure bool
@@ -29,7 +28,7 @@ type Server struct {
 }
 
 func New(svc *app.Services, g *google.Client, web fs.FS, baseURL string) *Server {
-	s := &Server{svc: svc, google: g, web: web, baseURL: baseURL, secure: strings.HasPrefix(baseURL, "https://"), mux: http.NewServeMux()}
+	s := &Server{svc: svc, google: g, web: web, secure: strings.HasPrefix(baseURL, "https://"), mux: http.NewServeMux()}
 	s.routes()
 	return s
 }

@@ -8,8 +8,13 @@ import (
 )
 
 type Config struct {
-	Addr               string
-	DatabaseURL        string
+	Addr        string
+	DatabaseURL string
+	// BaseURL: where melu answers from, seen from outside. It exists for one reason: the Google
+	// redirect has to be an absolute URL matching character for character the one registered in
+	// the console, and the server cannot work out its own — behind a proxy the Host that arrives
+	// is the proxy's, and it is picked by whoever makes the request anyway.
+	// Whether cookies carry `Secure` comes from here too: https yes, http no.
 	BaseURL            string
 	GoogleClientID     string
 	GoogleClientSecret string
