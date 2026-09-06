@@ -36,13 +36,13 @@ update people
 alter table people add column if not exists avatar_style text;
 alter table people add column if not exists avatar_seed text;
 
--- Las partes elegidas, como {"eyes":"variant03","hairColor":"ac6511"}. Van en jsonb y no en
--- columnas porque cada estilo tiene las suyas: el robot tiene antena y la carita tiene pelo, y
--- la lista la manda la librería que dibuja, no esta tabla. Lo que sí se controla es la forma,
--- y eso se valida en Go antes de llegar acá.
+-- Las partes elegidas, como {"eyes":"cheery","hairColor":"ac6511"}. Van en jsonb y no en
+-- columnas porque la lista la manda la librería que dibuja y no esta tabla: hoy hay un estilo
+-- con seis partes, y el día que se sume otro va a tener las suyas. Lo que sí se controla es la
+-- forma, y eso se valida en Go antes de llegar acá.
 alter table people add column if not exists avatar_options jsonb;
 
 alter table people drop constraint if exists people_avatar_style_check;
 alter table people add constraint people_avatar_style_check check (
-  avatar_style is null or avatar_style in ('adventurer', 'bigSmile', 'funEmoji', 'bottts')
+  avatar_style is null or avatar_style in ('bigSmile')
 );

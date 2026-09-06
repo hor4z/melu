@@ -69,7 +69,7 @@ func SplitName(full string) (first, last string) {
 
 // AvatarStyles are the figures the kit knows how to draw. The check in 0005 says the same thing
 // in SQL: the two have to be changed together.
-var AvatarStyles = []string{"adventurer", "bigSmile", "funEmoji", "bottts"}
+var AvatarStyles = []string{"bigSmile"}
 
 func IsAvatarStyle(s string) bool {
 	for _, v := range AvatarStyles {

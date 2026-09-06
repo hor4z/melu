@@ -8,40 +8,34 @@
 // mandar los nombres de los chicos a un servicio de terceros para que devuelva un dibujo es un
 // precio que no vale la pena pagar por un avatar.
 import { createAvatar, type StyleOptions } from '@dicebear/core'
-import { adventurer, bigSmile, funEmoji, bottts } from '@dicebear/collection'
+import { bigSmile } from '@dicebear/collection'
 
-const STYLES = { adventurer, bigSmile, funEmoji, bottts } as const
+// Un solo estilo. La librería trae treinta y pico y es tentador ofrecerlos todos, pero cada uno
+// que se suma es otra pantalla de opciones que recorrer, y el bundle los paga a unos cuarenta
+// kilobytes cada uno. Con uno alcanza para que cada uno tenga su cara.
+const STYLES = { bigSmile } as const
 
 export type ArtStyle = keyof typeof STYLES
 export const ART_STYLES = Object.keys(STYLES) as ArtStyle[]
 
-/** Cómo se llama cada estilo en la pantalla. En español, que lo lee una persona. */
+/** Cómo se llama el estilo en la pantalla. En español, que lo lee una persona. */
 export const ART_STYLE_LABELS: Record<ArtStyle, string> = {
-  adventurer: 'Persona',
-  bigSmile: 'Caricatura',
-  funEmoji: 'Emoji',
-  bottts: 'Robot',
+  bigSmile: 'Una figura',
 }
 
 /**
- * Las partes que se ofrecen de cada estilo, en el orden en el que se muestran.
- *
- * Es un recorte deliberado de lo que la librería sabe dibujar: `adventurer` acepta también
- * probabilidades y accesorios sueltos, y ofrecer las veintipico opciones de todo deja una
- * pantalla que nadie termina de recorrer. Estas son las que cambian la cara de verdad.
+ * Las partes que se ofrecen, en el orden en el que se muestran. Es un recorte de lo que la
+ * librería sabe dibujar: acepta también probabilidades y accesorios sueltos, y ofrecer todo
+ * deja una pantalla que nadie termina de recorrer. Estas son las que cambian la cara.
  */
 export const ART_PARTS: Record<ArtStyle, string[]> = {
-  adventurer: ['eyes', 'eyebrows', 'mouth', 'hair', 'hairColor', 'skinColor', 'glasses'],
   bigSmile: ['eyes', 'mouth', 'hair', 'hairColor', 'skinColor', 'accessories'],
-  funEmoji: ['eyes', 'mouth', 'backgroundColor'],
-  bottts: ['eyes', 'mouth', 'face', 'top', 'baseColor'],
 }
 
 /** El nombre de cada parte, en español. Una sola tabla para los cuatro estilos. */
 export const ART_PART_LABELS: Record<string, string> = {
-  eyes: 'Ojos', eyebrows: 'Cejas', mouth: 'Boca', hair: 'Pelo', hairColor: 'Color de pelo',
-  skinColor: 'Piel', glasses: 'Anteojos', accessories: 'Accesorios', face: 'Cara',
-  top: 'Antena', baseColor: 'Color', backgroundColor: 'Fondo',
+  eyes: 'Ojos', mouth: 'Boca', hair: 'Pelo', hairColor: 'Color de pelo',
+  skinColor: 'Piel', accessories: 'Accesorios',
 }
 
 type Schema = { properties?: Record<string, { enum?: string[]; default?: unknown; items?: { enum?: string[]; pattern?: string } }> }
@@ -76,7 +70,7 @@ export function isColorPart(part: string) {
  * que nunca tocó nada siga siendo siempre la misma.
  */
 export function avatarArt(style: ArtStyle | undefined, seed: string, options?: Record<string, string>) {
-  const s = style ?? 'adventurer'
+  const s = style ?? 'bigSmile'
   const picked: StyleOptions<Record<string, unknown>> = { seed }
   for (const [k, v] of Object.entries(options ?? {})) {
     if (v) (picked as Record<string, unknown>)[k] = [v]

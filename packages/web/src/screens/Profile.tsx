@@ -69,7 +69,7 @@ export function Profile({ me }: { me: Me }) {
   // la que la persona había armado y no una nueva.
   const [seed, setSeed] = useState(person.avatarSeed ?? '')
   const [options, setOptions] = useState<Options>(person.avatarOptions ?? {})
-  const [part, setPart] = useState<string>(ART_PARTS[person.avatarStyle ?? 'adventurer'][0])
+  const [part, setPart] = useState<string>(ART_PARTS[person.avatarStyle ?? ART_STYLES[0]][0])
 
   // El mismo cálculo que hace el backend. Se repite acá para que la pantalla pueda mostrar el
   // nombre que va a quedar antes de guardar, que es cuando sirve verlo.
@@ -86,7 +86,14 @@ export function Profile({ me }: { me: Me }) {
     onSuccess: (up) => qc.setQueryData(['me'], up),
   })
 
-  const same = (a: Options, b: Options) => JSON.stringify(a) === JSON.stringify(b)
+  // Comparadas por clave ordenada y no con `JSON.stringify` a secas: el orden de las claves de
+  // un objeto es el de inserción, el de acá lo da el orden en el que la persona tocó las partes,
+  // y el que vuelve del servidor viene alfabético, porque Go serializa los mapas ordenados. Con
+  // stringify pelado, guardar dejaba la pantalla diciendo que todavía había cambios sin guardar.
+  const same = (a: Options, b: Options) => {
+    const ka = Object.keys(a).sort(), kb = Object.keys(b).sort()
+    return ka.length === kb.length && ka.every((k, i) => k === kb[i] && a[k] === b[k])
+  }
   const dirty = first.trim() !== (person.firstName ?? '') || last.trim() !== (person.lastName ?? '')
     || nick.trim() !== (person.nickname ?? '') || (style ?? '') !== (person.avatarStyle ?? '')
     || (style ? seed : '') !== (person.avatarSeed ?? '') || !same(style ? options : {}, person.avatarOptions ?? {})
@@ -132,7 +139,7 @@ export function Profile({ me }: { me: Me }) {
             artSeed={artSeed} artOptions={options} size="xl" />
           <div className="min-w-0 flex-1">
             <Heading level={2} size="lg">Tu avatar</Heading>
-            <Text variant="muted">Elegí un estilo y armá la cara parte por parte.</Text>
+            <Text variant="muted">Tu foto de Google, o una figura que armás parte por parte.</Text>
           </div>
         </div>
 
@@ -181,7 +188,7 @@ export function Profile({ me }: { me: Me }) {
             </FormActions>
           </>
         ) : (
-          <Text size="sm" variant="muted">Estás usando tu foto de Google. Tocá un estilo y aparecen las partes para armarlo.</Text>
+          <Text size="sm" variant="muted">Estás usando tu foto de Google. Tocá la figura y aparecen las partes para armarla.</Text>
         )}
       </Card>
 
