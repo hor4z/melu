@@ -46,8 +46,11 @@ type Dashboard struct {
 	ToReview int `json:"toReview"`
 	// Los otros dos estados de una entrega. Son cuentas de cosas que pasaron, así que se leen
 	// solas: no hacen falta promedios ni comparaciones para saber qué significan.
-	Unfinished        int                 `json:"unfinished"`
-	Graded            int                 `json:"graded"`
+	Unfinished int `json:"unfinished"`
+	Graded     int `json:"graded"`
+	// Cuántas misiones hay puestas, contando una por chico. Con las tres de arriba alcanza para
+	// saber cuántas faltan sin que el front tenga que restar a ciegas.
+	Assigned          int                 `json:"assigned"`
 	Signals           []Signal            `json:"signals"`
 	ByKind            []ByKind            `json:"byKind"`
 	Checklist         map[string]bool     `json:"checklist"`
@@ -68,6 +71,28 @@ type SubmissionSummary struct {
 
 type Fact = domain.Fact
 
+// Submissions es todo lo que entregaron, sin recortar y con las que están a medias. El panel
+// muestra las últimas ocho; esto es la lista entera, que es a donde lleva "ver todas".
+func (s *Services) AllSubmissions(ctx context.Context, p domain.Person, spaceID string) ([]SubmissionSummary, error) {
+	facts, err := s.Dashboard.FactsOfGuide(ctx, p.ID, spaceID)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]SubmissionSummary, 0, len(facts))
+	for _, h := range facts {
+		min, _ := minutes(h)
+		when := h.UpdatedAt
+		if h.SubmittedAt != nil {
+			when = *h.SubmittedAt
+		}
+		out = append(out, SubmissionSummary{
+			SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Learner: h.Learner, Title: h.Title,
+			Group: h.Group, Status: h.Status, Minutes: min, Accuracy: accuracy(h.Document, h.Answers, h.Steps), When: when,
+		})
+	}
+	return out, nil
+}
+
 func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID string) (*Dashboard, error) {
 	spaces, err := s.Spaces.OfPerson(ctx, p.ID)
 	if err != nil {
@@ -85,6 +110,7 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 		spaces = filterSpaces(spaces, spaceID)
 	}
 	out := &Dashboard{Spaces: len(spaces), Groups: len(groups), Signals: []Signal{}, ByKind: []ByKind{}, RecentSubmissions: []SubmissionSummary{}}
+	out.Assigned, _ = s.Dashboard.Assigned(ctx, p.ID, spaceID)
 	for _, g := range groups {
 		out.Learners += g.Learners
 	}

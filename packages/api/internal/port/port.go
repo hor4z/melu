@@ -72,4 +72,7 @@ type Dashboard interface {
 	FactsOfGuide(ctx context.Context, guideID, spaceID string) ([]domain.Fact, error)
 	FactsOfLearner(ctx context.Context, learnerID string) ([]domain.Fact, error)
 	HasAssignments(ctx context.Context, guideID string) bool
+	// Assigned cuenta las misiones puestas, una por chico: si la asignación eligió destinatarios
+	// son esos, y si no, todos los aprendices del grupo.
+	Assigned(ctx context.Context, guideID, spaceID string) (int, error)
 }

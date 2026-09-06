@@ -122,5 +122,5 @@ export const newId = () => Math.random().toString(36).slice(2, 10)
 export type Signal = { learnerId: string; learner: string; groupId: string; group: string; kind: 'dropout' | 'misses' | 'slow' | 'shines'; detail: string; suggestion: string; recipeTitle?: string; recipeId?: string; assignmentId?: string }
 export type ByKind = { experience: string; submissions: number; avgMinutes: number; accuracy: number }
 export type SubmissionSummary = { submissionId: string; assignmentId: string; learner?: string; title: string; group: string; status: 'in_progress' | 'submitted' | 'graded'; minutes: number; accuracy: number; when: string }
-export type Dashboard = { spaces: number; groups: number; learners: number; toReview: number; unfinished: number; graded: number; signals: Signal[]; byKind: ByKind[]; checklist: Record<string, boolean>; recentSubmissions: SubmissionSummary[] }
+export type Dashboard = { spaces: number; groups: number; learners: number; toReview: number; unfinished: number; graded: number; assigned: number; signals: Signal[]; byKind: ByKind[]; checklist: Record<string, boolean>; recentSubmissions: SubmissionSummary[] }
 export type Progress = { done: number; inProgress: number; minutes: number; accuracy: number; streak: number; missions: SubmissionSummary[]; experiences: Record<string, number> }
