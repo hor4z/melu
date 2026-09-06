@@ -63,16 +63,27 @@ export function isColorPart(part: string) {
 }
 
 /**
+ * Qué tan cerca se dibuja. Es nuestro y nunca viene de afuera: lo usan las miniaturas del
+ * armador para acercarse a la parte que se está eligiendo.
+ */
+export type ArtView = { scale?: number; translateX?: number; translateY?: number }
+
+/**
  * El SVG, como string, listo para meter en el DOM.
  *
  * Todas las opciones de la librería son arrays: pasar `['variant03']` es "quiero esta", y no
  * pasar nada es "elegí vos a partir de la semilla", que es lo que hace que la figura de alguien
  * que nunca tocó nada siga siendo siempre la misma.
+ *
+ * Se recorren las partes del estilo y no las claves que llegan, que no es lo mismo: el avatar de
+ * una persona viaja desde la base, y la lista de partes es el filtro que impide que una clave
+ * que no es una parte (`scale`, sin ir más lejos) llegue al dibujante como si lo fuera.
  */
-export function avatarArt(style: ArtStyle | undefined, seed: string, options?: Record<string, string>) {
+export function avatarArt(style: ArtStyle | undefined, seed: string, options?: Record<string, string>, view?: ArtView) {
   const s = style ?? 'bigSmile'
-  const picked: StyleOptions<Record<string, unknown>> = { seed }
-  for (const [k, v] of Object.entries(options ?? {})) {
+  const picked: StyleOptions<Record<string, unknown>> = { seed, ...view }
+  for (const k of ART_PARTS[s]) {
+    const v = options?.[k]
     if (v) (picked as Record<string, unknown>)[k] = [v]
   }
   return createAvatar(STYLES[s], picked).toString()

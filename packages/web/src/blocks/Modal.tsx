@@ -5,7 +5,7 @@ import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, Dia
 export function Modal({ isOpen, onClose, title, description, children, footer, boxWidth = 480 }: {
   isOpen: boolean; onClose: () => void; title: string; description?: string; children: ReactNode; footer?: ReactNode; boxWidth?: number
 }) {
-  const size = boxWidth >= 640 ? 'lg' : boxWidth >= 520 ? 'md' : 'sm'
+  const size = boxWidth >= 880 ? 'xl' : boxWidth >= 640 ? 'lg' : boxWidth >= 520 ? 'md' : 'sm'
   return (
     <Dialog open={isOpen} onOpenChange={(o) => !o && onClose()} purpose="form">
       <DialogContent size={size}>
