@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Navigate, Route, Routes, useLocation } from 'react-router'
+import { Navigate, Route, Routes } from 'react-router'
 import { Spinner } from '@melu/ui'
 import { useMe } from './lib/session'
 import { GuideShell, LearnerShell } from './Shell'
@@ -18,14 +18,10 @@ import { Lenses } from './screens/Lenses'
 import { Today } from './screens/Today'
 import { MissionScreen } from './screens/Mission'
 import { Progress } from './screens/Progress'
-import { Start } from './screens/Start'
 import { Profile } from './screens/Profile'
 
 export function App() {
   const me = useMe()
-  // With `window.location.pathname` this misses router navigations: the URL changes and the
-  // screen stays where it was. We have to listen to the real location.
-  const { pathname } = useLocation()
   const mode = me.data?.mode
   useEffect(() => { if (mode === 'learner') document.documentElement.dataset.mode = 'learner'; else delete document.documentElement.dataset.mode }, [mode])
 
@@ -34,16 +30,9 @@ export function App() {
   // vuelve a ella, que es a donde la persona iba.
   if (!me.data) return <SignIn />
 
-  // The welcome walkthrough lives outside the modes: it takes the whole screen and anyone can
-  // enter. A learner redoes it whenever they want; a teacher goes through it to see the same
-  // thing the kids will see, which is the only honest way to have an opinion about it.
-  if (pathname.startsWith('/start')) return <Start />
-
   if (me.data.mode === 'new') return <Welcome me={me.data} />
 
   if (me.data.mode === 'learner') {
-    // First things first: if they never went through the onboarding, that is where they start.
-    if (!me.data.profile) return <Start />
     return (
       <Routes>
         <Route path="/mission/:id" element={<MissionScreen />} />

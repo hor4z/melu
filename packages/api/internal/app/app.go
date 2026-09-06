@@ -24,7 +24,6 @@ type Services struct {
 	Submissions port.Submissions
 	Memberships port.Memberships
 	Dashboard   port.Dashboard
-	Profiles    port.Profiles
 	// TZ: if nil, the process time zone is used.
 	TZ *time.Location
 }
