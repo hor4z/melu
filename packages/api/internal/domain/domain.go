@@ -36,13 +36,9 @@ type Person struct {
 	FirstName string `json:"firstName,omitempty"`
 	LastName  string `json:"lastName,omitempty"`
 	Nickname  string `json:"nickname,omitempty"`
+	// The photo. Whoever has none gets a figure drawn from their name, which is the kit's job
+	// and not a column: there is nothing to store about a drawing that the name already decides.
 	AvatarURL string `json:"avatarUrl,omitempty"`
-	// The figure, for whoever would rather not use their photo. Empty style means the photo
-	// wins; empty seed means the figure is drawn from the name; the options are the parts the
-	// person picked, and which ones exist depends on the style.
-	AvatarStyle   string            `json:"avatarStyle,omitempty"`
-	AvatarSeed    string            `json:"avatarSeed,omitempty"`
-	AvatarOptions map[string]string `json:"avatarOptions,omitempty"`
 }
 
 // DisplayName is the one rule about how somebody is called: the nickname wins over the name on
@@ -65,19 +61,6 @@ func SplitName(full string) (first, last string) {
 		return "", ""
 	}
 	return f[0], strings.Join(f[1:], " ")
-}
-
-// AvatarStyles are the figures the kit knows how to draw. The check in 0005 says the same thing
-// in SQL: the two have to be changed together.
-var AvatarStyles = []string{"bigSmile"}
-
-func IsAvatarStyle(s string) bool {
-	for _, v := range AvatarStyles {
-		if v == s {
-			return true
-		}
-	}
-	return false
 }
 
 type Space struct {

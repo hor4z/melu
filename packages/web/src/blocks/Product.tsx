@@ -2,7 +2,7 @@
 // unidad del panel, el copy del menú de cuenta) así que viven acá y no en @melu/ui.
 import type { ReactNode } from 'react'
 import { LogOut, RefreshCw, User } from 'lucide-react'
-import { Avatar, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Icon, MenuButton, Sparkline, cn, type ArtStyle } from '@melu/ui'
+import { Avatar, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Icon, MenuButton, Sparkline, cn } from '@melu/ui'
 
 /** Metric with a tint, a big number and a trend. The dashboard's unit. */
 export function StatTile({ label, value, unit, delta, series, tint = 'bg-teal', icon, hint }: {
@@ -48,14 +48,14 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
   )
 }
 /** Avatar that opens the account menu. */
-export function UserMenu({ name, email, avatar, artStyle, artSeed, artOptions, onProfile, onChangeSpace, onSignOut }: {
-  name: string; email?: string; avatar?: string; artStyle?: ArtStyle; artSeed?: string; artOptions?: Record<string, string>
+export function UserMenu({ name, email, avatar, onProfile, onChangeSpace, onSignOut }: {
+  name: string; email?: string; avatar?: string
   onProfile?: () => void; onChangeSpace?: () => void; onSignOut: () => void
 }) {
   return (
     <DropdownMenu placement="bottom-end">
       <DropdownMenuTrigger>
-        <MenuButton chevron={false} aria-label="Menú de la cuenta" leading={<Avatar name={name} src={avatar} artStyle={artStyle} artSeed={artSeed} artOptions={artOptions} size="md" />} />
+        <MenuButton chevron={false} aria-label="Menú de la cuenta" leading={<Avatar name={name} src={avatar} size="md" />} />
       </DropdownMenuTrigger>
       <DropdownMenuContent minWidth={230}>
         <DropdownMenuLabel>

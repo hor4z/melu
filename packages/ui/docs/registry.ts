@@ -197,7 +197,7 @@ export const REGISTRY: Entry[] = [
     slug: 'avatar',
     title: 'Avatar',
     group: 'Contenido',
-    summary: 'La cara de alguien, o la figura que armó, o una generada de su nombre.',
+    summary: 'La cara de alguien, o una figura generada de su nombre si no hay foto.',
     exports: ['Avatar', 'AvatarGroup'],
     demos: [
       { id: 'basic', title: 'Foto, figura y estado', note: 'El mismo nombre cae siempre en la misma figura.' },

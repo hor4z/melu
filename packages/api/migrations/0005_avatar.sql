@@ -1,10 +1,10 @@
--- El perfil que la persona edita: cómo se llama y qué cara tiene.
+-- El nombre se parte en tres.
 --
--- El nombre se parte en tres. `name` se queda igual y sigue siendo el nombre que se muestra,
--- porque lo leen la mitad de las queries del producto y no tiene sentido que cada una arme el
--- mismo string. Lo que cambia es de dónde sale: ahora lo escribe el perfil a partir de las
--- partes, y la regla es que el apodo gana. Quien puso "Bruno" en apodo es Bruno en la pantalla
--- de su guía, aunque en el papel sea Bruno Alejandro Fernández Lima.
+-- `name` se queda igual y sigue siendo el nombre que se muestra, porque lo leen la mitad de las
+-- queries del producto y no tiene sentido que cada una arme el mismo string. Lo que cambia es de
+-- dónde sale: ahora lo escribe el perfil a partir de las partes, y la regla es que el apodo
+-- gana. Quien puso "Bruno" en apodo es Bruno en la pantalla de su guía, aunque en el papel sea
+-- Bruno Alejandro Fernández Lima.
 --
 -- El apellido existe para el guía, que tiene dos Sofías en el mismo grupo, y el apodo existe
 -- para el chico, que quiere que lo llamen como lo llaman. Los dos datos hacen falta y son
@@ -21,28 +21,18 @@ update people
        last_name  = coalesce(last_name, nullif(substr(name, length(split_part(name, ' ', 1)) + 2), ''))
  where first_name is null;
 
--- El avatar.
+-- El avatar no tiene columnas, y es a propósito.
 --
--- `avatar_url` sigue siendo la foto: hoy la escribe Google, mañana un servicio de archivos.
--- Estas tres columnas guardan la otra opción, la figura, que no es un archivo sino tres datos:
--- con qué estilo se dibuja, con qué semilla, y qué partes eligió la persona.
+-- `avatar_url` es la foto y ya existe desde 0003. Quien no tiene foto recibe una figura dibujada
+-- a partir de su nombre: es determinística, así que no hay nada que guardar. El mismo nombre da
+-- siempre la misma cara, y si alguien se cambia el nombre le cambia la cara, que es lo correcto
+-- cuando la cara es consecuencia del nombre y no una elección.
 --
--- La semilla se guarda aparte del nombre a propósito. Si fuera el nombre, cambiar cómo te
--- llamás te cambiaría la cara, y al revés: dos personas que se llaman igual no tendrían con qué
--- diferenciarse. Vacía significa "usá mi nombre", que es de dónde sale la primera figura.
---
--- `avatar_style` nulo es la señal de "prefiero mi foto": mientras no haya estilo elegido gana
--- `avatar_url`, y si tampoco hay foto se cae a la figura, que es lo que ya pasaba.
-alter table people add column if not exists avatar_style text;
-alter table people add column if not exists avatar_seed text;
-
--- Las partes elegidas, como {"eyes":"cheery","hairColor":"ac6511"}. Van en jsonb y no en
--- columnas porque la lista la manda la librería que dibuja y no esta tabla: hoy hay un estilo
--- con seis partes, y el día que se sume otro va a tener las suyas. Lo que sí se controla es la
--- forma, y eso se valida en Go antes de llegar acá.
-alter table people add column if not exists avatar_options jsonb;
-
+-- Hubo una versión con estilo, semilla y partes elegidas, para que cada uno armara la suya. Se
+-- sacó antes de llegar a main: mientras el avatar solo lo ve su dueño, armarlo es configuración
+-- que no le devuelve nada a nadie. Las tres bajas quedan escritas porque la migración ya había
+-- corrido en las bases de desarrollo.
 alter table people drop constraint if exists people_avatar_style_check;
-alter table people add constraint people_avatar_style_check check (
-  avatar_style is null or avatar_style in ('bigSmile')
-);
+alter table people drop column if exists avatar_style;
+alter table people drop column if exists avatar_seed;
+alter table people drop column if exists avatar_options;

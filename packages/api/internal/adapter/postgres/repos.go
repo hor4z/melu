@@ -27,9 +27,8 @@ func noRows(err error) error {
 
 // ---- People ----
 type personRow struct {
-	ID, Name                                           string
-	Email, Sub, Avatar, Style, Seed, First, Last, Nick *string
-	Options                                            []byte
+	ID, Name                              string
+	Email, Sub, Avatar, First, Last, Nick *string
 }
 
 func (r personRow) dom() *domain.Person {
@@ -43,12 +42,6 @@ func (r personRow) dom() *domain.Person {
 	if r.Avatar != nil {
 		p.AvatarURL = *r.Avatar
 	}
-	if r.Style != nil {
-		p.AvatarStyle = *r.Style
-	}
-	if r.Seed != nil {
-		p.AvatarSeed = *r.Seed
-	}
 	if r.First != nil {
 		p.FirstName = *r.First
 	}
@@ -58,20 +51,15 @@ func (r personRow) dom() *domain.Person {
 	if r.Nick != nil {
 		p.Nickname = *r.Nick
 	}
-	// A broken options blob is not worth failing a sign-in over: the person ends up with the
-	// plain figure of their style, which is exactly what they had before choosing parts.
-	if len(r.Options) > 0 {
-		_ = json.Unmarshal(r.Options, &p.AvatarOptions)
-	}
 	return p
 }
 
-const personCols = `id, name, email, google_sub, avatar_url, avatar_style, avatar_seed, first_name, last_name, nickname, avatar_options`
+const personCols = `id, name, email, google_sub, avatar_url, first_name, last_name, nickname`
 
 func (r *Repos) person(ctx context.Context, where string, arg any) (*domain.Person, error) {
 	var row personRow
 	err := r.db.QueryRow(ctx, `select `+personCols+` from people where `+where, arg).
-		Scan(&row.ID, &row.Name, &row.Email, &row.Sub, &row.Avatar, &row.Style, &row.Seed, &row.First, &row.Last, &row.Nick, &row.Options)
+		Scan(&row.ID, &row.Name, &row.Email, &row.Sub, &row.Avatar, &row.First, &row.Last, &row.Nick)
 	if err != nil {
 		return nil, noRows(err)
 	}
@@ -116,18 +104,10 @@ func (r *Repos) LinkGoogle(ctx context.Context, id, sub, name, avatar string) er
 // SaveProfile writes the name and the avatar choice. The empty string is stored as null and not
 // as ”: null is what the rest of the code reads as "not chosen", and an empty text would make
 // `avatar_style is null` false and leave the person with a figure they did not pick.
-func (r *Repos) SaveProfile(ctx context.Context, id string, p domain.Person) error {
-	var opts []byte
-	if len(p.AvatarOptions) > 0 {
-		var err error
-		if opts, err = json.Marshal(p.AvatarOptions); err != nil {
-			return err
-		}
-	}
+func (r *Repos) SaveProfile(ctx context.Context, id, name, first, last, nickname string) error {
 	_, err := r.db.Exec(ctx,
-		`update people set name=$2, first_name=nullif($3,''), last_name=nullif($4,''), nickname=nullif($5,''),
-		        avatar_style=nullif($6,''), avatar_seed=nullif($7,''), avatar_options=$8 where id=$1`,
-		id, p.Name, p.FirstName, p.LastName, p.Nickname, p.AvatarStyle, p.AvatarSeed, opts)
+		`update people set name=$2, first_name=nullif($3,''), last_name=nullif($4,''), nickname=nullif($5,'') where id=$1`,
+		id, name, first, last, nickname)
 	return err
 }
 
@@ -141,8 +121,8 @@ func (r *Repos) CreateSession(ctx context.Context, personID string) (string, err
 }
 func (r *Repos) Resolve(ctx context.Context, token string) (*domain.Person, error) {
 	var row personRow
-	err := r.db.QueryRow(ctx, `select p.id, p.name, p.email, p.google_sub, p.avatar_url, p.avatar_style, p.avatar_seed, p.first_name, p.last_name, p.nickname, p.avatar_options from sessions s join people p on p.id=s.person_id where s.token=$1 and s.expires_at>now()`, token).
-		Scan(&row.ID, &row.Name, &row.Email, &row.Sub, &row.Avatar, &row.Style, &row.Seed, &row.First, &row.Last, &row.Nick, &row.Options)
+	err := r.db.QueryRow(ctx, `select p.id, p.name, p.email, p.google_sub, p.avatar_url, p.first_name, p.last_name, p.nickname from sessions s join people p on p.id=s.person_id where s.token=$1 and s.expires_at>now()`, token).
+		Scan(&row.ID, &row.Name, &row.Email, &row.Sub, &row.Avatar, &row.First, &row.Last, &row.Nick)
 	if err != nil {
 		return nil, noRows(err)
 	}

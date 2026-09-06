@@ -13,7 +13,7 @@ type People interface {
 	LinkGoogle(ctx context.Context, id, sub, name, avatar string) error
 	// SaveProfile writes what a person can change about themselves. The email is not here: it is
 	// the Google identity, and it is what ties the row to the account.
-	SaveProfile(ctx context.Context, id string, p domain.Person) error
+	SaveProfile(ctx context.Context, id, name, first, last, nickname string) error
 }
 
 type Sessions interface {

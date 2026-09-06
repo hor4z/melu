@@ -3,23 +3,18 @@
 // Se entra tocando el propio avatar, arriba a la derecha, que es donde todo el mundo lo busca.
 //
 // Dos columnas, y la división es una sola: a la izquierda lo que se mira (cómo te ve el resto y
-// dónde estás), a la derecha lo que se toca. Quedó así después de que la primera versión, todo
-// apilado en una columna, dejara el avatar arrancando en el borde de abajo de la ventana: se
-// leía como que la pantalla terminaba ahí.
+// dónde estás), a la derecha lo que se toca.
 //
-// Qué se edita no lo decide esta pantalla, lo decide de dónde viene cada dato. El nombre y el
-// avatar los eligió la persona, así que se editan. El email es la identidad de Google y es lo
-// que ata la fila a la cuenta: se muestra y no se toca. Los espacios y los roles los da de alta
-// quien te sumó, así que se leen.
+// Qué se edita no lo decide esta pantalla, lo decide de dónde viene cada dato. El nombre lo
+// eligió la persona, así que se edita. El email es la identidad de Google y es lo que ata la
+// fila a la cuenta: se muestra y no se toca. Los espacios y los roles los da de alta quien te
+// sumó, así que se leen. Y la cara sale del nombre, así que tampoco se elige: cambia sola
+// cuando cambia el nombre.
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, Palette, School } from 'lucide-react'
-import {
-  ART_STYLES, Avatar, Button, Card, Eyebrow, Field, Heading, Icon, Input, SegmentedControl,
-  SegmentedControlItem, Separator, Text, type ArtStyle,
-} from '@melu/ui'
+import { Check, School } from 'lucide-react'
+import { Avatar, Button, Card, Field, Heading, Icon, Input, Text } from '@melu/ui'
 import { api, type Me } from '../lib/api'
-import { AvatarBuilder, type Figure } from '../blocks/AvatarBuilder'
 import { ROLES, SPACE_KINDS } from '../lib/composition'
 
 export function Profile({ me }: { me: Me }) {
@@ -28,52 +23,26 @@ export function Profile({ me }: { me: Me }) {
   const [first, setFirst] = useState(person.firstName ?? '')
   const [last, setLast] = useState(person.lastName ?? '')
   const [nick, setNick] = useState(person.nickname ?? '')
-  const [style, setStyle] = useState<ArtStyle | null>(person.avatarStyle ?? null)
-  // La semilla se guarda incluso mientras se mira la foto, así que volver a la figura devuelve
-  // la que la persona había armado y no una nueva.
-  const [seed, setSeed] = useState(person.avatarSeed ?? '')
-  const [options, setOptions] = useState<Record<string, string>>(person.avatarOptions ?? {})
-  const [building, setBuilding] = useState(false)
 
   // El mismo cálculo que hace el backend. Se repite acá para que la pantalla pueda mostrar el
   // nombre que va a quedar antes de guardar, que es cuando sirve verlo.
   const shown = nick.trim() || `${first.trim()} ${last.trim()}`.trim()
-  const artSeed = seed || shown || person.name
   const rolesOf = (spaceId: string) => [...new Set(me.memberships.filter((m) => m.spaceId === spaceId).map((m) => m.role))]
 
   const save = useMutation({
-    mutationFn: () => api.patch<Me>('/api/me', {
-      firstName: first.trim(), lastName: last.trim(), nickname: nick.trim(),
-      avatarStyle: style ?? '', avatarSeed: style ? seed : '', avatarOptions: style ? options : null,
-    }),
+    mutationFn: () => api.patch<Me>('/api/me', { firstName: first.trim(), lastName: last.trim(), nickname: nick.trim() }),
     // El header, el selector de espacios y esta pantalla leen el mismo `me`: se escribe la
     // respuesta en la cache y los tres cambian juntos, sin un segundo viaje.
     onSuccess: (up) => qc.setQueryData(['me'], up),
   })
 
-  // Comparadas por clave ordenada y no con `JSON.stringify` a secas: el orden de las claves de
-  // un objeto es el de inserción, el de acá lo da el orden en el que la persona tocó las partes,
-  // y el que vuelve del servidor viene alfabético, porque Go serializa los mapas ordenados. Con
-  // stringify pelado, guardar dejaba la pantalla diciendo que todavía había cambios sin guardar.
-  const same = (a: Record<string, string>, b: Record<string, string>) => {
-    const ka = Object.keys(a).sort(), kb = Object.keys(b).sort()
-    return ka.length === kb.length && ka.every((k, i) => k === kb[i] && a[k] === b[k])
-  }
   const dirty = first.trim() !== (person.firstName ?? '') || last.trim() !== (person.lastName ?? '')
-    || nick.trim() !== (person.nickname ?? '') || (style ?? '') !== (person.avatarStyle ?? '')
-    || (style ? seed : '') !== (person.avatarSeed ?? '') || !same(style ? options : {}, person.avatarOptions ?? {})
+    || nick.trim() !== (person.nickname ?? '')
   const canSave = shown !== '' && dirty && !save.isPending
 
   function revert() {
     setFirst(person.firstName ?? ''); setLast(person.lastName ?? ''); setNick(person.nickname ?? '')
-    setStyle(person.avatarStyle ?? null); setSeed(person.avatarSeed ?? ''); setOptions(person.avatarOptions ?? {})
     save.reset()
-  }
-
-  // Confirmar en el panel es lo único que puede pasar de la foto a la figura: abrirlo y mirar no
-  // le cambia el avatar a nadie.
-  function useFigure(f: Figure) {
-    setStyle(f.style); setSeed(f.seed); setOptions(f.options); setBuilding(false)
   }
 
   return (
@@ -99,34 +68,10 @@ export function Profile({ me }: { me: Me }) {
       <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="flex flex-col gap-5 lg:sticky lg:top-24 lg:self-start">
           <Card padding="lg" className="items-center gap-3 text-center">
-            <Avatar name={shown || person.name} src={person.avatarUrl} artStyle={style ?? undefined}
-              artSeed={artSeed} artOptions={options} className="size-28" />
+            <Avatar name={shown || person.name} src={person.avatarUrl} className="size-28" />
             <div className="min-w-0">
               <Heading level={2} size="lg" className="break-words">{shown || 'Sin nombre'}</Heading>
               <Text size="sm" variant="muted" className="break-all">{person.email}</Text>
-            </div>
-
-            {/* Elegir el avatar va debajo de la cara y no en una tarjeta aparte: es la misma
-                cosa, y separarlas obligaba a mirar de un lado el efecto y del otro el control.
-                Armar cuelga de la elección, así que aparece con la figura y no con la foto,
-                donde no hay nada que armar. Sin foto no hay entre qué elegir y el segmentado no
-                está: queda solo el botón. */}
-            <Separator />
-            <div className="flex w-full flex-col items-center gap-2">
-              <Eyebrow>Tu avatar</Eyebrow>
-              {person.avatarUrl && (
-                <SegmentedControl label="Qué avatar usás" layout="fill" size="sm" className="w-full"
-                  value={style ? 'art' : 'photo'}
-                  onValueChange={(v) => setStyle(v === 'art' ? (style ?? ART_STYLES[0]) : null)}>
-                  <SegmentedControlItem value="photo">Mi foto</SegmentedControlItem>
-                  <SegmentedControlItem value="art">Una figura</SegmentedControlItem>
-                </SegmentedControl>
-              )}
-              {style && (
-                <Button variant="ghost" size="sm" startIcon={<Icon icon={Palette} size="sm" />} onClick={() => setBuilding(true)}>
-                  Armar mi figura
-                </Button>
-              )}
             </div>
           </Card>
 
@@ -149,35 +94,26 @@ export function Profile({ me }: { me: Me }) {
           </Card>
         </aside>
 
-        <div className="flex flex-col gap-6">
-          <Card padding="lg" className="gap-4">
-            <div>
-              <Heading level={2} size="lg">Tu nombre</Heading>
-              <Text variant="muted">
-                El apellido es para el guía que tiene dos Sofías en el mismo grupo. El apodo, si lo ponés, gana: es como te vamos a llamar.
-              </Text>
+        <Card padding="lg" className="gap-4">
+          <div>
+            <Heading level={2} size="lg">Tu nombre</Heading>
+            <Text variant="muted">
+              El apellido es para el guía que tiene dos Sofías en el mismo grupo. El apodo, si lo ponés, gana: es como te vamos a llamar.
+            </Text>
+          </div>
+          {/* Nombre y apellido juntos, que son la misma pregunta partida en dos, y el apodo
+              abajo y solo, que es otra: la que gana cuando está puesta. */}
+          <div className="flex max-w-lg flex-col gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Nombre"><Input value={first} onChange={(e) => setFirst(e.target.value)} maxLength={60} /></Field>
+              <Field label="Apellido"><Input value={last} onChange={(e) => setLast(e.target.value)} maxLength={60} /></Field>
             </div>
-            {/* Nombre y apellido juntos, que son la misma pregunta partida en dos, y el apodo
-                abajo y solo, que es otra: la que gana cuando está puesta. */}
-            <div className="flex max-w-lg flex-col gap-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Nombre"><Input value={first} onChange={(e) => setFirst(e.target.value)} maxLength={60} /></Field>
-                <Field label="Apellido"><Input value={last} onChange={(e) => setLast(e.target.value)} maxLength={60} /></Field>
-              </div>
-              <Field label="Apodo" optional>
-                <Input value={nick} onChange={(e) => setNick(e.target.value)} maxLength={60} placeholder={first || 'Cómo te dicen'} />
-              </Field>
-            </div>
-          </Card>
-        </div>
+            <Field label="Apodo" optional>
+              <Input value={nick} onChange={(e) => setNick(e.target.value)} maxLength={60} placeholder={first || 'Cómo te dicen'} />
+            </Field>
+          </div>
+        </Card>
       </div>
-
-      {/* Montado siempre, y abierto con `isOpen`: el diálogo del kit devuelve el foco al botón en
-          un efecto que mira el paso de abierto a cerrado, y si el panel se desmontara al cerrar
-          ese efecto no correría nunca y el foco se caería al body. */}
-      <AvatarBuilder isOpen={building} name={shown || person.name}
-        value={{ style: style ?? ART_STYLES[0], seed, options }}
-        onCancel={() => setBuilding(false)} onUse={useFigure} />
     </div>
   )
 }

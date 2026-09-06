@@ -1,6 +1,4 @@
 // Minimal client. A single place where fetch lives.
-import type { ArtStyle } from '@melu/ui'
-
 export class ApiError extends Error {
   status: number
   constructor(status: number, message: string) { super(message); this.status = status }
@@ -39,7 +37,7 @@ export const api = {
 export type Person = {
   id: string; email: string; name: string
   firstName?: string; lastName?: string; nickname?: string
-  avatarUrl?: string; avatarStyle?: ArtStyle; avatarSeed?: string; avatarOptions?: Record<string, string>
+  avatarUrl?: string
 }
 export type Space = { id: string; name: string; slug: string; kind: SpaceKind }
 export type SpaceKind = 'school' | 'club' | 'tutoring' | 'personal'

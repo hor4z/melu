@@ -1,7 +1,6 @@
 import { useState, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import { avatarArt, type ArtStyle } from './avatar-art'
-export type { ArtStyle }
+import BoringAvatar from 'boring-avatars'
 import { cn, Slot } from './lib'
 
 const SIZES = { xs: 'size-6 text-2xs', sm: 'size-8 text-xs', md: 'size-10 text-sm', lg: 'size-12 text-base', xl: 'size-16 text-xl' }
@@ -21,6 +20,20 @@ export function initials(name: string) {
   if (!p.length) return '?'
   return (p.length === 1 ? p[0].slice(0, 1) : p[0][0] + p[p.length - 1][0]).toUpperCase()
 }
+// The figure for whoever has no photo. The library decides the contrast of the face by parsing
+// each colour as hex, so it does not take `var(--token)`: the values are read once from the
+// tokens already in the document instead of being written by hand here.
+const ART_TOKENS = ['--color-teal-500', '--color-cyan-500', '--color-purple-500', '--color-orange-500', '--color-yellow-400', '--color-green-500']
+let artCache: string[] | null = null
+function artColors() {
+  if (artCache) return artCache
+  if (typeof document === 'undefined') return []
+  const root = getComputedStyle(document.documentElement)
+  const read = ART_TOKENS.map((t) => root.getPropertyValue(t).trim()).filter(Boolean)
+  if (read.length) artCache = read
+  return read
+}
+
 /** The same name always lands on the same tint: the group's face does not dance between reloads. */
 export function tintOf(name: string) {
   let h = 0
@@ -31,12 +44,6 @@ export function tintOf(name: string) {
 export interface AvatarProps extends Omit<ComponentPropsWithoutRef<'span'>, 'children'>, VariantProps<typeof avatarVariants> {
   name: string
   src?: string
-  /** Draws the figure with this style, and ignores `src`: it is what the person chose. */
-  artStyle?: ArtStyle
-  /** What the figure is drawn from. Empty falls back to the name. */
-  artSeed?: string
-  /** The parts the person picked, like `{ eyes: 'variant03' }`. Which ones exist is per style. */
-  artOptions?: Record<string, string>
   /** Status dot in the corner: online, pending, whatever you need. */
   status?: 'online' | 'busy' | 'away' | ReactNode
   asChild?: boolean
@@ -44,11 +51,10 @@ export interface AvatarProps extends Omit<ComponentPropsWithoutRef<'span'>, 'chi
 
 const STATUS_COLOR = { online: 'bg-success', busy: 'bg-danger', away: 'bg-warning' }
 
-export function Avatar({ name, src, artStyle, artSeed, artOptions, size, shape, status, asChild, className, ...props }: AvatarProps) {
+export function Avatar({ name, src, size, shape, status, asChild, className, ...props }: AvatarProps) {
   const [fails, setFails] = useState(false)
   const Cmp = asChild ? Slot : 'span'
-  // A chosen figure beats the photo: whoever picked one did it to not be their photo.
-  const photo = src && !artStyle && !fails
+  const photo = src && !fails
   return (
     <Cmp className={cn(avatarVariants({ size, shape }), photo ? 'bg-muted' : tintOf(name), className)} title={name} {...props}>
       {photo
@@ -56,11 +62,7 @@ export function Avatar({ name, src, artStyle, artSeed, artOptions, size, shape, 
             // Sin esto el navegador manda el referrer y los avatares de terceros (Google entre
             // ellos) contestan con un error. La foto se cae a la figura y parece un bug del kit.
             referrerPolicy="no-referrer" loading="lazy" />
-        // El `[&>svg]:size-full` no es de adorno: la librería dibuja el SVG con su tamaño
-        // propio y sin esto se sale de la caja, que en una lista de avatares chicos se ve como
-        // una fila de cuadrados estirados.
-        : <span aria-hidden="true" className="size-full [&>svg]:size-full"
-            dangerouslySetInnerHTML={{ __html: avatarArt(artStyle, artSeed || name, artOptions) }} />}
+        : <BoringAvatar name={name} variant="beam" colors={artColors()} size="100%" square />}
       <span className="sr-only">{name}</span>
       {status && (typeof status === 'string' && status in STATUS_COLOR
         ? <span className={cn('absolute bottom-0 right-0 size-1/4 rounded-full ring-2 ring-surface', STATUS_COLOR[status as keyof typeof STATUS_COLOR])} />

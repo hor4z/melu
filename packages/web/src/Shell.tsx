@@ -116,7 +116,6 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
             <div className="flex items-center gap-2">
               <NotificationsBell spaceId={space?.id ?? ''} />
               <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
-                artStyle={me.person.avatarStyle} artSeed={me.person.avatarSeed} artOptions={me.person.avatarOptions}
                 onProfile={() => nav('/profile')}
                 onChangeSpace={spaces.length > 1 ? () => setChanging(true) : undefined} onSignOut={signOut} />
             </div>
@@ -163,7 +162,6 @@ export function LearnerShell({ me, children }: { me: Me; children: ReactNode }) 
             </nav>
           </div>
           <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
-            artStyle={me.person.avatarStyle} artSeed={me.person.avatarSeed} artOptions={me.person.avatarOptions}
             onProfile={() => nav('/profile')} onSignOut={signOut} />
         </div>
       </header>
