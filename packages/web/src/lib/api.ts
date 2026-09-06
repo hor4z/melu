@@ -45,7 +45,7 @@ export type Membership = { spaceId: string; groupId: string | null; role: Role }
 export type Group = { id: string; spaceId: string; name: string; tags: Record<string, string>; learners: number }
 export type Phase = { key: string; name: string; asks: string }
 export type Lens = { key: string; name: string; description: string; phases: Phase[] }
-export type Me = { person: Person; mode: 'guide' | 'learner' | 'new'; spaces: Space[]; memberships: Membership[]; profile: boolean }
+export type Me = { person: Person; mode: 'guide' | 'learner' | 'new'; spaces: Space[]; memberships: Membership[] }
 
 export type BlockType =
   | 'paragraph' | 'heading' | 'list' | 'callout'

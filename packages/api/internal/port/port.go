@@ -73,9 +73,3 @@ type Dashboard interface {
 	FactsOfLearner(ctx context.Context, learnerID string) ([]domain.Fact, error)
 	HasAssignments(ctx context.Context, guideID string) bool
 }
-
-type Profiles interface {
-	ByPerson(ctx context.Context, personID string) (*domain.Profile, error)
-	Save(ctx context.Context, p domain.Profile) error
-	OfGroup(ctx context.Context, groupID string) (map[string]domain.Profile, error)
-}

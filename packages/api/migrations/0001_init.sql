@@ -141,14 +141,6 @@ create table sessions (
 
 -- Learning profile: what the person declared when they signed up.
 -- The observed side is not stored: it is recomputed from submissions so it never goes stale.
-create table profiles (
-  person_id  uuid primary key references people(id) on delete cascade,
-  declared   jsonb not null default '{}',   -- pole -> 0..1
-  answers    jsonb not null default '{}',   -- exactly what they picked, so the computation can be redone
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
 -- lenses, as data. The key is technical; the text is content and stays in Spanish.
 insert into lenses (key, name, description, phases) values
 ('no_lens','Sin lente','Una sola fase. Práctica, lectura, cualquier cosa corta.',

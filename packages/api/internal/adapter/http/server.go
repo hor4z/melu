@@ -53,7 +53,6 @@ func (s *Server) routes() {
 
 	s.contentRoutes()
 	s.dashboardRoutes()
-	s.profileRoutes()
 
 	if s.web != nil {
 		m.Handle("/", spa(s.web))

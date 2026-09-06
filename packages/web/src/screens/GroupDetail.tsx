@@ -7,8 +7,6 @@ import { api, type GroupDetail as GD } from '../lib/api'
 import { AddLearners } from '../blocks/AddLearners'
 import { CompositionChips } from '../blocks/Chips'
 import { Modal, Empty } from '../blocks/Modal'
-import { ProfileRow, GroupSummary, ProfileCard } from '../blocks/Profile'
-import type { LiveProfile } from '../lib/profile'
 
 export function GroupDetail() {
   const { id } = useParams()
@@ -16,8 +14,6 @@ export function GroupDetail() {
   const q = useQuery({ queryKey: ['group', id], queryFn: () => api.get<GD>(`/api/groups/${id}/detail`) })
   const [tab, setTab] = useState('missions')
   const [adding, setAdding] = useState(false)
-  const [isOpen, setIsOpen] = useState<string | null>(null)
-  const profiles = useQuery({ queryKey: ['profiles', id], queryFn: () => api.get<LiveProfile[]>(`/api/groups/${id}/profiles`), enabled: tab === 'profiles' })
   if (!q.data) return null
   const { group: g, assignments, learners } = q.data
   const pending = assignments.reduce((n, a) => n + a.submissions, 0)
@@ -34,7 +30,6 @@ export function GroupDetail() {
         <TabsList>
           <TabsTrigger value="missions">Misiones ({assignments.length})</TabsTrigger>
           <TabsTrigger value="learners">Aprendices ({learners.length})</TabsTrigger>
-          <TabsTrigger value="profiles">Cómo aprenden</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -58,36 +53,6 @@ export function GroupDetail() {
         : <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{learners.map((a) => (
             <li key={a.id}><Card padding="sm" className="flex-row items-center gap-3 py-3"><Avatar name={a.name} size="sm" />{a.name}</Card></li>
           ))}</ul>)}
-
-      {tab === 'profiles' && (learners.length === 0
-        ? <Empty title="Todavía nadie se unió" text="Cuando entren, cada uno hace un recorrido de bienvenida de dos minutos y acá vas a ver con qué le va mejor a cada uno." action={<Button onClick={() => setAdding(true)}>Invitar</Button>} />
-        : (
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <Text size="sm" variant="muted" className="max-w-2xl">
-                Esto no es un diagnóstico ni una etiqueta. Cada perfil arranca con lo que la persona eligió en su recorrido de bienvenida,
-                y se va corrigiendo con cómo le va de verdad en cada tipo de misión. Cambia con el tiempo, y a propósito.
-              </Text>
-              <Button variant="secondary" size="sm" asChild><a href="/start">Hacer el recorrido</a></Button>
-            </div>
-            {profiles.data && <GroupSummary profiles={profiles.data} />}
-            <ul className="flex flex-col gap-2">
-              {(profiles.data ?? []).map((v) => (
-                <li key={v.personId}>
-                  <Card padding="none" className="overflow-hidden">
-                    <button type="button" onClick={() => setIsOpen(isOpen === v.personId ? null : v.personId)}
-                      className="flex w-full flex-wrap items-center gap-3 px-5 py-3.5 text-left hover:bg-hover">
-                      <Avatar name={v.name ?? ''} size="sm" />
-                      <span className="min-w-0 flex-1"><span className="font-medium">{v.name}</span><Text size="xs" variant="subtle">{v.missions} {v.missions === 1 ? 'misión' : 'misiones'} con datos</Text></span>
-                      <ProfileRow v={v} />
-                    </button>
-                    {isOpen === v.personId && <div className="border-t border-line p-5"><ProfileCard v={v} title={`Cómo aprende ${v.name?.split(' ')[0] ?? ''}`} /></div>}
-                  </Card>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
 
       <AddDialog isOpen={adding} onClose={() => setAdding(false)} groupId={g.id} groupName={g.name} />
     </div>

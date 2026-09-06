@@ -5,13 +5,10 @@ import { Button, Card, Chip, DoodleSprout, Eyebrow, Heading, Icon, ProgressRing,
 import { StatTile } from '../blocks/Product'
 import { api, type Progress as P } from '../lib/api'
 import { EXPERIENCES } from '../lib/composition'
-import { ProfileCard } from '../blocks/Profile'
-import type { LiveProfile } from '../lib/profile'
 
 export function Progress() {
   const nav = useNavigate()
   const q = useQuery({ queryKey: ['progress'], queryFn: () => api.get<P>('/api/my-progress') })
-  const profile = useQuery({ queryKey: ['profile'], queryFn: () => api.get<LiveProfile>('/api/profile') })
   const p = q.data
   if (!p) return null
   const total = p.done + p.inProgress
@@ -27,14 +24,6 @@ export function Progress() {
         <StatTile label="Tiempo" value={p.minutes} unit="min" hint="en total, trabajando" tint="bg-blue" icon={<Icon icon={Clock} size="lg" />} />
         <StatTile label="Aciertos" value={p.accuracy >= 0 ? Math.round(p.accuracy * 100) : '-'} unit={p.accuracy >= 0 ? '%' : undefined} hint="en los chequeos" tint="bg-lilac" icon={<Icon icon={Target} size="lg" />} />
       </section>
-      {profile.data && (
-        <div className="flex flex-col gap-2">
-          <ProfileCard v={profile.data} title="Cómo aprendés, hoy" voice="you" />
-          <div className="self-end">
-            <Button variant="ghost" size="sm" asChild><a href="/start">Volver a hacer el recorrido</a></Button>
-          </div>
-        </div>
-      )}
       {Object.keys(p.experiences).length > 0 && (
         <Card padding="lg"><Eyebrow>Qué tipo de cosas hiciste</Eyebrow><div className="mt-3 flex flex-wrap gap-2">{Object.entries(p.experiences).map(([k, n]) => <Chip key={k}>{EXPERIENCES[k] ?? k} · {n}</Chip>)}</div></Card>
       )}
