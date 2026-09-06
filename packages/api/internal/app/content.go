@@ -17,7 +17,6 @@ type Me struct {
 	Mode        string              `json:"mode"` // guide | learner | new
 	Spaces      []domain.Space      `json:"spaces"`
 	Memberships []domain.Membership `json:"memberships"`
-	Profile     bool                `json:"profile"` // already went through the "how I learn" onboarding
 }
 
 func (s *Services) Me(ctx context.Context, p domain.Person) (*Me, error) {
@@ -36,11 +35,7 @@ func (s *Services) Me(ctx context.Context, p domain.Person) (*Me, error) {
 			}
 		}
 	}
-	hasProfile := false
-	if _, err := s.Profiles.ByPerson(ctx, p.ID); err == nil {
-		hasProfile = true
-	}
-	return &Me{Person: p, Mode: mode, Spaces: c.Spaces, Memberships: c.Memberships, Profile: hasProfile}, nil
+	return &Me{Person: p, Mode: mode, Spaces: c.Spaces, Memberships: c.Memberships}, nil
 }
 
 // AddLearners is what replaced the group code: the guide writes down the emails of their

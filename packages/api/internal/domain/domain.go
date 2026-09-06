@@ -162,15 +162,3 @@ type Fact struct {
 	Answers, Document, Steps, Composition                                         json.RawMessage
 	UpdatedAt                                                                     time.Time
 }
-
-// ---- learning profile ----
-
-// Profile is a snapshot of how content reaches someone, not a label.
-// Declared comes from the onboarding; the observed side is always recomputed from submissions.
-type Profile struct {
-	PersonID  string             `json:"personId"`
-	Declared  map[string]float64 `json:"declared"`
-	Answers   json.RawMessage    `json:"answers"`
-	CreatedAt time.Time          `json:"createdAt"`
-	UpdatedAt time.Time          `json:"updatedAt"`
-}

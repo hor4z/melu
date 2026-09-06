@@ -48,7 +48,7 @@ func main() {
 	svc := &app.Services{
 		People: repos, Sessions: repos.Sessions(), Spaces: repos.Spaces(),
 		Groups: repos.Groups(), Lenses: repos, Events: repos,
-		Activities: repos.Activities(), Assignments: repos.Assignments(), Submissions: repos.Submissions(), Memberships: repos.Memberships(), Dashboard: repos.Dashboard(), Profiles: repos.Profiles(), TZ: zone,
+		Activities: repos.Activities(), Assignments: repos.Assignments(), Submissions: repos.Submissions(), Memberships: repos.Memberships(), Dashboard: repos.Dashboard(), TZ: zone,
 	}
 
 	// Google is the only way in, so a server that cannot reach it is a server nobody can use.
