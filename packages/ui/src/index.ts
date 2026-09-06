@@ -42,6 +42,19 @@ export { Tooltip, TooltipTrigger, TooltipContent } from './tooltip'
 export { Popover, PopoverAnchor, PopoverTrigger, PopoverContent, PopoverClose } from './popover'
 export { Portal } from './portal'
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'
+export {
+  Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableEmpty,
+  type TableProps, type TableRowProps, type TableHeadProps, type TableCellProps,
+} from './table'
+export {
+  DataList, DataListItem, DataListMedia, DataListHead, DataListTitle, DataListText, DataListMeta, DataListActions,
+  type DataListItemProps,
+} from './data-list'
+export {
+  Filter, FilterBar, FilterSearch, FilterReset, facets,
+  type FilterProps, type FilterOption, type FilterColor, type FilterSearchProps,
+} from './filter'
+export { useMediaQuery, useDevice, BREAKPOINTS, type Device } from './media'
 export { Alert, Separator, Skeleton, Progress, EmptyState, type AlertProps } from './feedback'
 export { Text, Heading, Eyebrow, Kbd, type TextProps, type HeadingProps } from './text'
 export { Sparkline, ProgressRing, Counter } from './charts'

@@ -345,6 +345,67 @@ export const REGISTRY: Entry[] = [
     ],
   },
   {
+    slug: 'table',
+    title: 'Table',
+    group: 'Datos',
+    summary: 'Filas y columnas, en partes: la que ordena, la que se elige y la que quedó vacía.',
+    exports: ['Table', 'TableHeader', 'TableBody', 'TableFooter', 'TableRow', 'TableHead', 'TableCell', 'TableCaption', 'TableEmpty'],
+    demos: [
+      { id: 'basic', title: 'Anatomía', note: 'Las partes son las del HTML, con los estilos puestos: `thead`, `tbody`, `tfoot`, `caption`.' },
+      { id: 'sortable', title: 'Ordenar, elegir y quedarse sin filas', note: 'El orden lo maneja quien la usa: `sort` dice para dónde va y `onSort` avisa el clic.' },
+    ],
+    when: [
+      'Los datos se comparan de a columnas: quién, cuándo, cuánto. Una lista no deja comparar.',
+      'Las filas son de la misma forma y se leen de arriba abajo buscando una.',
+    ],
+    whenNot: [
+      'Si cada fila es una cosa distinta, o hay una sola columna que importa, es una lista adentro de un `Card`.',
+      'En el celular una tabla de ocho columnas no se lee: escondé las que no son la razón de entrar.',
+    ],
+  },
+  {
+    slug: 'data-list',
+    title: 'DataList',
+    group: 'Datos',
+    summary: 'La tabla cuando no hay ancho: cada fila es una ficha y se recorre para abajo.',
+    exports: [
+      'DataList', 'DataListItem', 'DataListMedia', 'DataListHead', 'DataListTitle', 'DataListText',
+      'DataListMeta', 'DataListActions', 'useDevice', 'useMediaQuery', 'BREAKPOINTS',
+    ],
+    demos: [
+      { id: 'basic', title: 'Una ficha por fila', note: 'El título con el estado, la línea de abajo, la letra chica y la acción al cierre.' },
+      { id: 'responsive', title: 'La misma tabla, en el celular', note: 'Achicá la ventana: `useDevice` dice cuál de las tres es la pantalla y la vista cambia de forma, no de contenido.' },
+    ],
+    when: [
+      'Ya hay una tabla y hay que mostrarla en un celular: es la otra cara de la misma información.',
+      'Las filas tienen una jerarquía clara (un quién, un qué, unos datos sueltos) y no se comparan entre sí.',
+    ],
+    whenNot: [
+      'Si hay ancho, es una tabla: comparar de a columnas es lo que una lista no deja hacer.',
+      'Si cada elemento merece una foto grande y su propia acción principal, eso es una grilla de `Card`.',
+    ],
+  },
+  {
+    slug: 'filter',
+    title: 'Filter',
+    group: 'Datos',
+    summary: 'La barra que achica una tabla: el texto, los filtros con su cuenta y el reset.',
+    exports: ['Filter', 'FilterBar', 'FilterSearch', 'FilterReset', 'facets'],
+    demos: [
+      { id: 'estado', title: 'Por estado', note: 'El punto de color repite el que la fila ya tiene en la tabla, y lo elegido vuelve como chip.' },
+      { id: 'personas', title: 'Por persona', note: 'Con `avatar` la opción muestra la cara, y las elegidas se apilan en un `AvatarGroup`. La caja de buscar aparece sola pasadas las ocho.' },
+      { id: 'barra', title: 'La barra entera', note: 'Cada opción cuenta sobre lo que dejan los otros filtros: eso lo hace `facets`, y por eso el número no miente.' },
+    ],
+    when: [
+      'Una tabla que pasa de una pantalla: filtrar es más rápido que hacer scroll.',
+      'Los filtros se combinan y hay que ver cuáles están puestos sin abrir nada.',
+    ],
+    whenNot: [
+      'Tres opciones exclusivas y siempre visibles son un `SegmentedControl`: un panel para tres cosas es de más.',
+      'Si lo que se elige no filtra nada sino que cambia la pantalla, eso es navegación: `Tabs`.',
+    ],
+  },
+  {
     slug: 'charts',
     title: 'Sparkline, ProgressRing y Counter',
     group: 'Datos',

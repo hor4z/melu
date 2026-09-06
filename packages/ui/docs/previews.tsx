@@ -1,10 +1,11 @@
 // Un vistazo de cada pieza para el índice. Son estáticos y no interactivos a propósito: la
 // tarjeta entera es un enlace, así que lo que hay adentro no debe robarle el clic.
 import {
-  AvatarGroup, Badge, Button, Card, CardContent, CardHeader, CardTitle, Checkbox, Chip, Counter,
-  Heading, Icon, IconButton, Input, Logo, Progress, ProgressRing, Slider, Sparkline, Spinner, Switch, Text,
+  Avatar, AvatarGroup, Badge, Button, Card, CardContent, CardHeader, CardTitle, Checkbox, Chip, Counter,
+  Heading, Icon, IconButton, Input, Logo, Progress, ProgressRing, Slider, Sparkline, Spinner, Switch,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Text,
 } from '@melu/ui'
-import { CircleCheck, Layers, MoreHorizontal, Search, Sparkles, Star } from 'lucide-react'
+import { CircleCheck, Layers, ListFilter, MoreHorizontal, Search, Sparkles, Star } from 'lucide-react'
 
 const frame = 'pointer-events-none flex flex-wrap items-center justify-center gap-2'
 
@@ -142,6 +143,49 @@ export const PREVIEWS: Record<string, () => React.ReactNode> = {
         <Icon icon={CircleCheck} size="sm" className="text-success" />Actividad asignada
       </span>
       <Progress value={62} />
+    </div>
+  ),
+  table: () => (
+    <div className="pointer-events-none w-full max-w-64">
+      <Table size="sm">
+        <TableHeader>
+          <TableRow>
+            <TableHead>Aprendiz</TableHead>
+            <TableHead align="end">Aciertos</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow><TableCell>Ana Gómez</TableCell><TableCell numeric>82%</TableCell></TableRow>
+          <TableRow><TableCell>Leo Paz</TableCell><TableCell numeric>64%</TableCell></TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  ),
+  'data-list': () => (
+    <div className="pointer-events-none w-full max-w-60 rounded-lg border border-line bg-surface">
+      <div className="grid grid-cols-[auto_1fr] gap-x-2.5 p-3">
+        <Avatar name="Ana Gómez" size="sm" className="row-span-3" />
+        <div className="flex items-center justify-between gap-2">
+          <Text size="sm" weight="medium" className="truncate">Ana Gómez</Text>
+          <Chip size="sm" color="warning">Para mirar</Chip>
+        </div>
+        <Text size="xs" variant="muted" className="col-start-2 truncate">Fracciones con la pizza</Text>
+        <Text size="2xs" variant="subtle" className="col-start-2 mt-0.5">4° A · hace 2 h · 12 min</Text>
+      </div>
+    </div>
+  ),
+  filter: () => (
+    <div className={frame}>
+      <span className="inline-flex h-8 items-center gap-2 rounded-md border border-ink bg-surface px-2.5 text-sm font-medium">
+        <Icon icon={ListFilter} size="sm" className="text-ink-subtle" />
+        Estado
+        <span className="h-4 w-px bg-line" />
+        <Chip size="sm" color="warning">Para mirar</Chip>
+      </span>
+      <span className="inline-flex h-8 items-center gap-2 rounded-md border border-dashed border-line-strong px-2.5 text-sm font-medium text-ink-muted">
+        <Icon icon={ListFilter} size="sm" className="text-ink-subtle" />
+        Grupo
+      </span>
     </div>
   ),
   charts: () => (
