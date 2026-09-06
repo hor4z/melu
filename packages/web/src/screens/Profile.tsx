@@ -15,7 +15,7 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, Palette, School } from 'lucide-react'
 import {
-  ART_STYLES, Avatar, Button, Card, Chip, Field, Heading, Icon, Input, SegmentedControl,
+  ART_STYLES, Avatar, Button, Card, Field, Heading, Icon, Input, SegmentedControl,
   SegmentedControlItem, Text, type ArtStyle,
 } from '@melu/ui'
 import { api, type Me } from '../lib/api'
@@ -39,7 +39,7 @@ export function Profile({ me }: { me: Me }) {
   // nombre que va a quedar antes de guardar, que es cuando sirve verlo.
   const shown = nick.trim() || `${first.trim()} ${last.trim()}`.trim()
   const artSeed = seed || shown || person.name
-  const roles = [...new Set(me.memberships.map((m) => m.role))]
+  const rolesOf = (spaceId: string) => [...new Set(me.memberships.filter((m) => m.spaceId === spaceId).map((m) => m.role))]
 
   const save = useMutation({
     mutationFn: () => api.patch<Me>('/api/me', {
@@ -105,11 +105,6 @@ export function Profile({ me }: { me: Me }) {
               <Heading level={2} size="lg" className="break-words">{shown || 'Sin nombre'}</Heading>
               <Text size="sm" variant="muted" className="break-all">{person.email}</Text>
             </div>
-            {roles.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-1">
-                {roles.map((r) => <Chip key={r} size="sm" color={r === 'learner' ? 'accent' : 'default'}>{ROLES[r] ?? r}</Chip>)}
-              </div>
-            )}
           </Card>
 
           <Card padding="lg" className="gap-3">
@@ -120,13 +115,14 @@ export function Profile({ me }: { me: Me }) {
                   <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-lilac"><Icon icon={School} size="lg" /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium">{e.name}</span>
-                    <span className="block text-xs text-ink-subtle">{SPACE_KINDS[e.kind] ?? e.kind}</span>
+                    {/* El rol va acá y no arriba con el nombre: se es guía de un espacio, no guía
+                        a secas, y quien está en dos puede ser una cosa en uno y otra en el otro. */}
+                    <span className="block text-xs text-ink-subtle">{rolesOf(e.id).map((r) => ROLES[r] ?? r).join(' · ') || SPACE_KINDS[e.kind] || e.kind}</span>
                   </span>
                 </li>
               ))}
               {me.spaces.length === 0 && <Text size="sm" variant="muted">Todavía no estás en ningún espacio.</Text>}
             </ul>
-            <Text size="sm" variant="muted">Te suman con tu email, y el email se cambia en tu cuenta de Google.</Text>
           </Card>
         </aside>
 
