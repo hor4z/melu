@@ -49,6 +49,19 @@ func (x *Dashboard) FactsOfLearner(ctx context.Context, learnerID string) ([]dom
 	return pgx.CollectRows(rows, scanFact)
 }
 
+func (x *Dashboard) Assigned(ctx context.Context, guideID, spaceID string) (int, error) {
+	var n int
+	err := x.r.db.QueryRow(ctx, `
+	  select coalesce(sum(case
+	      when s.recipients is not null and cardinality(s.recipients) > 0 then cardinality(s.recipients)
+	      else (select count(*) from memberships lm where lm.group_id=s.group_id and lm.role='learner')
+	    end), 0)
+	  from assignments s join groups g on g.id=s.group_id
+	  where exists (select 1 from memberships m where m.group_id=g.id and m.person_id=$1 and m.role='guide')
+	    and ($2 = '' or g.space_id = $2::uuid)`, guideID, spaceID).Scan(&n)
+	return n, err
+}
+
 func (x *Dashboard) HasAssignments(ctx context.Context, guideID string) bool {
 	var n int
 	x.r.db.QueryRow(ctx, `select count(*) from assignments s join memberships m on m.group_id=s.group_id where m.person_id=$1 and m.role='guide'`, guideID).Scan(&n)

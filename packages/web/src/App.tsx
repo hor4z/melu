@@ -19,6 +19,7 @@ import { Today } from './screens/Today'
 import { MissionScreen } from './screens/Mission'
 import { Progress } from './screens/Progress'
 import { Profile } from './screens/Profile'
+import { Submissions } from './screens/Submissions'
 
 export function App() {
   const me = useMe()
@@ -62,6 +63,7 @@ export function App() {
         <Route path="/activities/new" element={<NewActivity />} />
         <Route path="/activities/:id" element={<Editor />} />
         <Route path="/review/:id" element={<Review />} />
+        <Route path="/submissions" element={<Submissions />} />
         <Route path="/lenses" element={<Lenses />} />
         <Route path="/profile" element={<Profile me={me.data} />} />
         <Route path="*" element={<Navigate to="/home" replace />} />
