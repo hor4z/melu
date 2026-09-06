@@ -119,5 +119,5 @@ export type Signal = { learnerId: string; learner: string; groupId: string; grou
 export type ByKind = { experience: string; submissions: number; avgMinutes: number; accuracy: number }
 export type DaySeries = { day: string; opened: number; submitted: number }
 export type SubmissionSummary = { submissionId: string; assignmentId: string; learner?: string; title: string; group: string; status: 'in_progress' | 'submitted' | 'graded'; minutes: number; accuracy: number; when: string }
-export type Dashboard = { spaces: number; groups: number; learners: number; toReview: number; avgMinutes: number; accuracy: number; weekSeries: DaySeries[]; signals: Signal[]; byKind: ByKind[]; checklist: Record<string, boolean>; recentSubmissions: SubmissionSummary[] }
+export type Dashboard = { spaces: number; groups: number; learners: number; toReview: number; unfinished: number; graded: number; prevAvgMinutes: number; prevAccuracy: number; avgMinutes: number; accuracy: number; weekSeries: DaySeries[]; signals: Signal[]; byKind: ByKind[]; checklist: Record<string, boolean>; recentSubmissions: SubmissionSummary[] }
 export type Progress = { done: number; inProgress: number; minutes: number; accuracy: number; streak: number; missions: SubmissionSummary[]; experiences: Record<string, number> }

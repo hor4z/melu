@@ -36,12 +36,21 @@ type ByKind struct {
 }
 
 type Dashboard struct {
-	Spaces            int                 `json:"spaces"`
-	Groups            int                 `json:"groups"`
-	Learners          int                 `json:"learners"`
-	ToReview          int                 `json:"toReview"`
-	AvgMinutes        float64             `json:"avgMinutes"`
-	Accuracy          float64             `json:"accuracy"`
+	Spaces   int `json:"spaces"`
+	Groups   int `json:"groups"`
+	Learners int `json:"learners"`
+	ToReview int `json:"toReview"`
+	// Two counts of things that happened, not averages: what a guide can act on without a
+	// baseline. Open and not handed in is somebody to chase; graded is what is already done.
+	Unfinished int     `json:"unfinished"`
+	Graded     int     `json:"graded"`
+	AvgMinutes float64 `json:"avgMinutes"`
+	Accuracy   float64 `json:"accuracy"`
+	// Los mismos dos, de los siete días anteriores. «34.6 min» sin nada al lado no le dice nada
+	// a un docente: recién significa algo comparado con lo que era. -1 cuando no hay contra qué
+	// comparar, que tiene que leerse como «todavía no sé» y no como cero.
+	PrevAvgMinutes    float64             `json:"prevAvgMinutes"`
+	PrevAccuracy      float64             `json:"prevAccuracy"`
 	WeekSeries        []DaySeries         `json:"weekSeries"`
 	Signals           []Signal            `json:"signals"`
 	ByKind            []ByKind            `json:"byKind"`
@@ -103,21 +112,47 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 	}
 
 	var sumMin, nMin, sumAc, nAc float64
+	var prevMin, nPrevMin, prevAc, nPrevAc float64
+	weekStart, prevStart := today.AddDate(0, 0, -6), today.AddDate(0, 0, -13)
 	kinds := map[string]*ByKind{}
 	byLearner := map[string][]Fact{}
 	for _, h := range facts {
-		if h.Status == "submitted" {
+		switch h.Status {
+		case "submitted":
 			out.ToReview++
+		case "in_progress":
+			out.Unfinished++
+		case "graded":
+			out.Graded++
 		}
 		min, ok := minutes(h)
 		ac := accuracy(h.Document, h.Answers, h.Steps)
-		if ok {
-			sumMin += min
-			nMin++
+		// De qué semana es una entrega lo decide cuándo volvió, que es el momento que le importa
+		// al docente.
+		when := h.UpdatedAt
+		if h.SubmittedAt != nil {
+			when = *h.SubmittedAt
 		}
-		if ac >= 0 {
-			sumAc += ac
-			nAc++
+		day := startOfDay(when, z)
+		switch {
+		case !day.Before(weekStart):
+			if ok {
+				sumMin += min
+				nMin++
+			}
+			if ac >= 0 {
+				sumAc += ac
+				nAc++
+			}
+		case !day.Before(prevStart):
+			if ok {
+				prevMin += min
+				nPrevMin++
+			}
+			if ac >= 0 {
+				prevAc += ac
+				nPrevAc++
+			}
 		}
 		if h.OpenedAt != nil {
 			if d, okd := days[h.OpenedAt.In(z).Format("2006-01-02")]; okd {
@@ -165,6 +200,13 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 		out.Accuracy = round1(sumAc / nAc)
 	} else {
 		out.Accuracy = -1
+	}
+	out.PrevAvgMinutes, out.PrevAccuracy = -1, -1
+	if nPrevMin > 0 {
+		out.PrevAvgMinutes = round1(prevMin / nPrevMin)
+	}
+	if nPrevAc > 0 {
+		out.PrevAccuracy = round1(prevAc / nPrevAc)
 	}
 	for _, t := range kinds {
 		if t.Submissions > 0 {

@@ -14,6 +14,7 @@ import { NewActivity } from './screens/NewActivity'
 import { Editor } from './screens/Editor'
 import { Review } from './screens/Review'
 import { Lenses } from './screens/Lenses'
+import { Trends } from './screens/Trends'
 import { Today } from './screens/Today'
 import { MissionScreen } from './screens/Mission'
 import { Progress } from './screens/Progress'
@@ -70,6 +71,7 @@ export function App() {
         <Route path="/activities/:id" element={<Editor />} />
         <Route path="/review/:id" element={<Review />} />
         <Route path="/lenses" element={<Lenses />} />
+          <Route path="/trends" element={<Trends />} />
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </GuideShell>
