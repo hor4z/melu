@@ -59,8 +59,19 @@ func (s *Services) AddLearners(ctx context.Context, p domain.Person, groupID str
 		return nil, nil, domain.ErrNotAllowed
 	}
 
-	// Arrancan vacíos y no en nil: un slice nil de Go se serializa como `null`, y del otro lado
-	// `null.length` rompe la pantalla. Una lista vacía es una lista.
+	// Who is already in the group, asked once. Doing it inside the loop meant one identical
+	// query per email, and a guide pastes a whole class at a time.
+	current, err := s.Memberships.Learners(ctx, g.ID)
+	if err != nil {
+		return nil, nil, err
+	}
+	inGroup := make(map[string]bool, len(current))
+	for _, l := range current {
+		inGroup[l.ID] = true
+	}
+
+	// They start empty and not nil: a nil slice marshals to `null`, and on the other side
+	// `null.length` takes the screen down. An empty list is a list.
 	added, already = []string{}, []string{}
 	seen := map[string]bool{}
 	for _, raw := range emails {
@@ -79,7 +90,7 @@ func (s *Services) AddLearners(ctx context.Context, p domain.Person, groupID str
 			if err != nil {
 				return nil, nil, err
 			}
-		} else if s.hasMembership(ctx, person.ID, g.ID) {
+		} else if inGroup[person.ID] {
 			already = append(already, email)
 			continue
 		}
@@ -90,19 +101,6 @@ func (s *Services) AddLearners(ctx context.Context, p domain.Person, groupID str
 		added = append(added, email)
 	}
 	return added, already, nil
-}
-
-func (s *Services) hasMembership(ctx context.Context, personID, groupID string) bool {
-	people, err := s.Memberships.Learners(ctx, groupID)
-	if err != nil {
-		return false
-	}
-	for _, l := range people {
-		if l.ID == personID {
-			return true
-		}
-	}
-	return false
 }
 
 // ---- activities (guide) ----

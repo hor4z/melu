@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -18,9 +19,9 @@ import (
 )
 
 type Server struct {
-	svc     *app.Services
-	google  *google.Client
-	web fs.FS // Vite build, may be nil in dev
+	svc    *app.Services
+	google *google.Client
+	web    fs.FS // Vite build, may be nil in dev
 	// secure marks the cookies when melu is served over https. Deriving it from the base URL
 	// keeps local development working over plain http without a second flag to forget.
 	secure bool
@@ -85,7 +86,7 @@ func (s *Server) authGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	s.setCookie(w, &http.Cookie{Name: oauthCookie, Value: "", MaxAge: -1})
 
 	parts := strings.SplitN(c.Value, "|", 3)
-	if len(parts) != 3 || parts[0] != r.URL.Query().Get("state") {
+	if len(parts) != 3 || subtle.ConstantTimeCompare([]byte(parts[0]), []byte(r.URL.Query().Get("state"))) != 1 {
 		http.Error(w, "invalid state", 400)
 		return
 	}
@@ -134,10 +135,12 @@ func token16() string {
 	return hex.EncodeToString(b)
 }
 
-// safeNext keeps only a path inside melu. Anything else (an absolute URL, a protocol-relative
-// `//host`) falls back to the root.
+// safeNext keeps only a path into the app. Anything else falls back to the root: an absolute
+// URL would turn signing in into an open redirect, a protocol-relative `//host` is an absolute
+// URL wearing a disguise, and `/api/...` sends the browser back to the endpoint that starts the
+// sign-in, which loops.
 func safeNext(next string) string {
-	if !strings.HasPrefix(next, "/") || strings.HasPrefix(next, "//") {
+	if !strings.HasPrefix(next, "/") || strings.HasPrefix(next, "//") || strings.HasPrefix(next, "/api/") {
 		return "/"
 	}
 	return next
