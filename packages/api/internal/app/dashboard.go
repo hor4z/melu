@@ -46,26 +46,12 @@ type Dashboard struct {
 	ToReview int `json:"toReview"`
 	// Los otros dos estados de una entrega. Son cuentas de cosas que pasaron, así que se leen
 	// solas: no hacen falta promedios ni comparaciones para saber qué significan.
-	Unfinished int     `json:"unfinished"`
-	Graded     int     `json:"graded"`
-	AvgMinutes float64 `json:"avgMinutes"`
-	Accuracy   float64 `json:"accuracy"`
-	// Los mismos dos, de los siete días anteriores. "34.6 min" sin nada al lado no le dice nada
-	// a un docente: recién significa algo comparado con lo que era. -1 cuando no hay contra qué
-	// comparar, que tiene que leerse como "todavía no sé" y no como cero.
-	PrevAvgMinutes    float64             `json:"prevAvgMinutes"`
-	PrevAccuracy      float64             `json:"prevAccuracy"`
-	WeekSeries        []DaySeries         `json:"weekSeries"`
+	Unfinished        int                 `json:"unfinished"`
+	Graded            int                 `json:"graded"`
 	Signals           []Signal            `json:"signals"`
 	ByKind            []ByKind            `json:"byKind"`
 	Checklist         map[string]bool     `json:"checklist"`
 	RecentSubmissions []SubmissionSummary `json:"recentSubmissions"`
-}
-
-type DaySeries struct {
-	Day       string `json:"day"`
-	Opened    int    `json:"opened"`
-	Submitted int    `json:"submitted"`
 }
 
 type SubmissionSummary struct {
@@ -98,26 +84,16 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 	if spaceID != "" {
 		spaces = filterSpaces(spaces, spaceID)
 	}
-	out := &Dashboard{Spaces: len(spaces), Groups: len(groups), Signals: []Signal{}, ByKind: []ByKind{}, RecentSubmissions: []SubmissionSummary{}, WeekSeries: []DaySeries{}}
+	out := &Dashboard{Spaces: len(spaces), Groups: len(groups), Signals: []Signal{}, ByKind: []ByKind{}, RecentSubmissions: []SubmissionSummary{}}
 	for _, g := range groups {
 		out.Learners += g.Learners
 	}
 
-	// week series. Truncate(24h) truncates in UTC, so in Argentina the "day" started at 21:00
-	// and these bars came out shifted.
 	z := s.zone()
 	today := startOfDay(time.Now(), z)
-	days := map[string]*DaySeries{}
-	for i := 6; i >= 0; i-- {
-		d := today.AddDate(0, 0, -i)
-		k := d.Format("2006-01-02")
-		days[k] = &DaySeries{Day: k}
-		out.WeekSeries = append(out.WeekSeries, DaySeries{Day: k})
-	}
 
-	var sumMin, nMin, sumAc, nAc float64
-	var prevMin, nPrevMin, prevAc, nPrevAc float64
-	weekStart, prevStart := today.AddDate(0, 0, -6), today.AddDate(0, 0, -13)
+	var sumMin, nMin float64
+	weekStart := today.AddDate(0, 0, -6)
 	kinds := map[string]*ByKind{}
 	byLearner := map[string][]Fact{}
 	for _, h := range facts {
@@ -137,35 +113,9 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 		if h.SubmittedAt != nil {
 			when = *h.SubmittedAt
 		}
-		switch day := startOfDay(when, z); {
-		case !day.Before(weekStart):
-			if ok {
-				sumMin += min
-				nMin++
-			}
-			if ac >= 0 {
-				sumAc += ac
-				nAc++
-			}
-		case !day.Before(prevStart):
-			if ok {
-				prevMin += min
-				nPrevMin++
-			}
-			if ac >= 0 {
-				prevAc += ac
-				nPrevAc++
-			}
-		}
-		if h.OpenedAt != nil {
-			if d, okd := days[h.OpenedAt.In(z).Format("2006-01-02")]; okd {
-				d.Opened++
-			}
-		}
-		if h.SubmittedAt != nil {
-			if d, okd := days[h.SubmittedAt.In(z).Format("2006-01-02")]; okd {
-				d.Submitted++
-			}
+		if ok && !startOfDay(when, z).Before(weekStart) {
+			sumMin += min
+			nMin++
 		}
 		t := kinds[h.Experience]
 		if t == nil {
@@ -193,23 +143,11 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 			out.RecentSubmissions = append(out.RecentSubmissions, SubmissionSummary{SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Learner: h.Learner, Title: h.Title, Group: h.Group, Status: h.Status, Minutes: min, Accuracy: ac, When: cu})
 		}
 	}
-	for i := range out.WeekSeries {
-		out.WeekSeries[i] = *days[out.WeekSeries[i].Day]
-	}
+	// El promedio del grupo no se publica: nadie lo muestra. Se calcula porque es la referencia
+	// contra la que las señales deciden quién tarda más y quién vuela.
+	avgMinutes := 0.0
 	if nMin > 0 {
-		out.AvgMinutes = round1(sumMin / nMin)
-	}
-	if nAc > 0 {
-		out.Accuracy = round1(sumAc / nAc)
-	} else {
-		out.Accuracy = -1
-	}
-	out.PrevAvgMinutes, out.PrevAccuracy = -1, -1
-	if nPrevMin > 0 {
-		out.PrevAvgMinutes = round1(prevMin / nPrevMin)
-	}
-	if nPrevAc > 0 {
-		out.PrevAccuracy = round1(prevAc / nPrevAc)
+		avgMinutes = round1(sumMin / nMin)
 	}
 	for _, t := range kinds {
 		if t.Submissions > 0 {
@@ -223,7 +161,7 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 	sort.Slice(out.ByKind, func(i, j int) bool { return out.ByKind[i].Submissions > out.ByKind[j].Submissions })
 
 	recipes, _ := s.Activities.Recipes(ctx)
-	if sen := s.signals(byLearner, out.AvgMinutes, recipes); sen != nil {
+	if sen := s.signals(byLearner, avgMinutes, recipes); sen != nil {
 		out.Signals = sen
 	}
 
