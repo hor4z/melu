@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell, BookOpen, Check, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
+import { Activity, Bell, BookOpen, Check, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
 import {
   Badge, Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, IconButton, Input, Kbd, Logo, MenuButton, RadioGroup,
@@ -101,16 +101,11 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
           <nav className="mt-3 flex flex-col gap-0.5 px-3">
             <p className="px-3 pb-1 pt-2 text-xs font-bold uppercase tracking-wider text-ink-subtle">Enseñar</p>
             <NavLink to="/home" className={item}><Icon icon={LayoutDashboard} size="lg" /> Inicio</NavLink>
+            <NavLink to="/focus" className={item}><Icon icon={Activity} size="lg" /> Cómo vienen</NavLink>
             <NavLink to="/groups" className={item}><Icon icon={Users} size="lg" /> Grupos</NavLink>
             <NavLink to="/activities" className={item}><Icon icon={BookOpen} size="lg" /> Actividades</NavLink>
             <NavLink to="/lenses" className={item}><Icon icon={Compass} size="lg" /> Lentes</NavLink>
           </nav>
-          <div className="mt-auto p-4">
-            <Card variant="yellow" padding="sm">
-              <Text size="sm" weight="semibold">¿Perdido?</Text>
-              <Text size="sm" variant="muted" className="mt-0.5">Inicio te dice qué falta y qué mirar hoy.</Text>
-            </Card>
-          </div>
         </aside>
         <div className="min-w-0 flex-1">
           <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-line bg-surface/90 px-6 backdrop-blur">

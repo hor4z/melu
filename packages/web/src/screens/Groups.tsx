@@ -52,7 +52,7 @@ function NewGroup({ isOpen, onClose, onReady }: { isOpen: boolean; onClose: () =
     <Modal isOpen={isOpen} onClose={onClose} title="Nuevo grupo" description="Vas a recibir un código para que los chicos se unan."
       footer={<><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button form="new-group" type="submit" loading={create.isPending}>Crear</Button></>}>
       <form id="new-group" className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
-        <Field label="Nombre" description={space ? `Se crea en «${space.name}».` : undefined}>
+        <Field label="Nombre" description={space ? `Se crea en "${space.name}".` : undefined}>
           <Input placeholder="Robótica de los sábados" value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
         </Field>
         {create.isError && <Text size="sm" variant="danger">No se pudo crear el grupo.</Text>}

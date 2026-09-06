@@ -1,6 +1,6 @@
 -- Google es la única puerta, y el email es la identidad estable.
 --
--- El avatar se guarda como una URL a secas y no como «la foto de Google»: hoy la escribe el
+-- El avatar se guarda como una URL a secas y no como "la foto de Google": hoy la escribe el
 -- login, mañana puede escribirla un servicio propio de archivos sin tocar el modelo.
 alter table people add column if not exists avatar_url text;
 

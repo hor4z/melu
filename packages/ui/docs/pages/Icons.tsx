@@ -59,7 +59,7 @@ export function Icons() {
               <code className="font-mono text-xs">aria-hidden</code> por defecto. No hay que hacer nada.
             </Rule>
             <Rule title="Si el icono es la única señal, lleva su nombre"
-              why="Un botón sin texto visible no tiene nombre accesible: sin aria-label se anuncia «botón».">
+              why='Un botón sin texto visible no tiene nombre accesible: sin aria-label se anuncia "botón".'>
               En <code className="font-mono text-xs">IconButton</code> la prop es obligatoria y el tipo no
               compila sin ella.
             </Rule>

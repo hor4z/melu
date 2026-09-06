@@ -51,7 +51,7 @@ export const COPY: Record<string, string> = {
   Badge: 'Un contador o un estado corto. Más chico y más redondo que un Chip.',
   'Badge.onRemove': 'Muestra la X para quitarlo: filtros, etiquetas elegidas.',
   'Avatar.status': 'El punto de estado en la esquina: en línea, pendiente, lo que haga falta.',
-  AvatarGroup: 'Avatares superpuestos; pasado `max` muestra «+N».',
+  AvatarGroup: 'Avatares superpuestos; pasado `max` muestra "+N".',
   Eyebrow: 'El rótulo de sección en mayúsculas: el gesto que ordena la página.',
 
   // Capas
@@ -64,7 +64,7 @@ export const COPY: Record<string, string> = {
   'MenuButton.block': 'Ocupa todo el ancho: el selector de la barra lateral sí, el de la cabecera no.',
   'MenuButton.chevron': 'Dos chevrones para elegir entre varios; uno para un menú común.',
   'MenuButton.compact': 'Abajo de `sm` queda solo el visual. Para cabeceras, donde el lugar se acaba antes.',
-  MoreMenu: 'El menú de tres puntos: el gesto de «más acciones» sobre una fila o una tarjeta.',
+  MoreMenu: 'El menú de tres puntos: el gesto de "más acciones" sobre una fila o una tarjeta.',
   'Drawer.purpose': '`required` bloquea el cierre con Escape o con un clic afuera: solo cierran los botones.',
   Drawer: 'Un panel pegado a un borde. Las partes son las de Dialog, con otro nombre para que se lea.',
   'AlertDialog.trigger': 'Lo que abre la confirmación. Sin esto se controla de afuera con `open`.',
@@ -79,7 +79,7 @@ export const COPY: Record<string, string> = {
   'DropdownMenuCheckboxItem.label': 'El texto para buscar tecleando. Si los hijos no son texto plano, pasalo a mano.',
   'Dialog.purpose': '`required` bloquea el cierre con Escape o con un clic afuera: solo cierran los botones.',
   PopoverAnchor:
-    'Ancla el panel a un elemento sin convertirlo en disparador: lo abre otra cosa (tipear «/», por ejemplo).',
+    'Ancla el panel a un elemento sin convertirlo en disparador: lo abre otra cosa (tipear "/", por ejemplo).',
   Portal:
     'Saca el contenido del árbol del DOM y lo cuelga al final del body. Es lo que evita que un menú '
     + 'quede recortado por un `overflow: hidden` o tapado por el `z-index` de un padre. También deja '
@@ -90,6 +90,6 @@ export const COPY: Record<string, string> = {
   Sparkline: 'Una línea de tendencia mínima, sin librería.',
 
   // Marca
-  Logomark: 'El logo, uno para toda la app: un zigzag de tres trazos, la «m» dibujada a mano.',
+  Logomark: 'El logo, uno para toda la app: un zigzag de tres trazos, la "m" dibujada a mano.',
   PhotoFrame: 'Una foto en un marco blanco con borde de tinta, apenas rotada.',
 }

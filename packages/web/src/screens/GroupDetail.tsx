@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { ChevronLeft, QrCode } from 'lucide-react'
+import { ChevronLeft, UserPlus } from 'lucide-react'
 import { Avatar, Button, Card, Eyebrow, Heading, Icon, Tabs, TabsList, TabsTrigger, Text } from '@melu/ui'
 import { api, type GroupDetail as GD } from '../lib/api'
 import { AddLearners } from '../blocks/AddLearners'
@@ -14,10 +14,10 @@ export function GroupDetail() {
   const { id } = useParams()
   const nav = useNavigate()
   const q = useQuery({ queryKey: ['group', id], queryFn: () => api.get<GD>(`/api/groups/${id}/detail`) })
-  const [tab, setTab] = useState('misiones')
+  const [tab, setTab] = useState('missions')
   const [adding, setAdding] = useState(false)
   const [isOpen, setIsOpen] = useState<string | null>(null)
-  const profiles = useQuery({ queryKey: ['profiles', id], queryFn: () => api.get<LiveProfile[]>(`/api/groups/${id}/profiles`), enabled: tab === 'perfiles' })
+  const profiles = useQuery({ queryKey: ['profiles', id], queryFn: () => api.get<LiveProfile[]>(`/api/groups/${id}/profiles`), enabled: tab === 'profiles' })
   if (!q.data) return null
   const { group: g, assignments, learners } = q.data
   const pending = assignments.reduce((n, a) => n + a.submissions, 0)
@@ -27,19 +27,19 @@ export function GroupDetail() {
       <Link to="/groups" className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> Mis grupos</Link>
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div><Eyebrow>Grupo</Eyebrow><Heading level={1} size="2xl" className="mt-1">{g.name}</Heading><Text variant="muted">{learners.length} {learners.length === 1 ? 'aprendiz' : 'aprendices'} · {assignments.length} {assignments.length === 1 ? 'misión' : 'misiones'}{pending > 0 && ` · ${pending} entregas para mirar`}</Text></div>
-        <div className="flex gap-2"><Button variant="secondary" onClick={() => setAdding(true)} startIcon={<Icon icon={QrCode} />}>Invitar</Button><Button onClick={() => nav('/activities/new')}>Nueva actividad</Button></div>
+        <div className="flex gap-2"><Button variant="secondary" onClick={() => setAdding(true)} startIcon={<Icon icon={UserPlus} />}>Invitar</Button><Button onClick={() => nav('/activities/new')}>Nueva actividad</Button></div>
       </header>
 
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="missions">Misiones ({assignments.length})</TabsTrigger>
           <TabsTrigger value="learners">Aprendices ({learners.length})</TabsTrigger>
-          <TabsTrigger value="perfiles">Cómo aprenden</TabsTrigger>
+          <TabsTrigger value="profiles">Cómo aprenden</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {tab === 'misiones' && (assignments.length === 0
-        ? <Empty title="Nada asignado todavía" text="Elegí una plantilla o componé una actividad y asignala a este grupo. Los chicos la van a ver en «Hoy»." action={<Button onClick={() => nav('/activities/new')}>Nueva actividad</Button>} />
+      {tab === 'missions' && (assignments.length === 0
+        ? <Empty title="Nada asignado todavía" text='Elegí una plantilla o componé una actividad y asignala a este grupo. Los chicos la van a ver en "Hoy".' action={<Button onClick={() => nav('/activities/new')}>Nueva actividad</Button>} />
         : <Card asChild><ul className="divide-y divide-line overflow-hidden">
             {assignments.map((a, i) => (
               <li key={a.id} className="flex flex-wrap items-center gap-4 px-5 py-4">
@@ -53,13 +53,13 @@ export function GroupDetail() {
             ))}
           </ul></Card>)}
 
-      {tab === 'aprendices' && (learners.length === 0
-        ? <Empty title="Todavía nadie se unió" text="Sumalos por email con «Invitar». Entran con Google y ya están adentro." action={<Button onClick={() => setAdding(true)}>Invitar</Button>} />
+      {tab === 'learners' && (learners.length === 0
+        ? <Empty title="Todavía nadie se unió" text='Sumalos por email con "Invitar". Entran con Google y ya están adentro.' action={<Button onClick={() => setAdding(true)}>Invitar</Button>} />
         : <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{learners.map((a) => (
             <li key={a.id}><Card padding="sm" className="flex-row items-center gap-3 py-3"><Avatar name={a.name} size="sm" />{a.name}</Card></li>
           ))}</ul>)}
 
-      {tab === 'perfiles' && (learners.length === 0
+      {tab === 'profiles' && (learners.length === 0
         ? <Empty title="Todavía nadie se unió" text="Cuando entren, cada uno hace un recorrido de bienvenida de dos minutos y acá vas a ver con qué le va mejor a cada uno." action={<Button onClick={() => setAdding(true)}>Invitar</Button>} />
         : (
           <div className="flex flex-col gap-4">

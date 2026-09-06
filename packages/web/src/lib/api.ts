@@ -11,7 +11,7 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
     body: body ? JSON.stringify(body) : undefined,
     credentials: 'same-origin',
   })
-  // El 401 de `/api/me` es la respuesta normal a «todavía no entraste», y quien pregunta ya
+  // El 401 de `/api/me` es la respuesta normal a "todavía no entraste", y quien pregunta ya
   // sabe qué hacer con él. En cualquier otra ruta significa que la sesión se venció mientras la
   // persona navegaba: sin avisar, cada pantalla se rompe por su cuenta.
   if (res.status === 401 && path !== '/api/me') onExpired?.()
@@ -115,9 +115,9 @@ export type GroupDetail = { group: Group; assignments: Assignment[]; learners: L
 export const newId = () => Math.random().toString(36).slice(2, 10)
 
 // ---- dashboard and progress ----
-export type Signal = { learnerId: string; learner: string; groupId: string; group: string; kind: 'dropout' | 'misses' | 'slow' | 'shines'; detail: string; suggestion: string; recipeTitle?: string; recipeId?: string }
+export type Signal = { learnerId: string; learner: string; groupId: string; group: string; kind: 'dropout' | 'misses' | 'slow' | 'shines'; detail: string; suggestion: string; recipeTitle?: string; recipeId?: string; assignmentId?: string }
 export type ByKind = { experience: string; submissions: number; avgMinutes: number; accuracy: number }
 export type DaySeries = { day: string; opened: number; submitted: number }
 export type SubmissionSummary = { submissionId: string; assignmentId: string; learner?: string; title: string; group: string; status: 'in_progress' | 'submitted' | 'graded'; minutes: number; accuracy: number; when: string }
-export type Dashboard = { spaces: number; groups: number; learners: number; toReview: number; avgMinutes: number; accuracy: number; weekSeries: DaySeries[]; signals: Signal[]; byKind: ByKind[]; checklist: Record<string, boolean>; recentSubmissions: SubmissionSummary[] }
+export type Dashboard = { spaces: number; groups: number; learners: number; toReview: number; unfinished: number; graded: number; avgMinutes: number; accuracy: number; prevAvgMinutes: number; prevAccuracy: number; weekSeries: DaySeries[]; signals: Signal[]; byKind: ByKind[]; checklist: Record<string, boolean>; recentSubmissions: SubmissionSummary[] }
 export type Progress = { done: number; inProgress: number; minutes: number; accuracy: number; streak: number; missions: SubmissionSummary[]; experiences: Record<string, number> }

@@ -1,12 +1,12 @@
 # Guion de voz del onboarding
 
-Qué hay que grabar para que la tarjeta «Escuchá» suene en cualquier máquina, y para que
+Qué hay que grabar para que la tarjeta "Escuchá" suene en cualquier máquina, y para que
 quien todavía no lee suelto pueda escuchar las consignas.
 
 Hoy eso lo hace el sintetizador del navegador (`speechSynthesis`). Funciona en celulares,
 Mac y Windows, pero en Linux sin voces instaladas **no suena nada** y la tarjeta queda muda.
-Eso no es solo feo: «Escuchá» es uno de los cuatro canales que el onboarding mide, así que
-una tarjeta muda se lee como «a esta persona no le entra por el oído», que es un dato falso.
+Eso no es solo feo: "Escuchá" es uno de los cuatro canales que el onboarding mide, así que
+una tarjeta muda se lee como "a esta persona no le entra por el oído", que es un dato falso.
 
 ---
 
@@ -15,11 +15,11 @@ una tarjeta muda se lee como «a esta persona no le entra por el oído», que es
 Decidido: habla la nena de la pantalla, no una narradora. Eso manda sobre todo lo demás.
 
 No explica **a** alguien: comparte **con** alguien. Por eso las frases están escritas en
-primera persona y repartiendo: «tengo una galletita y somos dos», «contemos juntos»,
-«sacale cinco al doce y aparece». Es una compañera contándote algo que ya sabe, no una
+primera persona y repartiendo: "tengo una galletita y somos dos", "contemos juntos",
+"sacale cinco al doce y aparece". Es una compañera contándote algo que ya sabe, no una
 maestra tomando lección.
 
-Español rioplatense, voseo, sin neutro. Y sin sobreactuar de «voz para chicos»: los chicos
+Español rioplatense, voseo, sin neutro. Y sin sobreactuar de "voz para chicos": los chicos
 detectan eso al toque. Hablá como le hablarías a un hermanito, con ganas pero de verdad.
 
 ## Cómo grabar
@@ -89,7 +89,7 @@ Las consignas de las tarjetas del grupo C van con su concepto, no sueltas:
 
 ## Grupo A· Las seis explicaciones ✅ GRABADO (31/08/2026)
 
-Son las que se escuchan al tocar ▶ en la tarjeta «Escuchá».
+Son las que se escuchan al tocar ▶ en la tarjeta "Escuchá".
 
 Ya están en `packages/web/public/voice/samples/`. Voces sintéticas de ElevenLabs: **Gaby** para las
 cuatro de chicos y primaria, **Martin Alvarez** para las dos de secundaria. Vinieron con casi
@@ -107,17 +107,17 @@ recortó la cola de silencio.
 
 ## Grupo B· Las consignas ⬜ PENDIENTE
 
-Sin estas, la franja «recién empieza» no tiene lectura en voz alta: el altavoz al lado de
+Sin estas, la franja "recién empieza" no tiene lectura en voz alta: el altavoz al lado de
 la consigna directamente no se dibuja cuando no hay ni archivo ni voz del sistema.
 
 El título y la bajada de cada pregunta, de corrido, como una sola frase. La primera la
-escucha todo el mundo; las otras siete son de la franja «recién empiezo», que es
+escucha todo el mundo; las otras siete son de la franja "recién empiezo", que es
 justamente la de quien no lee.
 
 | # | archivo que queda | frase |
 |---|---|---|
 | 7 | `prompts/common/band.m4a` | ¿Por dónde andás? Para mostrarte ejemplos que te sirvan y no cosas que todavía no viste. |
-| 8 | `prompts/small/channel1.m4a` | La mitad, explicado de cuatro maneras. Probá las cuatro. Después tocá «con esta» abajo de la que más te gustó. |
+| 8 | `prompts/small/channel1.m4a` | La mitad, explicado de cuatro maneras. Probá las cuatro. Después tocá "con esta" abajo de la que más te gustó. |
 | 9 | `prompts/small/channel2.m4a` | Otra cosa, las mismas cuatro maneras. Tres y dos. Probalas de nuevo y marcá con cuál lo agarrás. |
 | 10 | `prompts/small/spark.m4a` | Cuatro maneras de empezar lo mismo. Contar los pasos que hay hasta el patio. ¿Cuál te dan ganas de abrir? |
 | 11 | `prompts/small/pace.m4a` | Lo mismo, explicado de dos maneras. Cómo hacer un sándwich. Tocá la que se entiende mejor. |
@@ -156,11 +156,11 @@ Se sacan del mismo guion cambiando la franja; te las paso si decidís grabarlas.
 1. Corto la toma por silencio y verifico cada corte contra el texto de esta tabla.
 2. Normalizo el volumen (parejo entre frases) y recorto los silencios de los extremos.
 3. Convierto a AAC y las dejo en `packages/web/public/voice/<archivo>.m4a`.
-4. Cambio la tarjeta «Escuchá» para que reproduzca el archivo, y sincronizo el resaltado
+4. Cambio la tarjeta "Escuchá" para que reproduzca el archivo, y sincronizo el resaltado
    palabra por palabra **contra la duración real del audio** (hoy corre con un temporizador
    fijo de 330 ms por palabra, así que aunque haya voz, la palabra iluminada se despega).
 5. Dejo el sintetizador del navegador como red por si falta algún archivo, y si no hay ni
-   archivo ni voz, la tarjeta «Escuchá» no se ofrece: mejor no medir que medir mal.
+   archivo ni voz, la tarjeta "Escuchá" no se ofrece: mejor no medir que medir mal.
 
 El archivo original de la grabación no queda solo en tu máquina: va al Drive de Educabot,
 que es de donde se rehace si algún día hay que recortar distinto.

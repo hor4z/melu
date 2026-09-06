@@ -32,7 +32,7 @@ export function AddLearners({ groupId, groupName, onDone }: { groupId: string; g
   return (
     <form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); add.mutate() }}>
       <Field
-        label={groupName ? `Sumá a los chicos de «${groupName}»` : 'Sumá a los chicos'}
+        label={groupName ? `Sumá a los chicos de "${groupName}"` : 'Sumá a los chicos'}
         description="Un email por línea, o separados por comas. Entran con Google y el grupo ya los está esperando."
       >
         <Textarea autoGrow rows={4} value={raw} onChange={(e) => setRaw(e.target.value)}

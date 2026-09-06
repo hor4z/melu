@@ -106,7 +106,7 @@ function Runner({ m }: { m: Mission }) {
           <Eyebrow>{graded ? 'Con devolución' : 'Entregada'}</Eyebrow>
           <Heading level={1} size="2xl" className="mt-1">{graded ? 'Ya la miró tu guía' : '¡Listo!'}</Heading>
           <Text variant="muted" className="mt-1">
-            {graded ? 'Abajo está lo que te dejó.' : 'Tu guía la va a mirar. Cuando tenga devolución, te aparece acá y en «Mi progreso».'}
+            {graded ? 'Abajo está lo que te dejó.' : 'Tu guía la va a mirar. Cuando tenga devolución, te aparece acá y en "Mi progreso".'}
           </Text>
         </div>
         {answered.length > 0 && (

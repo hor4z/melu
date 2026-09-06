@@ -76,7 +76,10 @@ export function Select({ children, value, defaultValue = '', onValueChange, disa
   const labels = useMemo(() => { const m = new Map<string, ReactNode>(); collect(children, m); return m }, [children])
 
   const { refs, floatingStyles, context, isPositioned } = useFloating({
-    nodeId, open: isOpen, onOpenChange: (o) => { setIsOpen(o); if (!o) setSearch('') }, placement: 'bottom-start', whileElementsMounted: autoUpdate,
+    // `transform: false`: positioning with top/left, not translate. The ui-pop keyframes
+    // animate `transform`, and an animation beats an inline style: while it ran, the panel
+    // lost its offset and painted at the top of the page before dropping into place.
+    nodeId, open: isOpen, onOpenChange: (o) => { setIsOpen(o); if (!o) setSearch('') }, placement: 'bottom-start', whileElementsMounted: autoUpdate, transform: false,
     middleware: [
       offset(6), flip({ padding: 8 }), shift({ padding: 8 }),
       sizeMw({ padding: 8, apply({ rects, availableHeight, elements }) {

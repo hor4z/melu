@@ -26,6 +26,10 @@ type Signal struct {
 	Suggestion  string `json:"suggestion"`
 	RecipeTitle string `json:"recipeTitle,omitempty"`
 	RecipeID    string `json:"recipeId,omitempty"`
+	// La misión concreta de la que habla la señal. El abandono es el único caso sin receta que
+	// asignar, así que sin esto se queda sin nada que hacer: con el id, la acción es ir a ver
+	// qué alcanzó a hacer antes de trabarse.
+	AssignmentID string `json:"assignmentId,omitempty"`
 }
 
 type ByKind struct {
@@ -36,12 +40,21 @@ type ByKind struct {
 }
 
 type Dashboard struct {
-	Spaces            int                 `json:"spaces"`
-	Groups            int                 `json:"groups"`
-	Learners          int                 `json:"learners"`
-	ToReview          int                 `json:"toReview"`
-	AvgMinutes        float64             `json:"avgMinutes"`
-	Accuracy          float64             `json:"accuracy"`
+	Spaces   int `json:"spaces"`
+	Groups   int `json:"groups"`
+	Learners int `json:"learners"`
+	ToReview int `json:"toReview"`
+	// Los otros dos estados de una entrega. Son cuentas de cosas que pasaron, así que se leen
+	// solas: no hacen falta promedios ni comparaciones para saber qué significan.
+	Unfinished int     `json:"unfinished"`
+	Graded     int     `json:"graded"`
+	AvgMinutes float64 `json:"avgMinutes"`
+	Accuracy   float64 `json:"accuracy"`
+	// Los mismos dos, de los siete días anteriores. "34.6 min" sin nada al lado no le dice nada
+	// a un docente: recién significa algo comparado con lo que era. -1 cuando no hay contra qué
+	// comparar, que tiene que leerse como "todavía no sé" y no como cero.
+	PrevAvgMinutes    float64             `json:"prevAvgMinutes"`
+	PrevAccuracy      float64             `json:"prevAccuracy"`
 	WeekSeries        []DaySeries         `json:"weekSeries"`
 	Signals           []Signal            `json:"signals"`
 	ByKind            []ByKind            `json:"byKind"`
@@ -103,21 +116,46 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 	}
 
 	var sumMin, nMin, sumAc, nAc float64
+	var prevMin, nPrevMin, prevAc, nPrevAc float64
+	weekStart, prevStart := today.AddDate(0, 0, -6), today.AddDate(0, 0, -13)
 	kinds := map[string]*ByKind{}
 	byLearner := map[string][]Fact{}
 	for _, h := range facts {
-		if h.Status == "submitted" {
+		switch h.Status {
+		case "submitted":
 			out.ToReview++
+		case "in_progress":
+			out.Unfinished++
+		case "graded":
+			out.Graded++
 		}
 		min, ok := minutes(h)
 		ac := accuracy(h.Document, h.Answers, h.Steps)
-		if ok {
-			sumMin += min
-			nMin++
+		// De qué semana es una entrega lo decide cuándo volvió, que es el momento que le importa
+		// al docente.
+		when := h.UpdatedAt
+		if h.SubmittedAt != nil {
+			when = *h.SubmittedAt
 		}
-		if ac >= 0 {
-			sumAc += ac
-			nAc++
+		switch day := startOfDay(when, z); {
+		case !day.Before(weekStart):
+			if ok {
+				sumMin += min
+				nMin++
+			}
+			if ac >= 0 {
+				sumAc += ac
+				nAc++
+			}
+		case !day.Before(prevStart):
+			if ok {
+				prevMin += min
+				nPrevMin++
+			}
+			if ac >= 0 {
+				prevAc += ac
+				nPrevAc++
+			}
 		}
 		if h.OpenedAt != nil {
 			if d, okd := days[h.OpenedAt.In(z).Format("2006-01-02")]; okd {
@@ -165,6 +203,13 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 		out.Accuracy = round1(sumAc / nAc)
 	} else {
 		out.Accuracy = -1
+	}
+	out.PrevAvgMinutes, out.PrevAccuracy = -1, -1
+	if nPrevMin > 0 {
+		out.PrevAvgMinutes = round1(prevMin / nPrevMin)
+	}
+	if nPrevAc > 0 {
+		out.PrevAccuracy = round1(prevAc / nPrevAc)
 	}
 	for _, t := range kinds {
 		if t.Submissions > 0 {
@@ -237,7 +282,7 @@ func (s *Services) signals(byLearner map[string][]Fact, median float64, recipes 
 			id, t := recipe("Fracciones en la cocina")
 			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "misses", Detail: "Falló la mitad o más de los chequeos en 2 misiones", Suggestion: "Volver a lo concreto antes del símbolo: una actividad con lente CPA, corta, en casa.", RecipeID: id, RecipeTitle: t})
 		case untouched != nil:
-			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "dropout", Detail: "Abrió «" + untouched.Title + "» hace más de 2 días y no la entregó", Suggestion: "Preguntale en qué fase se trabó. Si es la primera, la consigna puede no estar clara."})
+			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "dropout", Detail: `Abrió "` + untouched.Title + `" hace más de 2 días y no la entregó`, Suggestion: "Preguntale en qué fase se trabó. Si es la primera, la consigna puede no estar clara.", AssignmentID: untouched.AssignmentID})
 		case slow >= 2:
 			id, t := recipe("Reto de la semana")
 			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "slow", Detail: "Tarda más del doble que el grupo en 2 misiones", Suggestion: "Partir la actividad en fases más cortas o trabajarla en pareja.", RecipeID: id, RecipeTitle: t})
@@ -246,7 +291,15 @@ func (s *Services) signals(byLearner map[string][]Fact, median float64, recipes 
 			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "shines", Detail: "Resuelve rápido y bien", Suggestion: "Un reto con más pasos, o que explique su método en audio para otros.", RecipeID: id, RecipeTitle: t})
 		}
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].Learner < out[j].Learner })
+	// Por urgencia y no por nombre. Quien se traba o abandonó necesita atención hoy; quien vuela
+	// también merece algo, pero puede esperar al final de la lista.
+	urgency := map[string]int{"misses": 0, "dropout": 1, "slow": 2, "shines": 3}
+	sort.Slice(out, func(i, j int) bool {
+		if urgency[out[i].Kind] != urgency[out[j].Kind] {
+			return urgency[out[i].Kind] < urgency[out[j].Kind]
+		}
+		return out[i].Learner < out[j].Learner
+	})
 	return out
 }
 
