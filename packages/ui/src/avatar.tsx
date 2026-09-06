@@ -1,6 +1,5 @@
 import { useState, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
-import BoringAvatar from 'boring-avatars'
 import { cn, Slot } from './lib'
 
 const SIZES = { xs: 'size-6 text-2xs', sm: 'size-8 text-xs', md: 'size-10 text-sm', lg: 'size-12 text-base', xl: 'size-16 text-xl' }
@@ -20,22 +19,45 @@ export function initials(name: string) {
   if (!p.length) return '?'
   return (p.length === 1 ? p[0].slice(0, 1) : p[0][0] + p[p.length - 1][0]).toUpperCase()
 }
-const ART_TOKENS = ['--color-teal-500', '--color-cyan-500', '--color-purple-500', '--color-orange-500', '--color-yellow-400', '--color-green-500']
-let artCache: string[] | null = null
-function artColors() {
-  if (artCache) return artCache
-  if (typeof document === 'undefined') return []
-  const root = getComputedStyle(document.documentElement)
-  const read = ART_TOKENS.map((t) => root.getPropertyValue(t).trim()).filter(Boolean)
-  if (read.length) artCache = read
-  return read
-}
-
-/** The same name always lands on the same tint: the group's face does not dance between reloads. */
-export function tintOf(name: string) {
+function hashOf(name: string) {
   let h = 0
   for (const c of name) h = (h * 31 + c.charCodeAt(0)) >>> 0
-  return TINTS[h % TINTS.length]
+  return h
+}
+/** The same name always lands on the same tint: the group's face does not dance between reloads. */
+export function tintOf(name: string) {
+  return TINTS[hashOf(name) % TINTS.length]
+}
+
+const FACE_COLORS = [
+  'var(--color-teal-500)', 'var(--color-cyan-500)', 'var(--color-purple-500)',
+  'var(--color-orange-500)', 'var(--color-green-500)', 'var(--color-red-500)',
+]
+const digit = (h: number, n: number) => Math.floor(h / 10 ** n) % 10
+
+function Figure({ name }: { name: string }) {
+  const h = hashOf(name)
+  const color = FACE_COLORS[h % FACE_COLORS.length]
+  const dx = (digit(h, 1) % 5) - 2
+  const dy = (digit(h, 2) % 5) - 2
+  const tilt = (digit(h, 3) % 7) - 3
+  const eyeY = 14 + (digit(h, 4) % 3)
+  const gap = 5 + (digit(h, 5) % 3)
+  const mouth = digit(h, 6) % 3
+  return (
+    <svg viewBox="0 0 36 36" className="size-full" aria-hidden="true">
+      <rect width="36" height="36" fill={color} />
+      <g transform={`translate(${dx} ${dy}) rotate(${tilt} 18 18)`} fill="var(--color-white)">
+        <rect x={17 - gap} y={eyeY} width="2.5" height="4" rx="1.25" />
+        <rect x={16.5 + gap} y={eyeY} width="2.5" height="4" rx="1.25" />
+        {mouth === 0 && (
+          <path d="M13 24q5 4.5 10 0" fill="none" stroke="var(--color-white)" strokeWidth="2" strokeLinecap="round" />
+        )}
+        {mouth === 1 && <rect x="14" y="24" width="8" height="2" rx="1" />}
+        {mouth === 2 && <circle cx="18" cy="25" r="2" />}
+      </g>
+    </svg>
+  )
 }
 
 export interface AvatarProps extends Omit<ComponentPropsWithoutRef<'span'>, 'children'>, VariantProps<typeof avatarVariants> {
@@ -59,7 +81,7 @@ export function Avatar({ name, src, size, shape, status, asChild, className, ...
             // Sin esto el navegador manda el referrer y los avatares de terceros (Google entre
             // ellos) contestan con un error. La foto se cae a la figura y parece un bug del kit.
             referrerPolicy="no-referrer" loading="lazy" />
-        : <BoringAvatar name={name} variant="beam" colors={artColors()} size="100%" square />}
+        : <Figure name={name} />}
       <span className="sr-only">{name}</span>
       {status && (typeof status === 'string' && status in STATUS_COLOR
         ? <span className={cn('absolute bottom-0 right-0 size-1/4 rounded-full ring-2 ring-surface', STATUS_COLOR[status as keyof typeof STATUS_COLOR])} />
