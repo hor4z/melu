@@ -104,16 +104,22 @@ export function Avatar({ name, src, size, shape, status, asChild, className, ...
   )
 }
 
-/** Stack of overlapping avatars; past `max` it shows “+N”. */
-export function AvatarGroup({ names, max = 4, size = 'sm', className, ...props }: ComponentPropsWithoutRef<'div'> & { names: string[]; max?: number; size?: AvatarProps['size'] }) {
+/**
+ * Stack of overlapping avatars; past `max` it shows “+N”.
+ *
+ * A `span` and not a `div`: a group of faces is a piece of a line, and it has to be able to
+ * live inside a button (the trigger of a filter shows the chosen ones this way). A `div` in
+ * there is invalid nesting, and a parser would throw it out of the button.
+ */
+export function AvatarGroup({ names, max = 4, size = 'sm', className, ...props }: ComponentPropsWithoutRef<'span'> & { names: string[]; max?: number; size?: AvatarProps['size'] }) {
   const shown = names.slice(0, max)
   const rest = names.length - shown.length
   return (
-    <div className={cn('flex items-center -space-x-2', className)} {...props}>
+    <span className={cn('inline-flex items-center -space-x-2', className)} {...props}>
       {shown.map((n) => <Avatar key={n} name={n} size={size} className="ring-2 ring-surface" />)}
       {rest > 0 && (
         <span className={cn(avatarVariants({ size }), 'bg-muted text-ink-muted ring-2 ring-surface')} title={names.slice(max).join(', ')}>+{rest}</span>
       )}
-    </div>
+    </span>
   )
 }

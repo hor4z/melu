@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import {
   Avatar, Button, Card, Chip, FilterBar, FilterSearch, FilterSet, Heading, Icon, Text,
   DataList, DataListActions, DataListHead, DataListItem, DataListMedia, DataListMeta, DataListText, DataListTitle,
-  Table, TableBody, TableCaption, TableCell, TableEmpty, TableHead, TableHeader, TableRow, facets, useDevice,
+  Table, TableBody, TableCaption, TableCell, TableEmpty, TableHead, TableHeader, TableRow,
+  BREAKPOINTS, facets, useDevice, useMediaQuery,
 } from '@melu/ui'
 import { CircleDot, School, User } from 'lucide-react'
 import { Empty } from '../blocks/Modal'
@@ -21,10 +22,6 @@ const ESTADOS = {
 type Estado = keyof typeof ESTADOS
 type Por = 'learner' | 'when' | 'minutes' | 'accuracy'
 
-// Las columnas que se esconden en la tabla angosta. El nombre, el estado y la acción no se van
-// nunca: son las tres cosas por las que se entra acá.
-const SOLO_ANCHO = 'hidden xl:table-cell'
-
 export function Submissions() {
   const nav = useNavigate()
   const spaceId = useSpaceId()
@@ -34,6 +31,10 @@ export function Submissions() {
   // que se recorre para abajo como todo lo demás.
   const device = useDevice()
   const conTabla = device === 'desktop'
+  // Las columnas de relleno entran recién en la pantalla ancha. Se pregunta acá y no con una
+  // clase de Tailwind porque el orden depende de esto: una columna que no está no puede quedar
+  // ordenando la tabla.
+  const conRelleno = useMediaQuery(`(min-width: ${BREAKPOINTS.xl}px)`)
   const q = useQuery({ queryKey: ['submissions', spaceId], queryFn: () => api.get<SubmissionSummary[]>(`/api/submissions?space=${spaceId}`) })
 
   const [texto, setTexto] = useState('')
@@ -77,20 +78,27 @@ export function Submissions() {
     },
   ].filter((f) => f.options.length > 1)
 
+  // El orden se lee de una cabecera: donde esa cabecera no está, no hay orden raro que explicar
+  // y la lista va como promete el título, con lo último arriba. Se guarda igual, así que volver
+  // a agrandar la ventana lo devuelve.
+  const escondida = !conRelleno && (orden.por === 'minutes' || orden.por === 'accuracy')
+  const orden_ = !conTabla || escondida ? { por: 'when' as Por, dir: 'desc' as const } : orden
+
   const valor = (e: SubmissionSummary) =>
-    orden.por === 'learner' ? (e.learner ?? '') : orden.por === 'when' ? e.when : orden.por === 'minutes' ? e.minutes : e.accuracy
+    orden_.por === 'learner' ? (e.learner ?? '') : orden_.por === 'when' ? e.when : orden_.por === 'minutes' ? e.minutes : e.accuracy
   const lista = todas.filter((e) => pasa(e)).sort((a, b) => {
     const x = valor(a)
     const y = valor(b)
-    return (orden.dir === 'asc' ? 1 : -1) * (typeof x === 'string' ? x.localeCompare(y as string, 'es') : x - (y as number))
+    return (orden_.dir === 'asc' ? 1 : -1) * (typeof x === 'string' ? x.localeCompare(y as string, 'es') : x - (y as number))
   })
 
-  const filtrando = texto !== '' || Object.values(filtros).some((v) => v.length > 0)
+  // `trim`, como filtra `pasa`: un espacio solo no filtra nada y no tiene que decir que sí.
+  const filtrando = texto.trim() !== '' || Object.values(filtros).some((v) => v.length > 0)
   const limpiar = () => { setTexto(''); setFiltros({}) }
 
   const ordenarPor = (por: Por) =>
     setOrden((o) => (o.por === por ? { por, dir: o.dir === 'asc' ? 'desc' : 'asc' } : { por, dir: por === 'learner' ? 'asc' : 'desc' }))
-  const sentido = (por: Por) => (orden.por === por ? orden.dir : false)
+  const sentido = (por: Por) => (orden_.por === por ? orden_.dir : false)
 
   const abrir = (e: SubmissionSummary) => nav(`/review/${e.assignmentId}`)
   const accion = (e: SubmissionSummary) => (
@@ -161,17 +169,17 @@ export function Submissions() {
                 <TableRow>
                   <TableHead sort={sentido('learner')} onSort={() => ordenarPor('learner')}>Aprendiz</TableHead>
                   <TableHead>Actividad</TableHead>
-                  <TableHead className={SOLO_ANCHO}>Grupo</TableHead>
+                  {conRelleno && <TableHead>Grupo</TableHead>}
                   <TableHead>Estado</TableHead>
                   <TableHead sort={sentido('when')} onSort={() => ordenarPor('when')}>Cuándo</TableHead>
-                  <TableHead className={SOLO_ANCHO} align="end" sort={sentido('minutes')} onSort={() => ordenarPor('minutes')}>Tiempo</TableHead>
-                  <TableHead className={SOLO_ANCHO} align="end" sort={sentido('accuracy')} onSort={() => ordenarPor('accuracy')}>Aciertos</TableHead>
+                  {conRelleno && <TableHead align="end" sort={sentido('minutes')} onSort={() => ordenarPor('minutes')}>Tiempo</TableHead>}
+                  {conRelleno && <TableHead align="end" sort={sentido('accuracy')} onSort={() => ordenarPor('accuracy')}>Aciertos</TableHead>}
                   <TableHead align="end"><span className="sr-only">Acciones</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {lista.length === 0
-                  ? <TableEmpty colSpan={8}>{vacio}</TableEmpty>
+                  ? <TableEmpty colSpan={conRelleno ? 8 : 5}>{vacio}</TableEmpty>
                   : lista.map((e) => {
                     const st = ESTADOS[e.status]
                     return (
@@ -183,11 +191,11 @@ export function Submissions() {
                           </span>
                         </TableCell>
                         <TableCell><span className="block max-w-64 truncate">{e.title}</span></TableCell>
-                        <TableCell className={`${SOLO_ANCHO} text-ink-muted`}>{e.group}</TableCell>
+                        {conRelleno && <TableCell className="text-ink-muted">{e.group}</TableCell>}
                         <TableCell><Chip size="sm" color={st.color}>{st.label}</Chip></TableCell>
                         <TableCell className="whitespace-nowrap text-ink-muted">{ago(e.when)}</TableCell>
-                        <TableCell className={SOLO_ANCHO} numeric>{e.minutes ? `${e.minutes} min` : '—'}</TableCell>
-                        <TableCell className={SOLO_ANCHO} numeric>{e.accuracy >= 0 ? `${Math.round(e.accuracy * 100)}%` : '—'}</TableCell>
+                        {conRelleno && <TableCell numeric>{e.minutes ? `${e.minutes} min` : '—'}</TableCell>}
+                        {conRelleno && <TableCell numeric>{e.accuracy >= 0 ? `${Math.round(e.accuracy * 100)}%` : '—'}</TableCell>}
                         <TableCell align="end">{accion(e)}</TableCell>
                       </TableRow>
                     )
