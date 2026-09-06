@@ -44,6 +44,7 @@ func (s *Server) routes() {
 	m.HandleFunc("POST /api/auth/logout", s.logout)
 
 	m.Handle("GET /api/me", s.withSession(s.yo))
+	m.Handle("PATCH /api/me", s.withSession(s.updateMe))
 	m.Handle("GET /api/lenses", s.withSession(s.lenses))
 	m.Handle("POST /api/spaces", s.withSession(s.createSpace))
 	m.Handle("GET /api/groups", s.withSession(s.groups))
@@ -168,6 +169,32 @@ func (s *Server) withSession(h func(http.ResponseWriter, *http.Request, domain.P
 // ---- resources ----
 func (s *Server) yo(w http.ResponseWriter, r *http.Request, p domain.Person) {
 	c, err := s.svc.Me(r.Context(), p)
+	if err != nil {
+		fail(w, err)
+		return
+	}
+	js(w, 200, c)
+}
+
+// updateMe answers with the whole account and not with the person alone: the header, the space
+// picker and the profile screen all read the same `me`, so giving back less would leave the
+// screen showing the new name over the old avatar until the next reload.
+func (s *Server) updateMe(w http.ResponseWriter, r *http.Request, p domain.Person) {
+	// Decoded into a Person and not into a struct of its own so that adding a field to the
+	// profile is one change and not three. What the person is allowed to write is decided by
+	// UpdateMe, which copies field by field onto the row it already read from the session:
+	// anything else that arrives in this body (an id, an email) is read and dropped here.
+	var in domain.Person
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		http.Error(w, "invalid data", 400)
+		return
+	}
+	up, err := s.svc.UpdateMe(r.Context(), p, in)
+	if err != nil {
+		fail(w, err)
+		return
+	}
+	c, err := s.svc.Me(r.Context(), *up)
 	if err != nil {
 		fail(w, err)
 		return

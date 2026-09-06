@@ -1,4 +1,6 @@
 // Minimal client. A single place where fetch lives.
+import type { ArtStyle } from '@melu/ui'
+
 export class ApiError extends Error {
   status: number
   constructor(status: number, message: string) { super(message); this.status = status }
@@ -30,10 +32,15 @@ export const api = {
   get: <T>(p: string) => req<T>('GET', p),
   post: <T>(p: string, b?: unknown) => req<T>('POST', p, b),
   put: <T>(p: string, b?: unknown) => req<T>('PUT', p, b),
+  patch: <T>(p: string, b?: unknown) => req<T>('PATCH', p, b),
 }
 
 // ---- types mirroring the Go domain ----
-export type Person = { id: string; email: string; name: string; avatarUrl?: string }
+export type Person = {
+  id: string; email: string; name: string
+  firstName?: string; lastName?: string; nickname?: string
+  avatarUrl?: string; avatarStyle?: ArtStyle; avatarSeed?: string; avatarOptions?: Record<string, string>
+}
 export type Space = { id: string; name: string; slug: string; kind: SpaceKind }
 export type SpaceKind = 'school' | 'club' | 'tutoring' | 'personal'
 export type Role = 'guide' | 'learner' | 'companion' | 'coordinator'

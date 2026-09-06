@@ -27,8 +27,9 @@ func noRows(err error) error {
 
 // ---- People ----
 type personRow struct {
-	ID, Name           string
-	Email, Sub, Avatar *string
+	ID, Name                                           string
+	Email, Sub, Avatar, Style, Seed, First, Last, Nick *string
+	Options                                            []byte
 }
 
 func (r personRow) dom() *domain.Person {
@@ -42,13 +43,35 @@ func (r personRow) dom() *domain.Person {
 	if r.Avatar != nil {
 		p.AvatarURL = *r.Avatar
 	}
+	if r.Style != nil {
+		p.AvatarStyle = *r.Style
+	}
+	if r.Seed != nil {
+		p.AvatarSeed = *r.Seed
+	}
+	if r.First != nil {
+		p.FirstName = *r.First
+	}
+	if r.Last != nil {
+		p.LastName = *r.Last
+	}
+	if r.Nick != nil {
+		p.Nickname = *r.Nick
+	}
+	// A broken options blob is not worth failing a sign-in over: the person ends up with the
+	// plain figure of their style, which is exactly what they had before choosing parts.
+	if len(r.Options) > 0 {
+		_ = json.Unmarshal(r.Options, &p.AvatarOptions)
+	}
 	return p
 }
 
+const personCols = `id, name, email, google_sub, avatar_url, avatar_style, avatar_seed, first_name, last_name, nickname, avatar_options`
+
 func (r *Repos) person(ctx context.Context, where string, arg any) (*domain.Person, error) {
 	var row personRow
-	err := r.db.QueryRow(ctx, `select id, name, email, google_sub, avatar_url from people where `+where, arg).
-		Scan(&row.ID, &row.Name, &row.Email, &row.Sub, &row.Avatar)
+	err := r.db.QueryRow(ctx, `select `+personCols+` from people where `+where, arg).
+		Scan(&row.ID, &row.Name, &row.Email, &row.Sub, &row.Avatar, &row.Style, &row.Seed, &row.First, &row.Last, &row.Nick, &row.Options)
 	if err != nil {
 		return nil, noRows(err)
 	}
@@ -58,27 +81,53 @@ func (r *Repos) person(ctx context.Context, where string, arg any) (*domain.Pers
 func (r *Repos) ByGoogleSub(ctx context.Context, sub string) (*domain.Person, error) {
 	return r.person(ctx, "google_sub=$1", sub)
 }
+
 // ByEmail matches on the lowercase form, which is the one the unique index is built on.
 func (r *Repos) ByEmail(ctx context.Context, email string) (*domain.Person, error) {
 	return r.person(ctx, "lower(email)=lower($1)", email)
 }
 func (r *Repos) Create(ctx context.Context, p domain.Person) (*domain.Person, error) {
 	var id string
-	err := r.db.QueryRow(ctx, `insert into people(email, google_sub, name, avatar_url) values(nullif(lower($1),''), nullif($2,''), $3, nullif($4,'')) returning id`,
-		p.Email, p.GoogleSub, p.Name, p.AvatarURL).Scan(&id)
+	err := r.db.QueryRow(ctx, `insert into people(email, google_sub, name, avatar_url, first_name, last_name)
+	        values(nullif(lower($1),''), nullif($2,''), $3, nullif($4,''), nullif($5,''), nullif($6,'')) returning id`,
+		p.Email, p.GoogleSub, p.Name, p.AvatarURL, p.FirstName, p.LastName).Scan(&id)
 	if err != nil {
 		return nil, err
 	}
 	p.ID = id
 	return &p, nil
 }
+
 // LinkGoogle adopts a person who was already here (added by a guide, or seeded) the first time
 // they sign in. The picture only fills a gap: what Google knows beats a placeholder and loses
 // to anything a person chose.
 func (r *Repos) LinkGoogle(ctx context.Context, id, sub, name, avatar string) error {
+	first, last := domain.SplitName(name)
+	// The parts follow the same rule as the picture: they fill a gap and never overwrite. The
+	// row may have been seeded by a guide who wrote the surname, and Google's single string is
+	// a worse source than that.
 	_, err := r.db.Exec(ctx,
-		`update people set google_sub=$2, name=coalesce(nullif($3,''), name), avatar_url=coalesce(avatar_url, nullif($4,'')) where id=$1`,
-		id, sub, name, avatar)
+		`update people set google_sub=$2, name=coalesce(nullif($3,''), name), avatar_url=coalesce(avatar_url, nullif($4,'')),
+		        first_name=coalesce(first_name, nullif($5,'')), last_name=coalesce(last_name, nullif($6,'')) where id=$1`,
+		id, sub, name, avatar, first, last)
+	return err
+}
+
+// SaveProfile writes the name and the avatar choice. The empty string is stored as null and not
+// as ”: null is what the rest of the code reads as "not chosen", and an empty text would make
+// `avatar_style is null` false and leave the person with a figure they did not pick.
+func (r *Repos) SaveProfile(ctx context.Context, id string, p domain.Person) error {
+	var opts []byte
+	if len(p.AvatarOptions) > 0 {
+		var err error
+		if opts, err = json.Marshal(p.AvatarOptions); err != nil {
+			return err
+		}
+	}
+	_, err := r.db.Exec(ctx,
+		`update people set name=$2, first_name=nullif($3,''), last_name=nullif($4,''), nickname=nullif($5,''),
+		        avatar_style=nullif($6,''), avatar_seed=nullif($7,''), avatar_options=$8 where id=$1`,
+		id, p.Name, p.FirstName, p.LastName, p.Nickname, p.AvatarStyle, p.AvatarSeed, opts)
 	return err
 }
 
@@ -92,8 +141,8 @@ func (r *Repos) CreateSession(ctx context.Context, personID string) (string, err
 }
 func (r *Repos) Resolve(ctx context.Context, token string) (*domain.Person, error) {
 	var row personRow
-	err := r.db.QueryRow(ctx, `select p.id, p.name, p.email, p.google_sub, p.avatar_url from sessions s join people p on p.id=s.person_id where s.token=$1 and s.expires_at>now()`, token).
-		Scan(&row.ID, &row.Name, &row.Email, &row.Sub, &row.Avatar)
+	err := r.db.QueryRow(ctx, `select p.id, p.name, p.email, p.google_sub, p.avatar_url, p.avatar_style, p.avatar_seed, p.first_name, p.last_name, p.nickname, p.avatar_options from sessions s join people p on p.id=s.person_id where s.token=$1 and s.expires_at>now()`, token).
+		Scan(&row.ID, &row.Name, &row.Email, &row.Sub, &row.Avatar, &row.Style, &row.Seed, &row.First, &row.Last, &row.Nick, &row.Options)
 	if err != nil {
 		return nil, noRows(err)
 	}

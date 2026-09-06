@@ -4,6 +4,7 @@ package domain
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 	"time"
 )
 
@@ -29,8 +30,54 @@ type Person struct {
 	ID        string `json:"id"`
 	Email     string `json:"email"`
 	GoogleSub string `json:"-"`
+	// Name is what the product shows. It is written from the parts below, never by hand: see
+	// DisplayName for the rule.
 	Name      string `json:"name"`
+	FirstName string `json:"firstName,omitempty"`
+	LastName  string `json:"lastName,omitempty"`
+	Nickname  string `json:"nickname,omitempty"`
 	AvatarURL string `json:"avatarUrl,omitempty"`
+	// The figure, for whoever would rather not use their photo. Empty style means the photo
+	// wins; empty seed means the figure is drawn from the name; the options are the parts the
+	// person picked, and which ones exist depends on the style.
+	AvatarStyle   string            `json:"avatarStyle,omitempty"`
+	AvatarSeed    string            `json:"avatarSeed,omitempty"`
+	AvatarOptions map[string]string `json:"avatarOptions,omitempty"`
+}
+
+// DisplayName is the one rule about how somebody is called: the nickname wins over the name on
+// the paper. Whoever wrote "Bruno" in that field is Bruno on their guide's screen, and the
+// surname is there for the guide with two Sofías in the same group, not for the greeting.
+func DisplayName(first, last, nickname string) string {
+	if n := strings.TrimSpace(nickname); n != "" {
+		return n
+	}
+	return strings.TrimSpace(strings.TrimSpace(first) + " " + strings.TrimSpace(last))
+}
+
+// SplitName is the guess made on what Google hands over: one string with everything. It is the
+// same guess 0005 made on the rows that were already here, and it is wrong with a compound
+// surname. It is worth making anyway, because it leaves everybody with something reasonable on
+// day one, and the first person to correct it is the owner of the name.
+func SplitName(full string) (first, last string) {
+	f := strings.Fields(strings.TrimSpace(full))
+	if len(f) == 0 {
+		return "", ""
+	}
+	return f[0], strings.Join(f[1:], " ")
+}
+
+// AvatarStyles are the figures the kit knows how to draw. The check in 0005 says the same thing
+// in SQL: the two have to be changed together.
+var AvatarStyles = []string{"adventurer", "bigSmile", "funEmoji", "bottts"}
+
+func IsAvatarStyle(s string) bool {
+	for _, v := range AvatarStyles {
+		if v == s {
+			return true
+		}
+	}
+	return false
 }
 
 type Space struct {
