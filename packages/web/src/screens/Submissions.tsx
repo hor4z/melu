@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Avatar, Button, Card, Chip, Filter, FilterBar, FilterReset, FilterSearch, Heading, Text,
+  Avatar, Button, Card, Chip, FilterBar, FilterSearch, FilterSet, Heading, Icon, Text,
   DataList, DataListActions, DataListHead, DataListItem, DataListMedia, DataListMeta, DataListText, DataListTitle,
   Table, TableBody, TableCaption, TableCell, TableEmpty, TableHead, TableHeader, TableRow, facets, useDevice,
 } from '@melu/ui'
+import { CircleDot, School, User } from 'lucide-react'
 import { Empty } from '../blocks/Modal'
 import { api, type SubmissionSummary } from '../lib/api'
 import { useSpaceId } from '../lib/space'
@@ -36,33 +37,45 @@ export function Submissions() {
   const q = useQuery({ queryKey: ['submissions', spaceId], queryFn: () => api.get<SubmissionSummary[]>(`/api/submissions?space=${spaceId}`) })
 
   const [texto, setTexto] = useState('')
-  const [estados, setEstados] = useState<string[]>([])
-  const [grupos, setGrupos] = useState<string[]>([])
-  const [personas, setPersonas] = useState<string[]>([])
+  // Un solo objeto: la clave que está es el filtro que está puesto en la barra, y su arreglo es
+  // lo que tiene elegido. Que un filtro esté puesto y vacío es un estado válido, y es el que
+  // queda cuando alguien lo agrega y todavía no eligió nada.
+  const [filtros, setFiltros] = useState<Record<string, string[]>>({})
   const [orden, setOrden] = useState<{ por: Por; dir: 'asc' | 'desc' }>({ por: 'when', dir: 'desc' })
 
   const todas = useMemo(() => q.data ?? [], [q.data])
 
   // `salvo` deja afuera un filtro para contar las opciones de ese mismo filtro. Así el número
   // que muestra cada opción es el que va a quedar si la tocás, y no el de la tabla entera.
+  const puesto = (clave: string) => filtros[clave] ?? []
+  const deja = (clave: string, valor: string, salvo?: string) =>
+    salvo === clave || puesto(clave).length === 0 || puesto(clave).includes(valor)
   const pasa = (e: SubmissionSummary, salvo?: 'texto' | 'estado' | 'grupo' | 'persona') => {
     const t = texto.trim().toLowerCase()
     if (salvo !== 'texto' && t && !`${e.learner ?? ''} ${e.title} ${e.group}`.toLowerCase().includes(t)) return false
-    if (salvo !== 'estado' && estados.length > 0 && !estados.includes(e.status)) return false
-    if (salvo !== 'grupo' && grupos.length > 0 && !grupos.includes(e.group)) return false
-    if (salvo !== 'persona' && personas.length > 0 && !personas.includes(e.learner ?? '')) return false
-    return true
+    return deja('estado', e.status, salvo) && deja('grupo', e.group, salvo) && deja('persona', e.learner ?? '', salvo)
   }
 
   const porEstado = facets(todas.filter((e) => pasa(e, 'estado')), (e) => e.status)
   const porGrupo = facets(todas.filter((e) => pasa(e, 'grupo')), (e) => e.group)
   const porPersona = facets(todas.filter((e) => pasa(e, 'persona')), (e) => e.learner)
 
-  const opcionesEstado = (Object.keys(ESTADOS) as Estado[]).map((k) => ({ value: k, label: ESTADOS[k].label, color: ESTADOS[k].color, count: porEstado[k] ?? 0 }))
   const alfabetico = (a: string, b: string) => a.localeCompare(b, 'es')
-  const opcionesGrupo = [...new Set(todas.map((e) => e.group))].sort(alfabetico).map((g) => ({ value: g, label: g, count: porGrupo[g] ?? 0 }))
-  const opcionesPersona = [...new Set(todas.map((e) => e.learner).filter((n): n is string => !!n))].sort(alfabetico)
-    .map((n) => ({ value: n, label: n, avatar: true, count: porPersona[n] ?? 0 }))
+  const disponibles = [
+    {
+      name: 'estado', label: 'Estado', icon: <Icon icon={CircleDot} size="sm" />,
+      options: (Object.keys(ESTADOS) as Estado[]).map((k) => ({ value: k, label: ESTADOS[k].label, color: ESTADOS[k].color, count: porEstado[k] ?? 0 })),
+    },
+    {
+      name: 'grupo', label: 'Grupo', icon: <Icon icon={School} size="sm" />,
+      options: [...new Set(todas.map((e) => e.group))].sort(alfabetico).map((g) => ({ value: g, label: g, count: porGrupo[g] ?? 0 })),
+    },
+    {
+      name: 'persona', label: 'Aprendiz', icon: <Icon icon={User} size="sm" />,
+      options: [...new Set(todas.map((e) => e.learner).filter((n): n is string => !!n))].sort(alfabetico)
+        .map((n) => ({ value: n, label: n, avatar: true, count: porPersona[n] ?? 0 })),
+    },
+  ].filter((f) => f.options.length > 1)
 
   const valor = (e: SubmissionSummary) =>
     orden.por === 'learner' ? (e.learner ?? '') : orden.por === 'when' ? e.when : orden.por === 'minutes' ? e.minutes : e.accuracy
@@ -72,8 +85,8 @@ export function Submissions() {
     return (orden.dir === 'asc' ? 1 : -1) * (typeof x === 'string' ? x.localeCompare(y as string, 'es') : x - (y as number))
   })
 
-  const filtrando = texto !== '' || estados.length > 0 || grupos.length > 0 || personas.length > 0
-  const limpiar = () => { setTexto(''); setEstados([]); setGrupos([]); setPersonas([]) }
+  const filtrando = texto !== '' || Object.values(filtros).some((v) => v.length > 0)
+  const limpiar = () => { setTexto(''); setFiltros({}) }
 
   const ordenarPor = (por: Por) =>
     setOrden((o) => (o.por === por ? { por, dir: o.dir === 'asc' ? 'desc' : 'asc' } : { por, dir: por === 'learner' ? 'asc' : 'desc' }))
@@ -107,10 +120,7 @@ export function Submissions() {
 
       <FilterBar>
         <FilterSearch value={texto} onValueChange={setTexto} placeholder="Buscar por nombre o actividad" />
-        <Filter label="Estado" options={opcionesEstado} value={estados} onValueChange={setEstados} />
-        {opcionesGrupo.length > 1 && <Filter label="Grupo" options={opcionesGrupo} value={grupos} onValueChange={setGrupos} />}
-        {opcionesPersona.length > 1 && <Filter label="Aprendiz" options={opcionesPersona} value={personas} onValueChange={setPersonas} />}
-        {filtrando && <FilterReset onClick={limpiar} />}
+        <FilterSet filters={disponibles} value={filtros} onValueChange={setFiltros} onReset={limpiar} />
       </FilterBar>
 
       <Card className="overflow-hidden">

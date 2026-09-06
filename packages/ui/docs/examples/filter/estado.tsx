@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Filter, Text } from '@melu/ui'
+import { CircleDot, Compass } from 'lucide-react'
+import { Filter, Icon, Text } from '@melu/ui'
 
 const ESTADOS = [
   { value: 'submitted', label: 'Para mirar', color: 'warning', count: 12 },
@@ -14,9 +15,9 @@ export default function Demo() {
   return (
     <div className="flex flex-col items-start gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        <Filter label="Estado" options={[...ESTADOS]} value={estados} onValueChange={setEstados} />
+        <Filter label="Estado" icon={<Icon icon={CircleDot} size="sm" />} options={[...ESTADOS]} value={estados} onValueChange={setEstados} />
         <Filter
-          label="Lente" multiple={false} value={lente} onValueChange={setLente}
+          label="Lente" icon={<Icon icon={Compass} size="sm" />} multiple={false} value={lente} onValueChange={setLente}
           options={[
             { value: 'explore', label: 'Explorar', color: 'cyan' },
             { value: 'build', label: 'Construir', color: 'lilac' },

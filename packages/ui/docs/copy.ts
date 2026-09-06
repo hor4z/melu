@@ -120,11 +120,22 @@ export const COPY: Record<string, string> = {
     'La letra chica, en pedazos: las columnas de la tabla que en el celular pasan a ser una sola '
     + 'línea. Pone el punto entre una y otra, así nadie escribe separadores a mano y terminan todos distintos.',
   DataListActions: 'Las acciones, en la esquina de cierre de la ficha.',
+  FilterSet:
+    'Los filtros de una tabla, agregados de a uno. Es un botón mientras no hay nada filtrando, y '
+    + 'cada filtro que se elige ahí aparece como una pastilla con su panel y su X. Mostrar todos '
+    + 'los filtros de golpe le pide a la persona que los lea todos antes de saber cuál quiere; '
+    + 'mostrar uno le pide que diga qué está buscando. Rinde hermanos, así que va adentro de una '
+    + '`FilterBar`, al lado de la búsqueda.',
+  'FilterSet.value': 'Qué está puesto: `{ estado: [\'submitted\'] }`. Una clave que está es un filtro en la barra.',
+  'FilterSet.label': 'La palabra del botón mientras la barra está vacía.',
+  'FilterSet.onReset': 'Reemplaza lo que hace el reset: sirve cuando la pantalla además tiene que vaciar su búsqueda.',
+  'Filter.defaultOpen': 'Abre el panel apenas aparece: el que se acaba de agregar está pidiendo que lo contesten.',
+  'Filter.onRemove': 'Dibuja la X que saca el filtro de la barra. Sin esto, el filtro está siempre.',
   Filter:
     'Un filtro de una tabla: un botón que dice qué filtra, y un panel para elegir. Guarda un arreglo '
     + 'de valores porque lo normal es querer dos estados a la vez, y funciona controlado o no, como el resto.',
   'Filter.label': 'Qué se filtra: "Estado", "Grupo". Es el nombre del botón y el de la lista.',
-  'Filter.icon': 'Reemplaza el embudo del botón.',
+  'Filter.icon': 'Va a la izquierda del nombre, para distinguir un filtro de otro de un vistazo.',
   'Filter.loading': 'Mientras las opciones se están trayendo.',
   'Filter.multiple': 'Con `false` se elige una sola opción, y elegir cierra el panel.',
   'Filter.search':

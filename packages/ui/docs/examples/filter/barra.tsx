@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { CircleDot, School } from 'lucide-react'
 import {
-  Chip, EmptyState, Filter, FilterBar, FilterReset, FilterSearch, facets,
+  Chip, EmptyState, FilterBar, FilterSearch, FilterSet, Icon, facets,
   Table, TableBody, TableCell, TableEmpty, TableHead, TableHeader, TableRow,
 } from '@melu/ui'
 
@@ -19,32 +20,36 @@ const ESTADOS = {
 
 export default function Demo() {
   const [texto, setTexto] = useState('')
-  const [estados, setEstados] = useState<string[]>([])
-  const [grupos, setGrupos] = useState<string[]>([])
+  const [filtros, setFiltros] = useState<Record<string, string[]>>({})
 
-  const pasa = (e: typeof ENTREGAS[number], salvo?: 'estado' | 'grupo') =>
+  const puesto = (k: string) => filtros[k] ?? []
+  const deja = (k: string, v: string, salvo?: string) => salvo === k || puesto(k).length === 0 || puesto(k).includes(v)
+  const pasa = (e: typeof ENTREGAS[number], salvo?: string) =>
     (!texto || `${e.quien} ${e.que}`.toLowerCase().includes(texto.toLowerCase()))
-    && (salvo === 'estado' || estados.length === 0 || estados.includes(e.estado))
-    && (salvo === 'grupo' || grupos.length === 0 || grupos.includes(e.grupo))
+    && deja('estado', e.estado, salvo) && deja('grupo', e.grupo, salvo)
 
   const porEstado = facets(ENTREGAS.filter((e) => pasa(e, 'estado')), (e) => e.estado)
   const porGrupo = facets(ENTREGAS.filter((e) => pasa(e, 'grupo')), (e) => e.grupo)
   const filas = ENTREGAS.filter((e) => pasa(e))
-  const filtrando = texto !== '' || estados.length > 0 || grupos.length > 0
 
   return (
     <div className="flex w-full flex-col gap-4">
       <FilterBar>
         <FilterSearch value={texto} onValueChange={setTexto} placeholder="Buscar entregas" />
-        <Filter
-          label="Estado" value={estados} onValueChange={setEstados}
-          options={(Object.keys(ESTADOS) as (keyof typeof ESTADOS)[]).map((k) => ({ value: k, label: ESTADOS[k].label, color: ESTADOS[k].color, count: porEstado[k] ?? 0 }))}
+        <FilterSet
+          value={filtros} onValueChange={setFiltros}
+          onReset={() => { setTexto(''); setFiltros({}) }}
+          filters={[
+            {
+              name: 'estado', label: 'Estado', icon: <Icon icon={CircleDot} size="sm" />,
+              options: (Object.keys(ESTADOS) as (keyof typeof ESTADOS)[]).map((k) => ({ value: k, label: ESTADOS[k].label, color: ESTADOS[k].color, count: porEstado[k] ?? 0 })),
+            },
+            {
+              name: 'grupo', label: 'Grupo', icon: <Icon icon={School} size="sm" />,
+              options: ['4° A', '4° B'].map((g) => ({ value: g, label: g, count: porGrupo[g] ?? 0 })),
+            },
+          ]}
         />
-        <Filter
-          label="Grupo" value={grupos} onValueChange={setGrupos}
-          options={['4° A', '4° B'].map((g) => ({ value: g, label: g, count: porGrupo[g] ?? 0 }))}
-        />
-        {filtrando && <FilterReset onClick={() => { setTexto(''); setEstados([]); setGrupos([]) }} />}
       </FilterBar>
 
       <Table size="sm">

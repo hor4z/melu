@@ -5,7 +5,7 @@ import {
   Heading, Icon, IconButton, Input, Logo, Progress, ProgressRing, Slider, Sparkline, Spinner, Switch,
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Text,
 } from '@melu/ui'
-import { CircleCheck, Layers, ListFilter, MoreHorizontal, Search, Sparkles, Star } from 'lucide-react'
+import { CircleCheck, CircleDot, Layers, ListFilter, MoreHorizontal, Search, Sparkles, Star, X } from 'lucide-react'
 
 const frame = 'pointer-events-none flex flex-wrap items-center justify-center gap-2'
 
@@ -176,15 +176,19 @@ export const PREVIEWS: Record<string, () => React.ReactNode> = {
   ),
   filter: () => (
     <div className={frame}>
-      <span className="inline-flex h-8 items-center gap-2 rounded-md border border-ink bg-surface px-2.5 text-sm font-medium">
-        <Icon icon={ListFilter} size="sm" className="text-ink-subtle" />
-        Estado
+      <span className="inline-flex h-8 items-center rounded-md border border-ink bg-surface text-sm font-medium">
+        <span className="inline-flex h-full items-center gap-2 px-2.5">
+          <Icon icon={CircleDot} size="sm" className="text-ink-subtle" />
+          Estado
+          <span className="h-4 w-px bg-line" />
+          <Chip size="sm" color="warning">Para mirar</Chip>
+        </span>
         <span className="h-4 w-px bg-line" />
-        <Chip size="sm" color="warning">Para mirar</Chip>
+        <span className="grid h-full place-items-center px-1.5 text-ink-subtle"><Icon icon={X} size="sm" /></span>
       </span>
       <span className="inline-flex h-8 items-center gap-2 rounded-md border border-dashed border-line-strong px-2.5 text-sm font-medium text-ink-muted">
-        <Icon icon={ListFilter} size="sm" className="text-ink-subtle" />
-        Grupo
+        <Icon icon={ListFilter} size="sm" />
+        Filtrar
       </span>
     </div>
   ),

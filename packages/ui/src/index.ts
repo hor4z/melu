@@ -51,8 +51,8 @@ export {
   type DataListItemProps,
 } from './data-list'
 export {
-  Filter, FilterBar, FilterSearch, FilterReset, facets,
-  type FilterProps, type FilterOption, type FilterColor, type FilterSearchProps,
+  Filter, FilterSet, FilterBar, FilterSearch, FilterReset, facets,
+  type FilterProps, type FilterSetProps, type FilterDef, type FilterOption, type FilterColor, type FilterSearchProps,
 } from './filter'
 export { useMediaQuery, useDevice, BREAKPOINTS, type Device } from './media'
 export { Alert, Separator, Skeleton, Progress, EmptyState, type AlertProps } from './feedback'

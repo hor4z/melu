@@ -4,6 +4,7 @@ import { cn, focusRing, useControllableState } from './lib'
 import { Icon } from './icon'
 import { Avatar, AvatarGroup } from './avatar'
 import { Chip } from './chip'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './dropdown'
 import { Input, type InputProps } from './input'
 import { Popover, PopoverContent, PopoverTrigger } from './popover'
 import { Spinner } from './spinner'
@@ -52,8 +53,12 @@ export interface FilterProps {
   onSearchChange?: (search: string) => void
   /** While the options are being brought in. */
   loading?: boolean
-  /** Replaces the funnel of the button. */
+  /** Goes to the left of the name, to tell one filter from another at a glance. */
   icon?: ReactNode
+  /** Opens the panel as soon as it appears: the one just added is asking to be answered. */
+  defaultOpen?: boolean
+  /** Draws the X that takes the filter off the bar. Without it the filter is always there. */
+  onRemove?: () => void
   size?: 'sm' | 'md'
   className?: string
 }
@@ -65,10 +70,10 @@ export interface FilterProps {
  */
 export function Filter({
   label, options, value, defaultValue = [], onValueChange, multiple = true,
-  searchable, search, onSearchChange, loading, icon, size = 'sm', className,
+  searchable, search, onSearchChange, loading, icon, defaultOpen = false, onRemove, size = 'sm', className,
 }: FilterProps) {
   const [chosen, setChosen] = useControllableState<string[]>({ value, defaultValue, onChange: onValueChange })
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(defaultOpen)
   const [ownQuery, setOwnQuery] = useState('')
 
   // Whoever passes `search` is searching on their side (over the wire, say): the options
@@ -121,31 +126,49 @@ export function Filter({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger>
-        <button
-          type="button"
-          aria-label={picked.length ? `${label}: ${picked.map((o) => o.label).join(', ')}` : label}
-          className={cn(
-            `inline-flex max-w-full items-center gap-2 rounded-md border px-2.5 text-sm font-medium transition-colors ${focusRing}`,
-            HEIGHT[size],
-            picked.length ? 'border-ink bg-surface text-ink' : 'border-dashed border-line-strong text-ink-muted hover:border-ink hover:text-ink',
-            className,
-          )}
-        >
-          {icon ?? <Icon icon={ListFilter} size="sm" className="text-ink-subtle" />}
-          {label}
-          {picked.length > 0 && (
-            <>
-              <span className="h-4 w-px shrink-0 bg-line" />
-              {faces
-                ? <AvatarGroup names={picked.map((o) => o.label)} max={3} size="xs" />
-                : picked.length <= 2
-                  ? picked.map((o) => <Chip key={o.value} size="sm" color={o.color ?? 'default'}>{o.label}</Chip>)
-                  : <Chip size="sm">{picked.length} elegidos</Chip>}
-            </>
-          )}
-        </button>
-      </PopoverTrigger>
+      {/* The pill holds two buttons: the X has to be a sibling and not a button inside another
+          one, which is neither valid HTML nor reachable with the tab key. The anchor is the
+          left one, which is where the panel hangs from. */}
+      <span
+        className={cn(
+          'inline-flex max-w-full items-center rounded-md border text-sm font-medium transition-colors',
+          HEIGHT[size],
+          picked.length ? 'border-ink bg-surface text-ink' : 'border-dashed border-line-strong text-ink-muted hover:border-ink',
+          className,
+        )}
+      >
+        <PopoverTrigger>
+          <button
+            type="button"
+            aria-label={picked.length ? `${label}: ${picked.map((o) => o.label).join(', ')}` : label}
+            className={cn(`inline-flex h-full max-w-full items-center gap-2 rounded-md px-2.5 transition-colors ${focusRing}`, !picked.length && 'hover:text-ink')}
+          >
+            {icon}
+            {label}
+            {picked.length > 0 && (
+              <>
+                <span className="h-4 w-px shrink-0 bg-line" />
+                {faces
+                  ? <AvatarGroup names={picked.map((o) => o.label)} max={3} size="xs" />
+                  : picked.length <= 2
+                    ? picked.map((o) => <Chip key={o.value} size="sm" color={o.color ?? 'default'}>{o.label}</Chip>)
+                    : <Chip size="sm">{picked.length} elegidos</Chip>}
+              </>
+            )}
+          </button>
+        </PopoverTrigger>
+        {onRemove && (
+          <>
+            <span className="h-4 w-px shrink-0 bg-line" />
+            <button
+              type="button" onClick={onRemove} aria-label={`Sacar el filtro ${label}`}
+              className={`grid h-full place-items-center rounded-md px-1.5 text-ink-subtle transition-colors hover:text-ink ${focusRing}`}
+            >
+              <Icon icon={X} size="sm" />
+            </button>
+          </>
+        )}
+      </span>
 
       <PopoverContent className="w-64 p-0" onKeyDown={moveBy}>
         {withBox && (
@@ -196,6 +219,91 @@ export function Filter({
         )}
       </PopoverContent>
     </Popover>
+  )
+}
+
+export type FilterDef = {
+  /** The key the value travels under: `estado`. */
+  name: string
+  label: string
+  icon?: ReactNode
+  options: FilterOption[]
+  multiple?: boolean
+  searchable?: boolean
+}
+
+export interface FilterSetProps {
+  filters: FilterDef[]
+  /** What is on: `{ estado: ['submitted'] }`. A key that is there is a filter on the bar. */
+  value?: Record<string, string[]>
+  defaultValue?: Record<string, string[]>
+  onValueChange?: (value: Record<string, string[]>) => void
+  /** The word on the button while the bar is empty. */
+  label?: string
+  /** Replaces what the reset does: useful when the screen also has to empty its search. */
+  onReset?: () => void
+  size?: 'sm' | 'md'
+}
+
+/**
+ * The filters of a table, added one at a time. It is one button while nothing is filtering,
+ * and each filter that is chosen from it appears as a pill with its own panel and its own X.
+ *
+ * Showing every filter at once asks the person to read them all before knowing which one they
+ * want; showing one asks them to say what they are looking for. It renders siblings, so it goes
+ * inside a `FilterBar`, next to the search.
+ */
+export function FilterSet({ filters, value, defaultValue = {}, onValueChange, label = 'Filtrar', onReset, size = 'sm' }: FilterSetProps) {
+  const [applied, setApplied] = useControllableState<Record<string, string[]>>({ value, defaultValue, onChange: onValueChange })
+  // The one just added opens its panel by itself: it was chosen to be answered, not to be looked at.
+  const [added, setAdded] = useState<string | null>(null)
+
+  const on = filters.filter((f) => applied[f.name] !== undefined)
+  const off = filters.filter((f) => applied[f.name] === undefined)
+
+  const add = (name: string) => { setApplied({ ...applied, [name]: [] }); setAdded(name) }
+  const drop = (name: string) => {
+    const rest = { ...applied }
+    delete rest[name]
+    setApplied(rest)
+  }
+
+  return (
+    <>
+      {on.map((f) => (
+        <Filter
+          key={f.name} label={f.label} icon={f.icon} options={f.options} multiple={f.multiple} searchable={f.searchable}
+          size={size} value={applied[f.name] ?? []} onValueChange={(v) => setApplied({ ...applied, [f.name]: v })}
+          defaultOpen={added === f.name} onRemove={() => drop(f.name)}
+        />
+      ))}
+
+      {off.length > 0 && (
+        <DropdownMenu placement="bottom-start">
+          <DropdownMenuTrigger>
+            <button
+              type="button" aria-label={label}
+              className={cn(
+                `inline-flex items-center gap-2 rounded-md border border-dashed border-line-strong px-2.5 text-sm font-medium text-ink-muted transition-colors hover:border-ink hover:text-ink ${focusRing}`,
+                HEIGHT[size],
+              )}
+            >
+              <Icon icon={ListFilter} size="sm" />
+              {/* With filters on, the button becomes an icon: what matters on the bar is what
+                  is filtering, not the invitation to add one more. */}
+              {on.length === 0 && label}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent minWidth={200}>
+            {off.map((f) => (
+              <DropdownMenuItem key={f.name} icon={f.icon} onClick={() => add(f.name)}>{f.label}</DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+
+      {on.length > 0 && <FilterReset onClick={() => (onReset ? onReset() : setApplied({}))} />}
+    </>
   )
 }
 
