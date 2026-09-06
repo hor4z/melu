@@ -24,6 +24,9 @@ export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter, 
 export { Chip, Badge, type ChipProps } from './chip'
 export { Avatar, AvatarGroup, initials, tintOf, type AvatarProps } from './avatar'
 export {
+  avatarArt, artValues, isColorPart, ART_STYLES, ART_STYLE_LABELS, ART_PARTS, ART_PART_LABELS, type ArtStyle,
+} from './avatar-art'
+export {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuCheckboxItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuGroup, MoreMenu, MenuButton,
   type DropdownMenuProps, type DropdownMenuItemProps, type MenuOption, type MenuButtonProps,

@@ -1,5 +1,7 @@
 import { useState, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
+import { avatarArt, type ArtStyle } from './avatar-art'
+export type { ArtStyle }
 import { cn, Slot } from './lib'
 
 const SIZES = { xs: 'size-6 text-2xs', sm: 'size-8 text-xs', md: 'size-10 text-sm', lg: 'size-12 text-base', xl: 'size-16 text-xl' }
@@ -29,6 +31,12 @@ export function tintOf(name: string) {
 export interface AvatarProps extends Omit<ComponentPropsWithoutRef<'span'>, 'children'>, VariantProps<typeof avatarVariants> {
   name: string
   src?: string
+  /** Draws the figure with this style, and ignores `src`: it is what the person chose. */
+  artStyle?: ArtStyle
+  /** What the figure is drawn from. Empty falls back to the name. */
+  artSeed?: string
+  /** The parts the person picked, like `{ eyes: 'variant03' }`. Which ones exist is per style. */
+  artOptions?: Record<string, string>
   /** Status dot in the corner: online, pending, whatever you need. */
   status?: 'online' | 'busy' | 'away' | ReactNode
   asChild?: boolean
@@ -36,17 +44,23 @@ export interface AvatarProps extends Omit<ComponentPropsWithoutRef<'span'>, 'chi
 
 const STATUS_COLOR = { online: 'bg-success', busy: 'bg-danger', away: 'bg-warning' }
 
-export function Avatar({ name, src, size, shape, status, asChild, className, ...props }: AvatarProps) {
+export function Avatar({ name, src, artStyle, artSeed, artOptions, size, shape, status, asChild, className, ...props }: AvatarProps) {
   const [fails, setFails] = useState(false)
   const Cmp = asChild ? Slot : 'span'
+  // A chosen figure beats the photo: whoever picked one did it to not be their photo.
+  const photo = src && !artStyle && !fails
   return (
-    <Cmp className={cn(avatarVariants({ size, shape }), !src || fails ? tintOf(name) : 'bg-muted', className)} title={name} {...props}>
-      {src && !fails
+    <Cmp className={cn(avatarVariants({ size, shape }), photo ? 'bg-muted' : tintOf(name), className)} title={name} {...props}>
+      {photo
         ? <img src={src} alt={name} onError={() => setFails(true)} className="size-full object-cover"
             // Sin esto el navegador manda el referrer y los avatares de terceros (Google entre
-            // ellos) contestan con un error. La foto se cae a las iniciales y parece un bug del kit.
+            // ellos) contestan con un error. La foto se cae a la figura y parece un bug del kit.
             referrerPolicy="no-referrer" loading="lazy" />
-        : <span aria-hidden="true">{initials(name)}</span>}
+        // El `[&>svg]:size-full` no es de adorno: la librería dibuja el SVG con su tamaño
+        // propio y sin esto se sale de la caja, que en una lista de avatares chicos se ve como
+        // una fila de cuadrados estirados.
+        : <span aria-hidden="true" className="size-full [&>svg]:size-full"
+            dangerouslySetInnerHTML={{ __html: avatarArt(artStyle, artSeed || name, artOptions) }} />}
       <span className="sr-only">{name}</span>
       {status && (typeof status === 'string' && status in STATUS_COLOR
         ? <span className={cn('absolute bottom-0 right-0 size-1/4 rounded-full ring-2 ring-surface', STATUS_COLOR[status as keyof typeof STATUS_COLOR])} />
