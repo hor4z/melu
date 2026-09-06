@@ -50,9 +50,9 @@ type Dashboard struct {
 	Graded     int     `json:"graded"`
 	AvgMinutes float64 `json:"avgMinutes"`
 	Accuracy   float64 `json:"accuracy"`
-	// Los mismos dos, de los siete días anteriores. «34.6 min» sin nada al lado no le dice nada
+	// Los mismos dos, de los siete días anteriores. "34.6 min" sin nada al lado no le dice nada
 	// a un docente: recién significa algo comparado con lo que era. -1 cuando no hay contra qué
-	// comparar, que tiene que leerse como «todavía no sé» y no como cero.
+	// comparar, que tiene que leerse como "todavía no sé" y no como cero.
 	PrevAvgMinutes    float64             `json:"prevAvgMinutes"`
 	PrevAccuracy      float64             `json:"prevAccuracy"`
 	WeekSeries        []DaySeries         `json:"weekSeries"`
@@ -282,7 +282,7 @@ func (s *Services) signals(byLearner map[string][]Fact, median float64, recipes 
 			id, t := recipe("Fracciones en la cocina")
 			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "misses", Detail: "Falló la mitad o más de los chequeos en 2 misiones", Suggestion: "Volver a lo concreto antes del símbolo: una actividad con lente CPA, corta, en casa.", RecipeID: id, RecipeTitle: t})
 		case untouched != nil:
-			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "dropout", Detail: "Abrió «" + untouched.Title + "» hace más de 2 días y no la entregó", Suggestion: "Preguntale en qué fase se trabó. Si es la primera, la consigna puede no estar clara.", AssignmentID: untouched.AssignmentID})
+			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "dropout", Detail: `Abrió "` + untouched.Title + `" hace más de 2 días y no la entregó`, Suggestion: "Preguntale en qué fase se trabó. Si es la primera, la consigna puede no estar clara.", AssignmentID: untouched.AssignmentID})
 		case slow >= 2:
 			id, t := recipe("Reto de la semana")
 			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "slow", Detail: "Tarda más del doble que el grupo en 2 misiones", Suggestion: "Partir la actividad en fases más cortas o trabajarla en pareja.", RecipeID: id, RecipeTitle: t})

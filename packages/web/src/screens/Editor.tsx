@@ -133,7 +133,7 @@ function EditorLoaded({ initial }: { initial: Activity }) {
         <Card padding="sm" className="gap-2">
           <Button block onClick={() => setAssign(true)} startIcon={<Icon icon={Send} />}>Asignar a un grupo</Button>
           <Button block variant="secondary" loading={template.isPending} onClick={() => template.mutate()} startIcon={<Icon icon={LayoutTemplate} />}>{template.isSuccess ? 'Guardada como plantilla ✓' : 'Guardar como plantilla'}</Button>
-          <Text size="xs" variant="muted">Una plantilla aparece en «Nueva actividad» para vos y para los guías de tu espacio.</Text>
+          <Text size="xs" variant="muted">Una plantilla aparece en "Nueva actividad" para vos y para los guías de tu espacio.</Text>
         </Card>
         <Card padding="sm" className="gap-3">
           <div><Eyebrow>Rúbrica</Eyebrow><Text size="xs" variant="muted">Qué vas a mirar cuando corrijas. Tres niveles por criterio.</Text></div>
@@ -284,7 +284,7 @@ function BlockEditor({ b, idx, focused, isFirst, isLast, onChange, onEnter, onRe
           )
         })}
         {CATEGORIES.every(([, kinds]) => !kinds.some((k) => !query || BLOCK_TYPES[k].name.toLowerCase().includes(query) || k.includes(query))) && (
-          <p className="px-3 py-2 text-sm text-ink-muted">Ningún bloque coincide con «{query}».</p>
+          <p className="px-3 py-2 text-sm text-ink-muted">Ningún bloque coincide con "{query}".</p>
         )}
       </PopoverContent>
       </Popover>
@@ -475,7 +475,7 @@ function AssignDialog({ isOpen, onClose, activityId, onAssigned }: { isOpen: boo
   const assign = useMutation({ mutationFn: (groupId: string) => api.post(`/api/activities/${activityId}/assign`, { groupId }), onSuccess: (_, gid) => setReady(gid) })
   const groupList = useMemo(() => groups.data ?? [], [groups.data])
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Asignar a un grupo" description="Los chicos la ven en «Hoy». Se congela una copia: si editás después, lo asignado no cambia." footer={<>{ready && <Button onClick={() => onAssigned(ready)}>Ir al grupo</Button>}<Button variant="ghost" onClick={onClose}>Cerrar</Button></>}>
+    <Modal isOpen={isOpen} onClose={onClose} title="Asignar a un grupo" description='Los chicos la ven en "Hoy". Se congela una copia: si editás después, lo asignado no cambia.' footer={<>{ready && <Button onClick={() => onAssigned(ready)}>Ir al grupo</Button>}<Button variant="ghost" onClick={onClose}>Cerrar</Button></>}>
       <div className="flex flex-col gap-2">
         {groupList.length === 0 && <Text variant="muted">Todavía no tenés grupos.</Text>}
         {groupList.map((g) => (

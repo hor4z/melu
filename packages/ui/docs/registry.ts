@@ -59,7 +59,7 @@ export const REGISTRY: Entry[] = [
     exports: ['IconButton'],
     demos: [
       { id: 'variants', title: 'Variantes y formas', note: 'Las mismas variantes que `Button`, más `shape` para el círculo.' },
-      { id: 'label', title: 'El label no es opcional', note: 'Está en el tipo: sin él no compila, porque sin él el lector anuncia «botón».' },
+      { id: 'label', title: 'El label no es opcional', note: 'Está en el tipo: sin él no compila, porque sin él el lector anuncia "botón".' },
     ],
     when: ['La acción se entiende sola por el ícono y el espacio es poco: una fila, una barra, una tarjeta.'],
     whenNot: ['Si el ícono necesita explicación, poné texto: un `Button` con `startIcon`.'],
@@ -110,7 +110,7 @@ export const REGISTRY: Entry[] = [
     summary: 'Sí o no, con estado intermedio cuando manda a un grupo.',
     exports: ['Checkbox'],
     demos: [
-      { id: 'basic', title: 'Los tres estados', note: '`indeterminate` es un estado real, no un truco visual: se anuncia como «mixto».' },
+      { id: 'basic', title: 'Los tres estados', note: '`indeterminate` es un estado real, no un truco visual: se anuncia como "mixto".' },
     ],
   },
   {

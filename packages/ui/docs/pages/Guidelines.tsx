@@ -59,12 +59,12 @@ export function Guidelines() {
           note="No es una capa que se agrega al final: son props obligatorias.">
           <div className="flex flex-col gap-4">
             <Rule title={<>Un botón sin texto lleva <code className="font-mono text-sm">aria-label</code>, y es obligatorio</>}
-              why="Es el nombre accesible del botón. Sin él, un lector de pantalla anuncia «botón» y nada más.">
+              why='Es el nombre accesible del botón. Sin él, un lector de pantalla anuncia "botón" y nada más.'>
               <code className="font-mono text-xs">IconButton</code> lo pide en el tipo: no compila sin él.
             </Rule>
             <DoDont
               good={<div className="flex items-center gap-3"><IconButton icon={<Icon icon={Trash2} />} label="Borrar la actividad" /><Text size="sm" variant="muted">se anuncia bien</Text></div>}
-              bad={<div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-md border border-line"><Icon icon={Trash2} /></span><Text size="sm" variant="muted">«botón», y nada más</Text></div>}
+              bad={<div className="flex items-center gap-3"><span className="grid size-9 place-items-center rounded-md border border-line"><Icon icon={Trash2} /></span><Text size="sm" variant="muted">"botón", y nada más</Text></div>}
             />
             <Rule title="Un icono decorativo no se anuncia"
               why="Si al lado hay texto que dice lo mismo, el lector lo repite dos veces.">
@@ -84,7 +84,7 @@ export function Guidelines() {
           note="Lo que dicen las pantallas es parte del sistema.">
           <div className="flex flex-col gap-4">
             <Rule title="Un vacío siempre dice qué falta y qué se puede hacer"
-              why="«No hay nada» deja a la persona sin salida. El vacío es el mejor momento para enseñar el producto.">
+              why='"No hay nada" deja a la persona sin salida. El vacío es el mejor momento para enseñar el producto.'>
               <code className="font-mono text-xs">EmptyState</code> pide título, explicación y acción.
             </Rule>
             <div className="grid gap-4 sm:grid-cols-2">

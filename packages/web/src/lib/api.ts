@@ -11,7 +11,7 @@ async function req<T>(method: string, path: string, body?: unknown): Promise<T> 
     body: body ? JSON.stringify(body) : undefined,
     credentials: 'same-origin',
   })
-  // El 401 de `/api/me` es la respuesta normal a «todavía no entraste», y quien pregunta ya
+  // El 401 de `/api/me` es la respuesta normal a "todavía no entraste", y quien pregunta ya
   // sabe qué hacer con él. En cualquier otra ruta significa que la sesión se venció mientras la
   // persona navegaba: sin avisar, cada pantalla se rompe por su cuenta.
   if (res.status === 401 && path !== '/api/me') onExpired?.()

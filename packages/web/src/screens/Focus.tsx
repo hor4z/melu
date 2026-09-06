@@ -1,6 +1,6 @@
-// «Cómo vienen»: la pantalla a la que se entra a entender a la gente.
+// "Cómo vienen": la pantalla a la que se entra a entender a la gente.
 //
-// Inicio responde «qué tengo que hacer ahora». Esto responde «quién necesita una mano», que se
+// Inicio responde "qué tengo que hacer ahora". Esto responde "quién necesita una mano", que se
 // lee más despacio y no debería estar compitiendo con lo urgente. La regla de lo que entra acá:
 // nada se muestra si no termina en algo que el docente pueda hacer. Por eso el orden es el de la
 // urgencia y no el de la prolijidad: primero quien se traba, al final los promedios.
@@ -58,7 +58,7 @@ export function Focus() {
                     <div className="flex flex-wrap items-center gap-2"><span className="font-semibold">{s.learner}</span><Chip size="sm">{t.label}</Chip><Text size="xs" variant="muted">{s.group}</Text></div>
                     <p className="mt-1 text-sm text-ink-muted">{s.detail}</p>
                     <p className="mt-2 text-sm">{s.suggestion}</p>
-                    {s.recipeTitle && <Text size="xs" variant="subtle" className="mt-1">Asignar le manda «{s.recipeTitle}».</Text>}
+                    {s.recipeTitle && <Text size="xs" variant="subtle" className="mt-1">Asignar le manda "{s.recipeTitle}".</Text>}
                   </div>
                   <div className="shrink-0"><SignalAction signal={s} /></div>
                 </li>

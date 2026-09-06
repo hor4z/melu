@@ -92,7 +92,7 @@ function SortGame({ b, value, onChange, status, reveal }: Props) {
           </div>
         ))}
       </div>
-      {taken !== null && <Text size="sm" variant="muted" className="ui-nudge">Tocá la caja donde va «{items[taken].text}».</Text>}
+      {taken !== null && <Text size="sm" variant="muted" className="ui-nudge">Tocá la caja donde va "{items[taken].text}".</Text>}
     </div>
   )
 }

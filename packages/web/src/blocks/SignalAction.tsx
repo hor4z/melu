@@ -54,7 +54,7 @@ export function SignalAction({ signal }: { signal: Signal }) {
     <div className="flex flex-col items-end gap-1">
       <Button size="sm" variant="secondary" loading={assign.isPending} onClick={() => assign.mutate()}
         startIcon={<Icon icon={Wand2} size="sm" />}
-        aria-label={`Asignar «${signal.recipeTitle}» a ${signal.group}`}>
+        aria-label={`Asignar "${signal.recipeTitle}" a ${signal.group}`}>
         Asignar
       </Button>
       {assign.isError && <Text size="xs" variant="danger">No se pudo. Probá de nuevo.</Text>}

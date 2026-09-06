@@ -97,7 +97,7 @@ export function NewActivity() {
             <Cover title={title || base?.title || 'Sin título'} className="h-28 rounded-xl" />
             <div className="font-display text-xl font-semibold">{title || 'Sin título'}</div>
             <CompositionChips c={{ ...comp, disciplines: disc.split(',').map((s) => s.trim()).filter(Boolean) }} />
-            {base && <Text size="xs" variant="muted">Basada en «{base.title}»: {base.document.phases.reduce((n, f) => n + f.blocks.length, 0)} bloques listos para editar.</Text>}
+            {base && <Text size="xs" variant="muted">Basada en "{base.title}": {base.document.phases.reduce((n, f) => n + f.blocks.length, 0)} bloques listos para editar.</Text>}
           </aside></Card>
         </form>
       )}

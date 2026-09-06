@@ -70,10 +70,10 @@ const BY_BAND: Record<Band, {
       title: 'Cuatro maneras de empezar lo mismo.',
       subtitle: 'Contar los pasos que hay hasta el patio. ¿Cuál te dan ganas de abrir?',
       options: [
-        { value: 'challenge', title: '«¿Podés adivinar cuántos pasos son, antes de contarlos?»', footer: 'Un desafío' },
-        { value: 'story', title: '«Un pingüino se perdió y tiene que contar los pasos para volver a casa.»', footer: 'Un cuento' },
-        { value: 'game', title: '«Nivel 1. Un punto por cada paso bien contado.»', footer: 'Un juego' },
-        { value: 'real', title: '«Salimos al patio de verdad y los contamos.»', footer: 'De verdad' },
+        { value: 'challenge', title: '"¿Podés adivinar cuántos pasos son, antes de contarlos?"', footer: 'Un desafío' },
+        { value: 'story', title: '"Un pingüino se perdió y tiene que contar los pasos para volver a casa."', footer: 'Un cuento' },
+        { value: 'game', title: '"Nivel 1. Un punto por cada paso bien contado."', footer: 'Un juego' },
+        { value: 'real', title: '"Salimos al patio de verdad y los contamos."', footer: 'De verdad' },
       ],
     },
     pace: {
@@ -90,10 +90,10 @@ const BY_BAND: Record<Band, {
       title: 'La misma actividad, empezada de cuatro formas.',
       subtitle: 'Medir la altura de un árbol. ¿Cuál abrirías?',
       options: [
-        { value: 'challenge', title: '«¿Podés saber cuánto mide el árbol sin subirte? Tenés quince minutos.»', footer: 'Un reto' },
-        { value: 'story', title: '«Tales se paró frente a una pirámide gigante y dijo: yo sé cuánto mide.»', footer: 'Una historia' },
-        { value: 'game', title: '«Nivel 1 de 3. Diez puntos por cada sombra bien medida.»', footer: 'Un juego' },
-        { value: 'real', title: '«El patio de tu escuela, una cinta métrica, y hoy salís sabiendo cuánto mide ese árbol.»', footer: 'Algo real' },
+        { value: 'challenge', title: '"¿Podés saber cuánto mide el árbol sin subirte? Tenés quince minutos."', footer: 'Un reto' },
+        { value: 'story', title: '"Tales se paró frente a una pirámide gigante y dijo: yo sé cuánto mide."', footer: 'Una historia' },
+        { value: 'game', title: '"Nivel 1 de 3. Diez puntos por cada sombra bien medida."', footer: 'Un juego' },
+        { value: 'real', title: '"El patio de tu escuela, una cinta métrica, y hoy salís sabiendo cuánto mide ese árbol."', footer: 'Algo real' },
       ],
     },
     pace: {
@@ -110,10 +110,10 @@ const BY_BAND: Record<Band, {
       title: 'La misma actividad, planteada de cuatro formas.',
       subtitle: 'Medir la altura del edificio de enfrente. ¿Cuál abrirías?',
       options: [
-        { value: 'challenge', title: '«¿Podés medir el edificio de enfrente sin salir del aula? Quince minutos.»', footer: 'Un reto' },
-        { value: 'story', title: '«Tales se paró frente a una pirámide y dijo: yo sé cuánto mide. No tenía más que su propia sombra.»', footer: 'Una historia' },
-        { value: 'game', title: '«Nivel 1 de 3. Diez puntos por cada medición dentro del margen de error.»', footer: 'Un juego' },
-        { value: 'real', title: '«Tu escuela, una cinta métrica y trigonometría: hoy salís con el dato real.»', footer: 'Algo real' },
+        { value: 'challenge', title: '"¿Podés medir el edificio de enfrente sin salir del aula? Quince minutos."', footer: 'Un reto' },
+        { value: 'story', title: '"Tales se paró frente a una pirámide y dijo: yo sé cuánto mide. No tenía más que su propia sombra."', footer: 'Una historia' },
+        { value: 'game', title: '"Nivel 1 de 3. Diez puntos por cada medición dentro del margen de error."', footer: 'Un juego' },
+        { value: 'real', title: '"Tu escuela, una cinta métrica y trigonometría: hoy salís con el dato real."', footer: 'Algo real' },
       ],
     },
     pace: {
@@ -187,7 +187,7 @@ function script(band: Band, alreadyIn: boolean): StepView[] {
     {
       type: 'pick', key: 'channel1', chapter: 1, boxHeight: true,
       title: `${titleOf(sampleA)}, explicado de cuatro maneras.`,
-      subtitle: small ? 'Probá las cuatro. Después tocá «con esta» abajo de la que más te gustó.' : 'Probá las cuatro. Después marcá «con esta» en la que te lo hizo entender más rápido.',
+      subtitle: small ? 'Probá las cuatro. Después tocá "con esta" abajo de la que más te gustó.' : 'Probá las cuatro. Después marcá "con esta" en la que te lo hizo entender más rápido.',
       options: sampleOptions(sampleA),
     },
     {

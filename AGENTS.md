@@ -17,7 +17,7 @@ de un package. Adentro no sube al workspace y recrea un lockfile local.
 
 ## El glosario
 
-El vocabulario del producto es deliberado: «aprendiz» y «guía» se eligieron para no decir
+El vocabulario del producto es deliberado: "aprendiz" y "guía" se eligieron para no decir
 alumno y maestro. Los conceptos se piensan en español y el código usa una sola
 traducción por concepto:
 

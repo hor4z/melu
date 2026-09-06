@@ -49,7 +49,7 @@ export function Library() {
       )}
 
       <section className="flex flex-col gap-3">
-        <div><Heading size="xl">Plantillas de melu</Heading><Text size="sm" variant="muted">Combinaciones que funcionan. «Usar» te hace una copia para editar y asignar.</Text></div>
+        <div><Heading size="xl">Plantillas de melu</Heading><Text size="sm" variant="muted">Combinaciones que funcionan. "Usar" te hace una copia para editar y asignar.</Text></div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{q.data?.recipes.map((r) => <RecipeCard key={r.id} r={r} onUse={() => useIt.mutate(r.id)} isLoading={useIt.isPending && useIt.variables === r.id} />)}</div>
       </section>
     </div>

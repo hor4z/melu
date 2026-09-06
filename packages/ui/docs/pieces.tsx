@@ -35,7 +35,7 @@ export function Rule({ title, children, why }: { title: ReactNode; children: Rea
   )
 }
 
-/** Un par «así sí / así no». Vale más que cualquier párrafo. */
+/** Un par "así sí / así no". Vale más que cualquier párrafo. */
 export function DoDont({ good, bad, children }: { good: ReactNode; bad: ReactNode; children?: ReactNode }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
