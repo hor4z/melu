@@ -20,16 +20,19 @@ const ESTADOS = {
 type Estado = keyof typeof ESTADOS
 type Por = 'learner' | 'when' | 'minutes' | 'accuracy'
 
-// Las columnas que se esconden cuando la pantalla es angosta. El nombre, el estado y la acción
-// no se van nunca: son las tres cosas por las que se entra acá.
-const SOLO_ANCHO = 'hidden md:table-cell'
+// Las columnas que se esconden en la tabla angosta. El nombre, el estado y la acción no se van
+// nunca: son las tres cosas por las que se entra acá.
+const SOLO_ANCHO = 'hidden xl:table-cell'
 
 export function Submissions() {
   const nav = useNavigate()
   const spaceId = useSpaceId()
-  // En el celular la tabla no entra, y una tabla que se arrastra de costado no la mira nadie:
-  // las mismas filas se rinden como lista, que se recorre para abajo como todo lo demás.
+  // La tabla es de la pantalla ancha y de ninguna otra. Con la barra lateral puesta, una tablet
+  // deja menos de 500 px para las filas: ahí la tabla ya se arrastra de costado, y una tabla que
+  // se arrastra de costado no la mira nadie. Abajo de `lg` las mismas filas se rinden como lista,
+  // que se recorre para abajo como todo lo demás.
   const device = useDevice()
+  const conTabla = device === 'desktop'
   const q = useQuery({ queryKey: ['submissions', spaceId], queryFn: () => api.get<SubmissionSummary[]>(`/api/submissions?space=${spaceId}`) })
 
   const [texto, setTexto] = useState('')
@@ -56,8 +59,9 @@ export function Submissions() {
   const porPersona = facets(todas.filter((e) => pasa(e, 'persona')), (e) => e.learner)
 
   const opcionesEstado = (Object.keys(ESTADOS) as Estado[]).map((k) => ({ value: k, label: ESTADOS[k].label, color: ESTADOS[k].color, count: porEstado[k] ?? 0 }))
-  const opcionesGrupo = [...new Set(todas.map((e) => e.group))].sort().map((g) => ({ value: g, label: g, count: porGrupo[g] ?? 0 }))
-  const opcionesPersona = [...new Set(todas.map((e) => e.learner).filter((n): n is string => !!n))].sort()
+  const alfabetico = (a: string, b: string) => a.localeCompare(b, 'es')
+  const opcionesGrupo = [...new Set(todas.map((e) => e.group))].sort(alfabetico).map((g) => ({ value: g, label: g, count: porGrupo[g] ?? 0 }))
+  const opcionesPersona = [...new Set(todas.map((e) => e.learner).filter((n): n is string => !!n))].sort(alfabetico)
     .map((n) => ({ value: n, label: n, avatar: true, count: porPersona[n] ?? 0 }))
 
   const valor = (e: SubmissionSummary) =>
@@ -110,7 +114,7 @@ export function Submissions() {
       </FilterBar>
 
       <Card className="overflow-hidden">
-        {device === 'phone'
+        {!conTabla
           ? (lista.length === 0
             ? <div className="px-4 py-10">{vacio}</div>
             : (
@@ -168,7 +172,7 @@ export function Submissions() {
                             <span className="font-medium">{e.learner}</span>
                           </span>
                         </TableCell>
-                        <TableCell className="max-w-64 truncate">{e.title}</TableCell>
+                        <TableCell><span className="block max-w-64 truncate">{e.title}</span></TableCell>
                         <TableCell className={`${SOLO_ANCHO} text-ink-muted`}>{e.group}</TableCell>
                         <TableCell><Chip size="sm" color={st.color}>{st.label}</Chip></TableCell>
                         <TableCell className="whitespace-nowrap text-ink-muted">{ago(e.when)}</TableCell>

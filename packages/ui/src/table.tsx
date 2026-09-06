@@ -33,8 +33,11 @@ export function Table({ size = 'md', className, containerClassName, ...props }: 
 }
 
 /**
- * `sticky` pins the header while the rows scroll. It goes on the cells and not on the
- * `<thead>` on purpose: with `border-collapse` a sticky row loses its bottom border.
+ * `sticky` pins the header while the rows scroll, and it needs the box around the table to
+ * have a height (`containerClassName="max-h-96"`): what scrolls is that box, and a sticky
+ * header has nothing to stick against inside a box as tall as its content. It goes on the
+ * cells and not on the `<thead>` on purpose: with `border-collapse` a sticky row loses its
+ * bottom border.
  */
 export function TableHeader({ className, sticky, ...props }: ComponentPropsWithoutRef<'thead'> & { sticky?: boolean }) {
   return <thead className={cn(sticky && '[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-surface', className)} {...props} />
@@ -58,7 +61,10 @@ export interface TableRowProps extends ComponentPropsWithoutRef<'tr'> {
 export function TableRow({ className, interactive, selected, ...props }: TableRowProps) {
   return (
     <tr
-      data-selected={selected || undefined} aria-selected={selected}
+      // `data-` and not `aria-selected`: that one belongs to a row of a `grid`, not of a
+      // table, and in a plain table it makes the reader announce "not selected" on every
+      // other row.
+      data-selected={selected || undefined}
       className={cn('border-b border-line transition-colors', interactive && 'cursor-pointer hover:bg-hover', selected && 'bg-accent-subtle', className)}
       {...props}
     />

@@ -93,8 +93,11 @@ export const COPY: Record<string, string> = {
     + 'tabla ancha nunca se lleva puesta a la página.',
   'Table.containerClassName': 'Clases para la caja de alrededor, que es la que hace el scroll.',
   TableHeader:
-    '`sticky` deja la cabecera clavada mientras las filas pasan. Va en las celdas y no en el '
-    + '`<thead>` a propósito: con `border-collapse`, una fila pegada pierde su borde de abajo.',
+    '`sticky` deja la cabecera clavada mientras las filas pasan, y necesita que la caja de '
+    + 'alrededor tenga alto (`containerClassName="max-h-96"`): lo que scrollea es esa caja, y en '
+    + 'una caja tan alta como su contenido la cabecera no tiene contra qué pegarse. Va en las '
+    + 'celdas y no en el `<thead>` a propósito: con `border-collapse`, una fila pegada pierde su '
+    + 'borde de abajo.',
   TableFooter: 'La fila de cierre: los totales, o cuántas son.',
   'TableRow.interactive': 'La fila entera contesta al clic: cursor y hover.',
   'TableHead.sort': 'Para dónde ordena esta columna, o `false` cuando puede ordenar y no es la que ordena.',
@@ -124,7 +127,10 @@ export const COPY: Record<string, string> = {
   'Filter.icon': 'Reemplaza el embudo del botón.',
   'Filter.loading': 'Mientras las opciones se están trayendo.',
   'Filter.multiple': 'Con `false` se elige una sola opción, y elegir cierra el panel.',
-  'Filter.search': 'Controlarla entrega la búsqueda: las opciones llegan ya filtradas.',
+  'Filter.search':
+    'Controlarla entrega la búsqueda: las opciones llegan ya filtradas. Lo elegido no se pierde '
+    + 'de vista aunque la consulta lo deje afuera, pero queda con su valor crudo de nombre: mandá '
+    + 'las opciones elegidas junto con los resultados y el disparador conserva su color y sus caras.',
   'Filter.searchable': 'La caja para buscar entre las opciones. Sola a partir de ocho.',
   FilterBar: 'La fila de arriba de una tabla: la búsqueda, los filtros y, cuando algo filtra, el reset.',
   FilterSearch: 'El texto libre de la barra: un `Input` con la lupa, la X y el ancho que corresponde.',

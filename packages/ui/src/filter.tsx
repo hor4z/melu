@@ -43,7 +43,11 @@ export interface FilterProps {
   multiple?: boolean
   /** The box to search inside the options. On its own past eight. */
   searchable?: boolean
-  /** Controlling it hands the search over: the options arrive already filtered. */
+  /**
+   * Controlling it hands the search over: the options arrive already filtered. What is chosen
+   * survives a query that leaves it out, but with its raw value as the name: send the chosen
+   * options along with the results and the trigger keeps its color and its faces.
+   */
   search?: string
   onSearchChange?: (search: string) => void
   /** While the options are being brought in. */
@@ -79,7 +83,13 @@ export function Filter({
     return outside || !q ? options : options.filter((o) => o.label.toLowerCase().includes(q))
   }, [options, query, outside])
 
-  const picked = useMemo(() => options.filter((o) => chosen.includes(o.value)), [options, chosen])
+  // From `chosen` and not from `options`: with the search on the other side, an option that
+  // the query leaves out would empty the trigger and the filter would look cleared while it
+  // is still filtering.
+  const picked = useMemo(
+    () => chosen.map((v) => options.find((o) => o.value === v) ?? { value: v, label: v }),
+    [options, chosen],
+  )
   const faces = picked.length > 0 && picked.every((o) => o.avatar)
 
   const toggle = (v: string) => {
@@ -92,10 +102,14 @@ export function Filter({
   }
 
   // Arrows walk the options, and from the search box the first one is one ArrowDown away.
+  // Home and End only when the focus is already on an option: inside the box they belong to
+  // the text, which is where someone types a name and wants to go back to its start.
   const moveBy = (e: KeyboardEvent<HTMLDivElement>) => {
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return
     const items = [...e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="option"]')]
     if (!items.length) return
+    const onOption = document.activeElement?.getAttribute('role') === 'option'
+    if (!onOption && (e.key === 'Home' || e.key === 'End')) return
     e.preventDefault()
     const i = items.indexOf(document.activeElement as HTMLButtonElement)
     const next = e.key === 'Home' ? items[0]
@@ -144,7 +158,7 @@ export function Filter({
           </div>
         )}
         <div role="listbox" aria-multiselectable={multiple} aria-label={label} aria-busy={loading} className="max-h-72 overflow-y-auto p-1.5">
-          {loading && !withBox
+          {loading && visible.length === 0
             ? <div className="grid place-items-center py-6"><Spinner /></div>
             : visible.length === 0
               ? <p className="px-2.5 py-6 text-center text-sm text-ink-muted">Nada con ese nombre.</p>
