@@ -1,18 +1,18 @@
 // La mesa de trabajo: qué llegó y qué falta corregir.
 //
-// Lo que hay que leer despacio (quién se traba, qué les cuesta, cómo aprenden) se mudó a «Cómo
-// vienen». Acá quedó solo lo que se mira varias veces por día, y los cuatro números de arriba son
-// cuentas de cosas que pasaron y no promedios: «5 sin corregir» se entiende sin referencia, «34.6
-// min» no.
+// Lo que hay que leer despacio (quién se traba, qué les cuesta, cómo aprenden) se mudó a "Cómo
+// vienen". Acá quedó solo lo que se mira varias veces por día, y los cuatro números de arriba son
+// cuentas de cosas que pasaron y no promedios: "5 sin corregir" se entiende sin referencia, "34.6
+// min" no.
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Check, CheckCheck, Hourglass, Inbox, Plus, UserPlus, Users } from 'lucide-react'
+import { Check, CheckCheck, Hourglass, Inbox, Plus, Users } from 'lucide-react'
 import { Avatar, Button, Card, Chip, DoodleBulb, Eyebrow, Heading, Icon, Text } from '@melu/ui'
 import { StatTile } from '../blocks/Product'
 import { api, type Dashboard } from '../lib/api'
 import { useSpaceId } from '../lib/space'
 
-// Cuánto hace que llegó. En una lista de lo último que pasó, «hace 2 h» ubica mejor que una
+// Cuánto hace que llegó. En una lista de lo último que pasó, "hace 2 h" ubica mejor que una
 // fecha completa, y a partir de la semana la fecha vuelve a ser lo más claro.
 function ago(iso: string) {
   const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000)
@@ -37,7 +37,7 @@ export function Home() {
     ['group', 'Creá un grupo', 'Un aula, un taller, tres alumnos: gente que aprende junta.', '/groups'],
     ['invite', 'Sumá a los chicos', 'Escribí sus emails. Entran con Google y el grupo ya los espera.', '/groups'],
     ['activity', 'Armá una actividad', 'Empezá desde una receta y editala como un documento.', '/activities/new'],
-    ['assign', 'Asignala al grupo', 'Los chicos la ven en «Hoy» y la hacen a su ritmo.', '/activities'],
+    ['assign', 'Asignala al grupo', 'Los chicos la ven en "Hoy" y la hacen a su ritmo.', '/activities'],
     ['grade', 'Mirá la primera entrega', 'La rúbrica es una botonera: dos minutos por entrega.', '/groups'],
   ]
   const facts = steps.filter(([k]) => p.checklist[k]).length
@@ -50,7 +50,7 @@ export function Home() {
     <div className="flex flex-col gap-8">
       <header className="flex flex-wrap items-end justify-end gap-4">
         <Heading level={1} size="2xl" className="sr-only">Inicio</Heading>
-        <div className="flex gap-2"><Button variant="secondary" onClick={() => nav('/groups')} startIcon={<Icon icon={UserPlus} />}>Invitar al grupo</Button><Button onClick={() => nav('/activities/new')} startIcon={<Icon icon={Plus} />}>Nueva actividad</Button></div>
+        <Button onClick={() => nav('/activities/new')} startIcon={<Icon icon={Plus} />}>Nueva actividad</Button>
       </header>
 
       {firstTime && (

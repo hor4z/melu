@@ -106,12 +106,6 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
             <NavLink to="/activities" className={item}><Icon icon={BookOpen} size="lg" /> Actividades</NavLink>
             <NavLink to="/lenses" className={item}><Icon icon={Compass} size="lg" /> Lentes</NavLink>
           </nav>
-          <div className="mt-auto p-4">
-            <Card variant="yellow" padding="sm">
-              <Text size="sm" weight="semibold">¿Perdido?</Text>
-              <Text size="sm" variant="muted" className="mt-0.5">Inicio te dice qué falta y qué mirar hoy.</Text>
-            </Card>
-          </div>
         </aside>
         <div className="min-w-0 flex-1">
           <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-line bg-surface/90 px-6 backdrop-blur">
