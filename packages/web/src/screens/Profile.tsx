@@ -15,8 +15,8 @@ import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, Palette, School } from 'lucide-react'
 import {
-  ART_STYLES, Avatar, Button, Card, Field, Heading, Icon, Input, SegmentedControl,
-  SegmentedControlItem, Text, type ArtStyle,
+  ART_STYLES, Avatar, Button, Card, Eyebrow, Field, Heading, Icon, Input, SegmentedControl,
+  SegmentedControlItem, Separator, Text, type ArtStyle,
 } from '@melu/ui'
 import { api, type Me } from '../lib/api'
 import { AvatarBuilder, type Figure } from '../blocks/AvatarBuilder'
@@ -105,6 +105,29 @@ export function Profile({ me }: { me: Me }) {
               <Heading level={2} size="lg" className="break-words">{shown || 'Sin nombre'}</Heading>
               <Text size="sm" variant="muted" className="break-all">{person.email}</Text>
             </div>
+
+            {/* Elegir el avatar va debajo de la cara y no en una tarjeta aparte: es la misma
+                cosa, y separarlas obligaba a mirar de un lado el efecto y del otro el control.
+                Armar cuelga de la elección, así que aparece con la figura y no con la foto,
+                donde no hay nada que armar. Sin foto no hay entre qué elegir y el segmentado no
+                está: queda solo el botón. */}
+            <Separator />
+            <div className="flex w-full flex-col items-center gap-2">
+              <Eyebrow>Tu avatar</Eyebrow>
+              {person.avatarUrl && (
+                <SegmentedControl label="Qué avatar usás" layout="fill" size="sm" className="w-full"
+                  value={style ? 'art' : 'photo'}
+                  onValueChange={(v) => setStyle(v === 'art' ? (style ?? ART_STYLES[0]) : null)}>
+                  <SegmentedControlItem value="photo">Mi foto</SegmentedControlItem>
+                  <SegmentedControlItem value="art">Una figura</SegmentedControlItem>
+                </SegmentedControl>
+              )}
+              {style && (
+                <Button variant="ghost" size="sm" startIcon={<Icon icon={Palette} size="sm" />} onClick={() => setBuilding(true)}>
+                  Armar mi figura
+                </Button>
+              )}
+            </div>
           </Card>
 
           <Card padding="lg" className="gap-3">
@@ -144,31 +167,6 @@ export function Profile({ me }: { me: Me }) {
               <Field label="Apodo" optional>
                 <Input value={nick} onChange={(e) => setNick(e.target.value)} maxLength={60} placeholder={first || 'Cómo te dicen'} />
               </Field>
-            </div>
-          </Card>
-
-          <Card padding="lg" className="gap-4">
-            {/* Sin bajada: de dónde salió la foto es asunto nuestro, no de quien la mira, y
-                nombrar a Google acá manda a pensar en un lugar donde esto no se resuelve. */}
-            <Heading level={2} size="lg">Tu avatar</Heading>
-            {/* La elección va al pie, y armar cuelga de ella: aparece cuando elegís la figura y
-                no está cuando elegís la foto, porque no hay nada que armar. Van en la misma
-                línea y el botón es fantasma a propósito: son un solo gesto, no dos bloques
-                enfrentados. Sin foto de Google no hay entre qué elegir, así que el segmentado
-                no está y queda solo el botón. */}
-            <div className="flex flex-wrap items-center gap-1">
-              {person.avatarUrl && (
-                <SegmentedControl label="Qué avatar usás" value={style ? 'art' : 'photo'}
-                  onValueChange={(v) => setStyle(v === 'art' ? (style ?? ART_STYLES[0]) : null)}>
-                  <SegmentedControlItem value="photo">Mi foto</SegmentedControlItem>
-                  <SegmentedControlItem value="art">Una figura</SegmentedControlItem>
-                </SegmentedControl>
-              )}
-              {style && (
-                <Button variant="ghost" startIcon={<Icon icon={Palette} size="sm" />} onClick={() => setBuilding(true)}>
-                  Armar mi figura
-                </Button>
-              )}
             </div>
           </Card>
         </div>
