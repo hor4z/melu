@@ -1,17 +1,19 @@
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, Check, Clock, Inbox, Layers, Sparkles, Target, TrendingDown, UserPlus, Users, Zap } from 'lucide-react'
+import { AlertTriangle, Check, Clock, Inbox, Layers, Plus, Target, TrendingDown, UserPlus, Users, Zap } from 'lucide-react'
 import { Avatar, Button, Card, Chip, DoodleBulb, Eyebrow, Heading, Icon, Text } from '@melu/ui'
 import { StatTile } from '../blocks/Product'
 import { api, type Dashboard, type Me } from '../lib/api'
 import { useSpaceId } from '../lib/space'
 import { EXPERIENCES } from '../lib/composition'
 
+// El color va en el trazo del ícono, no en un mosaico detrás: la señal se distingue igual y la
+// tarjeta deja de tener dos cajas anidadas.
 const KIND = {
-  dropout: { icon: Clock, tint: 'bg-yellow', label: 'Sin terminar' },
-  misses: { icon: AlertTriangle, tint: 'bg-orange', label: 'Se traba' },
-  slow: { icon: TrendingDown, tint: 'bg-blue', label: 'Le lleva más' },
-  shines: { icon: Zap, tint: 'bg-green', label: 'Vuela' },
+  dropout: { icon: Clock, ink: 'text-warning', label: 'Sin terminar' },
+  misses: { icon: AlertTriangle, ink: 'text-danger', label: 'Se traba' },
+  slow: { icon: TrendingDown, ink: 'text-ink-muted', label: 'Le lleva más' },
+  shines: { icon: Zap, ink: 'text-success', label: 'Vuela' },
 } as const
 
 export function Home({ me }: { me: Me }) {
@@ -33,18 +35,18 @@ export function Home({ me }: { me: Me }) {
   ]
   const facts = steps.filter(([k]) => p.checklist[k]).length
   const firstTime = facts < steps.length
-  const maxSeries = Math.max(1, ...series.map((d) => Math.max(d.opened, d.submitted)))
-  const submittedSeries = series.map((d) => d.submitted)
+  const maxSeries = Math.max(1, ...series.map((d) => d.opened))
+  const weekOut = series.reduce((n, d) => n + d.opened, 0)
+  const weekBack = series.reduce((n, d) => n + d.submitted, 0)
 
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <Eyebrow>Inicio</Eyebrow>
-          <Heading level={1} size="2xl" className="mt-1">Hola, {me.person.name.split(' ')[0]} 👋</Heading>
+          <Heading level={1} size="2xl">Hola, {me.person.name.split(' ')[0]} 👋</Heading>
           <Text variant="muted">{p.toReview > 0 ? `Tenés ${p.toReview} ${p.toReview === 1 ? 'entrega' : 'entregas'} para mirar.` : 'Nada pendiente para corregir. Buen momento para armar algo nuevo.'}</Text>
         </div>
-        <div className="flex gap-2"><Button variant="secondary" onClick={() => nav('/groups')} startIcon={<Icon icon={UserPlus} />}>Invitar al grupo</Button><Button onClick={() => nav('/activities/new')} startIcon={<Icon icon={Sparkles} />}>Nueva actividad</Button></div>
+        <div className="flex gap-2"><Button variant="secondary" onClick={() => nav('/groups')} startIcon={<Icon icon={UserPlus} />}>Invitar al grupo</Button><Button onClick={() => nav('/activities/new')} startIcon={<Icon icon={Plus} />}>Nueva actividad</Button></div>
       </header>
 
       {firstTime && (
@@ -68,19 +70,19 @@ export function Home({ me }: { me: Me }) {
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile label="Aprendices" value={p.learners} hint={`${p.groups} ${p.groups === 1 ? 'grupo' : 'grupos'} · ${p.spaces} ${p.spaces === 1 ? 'espacio' : 'espacios'}`} tint="bg-teal" icon={<Icon icon={Users} size="lg" />} />
-        <StatTile label="Para mirar" value={p.toReview} hint="entregas sin corregir" tint="bg-yellow" icon={<Icon icon={Inbox} size="lg" />} series={submittedSeries} />
+        <StatTile label="Para mirar" value={p.toReview} hint="entregas sin corregir" tint="bg-yellow" icon={<Icon icon={Inbox} size="lg" />} />
         <StatTile label="Tiempo por misión" value={p.avgMinutes || '-'} unit={p.avgMinutes ? 'min' : undefined} hint="promedio desde que abren hasta que entregan" tint="bg-blue" icon={<Icon icon={Clock} size="lg" />} />
         <StatTile label="Aciertos en chequeos" value={p.accuracy >= 0 ? Math.round(p.accuracy * 100) : '-'} unit={p.accuracy >= 0 ? '%' : undefined} hint="sobre los bloques con opción correcta" tint="bg-lilac" icon={<Icon icon={Target} size="lg" />} />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-        <Card padding="lg" className="gap-4">
+        <section className="flex flex-col gap-4">
           <div className="flex items-start justify-between"><div><Eyebrow>Necesitan una mano</Eyebrow><Heading level={2} size="lg" className="mt-1">Señales y sugerencias</Heading></div><Text size="xs" variant="muted">Reglas simples sobre lo que pasó. Nada inferido.</Text></div>
           {signals.length === 0 && <div className="rounded-xl bg-canvas p-6 text-center text-sm text-ink-muted">Sin señales por ahora. Aparecen cuando alguien se traba, tarda mucho, abandona… o vuela.</div>}
           <ul className="flex flex-col gap-3">
             {signals.map((s) => { const t = KIND[s.kind]; return (
               <li key={s.learnerId + s.kind} className="flex gap-4 rounded-xl border border-line p-4">
-                <span className={`grid size-10 shrink-0 place-items-center rounded-lg ${t.tint}`}><Icon icon={t.icon} size="lg" /></span>
+                <span className={`mt-0.5 shrink-0 ${t.ink}`}><Icon icon={t.icon} size="lg" /></span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2"><span className="font-semibold">{s.learner}</span><Chip size="sm">{t.label}</Chip><Text size="xs" variant="muted">{s.group}</Text></div>
                   <p className="mt-1 text-sm text-ink-muted">{s.detail}</p>
@@ -89,24 +91,30 @@ export function Home({ me }: { me: Me }) {
               </li>
             )})}
           </ul>
-        </Card>
+        </section>
 
         <div className="flex flex-col gap-6">
           <Card padding="lg">
             <Eyebrow>Esta semana</Eyebrow>
-            <Heading level={2} size="lg" className="mt-1">Misiones abiertas y entregadas</Heading>
-            <div className="mt-5 flex h-36 items-end gap-2">
+            <Heading level={2} size="lg" className="mt-1">
+              {weekBack} de {weekOut} {weekOut === 1 ? 'misión ya volvió' : 'misiones ya volvieron'}
+            </Heading>
+            <Text size="sm" variant="muted">La parte llena de cada día es lo que ya entregaron.</Text>
+            <div className="mt-5 flex h-28 items-stretch gap-2">
               {series.map((d) => (
-                <div key={d.day} className="flex flex-1 flex-col items-center gap-1" title={`${d.opened} abiertas · ${d.submitted} entregadas`}>
-                  <div className="flex h-28 w-full items-end justify-center gap-1">
-                    <div className="w-2.5 rounded-t-sm bg-line" style={{ height: `${(d.opened / maxSeries) * 100}%` }} />
-                    <div className="w-2.5 rounded-t-sm bg-accent" style={{ height: `${(d.submitted / maxSeries) * 100}%` }} />
+                <div key={d.day} className="flex flex-1 flex-col items-center gap-2"
+                  title={`${d.submitted} de ${d.opened} entregadas`}>
+                  <div className="flex w-full flex-1 items-end">
+                    <div className="flex w-full flex-col justify-end rounded-md bg-muted"
+                      style={{ height: `${Math.max(4, (d.opened / maxSeries) * 100)}%` }}>
+                      <div className="w-full rounded-md bg-accent"
+                        style={{ height: d.opened ? `${(d.submitted / d.opened) * 100}%` : '0%' }} />
+                    </div>
                   </div>
                   <span className="text-2xs text-ink-subtle">{['D', 'L', 'M', 'X', 'J', 'V', 'S'][new Date(d.day + 'T12:00:00').getDay()]}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-3 flex gap-4 text-xs text-ink-muted"><span className="flex items-center gap-1"><span className="size-2 rounded-sm bg-line" /> abiertas</span><span className="flex items-center gap-1"><span className="size-2 rounded-sm bg-accent" /> entregadas</span></div>
           </Card>
 
           <Card padding="lg">

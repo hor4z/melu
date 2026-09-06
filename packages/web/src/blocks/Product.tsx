@@ -11,7 +11,7 @@ export function StatTile({ label, value, unit, delta, series, tint = 'bg-teal', 
   return (
     <div className={cn('flex flex-col gap-3 overflow-hidden rounded-xl p-5', tint)}>
       <div className="flex items-start justify-between">
-        <span className="grid size-10 place-items-center rounded-lg bg-white/70 text-ink">{icon}</span>
+        <span className="text-ink">{icon}</span>
         {typeof delta === 'number' && (
           <span className={cn('rounded-md bg-white/70 px-1.5 py-0.5 text-xs font-semibold tabular-nums', delta >= 0 ? 'text-success' : 'text-danger')}>
             {delta >= 0 ? '↗' : '↘'} {Math.abs(delta)}%
@@ -48,16 +48,14 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
   )
 }
 /** Avatar that opens the account menu. */
-export function UserMenu({ name, email, avatar, subtitle, onProfile, onChangeSpace, onSignOut }: {
-  name: string; email?: string; avatar?: string; subtitle?: string
+export function UserMenu({ name, email, avatar, onProfile, onChangeSpace, onSignOut }: {
+  name: string; email?: string; avatar?: string
   onProfile?: () => void; onChangeSpace?: () => void; onSignOut: () => void
 }) {
   return (
     <DropdownMenu placement="bottom-end">
       <DropdownMenuTrigger>
-        <MenuButton compact aria-label="Menú de la cuenta" leading={<Avatar name={name} src={avatar} size="sm" />} description={subtitle}>
-          {name}
-        </MenuButton>
+        <MenuButton chevron={false} aria-label="Menú de la cuenta" leading={<Avatar name={name} src={avatar} size="md" />} />
       </DropdownMenuTrigger>
       <DropdownMenuContent minWidth={230}>
         <DropdownMenuLabel>
