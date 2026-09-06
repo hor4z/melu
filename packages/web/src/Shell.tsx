@@ -1,34 +1,22 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Activity, Bell, BookOpen, Check, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { Activity, BookOpen, Check, Compass, Home, LayoutDashboard, Plus, School, Search, Users } from 'lucide-react'
 import {
-  Badge, Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
-  DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, IconButton, Input, Kbd, Logo, MenuButton, RadioGroup,
+  Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
+  DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, Input, Kbd, Logo, MenuButton, RadioGroup,
   RadioGroupItem, Text, cn, focusRing,
 } from '@melu/ui'
 import { UserMenu } from './blocks/Product'
 import { useSignOut } from './lib/session'
 import { useSpace } from './lib/space'
-import { api, type Space, type SpaceKind, type Dashboard, type Me } from './lib/api'
+import { api, type Space, type SpaceKind, type Me } from './lib/api'
 import { SPACE_KINDS } from './lib/composition'
 import { Modal } from './blocks/Modal'
 
 const item = ({ isActive }: { isActive: boolean }) =>
   cn('flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors', focusRing,
     isActive ? 'bg-teal font-semibold text-accent' : 'text-ink-muted hover:bg-hover hover:text-ink')
-
-function NotificationsBell({ spaceId }: { spaceId: string }) {
-  const nav = useNavigate()
-  const q = useQuery({ queryKey: ['dashboard', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?space=${spaceId}`), staleTime: 30_000 })
-  const n = q.data?.toReview ?? 0
-  return (
-    <span className="relative inline-flex">
-      <IconButton label={`${n} entregas para mirar`} variant="ghost" icon={<Icon icon={Bell} size="lg" color="muted" />} onClick={() => nav('/home')} />
-      {n > 0 && <Badge className="pointer-events-none absolute -right-0.5 -top-0.5">{n}</Badge>}
-    </span>
-  )
-}
 
 /** Picks which space you work in. Everything below is filtered by this. */
 function SpacePicker() {
@@ -114,7 +102,6 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
             <Input className="hidden max-w-md flex-1 md:flex" placeholder="Buscar grupos, actividades, aprendices…"
               startIcon={<Icon icon={Search} size="sm" />} endIcon={<Kbd>⌘K</Kbd>} />
             <div className="flex items-center gap-2">
-              <NotificationsBell spaceId={space?.id ?? ''} />
               <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
                 onProfile={() => nav('/profile')}
                 onChangeSpace={spaces.length > 1 ? () => setChanging(true) : undefined} onSignOut={signOut} />
