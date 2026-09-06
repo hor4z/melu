@@ -5,6 +5,10 @@
 // biblioteca, crear la actividad y asignarla. Tres pantallas para obedecer una línea de texto.
 // Este bloque hace esas dos llamadas en un clic y después dice que quedó hecho, en vez de volver
 // a ofrecer lo mismo.
+//
+// El botón dice una palabra y va al costado de la tarjeta: el qué y el a quién ya están en el
+// cuerpo de la señal, así que repetirlos adentro del botón lo convertía en un párrafo con borde.
+// La frase entera se queda en la etiqueta accesible, que es donde hace falta.
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, Eye, Wand2 } from 'lucide-react'
 import { Button, Icon, Text } from '@melu/ui'
@@ -32,7 +36,7 @@ export function SignalAction({ signal }: { signal: Signal }) {
     if (!signal.assignmentId) return null
     return (
       <Button size="sm" variant="secondary" asChild startIcon={<Icon icon={Eye} size="sm" />}>
-        <a href={`/review/${signal.assignmentId}`}>Ver qué hizo</a>
+        <a href={`/review/${signal.assignmentId}`} aria-label={`Ver qué hizo ${signal.learner}`}>Ver</a>
       </Button>
     )
   }
@@ -41,17 +45,19 @@ export function SignalAction({ signal }: { signal: Signal }) {
     return (
       <Text size="sm" variant="muted" className="flex items-center gap-1.5">
         <Icon icon={Check} size="sm" className="text-success" />
-        Quedó asignada a {signal.group}
+        Asignada
       </Text>
     )
   }
 
   return (
-    <div className="flex flex-col items-start gap-1">
-      <Button size="sm" loading={assign.isPending} onClick={() => assign.mutate()} startIcon={<Icon icon={Wand2} size="sm" />}>
-        Asignar «{signal.recipeTitle}» a {signal.group}
+    <div className="flex flex-col items-end gap-1">
+      <Button size="sm" variant="secondary" loading={assign.isPending} onClick={() => assign.mutate()}
+        startIcon={<Icon icon={Wand2} size="sm" />}
+        aria-label={`Asignar «${signal.recipeTitle}» a ${signal.group}`}>
+        Asignar
       </Button>
-      {assign.isError && <Text size="xs" variant="danger">No se pudo asignar. Probá de nuevo.</Text>}
+      {assign.isError && <Text size="xs" variant="danger">No se pudo. Probá de nuevo.</Text>}
     </div>
   )
 }

@@ -52,14 +52,15 @@ export function Focus() {
           ? <Card padding="lg"><Text variant="muted">Sin señales por ahora. Aparecen cuando alguien se traba, tarda mucho, abandona… o vuela.</Text></Card>
           : <ul className="flex flex-col gap-3">
               {signals.map((s) => { const t = KIND[s.kind]; return (
-                <li key={s.learnerId + s.kind} className="flex gap-4 rounded-xl border border-line p-4">
-                  <span className={`mt-0.5 shrink-0 ${t.ink}`}><Icon icon={t.icon} size="lg" /></span>
+                <li key={s.learnerId + s.kind} className="flex flex-wrap items-center gap-4 rounded-xl border border-line p-4">
+                  <span className={`shrink-0 self-start ${t.ink}`}><Icon icon={t.icon} size="lg" /></span>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2"><span className="font-semibold">{s.learner}</span><Chip size="sm">{t.label}</Chip><Text size="xs" variant="muted">{s.group}</Text></div>
                     <p className="mt-1 text-sm text-ink-muted">{s.detail}</p>
                     <p className="mt-2 text-sm">{s.suggestion}</p>
-                    <div className="mt-3"><SignalAction signal={s} /></div>
+                    {s.recipeTitle && <Text size="xs" variant="subtle" className="mt-1">Asignar le manda «{s.recipeTitle}».</Text>}
                   </div>
+                  <div className="shrink-0"><SignalAction signal={s} /></div>
                 </li>
               )})}
             </ul>}
