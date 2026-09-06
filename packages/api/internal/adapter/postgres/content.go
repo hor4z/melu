@@ -186,6 +186,7 @@ func (x *Memberships) Join(ctx context.Context, personID, spaceID, groupID strin
 	return err
 }
 
+
 func (x *Memberships) GroupsOfLearner(ctx context.Context, personID string) ([]domain.Group, error) {
 	rows, err := x.r.db.Query(ctx, `select `+groupCols+` from groups g join memberships m on m.group_id=g.id where m.person_id=$1 and m.role='learner' order by g.created_at desc`, personID)
 	if err != nil {
