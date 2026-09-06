@@ -33,7 +33,11 @@ export const api = {
 }
 
 // ---- types mirroring the Go domain ----
-export type Person = { id: string; email: string; name: string; avatarUrl?: string }
+export type Person = {
+  id: string; email: string; name: string
+  firstName?: string; lastName?: string; nickname?: string
+  avatarUrl?: string
+}
 export type Space = { id: string; name: string; slug: string; kind: SpaceKind }
 export type SpaceKind = 'school' | 'club' | 'tutoring' | 'personal'
 export type Role = 'guide' | 'learner' | 'companion' | 'coordinator'

@@ -89,6 +89,7 @@ function NewSpace({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
 }
 
 export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
+  const nav = useNavigate()
   const signOut = useSignOut()
   const { space, spaces, change } = useSpace()
   const [changing, setChanging] = useState(false)
@@ -115,6 +116,7 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
             <div className="flex items-center gap-2">
               <NotificationsBell spaceId={space?.id ?? ''} />
               <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
+                onProfile={() => nav('/profile')}
                 onChangeSpace={spaces.length > 1 ? () => setChanging(true) : undefined} onSignOut={signOut} />
             </div>
           </header>
@@ -143,6 +145,7 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
 }
 
 export function LearnerShell({ me, children }: { me: Me; children: ReactNode }) {
+  const nav = useNavigate()
   const signOut = useSignOut()
   return (
     <div className="min-h-screen bg-canvas">
@@ -158,7 +161,8 @@ export function LearnerShell({ me, children }: { me: Me; children: ReactNode }) 
               <NavLink to="/progress" className={item}><Icon icon={Compass} size="md" /> <span className="hidden sm:inline">Mi progreso</span></NavLink>
             </nav>
           </div>
-          <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl} onSignOut={signOut} />
+          <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
+            onProfile={() => nav('/profile')} onSignOut={signOut} />
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-5 py-8">{children}</main>

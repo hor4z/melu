@@ -44,6 +44,7 @@ func (s *Server) routes() {
 	m.HandleFunc("POST /api/auth/logout", s.logout)
 
 	m.Handle("GET /api/me", s.withSession(s.yo))
+	m.Handle("PUT /api/me", s.withSession(s.updateMe))
 	m.Handle("GET /api/lenses", s.withSession(s.lenses))
 	m.Handle("POST /api/spaces", s.withSession(s.createSpace))
 	m.Handle("GET /api/groups", s.withSession(s.groups))
@@ -175,6 +176,25 @@ func (s *Server) yo(w http.ResponseWriter, r *http.Request, p domain.Person) {
 	js(w, 200, c)
 }
 
+func (s *Server) updateMe(w http.ResponseWriter, r *http.Request, p domain.Person) {
+	var in domain.Person
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		http.Error(w, "invalid data", 400)
+		return
+	}
+	up, err := s.svc.UpdateMe(r.Context(), p, in)
+	if err != nil {
+		fail(w, err)
+		return
+	}
+	c, err := s.svc.Me(r.Context(), *up)
+	if err != nil {
+		fail(w, err)
+		return
+	}
+	js(w, 200, c)
+}
+
 func (s *Server) lenses(w http.ResponseWriter, r *http.Request, _ domain.Person) {
 	l, err := s.svc.Lenses.All(r.Context())
 	if err != nil {
@@ -255,6 +275,13 @@ func fail(w http.ResponseWriter, err error) {
 func spa(root fs.FS) http.Handler {
 	files := http.FileServer(http.FS(root))
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Una ruta de `/api` que llega hasta acá es una ruta que no existe, o un método que esa
+		// ruta no acepta. Sin esto se le contesta el index.html con un 200, y quien llama se
+		// entera recién cuando intenta parsear HTML como JSON.
+		if strings.HasPrefix(r.URL.Path, "/api/") {
+			http.NotFound(w, r)
+			return
+		}
 		p := strings.TrimPrefix(r.URL.Path, "/")
 		if p == "" {
 			p = "index.html"

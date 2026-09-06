@@ -11,6 +11,7 @@ type People interface {
 	ByEmail(ctx context.Context, email string) (*domain.Person, error)
 	Create(ctx context.Context, p domain.Person) (*domain.Person, error)
 	LinkGoogle(ctx context.Context, id, sub, name, avatar string) error
+	SaveProfile(ctx context.Context, id, name, first, last, nickname string) error
 }
 
 type Sessions interface {

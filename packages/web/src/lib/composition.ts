@@ -62,5 +62,9 @@ export const SPACE_KINDS: Record<string, string> = {
   personal: 'Soy yo', tutoring: 'Apoyo / refuerzo', club: 'Club / taller', school: 'Escuela',
 }
 
+export const ROLES: Record<string, string> = {
+  guide: 'Guía', learner: 'Aprendiz', companion: 'Acompañante', coordinator: 'Coordinador',
+}
+
 /** Los tres medios de evidencia, con su etiqueta. La clave viaja a la base; el texto se muestra. */
 export const EVIDENCE_MEDIA: Record<string, string> = { photo: 'foto', audio: 'audio', file: 'archivo' }
