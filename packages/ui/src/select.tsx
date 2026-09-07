@@ -113,7 +113,7 @@ export function SelectTrigger({ className, children, startIcon, ...props }: Comp
   return (
     <button type="button" ref={s.refs.setReference} id={aria.id} aria-describedby={aria['aria-describedby']}
       aria-invalid={bad || undefined} disabled={s.disabled ?? aria.disabled} data-state={s.isOpen ? 'open' : 'closed'}
-      className={cn(`flex w-full items-center gap-2 rounded-md border bg-surface text-left text-ink outline-none transition-[border-color,box-shadow] disabled:bg-muted disabled:opacity-60 ${focusRing}`,
+      className={cn(`flex w-full items-center gap-2 rounded-lg border bg-surface text-left text-ink outline-none transition-[border-color,box-shadow] disabled:bg-muted disabled:opacity-60 ${focusRing}`,
         HEIGHT[s.size], bad ? 'border-danger focus-visible:ring-danger/25' : 'border-line focus-visible:border-ink', className)}
       {...s.getReferenceProps(props as Record<string, unknown>)}>
       {startIcon && <span className="text-ink-subtle">{startIcon}</span>}
@@ -181,7 +181,7 @@ function SelectItemVisible({ value, className, children, icon, description, disa
   const pickedOne = s.value === value
   return (
     <div ref={ref} role="option" aria-selected={pickedOne} aria-disabled={disabled} tabIndex={isOn ? 0 : -1}
-      className={cn('flex cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm outline-none',
+      className={cn('flex cursor-pointer select-none items-center gap-2.5 rounded-sm px-2.5 py-2 text-sm outline-none',
         isOn && !disabled && 'bg-hover', pickedOne && 'font-medium', disabled && 'pointer-events-none opacity-45', className)}
       {...s.getItemProps({
         ...props,
@@ -215,7 +215,7 @@ export function NativeSelect({ className, size = 'md', invalid, children, ...pro
   return (
     <div className="relative flex items-center">
       <select {...props} {...aria} aria-invalid={bad || undefined} disabled={props.disabled ?? aria.disabled}
-        className={cn('w-full appearance-none rounded-md border bg-surface pr-9 text-ink outline-none transition-[border-color,box-shadow] focus:ring-3 focus:ring-focus/25 disabled:bg-muted disabled:opacity-60',
+        className={cn('w-full appearance-none rounded-lg border bg-surface pr-9 text-ink outline-none transition-[border-color,box-shadow] focus:ring-3 focus:ring-focus/25 disabled:bg-muted disabled:opacity-60',
           HEIGHT[size], bad ? 'border-danger focus:ring-danger/25' : 'border-line focus:border-ink', className)}>
         {children}
       </select>

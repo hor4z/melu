@@ -37,7 +37,7 @@ export function SegmentedControlItem({ value, className, children, disabled, ...
   const text = ctx.size === 'lg' ? 'text-base' : 'text-sm'
   return (
     <button type="button" role="radio" aria-checked={isOn} disabled={disabled} onClick={() => ctx.setValue(value)}
-      className={cn(`inline-flex h-full items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 font-medium outline-none transition-colors disabled:opacity-45 ${focusRing}`,
+      className={cn(`inline-flex h-full items-center justify-center gap-1.5 whitespace-nowrap rounded-sm px-3 font-medium outline-none transition-colors disabled:opacity-45 ${focusRing}`,
         text, ctx.fill && 'flex-1', isOn ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink', className)}
       {...props}>{children}</button>
   )

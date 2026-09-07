@@ -17,7 +17,7 @@ export default function Demo() {
   const hayMas = desde + TRAMO < ENTREGAS.length
 
   return (
-    <Card className="w-full overflow-hidden rounded-md">
+    <Card className="w-full overflow-hidden">
       <Table size="sm">
         <TableHeader>
           <TableRow><TableHead>Aprendiz</TableHead><TableHead>Actividad</TableHead><TableHead>Estado</TableHead></TableRow>

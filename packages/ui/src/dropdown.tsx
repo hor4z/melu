@@ -116,7 +116,7 @@ export function DropdownMenuItem({ className, children, label, icon, shortcut, d
   const isOn = m.activeIndex === index
   return (
     <div ref={ref} role="menuitem" tabIndex={isOn ? 0 : -1} aria-disabled={disabled}
-      className={cn('flex cursor-pointer select-none items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm outline-none',
+      className={cn('flex cursor-pointer select-none items-center gap-2.5 rounded-sm px-2.5 py-2 text-sm outline-none',
         destructive ? 'text-danger' : 'text-ink',
         isOn && !disabled && (destructive ? 'bg-danger-subtle' : 'bg-hover'),
         disabled && 'pointer-events-none opacity-45', className)}

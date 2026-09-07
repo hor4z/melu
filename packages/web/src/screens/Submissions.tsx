@@ -176,9 +176,7 @@ export function Submissions() {
         <FilterSet filters={disponibles} value={filtros} onValueChange={setFiltros} onReset={limpiar} />
       </FilterBar>
 
-      {/* `rounded-md` y no el `xl` del Card: una tabla es una grilla de líneas rectas y una
-          esquina de 16 px se le nota de más. */}
-      <Card className="overflow-hidden rounded-md">
+      <Card className="overflow-hidden">
         {q.isPending
           ? (conTabla
             ? (

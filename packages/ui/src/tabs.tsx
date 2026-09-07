@@ -47,7 +47,7 @@ export function TabsTrigger({ value, className, children, disabled, ...props }: 
       className={cn(`inline-flex items-center gap-2 whitespace-nowrap px-3 text-sm font-medium outline-none transition-colors disabled:opacity-45 ${focusRing}`,
         t.variant === 'line'
           ? cn('-mb-px h-10 border-b-2', isOn ? 'border-ink text-ink' : 'border-transparent text-ink-muted hover:text-ink')
-          : cn('h-8 rounded-md', isOn ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'),
+          : cn('h-8 rounded-sm', isOn ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'),
         className)}
       {...props}>{children}</button>
   )

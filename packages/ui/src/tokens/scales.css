@@ -24,19 +24,19 @@
    * One step per role, and no two steps share a value: a scale with duplicates has no
    * middle, and every component that needs the middle ends up inventing its own number.
    *   xs   marks:     kbd, the X of a chip
-   *   sm   details:   the image inside a frame
-   *   md   controls:  button, input, select, toggle, checkbox, chip
-   *   lg   inside a surface: menu item, pill tab, segmented track
+   *   sm   details, and what sits inside a surface: menu item, segmented option
+   *   md   what gets touched: button, chip, toggle
+   *   lg   what gets filled, and the tracks that hold options: input, select, segmented
    *   xl   surfaces:  card, dialog, popover, menu, alert
    *   2xl  large loose pieces
    * The nesting rule: a child's radius is its parent's radius minus the parent's padding.
    */
   --radius-xs: 2px;
   --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 24px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 14px;
   --radius-full: 9999px;
 
   /* ------- control sizes (heights) ------- */

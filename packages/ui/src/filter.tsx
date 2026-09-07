@@ -193,7 +193,7 @@ export function Filter({
                 return (
                   <button
                     key={o.value} type="button" role="option" aria-selected={on} onClick={() => toggle(o.value)}
-                    className={cn(`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm outline-none transition-colors hover:bg-hover focus-visible:bg-hover`, on && 'font-medium')}
+                    className={cn(`flex w-full items-center gap-2.5 rounded-sm px-2.5 py-2 text-left text-sm outline-none transition-colors hover:bg-hover focus-visible:bg-hover`, on && 'font-medium')}
                   >
                     <span className={cn('grid size-[18px] shrink-0 place-items-center border-2 transition-colors',
                       multiple ? 'rounded-sm' : 'rounded-full',
@@ -214,7 +214,7 @@ export function Filter({
           <div className="shrink-0 border-t border-line p-1.5">
             <button
               type="button" onClick={() => setChosen([])}
-              className={`w-full rounded-lg px-2.5 py-2 text-sm text-ink-muted transition-colors hover:bg-hover hover:text-ink ${focusRing}`}
+              className={`w-full rounded-sm px-2.5 py-2 text-sm text-ink-muted transition-colors hover:bg-hover hover:text-ink ${focusRing}`}
             >
               Limpiar
             </button>
