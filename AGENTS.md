@@ -44,10 +44,10 @@ aprendiz o el guía.
 
 **El motor de bloques también es propio**, y por la misma razón: vive en `packages/editor`, no
 depende de nada en runtime (ni ProseMirror, ni Lexical, ni una librería de arrastre) y se prueba
-solo. `make editor` levanta su taller en :5175, con el editor a la izquierda y lo que el motor está
-pensando a la derecha. Lo que hay que saber para tocarlo está en su README: el core no sabe qué es
-un párrafo, todo lo que se puede nombrar viene de un plugin, y un agente escribe por la misma
-puerta que un click. Todavía no está integrado en `web`, a propósito.
+solo. `make editor` levanta su taller en :5175. El core no sabe qué es un párrafo, todo lo que se
+puede nombrar viene de un plugin, y un agente escribe por la misma puerta que un click. Todavía no
+está integrado en `web`, a propósito. Antes de tocarlo:
+[packages/editor/AGENTS.md](packages/editor/AGENTS.md).
 
 **El design system es propio**, no una librería de terceros. Vive en `packages/ui` y se
 documenta solo: `make ui` levanta el sitio en :5174 con los objetivos, los lineamientos, el
