@@ -1,5 +1,7 @@
 # melu
 
+[![CI](https://github.com/hor4z/melu/actions/workflows/ci.yml/badge.svg)](https://github.com/hor4z/melu/actions/workflows/ci.yml)
+
 Espacios para aprender. Componé una actividad mezclando disciplinas y métodos, dásela a un grupo, y lo que los chicos hacen deja rastro desde el primer día.
 
 ## Correr en local

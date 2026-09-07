@@ -36,7 +36,7 @@ export function Input({ className, size, invalid, startIcon, endIcon, loading, c
     <div className={cn(frameCls({ size, invalid: bad }), className)}>
       {startIcon && <span className="text-ink-subtle">{startIcon}</span>}
       <input
-        {...props} {...aria} value={value} disabled={disabled ?? aria.disabled}
+        {...props} {...aria} aria-invalid={bad || undefined} value={value} disabled={disabled ?? aria.disabled}
         className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-ink-subtle disabled:cursor-not-allowed"
       />
       {loading && <Spinner size="sm" className="text-ink-subtle" />}
@@ -61,7 +61,7 @@ export function Textarea({ className, invalid, autoGrow, rows = 3, onChange, ...
   const bad = invalid ?? (f?.status === 'error')
   return (
     <textarea
-      {...props} {...aria} rows={rows}
+      {...props} {...aria} aria-invalid={bad || undefined} rows={rows}
       onChange={(e) => { if (autoGrow) { e.target.style.height = '0'; e.target.style.height = `${e.target.scrollHeight}px` } onChange?.(e) }}
       className={cn(
         'w-full resize-y rounded-md border bg-surface px-3 py-2 text-sm text-ink outline-none transition-[border-color,box-shadow] placeholder:text-ink-subtle focus:ring-3 focus:ring-focus/25 disabled:bg-muted disabled:opacity-60',

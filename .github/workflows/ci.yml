@@ -1,0 +1,68 @@
+# Lo que tiene que estar bien antes de mergear. Nada de acá es distinto de lo que se corre en
+# local: son los mismos comandos del Makefile, para que "en mi máquina anda" no sea una respuesta.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Un push nuevo sobre la misma rama cancela la corrida anterior: la que importa es la última.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kit:
+    name: Kit y front
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # `ci` y no `install`: instala exactamente lo que dice el lockfile, y falla si el lockfile
+      # y el package.json no se están diciendo lo mismo.
+      - run: npm ci
+
+      - name: Tipos del kit
+        run: npm run typecheck -w @melu/ui
+
+      - name: Lint del kit
+        run: npm run lint -w @melu/ui
+
+      - name: Tests del kit
+        run: npm test -w @melu/ui
+
+      - name: Lint del front
+        run: npm run lint -w @melu/web
+
+      # El build del front corre `tsc -b` antes de empaquetar, así que también es el chequeo de
+      # tipos de la app.
+      - name: Build del front
+        run: npm run build -w @melu/web
+
+  api:
+    name: API
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: packages/api/go.mod
+          cache-dependency-path: packages/api/go.sum
+
+      - name: Vet
+        run: go vet ./...
+
+      # Compila con el `dist` vacío: el `.gitkeep` está versionado justamente para que el embed
+      # tenga qué embeber sin haber compilado el front.
+      - name: Build
+        run: go build ./...

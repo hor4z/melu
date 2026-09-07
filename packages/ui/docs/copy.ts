@@ -88,6 +88,65 @@ export const COPY: Record<string, string> = {
   // Estado y datos
   EmptyState: 'El vacío con una explicación: siempre decir qué falta y qué se puede hacer.',
   Sparkline: 'Una línea de tendencia mínima, sin librería.',
+  Table:
+    'Una tabla, en partes. La caja de alrededor hace el scroll horizontal ella sola, así que una '
+    + 'tabla ancha nunca se lleva puesta a la página.',
+  'Table.containerClassName': 'Clases para la caja de alrededor, que es la que hace el scroll.',
+  TableHeader:
+    '`sticky` deja la cabecera clavada mientras las filas pasan, y necesita que la caja de '
+    + 'alrededor tenga alto (`containerClassName="max-h-96"`): lo que scrollea es esa caja, y en '
+    + 'una caja tan alta como su contenido la cabecera no tiene contra qué pegarse. Va en las '
+    + 'celdas y no en el `<thead>` a propósito: con `border-collapse`, una fila pegada pierde su '
+    + 'borde de abajo.',
+  TableFooter: 'La fila de cierre: los totales, o cuántas son.',
+  'TableRow.interactive': 'La fila entera contesta al clic: cursor y hover.',
+  'TableHead.sort': 'Para dónde ordena esta columna, o `false` cuando puede ordenar y no es la que ordena.',
+  'TableHead.onSort': 'Pasarla convierte el título en un botón y anuncia `aria-sort`.',
+  'TableCell.numeric': 'Números: a la derecha y con dígitos parejos, para que la columna se lea como columna.',
+  TableCaption: 'Qué es la tabla, para quien no puede verla. Se lee debajo.',
+  TableEmpty: 'La fila de "no hay nada": una celda a lo ancho, con el `EmptyState` adentro.',
+  DataList:
+    'Las mismas filas de una `Table`, una abajo de la otra, para cuando no hay ancho. Una tabla en '
+    + 'un celular o no se lee o se arrastra de costado, y de costado no la arrastra nadie: acá cada '
+    + 'fila es una ficha, y lo que no entra es lo que no importaba.',
+  DataListItem:
+    'Una ficha. Adentro, una grilla de dos columnas: la figura a la izquierda y todo lo demás '
+    + 'apilado a la derecha, que es lo que mantiene las líneas alineadas cuando el nombre es largo.',
+  'DataListItem.interactive': 'La ficha entera contesta al clic: cursor y hover.',
+  DataListMedia: 'La figura de la izquierda: un avatar, un ícono. Ocupa todo el alto de la ficha.',
+  DataListHead: 'La primera línea: el título de un lado y, en la otra punta, el estado.',
+  DataListText: 'La segunda línea: de qué se trata la ficha.',
+  DataListMeta:
+    'La letra chica, en pedazos: las columnas de la tabla que en el celular pasan a ser una sola '
+    + 'línea. Pone el punto entre una y otra, así nadie escribe separadores a mano y terminan todos distintos.',
+  DataListActions: 'Las acciones, en la esquina de cierre de la ficha.',
+  FilterSet:
+    'Los filtros de una tabla, agregados de a uno. Es un botón mientras no hay nada filtrando, y '
+    + 'cada filtro que se elige ahí aparece como una pastilla con su panel y su X. Mostrar todos '
+    + 'los filtros de golpe le pide a la persona que los lea todos antes de saber cuál quiere; '
+    + 'mostrar uno le pide que diga qué está buscando. Rinde hermanos, así que va adentro de una '
+    + '`FilterBar`, al lado de la búsqueda.',
+  'FilterSet.value': 'Qué está puesto: `{ estado: [\'submitted\'] }`. Una clave que está es un filtro en la barra.',
+  'FilterSet.label': 'La palabra del botón mientras la barra está vacía.',
+  'FilterSet.onReset': 'Reemplaza lo que hace el reset: sirve cuando la pantalla además tiene que vaciar su búsqueda.',
+  'Filter.defaultOpen': 'Abre el panel apenas aparece: el que se acaba de agregar está pidiendo que lo contesten.',
+  'Filter.onRemove': 'Dibuja la X que saca el filtro de la barra. Sin esto, el filtro está siempre.',
+  Filter:
+    'Un filtro de una tabla: un botón que dice qué filtra, y un panel para elegir. Guarda un arreglo '
+    + 'de valores porque lo normal es querer dos estados a la vez, y funciona controlado o no, como el resto.',
+  'Filter.label': 'Qué se filtra: "Estado", "Grupo". Es el nombre del botón y el de la lista.',
+  'Filter.icon': 'Va a la izquierda del nombre, para distinguir un filtro de otro de un vistazo.',
+  'Filter.loading': 'Mientras las opciones se están trayendo.',
+  'Filter.multiple': 'Con `false` se elige una sola opción, y elegir cierra el panel.',
+  'Filter.search':
+    'Controlarla entrega la búsqueda: las opciones llegan ya filtradas. Lo elegido no se pierde '
+    + 'de vista aunque la consulta lo deje afuera, pero queda con su valor crudo de nombre: mandá '
+    + 'las opciones elegidas junto con los resultados y el disparador conserva su color y sus caras.',
+  'Filter.searchable': 'La caja para buscar entre las opciones. Sola a partir de ocho.',
+  FilterBar: 'La fila de arriba de una tabla: la búsqueda, los filtros y, cuando algo filtra, el reset.',
+  FilterSearch: 'El texto libre de la barra: un `Input` con la lupa, la X y el ancho que corresponde.',
+  'FilterSearch.clearable': 'Muestra una X para vaciar el campo cuando tiene texto.',
+  FilterReset: 'Deshace todos los filtros de una. Mostralo solo cuando hay algo que deshacer.',
 
   // Marca
   Logomark: 'El logo, uno para toda la app: un zigzag de tres trazos, la "m" dibujada a mano.',

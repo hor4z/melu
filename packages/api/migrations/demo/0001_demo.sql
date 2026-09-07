@@ -32,19 +32,21 @@ declare
 
   -- What happened to each learner. `escape`, `challenge` and `robot` are how many of that
   -- activity's self-grading blocks they got right; -1 means they opened it and never handed it in.
+  -- Con apellido, y no por prolijidad: en un grado hay más de una Martina, y una tabla que
+  -- dice solo el nombre de pila no deja saber a quién se está por corregir.
   roster jsonb := '[
-    {"name":"Sofía",    "group":1,"escape":5,"challenge":4,"minutes":9},
-    {"name":"Nico",     "group":1,"escape":4,"challenge":4,"minutes":22},
-    {"name":"Valentina","group":1,"escape":-1,                        "minutes":31},
-    {"name":"Mateo",    "group":1,"escape":1,"challenge":1,"minutes":58},
-    {"name":"Lucía",    "group":1,"escape":5,               "minutes":19},
-    {"name":"Benjamín", "group":1,"escape":2,"challenge":1,"minutes":27},
-    {"name":"Emma",     "group":1,"escape":1,               "minutes":24},
-    {"name":"Thiago",   "group":1,"escape":3,"challenge":3,"minutes":82},
-    {"name":"Olivia",   "group":2,             "robot":3,  "minutes":21},
-    {"name":"Julián",   "group":2,             "robot":2,  "minutes":26},
-    {"name":"Martina",  "group":2,             "robot":1,  "minutes":33},
-    {"name":"Bruno",    "group":2,             "robot":-1, "minutes":28}]';
+    {"name":"Sofía Ledesma",     "group":1,"escape":5,"challenge":4,"minutes":9},
+    {"name":"Nico Ferreyra",     "group":1,"escape":4,"challenge":4,"minutes":22},
+    {"name":"Valentina Britos",  "group":1,"escape":-1,                        "minutes":31},
+    {"name":"Mateo Acosta",      "group":1,"escape":1,"challenge":1,"minutes":58},
+    {"name":"Lucía Sosa",        "group":1,"escape":5,               "minutes":19},
+    {"name":"Benjamín Quiroga",  "group":1,"escape":2,"challenge":1,"minutes":27},
+    {"name":"Emma Maldonado",    "group":1,"escape":1,               "minutes":24},
+    {"name":"Thiago Ríos",       "group":1,"escape":3,"challenge":3,"minutes":82},
+    {"name":"Olivia Paz",        "group":2,             "robot":3,  "minutes":21},
+    {"name":"Julián Gómez",      "group":2,             "robot":2,  "minutes":26},
+    {"name":"Martina Ocampo",    "group":2,             "robot":1,  "minutes":33},
+    {"name":"Bruno Aguirre",     "group":2,             "robot":-1, "minutes":28}]';
 
 begin
   select id into guide from people where email='horacio.rivero@educabot.com';
@@ -76,8 +78,15 @@ begin
   for i in 0..jsonb_array_length(roster)-1 loop
     who := roster->i;
     -- Sin google_sub: son personas esperando, igual que las que suma un guía por email.
-    insert into people(email, name)
-      values(lower(who->>'name')||'@demo.melu', who->>'name') returning id into learner;
+    -- El nombre entra entero y también partido, que es como lo guarda el perfil. El punto en
+    -- el correo es porque un espacio adentro de una dirección no es una dirección.
+    insert into people(email, name, first_name, last_name)
+      values(
+        replace(lower(who->>'name'), ' ', '.')||'@demo.melu',
+        who->>'name',
+        split_part(who->>'name', ' ', 1),
+        nullif(substr(who->>'name', length(split_part(who->>'name', ' ', 1)) + 2), ''))
+      returning id into learner;
     grp := case when (who->>'group')::int = 1 then g1 else g2 end;
     insert into memberships(person_id, space_id, group_id, role) values(learner, space, grp, 'learner');
 
