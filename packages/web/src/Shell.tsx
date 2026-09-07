@@ -22,7 +22,9 @@ import { Modal } from './blocks/Modal'
 // Inicio, así que la pantalla donde se pasa más tiempo era la única sin puerta de entrada.
 const DESTINOS: [string, string, typeof LayoutDashboard][] = [
   ['/home', 'Inicio', LayoutDashboard],
-  ['/submissions', 'Corregir', Inbox],
+  // "Entregas", igual que el título de esa pantalla. Un destino que se llama distinto en el
+  // panel y adentro obliga a comprobar que llegaste a donde querías.
+  ['/submissions', 'Entregas', Inbox],
   ['/progress', 'Cómo vienen', Activity],
   ['/groups', 'Grupos', Users],
   ['/activities', 'Actividades', BookOpen],
