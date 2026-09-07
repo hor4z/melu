@@ -120,8 +120,8 @@ export type GroupDetail = { group: Group; assignments: Assignment[]; learners: L
 export const newId = () => Math.random().toString(36).slice(2, 10)
 
 // ---- dashboard and progress ----
-export type Signal = { learnerId: string; learner: string; groupId: string; group: string; kind: 'dropout' | 'misses' | 'slow' | 'shines'; detail: string; suggestion: string; recipeTitle?: string; recipeId?: string; assignmentId?: string }
+export type Signal = { learnerId: string; learner: string; groupId: string; group: string; kind: 'dropout' | 'misses' | 'slow' | 'shines'; detail: string; suggestion: string; recipeTitle?: string; recipeId?: string; assignmentId?: string; submissionId?: string }
 export type ByKind = { experience: string; submissions: number; avgMinutes: number; accuracy: number }
-export type SubmissionSummary = { submissionId: string; assignmentId: string; learner?: string; title: string; group: string; status: 'in_progress' | 'submitted' | 'graded'; minutes: number; accuracy: number; when: string }
+export type SubmissionSummary = { submissionId: string; assignmentId: string; learner?: string; title: string; groupId: string; group: string; status: 'in_progress' | 'submitted' | 'graded'; minutes: number; accuracy: number; when: string }
 export type Dashboard = { spaces: number; groups: number; learners: number; toReview: number; unfinished: number; graded: number; assigned: number; signals: Signal[]; byKind: ByKind[]; checklist: Record<string, boolean>; awaitingReview: SubmissionSummary[] }
 export type Progress = { done: number; inProgress: number; minutes: number; accuracy: number; streak: number; missions: SubmissionSummary[]; experiences: Record<string, number> }

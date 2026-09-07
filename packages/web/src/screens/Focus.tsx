@@ -6,11 +6,12 @@
 // urgencia: primero quien se traba.
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Clock, Layers, TrendingDown, Zap } from 'lucide-react'
-import { Card, Chip, Eyebrow, Heading, Icon, Text } from '@melu/ui'
+import { Card, Chip, cn, Eyebrow, Heading, Icon, Table, TableBody, TableCell, TableEmpty, TableHead, TableHeader, TableRow, Text } from '@melu/ui'
 import { SignalAction } from '../blocks/SignalAction'
 import { api, type Dashboard } from '../lib/api'
 import { EXPERIENCES } from '../lib/composition'
 import { useSpaceId } from '../lib/space'
+import { Cargando, NoLlego } from '../blocks/Estado'
 
 const KIND = {
   misses: { icon: AlertTriangle, ink: 'text-danger', label: 'Se traba' },
@@ -24,7 +25,8 @@ export function Focus() {
   // La misma clave que Inicio: entrar acá no dispara una request nueva, react-query ya la tiene.
   const q = useQuery({ queryKey: ['dashboard', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?space=${spaceId}`) })
   const p = q.data
-  if (!p) return null
+  if (q.isPending) return <Cargando bloques={2} />
+  if (!p) return <NoLlego que="cómo vienen" error={q.error} onRetry={() => void q.refetch()} />
   const signals = p.signals ?? []
   const byKind = p.byKind ?? []
 
@@ -61,20 +63,33 @@ export function Focus() {
           <Heading level={2} size="lg" className="mt-1">Qué les cuesta más</Heading>
           <Text variant="muted" className="mt-1">Si un tipo tiene pocos aciertos, probá otro camino antes de repetirlo: la dificultad puede estar en el formato y no en el tema.</Text>
         </div>
-        <Card padding="lg">
-          {byKind.length === 0 ? <Text variant="muted">Cuando haya entregas, acá ves tiempo y aciertos por experiencia.</Text> : (
-            <table className="w-full text-sm">
-              <thead><tr className="text-left text-xs text-ink-subtle"><th className="pb-2 font-medium">Experiencia</th><th className="pb-2 text-right font-medium">Entregas</th><th className="pb-2 text-right font-medium">Min</th><th className="pb-2 text-right font-medium">Aciertos</th></tr></thead>
-              <tbody>{byKind.map((t) => (
-                <tr key={t.experience} className="border-t border-line">
-                  <td className="py-2 font-medium"><span className="flex items-center gap-2"><Icon icon={Layers} size="sm" color="subtle" />{EXPERIENCES[t.experience] ?? t.experience ?? '-'}</span></td>
-                  <td className="py-2 text-right tabular-nums">{t.submissions}</td>
-                  <td className="py-2 text-right tabular-nums">{t.avgMinutes || '-'}</td>
-                  <td className={`py-2 text-right tabular-nums ${t.accuracy >= 0 && t.accuracy < 0.6 ? 'font-semibold text-danger' : ''}`}>{t.accuracy >= 0 ? `${Math.round(t.accuracy * 100)}%` : '-'}</td>
-                </tr>
-              ))}</tbody>
-            </table>
-          )}
+        {/* La tabla del kit y no una escrita a mano: era la única tabla de la plataforma con sus
+            propios bordes, su propio alto de fila y su propio encabezado, justo la pieza que el
+            kit ya resuelve. Y sin la columna de minutos: para saber qué les cuesta, el promedio
+            de tiempo de un tipo de actividad no dice nada que los aciertos no digan mejor. */}
+        <Card padding="none" className="overflow-hidden">
+          <Table size="sm">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Experiencia</TableHead>
+                <TableHead align="end">Entregas</TableHead>
+                <TableHead align="end">Aciertos</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {byKind.length === 0
+                ? <TableEmpty colSpan={3}>Cuando haya entregas, acá ves qué tipo de actividad les cuesta más.</TableEmpty>
+                : byKind.map((t) => (
+                  <TableRow key={t.experience}>
+                    <TableCell className="font-medium"><span className="flex items-center gap-2"><Icon icon={Layers} size="sm" color="subtle" />{EXPERIENCES[t.experience] ?? t.experience ?? '-'}</span></TableCell>
+                    <TableCell align="end" className="tabular-nums">{t.submissions}</TableCell>
+                    <TableCell align="end" className={cn('tabular-nums', t.accuracy >= 0 && t.accuracy < 0.6 && 'font-semibold text-danger')}>
+                      {t.accuracy >= 0 ? `${Math.round(t.accuracy * 100)}%` : '-'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
         </Card>
       </section>
     </div>

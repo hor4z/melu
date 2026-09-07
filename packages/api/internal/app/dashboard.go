@@ -26,10 +26,12 @@ type Signal struct {
 	Suggestion  string `json:"suggestion"`
 	RecipeTitle string `json:"recipeTitle,omitempty"`
 	RecipeID    string `json:"recipeId,omitempty"`
-	// La misión concreta de la que habla la señal. El abandono es el único caso sin receta que
-	// asignar, así que sin esto se queda sin nada que hacer: con el id, la acción es ir a ver
-	// qué alcanzó a hacer antes de trabarse.
+	// La misión concreta de la que habla la señal, y la entrega de esta persona dentro de esa
+	// misión. El abandono es el único caso sin receta que asignar, así que sin esto se queda sin
+	// nada que hacer: con los dos ids, la acción es ir a ver qué alcanzó a hacer antes de
+	// trabarse. Sin el de la entrega, "ver qué hizo Benjamín" abría la de otro.
 	AssignmentID string `json:"assignmentId,omitempty"`
+	SubmissionID string `json:"submissionId,omitempty"`
 }
 
 type ByKind struct {
@@ -62,15 +64,18 @@ type Dashboard struct {
 }
 
 type SubmissionSummary struct {
-	SubmissionID string    `json:"submissionId"`
-	AssignmentID string    `json:"assignmentId"`
-	Learner      string    `json:"learner"`
-	Title        string    `json:"title"`
-	Group        string    `json:"group"`
-	Status       string    `json:"status"`
-	Minutes      float64   `json:"minutes"`
-	Accuracy     float64   `json:"accuracy"`
-	When         time.Time `json:"when"`
+	SubmissionID string `json:"submissionId"`
+	AssignmentID string `json:"assignmentId"`
+	Learner      string `json:"learner"`
+	Title        string `json:"title"`
+	// El grupo, con su id: corregir vive adentro del grupo (`/groups/{grupo}/missions/{id}`),
+	// así que quien arma ese enlace necesita las dos cosas y no solo el nombre.
+	GroupID  string    `json:"groupId"`
+	Group    string    `json:"group"`
+	Status   string    `json:"status"`
+	Minutes  float64   `json:"minutes"`
+	Accuracy float64   `json:"accuracy"`
+	When     time.Time `json:"when"`
 }
 
 type Fact = domain.Fact
@@ -91,7 +96,7 @@ func (s *Services) AllSubmissions(ctx context.Context, p domain.Person, spaceID 
 		}
 		out = append(out, SubmissionSummary{
 			SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Learner: h.Learner, Title: h.Title,
-			Group: h.Group, Status: h.Status, Minutes: min, Accuracy: accuracy(h.Document, h.Answers, h.Steps), When: when,
+			GroupID: h.GroupID, Group: h.Group, Status: h.Status, Minutes: min, Accuracy: accuracy(h.Document, h.Answers, h.Steps), When: when,
 		})
 	}
 	return out, nil
@@ -170,7 +175,7 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 			if h.SubmittedAt != nil {
 				cu = *h.SubmittedAt
 			}
-			out.AwaitingReview = append(out.AwaitingReview, SubmissionSummary{SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Learner: h.Learner, Title: h.Title, Group: h.Group, Status: h.Status, Minutes: min, Accuracy: ac, When: cu})
+			out.AwaitingReview = append(out.AwaitingReview, SubmissionSummary{SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Learner: h.Learner, Title: h.Title, GroupID: h.GroupID, Group: h.Group, Status: h.Status, Minutes: min, Accuracy: ac, When: cu})
 		}
 	}
 	// El promedio del grupo no se publica: nadie lo muestra. Se calcula porque es la referencia
@@ -244,19 +249,37 @@ func (s *Services) signals(byLearner map[string][]Fact, median float64, recipes 
 			}
 		}
 		h := hs[0]
+		// Cada señal sale de copiar `base` y agregarle lo suyo. Antes se rearmaba campo por
+		// campo en las cuatro ramas, y así fue como un campo nuevo llegó a tres de las cuatro:
+		// el enlace de "ver qué hizo" quedó apuntando a una entrega vacía.
 		base := Signal{LearnerID: h.LearnerID, Learner: h.Learner, GroupID: h.GroupID, Group: h.Group}
 		switch {
 		case misses >= 2:
-			id, t := recipe("Fracciones en la cocina")
-			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "misses", Detail: "Falló la mitad o más de los chequeos en 2 misiones", Suggestion: "Volver a lo concreto antes del símbolo: una actividad con lente CPA, corta, en casa.", RecipeID: id, RecipeTitle: t})
+			sig := base
+			sig.Kind, sig.Detail = "misses", "Falló la mitad o más de los chequeos en 2 misiones"
+			sig.Suggestion = "Volver a lo concreto antes del símbolo: una actividad con lente CPA, corta, en casa."
+			sig.RecipeID, sig.RecipeTitle = recipe("Fracciones en la cocina")
+			out = append(out, sig)
 		case untouched != nil:
-			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "dropout", Detail: `Abrió "` + untouched.Title + `" hace más de 2 días y no la entregó`, Suggestion: "Preguntale en qué fase se trabó. Si es la primera, la consigna puede no estar clara.", AssignmentID: untouched.AssignmentID})
+			sig := base
+			sig.Kind, sig.Detail = "dropout", `Abrió "`+untouched.Title+`" hace más de 2 días y no la entregó`
+			sig.Suggestion = "Preguntale en qué fase se trabó. Si es la primera, la consigna puede no estar clara."
+			// La misión y la entrega de las que habla la señal, que son las de esa misión a
+			// medias y no las de la última que entregó.
+			sig.AssignmentID, sig.SubmissionID = untouched.AssignmentID, untouched.SubmissionID
+			out = append(out, sig)
 		case slow >= 2:
-			id, t := recipe("Gallinas y conejos")
-			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "slow", Detail: "Tarda más del doble que el grupo en 2 misiones", Suggestion: "Partir la actividad en fases más cortas o trabajarla en pareja.", RecipeID: id, RecipeTitle: t})
+			sig := base
+			sig.Kind, sig.Detail = "slow", "Tarda más del doble que el grupo en 2 misiones"
+			sig.Suggestion = "Partir la actividad en fases más cortas o trabajarla en pareja."
+			sig.RecipeID, sig.RecipeTitle = recipe("Gallinas y conejos")
+			out = append(out, sig)
 		case fastAndRight >= 2 && submitted >= 2:
-			id, t := recipe("Gallinas y conejos")
-			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "shines", Detail: "Resuelve rápido y bien", Suggestion: "Un reto con más pasos, o que explique su método en audio para otros.", RecipeID: id, RecipeTitle: t})
+			sig := base
+			sig.Kind, sig.Detail = "shines", "Resuelve rápido y bien"
+			sig.Suggestion = "Un reto con más pasos, o que explique su método en audio para otros."
+			sig.RecipeID, sig.RecipeTitle = recipe("Gallinas y conejos")
+			out = append(out, sig)
 		}
 	}
 	// Por urgencia y no por nombre. Quien se traba o abandonó necesita atención hoy; quien vuela
@@ -313,7 +336,7 @@ func (s *Services) MiProgreso(ctx context.Context, p domain.Person) (*Progress, 
 		if h.SubmittedAt != nil {
 			cu = *h.SubmittedAt
 		}
-		out.Missions = append(out.Missions, SubmissionSummary{SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Title: h.Title, Group: h.Group, Status: h.Status, Minutes: min, Accuracy: ac, When: cu})
+		out.Missions = append(out.Missions, SubmissionSummary{SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Title: h.Title, GroupID: h.GroupID, Group: h.Group, Status: h.Status, Minutes: min, Accuracy: ac, When: cu})
 	}
 	out.Minutes = round1(out.Minutes)
 	if nAc > 0 {

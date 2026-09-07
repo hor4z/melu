@@ -324,20 +324,27 @@ func (s *Services) SaveAnswers(ctx context.Context, p domain.Person, submissionI
 
 // ---- grading (guide) ----
 
-func (s *Services) SubmissionsOf(ctx context.Context, p domain.Person, assignmentID string) (*domain.Assignment, []domain.Submission, error) {
+// Todo lo que hace falta para corregir una misión: la misión, lo que entregaron y quiénes están
+// en el grupo. Los tres juntos porque la pregunta de quien corrige no es solo "qué llegó" sino
+// "de quién falta": sin el grupo entero eso no se puede contestar, y era la mitad que faltaba.
+func (s *Services) SubmissionsOf(ctx context.Context, p domain.Person, assignmentID string) (*domain.Assignment, []domain.Submission, []domain.Learner, error) {
 	a, err := s.Assignments.ByID(ctx, assignmentID)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	g, err := s.Groups.ByID(ctx, a.GroupID)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	if !s.isMember(ctx, p.ID, g.SpaceID, domain.RoleGuide, domain.RoleCoordinator) {
-		return nil, nil, domain.ErrNotAllowed
+		return nil, nil, nil, domain.ErrNotAllowed
 	}
 	es, err := s.Submissions.OfAssignment(ctx, a.ID)
-	return a, es, err
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	ap, err := s.Memberships.Learners(ctx, a.GroupID)
+	return a, es, ap, err
 }
 
 func (s *Services) ScoreSubmission(ctx context.Context, p domain.Person, submissionID string, scores json.RawMessage) error {
@@ -345,7 +352,7 @@ func (s *Services) ScoreSubmission(ctx context.Context, p domain.Person, submiss
 	if err != nil {
 		return err
 	}
-	a, _, err := s.SubmissionsOf(ctx, p, e.AssignmentID)
+	a, _, _, err := s.SubmissionsOf(ctx, p, e.AssignmentID)
 	if err != nil {
 		return err
 	}

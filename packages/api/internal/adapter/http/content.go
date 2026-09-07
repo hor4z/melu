@@ -148,7 +148,7 @@ func (s *Server) assign(w http.ResponseWriter, r *http.Request, p domain.Person)
 }
 
 func (s *Server) submissions(w http.ResponseWriter, r *http.Request, p domain.Person) {
-	a, es, err := s.svc.SubmissionsOf(r.Context(), p, r.PathValue("id"))
+	a, es, ap, err := s.svc.SubmissionsOf(r.Context(), p, r.PathValue("id"))
 	if err != nil {
 		fail(w, err)
 		return
@@ -156,7 +156,10 @@ func (s *Server) submissions(w http.ResponseWriter, r *http.Request, p domain.Pe
 	if es == nil {
 		es = []domain.Submission{}
 	}
-	js(w, 200, map[string]any{"assignment": a, "submissions": es})
+	if ap == nil {
+		ap = []domain.Learner{}
+	}
+	js(w, 200, map[string]any{"assignment": a, "submissions": es, "learners": ap})
 }
 
 func (s *Server) groupDetail(w http.ResponseWriter, r *http.Request, p domain.Person) {

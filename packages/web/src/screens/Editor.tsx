@@ -1,20 +1,22 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { ArrowDown, ArrowUp, ChevronLeft, Eye, EyeOff, GripVertical, LayoutTemplate, Plus, Send, X } from 'lucide-react'
-import { Button, Card, Chip, Eyebrow, Icon, IconButton, Input, Kbd, Popover, PopoverAnchor, PopoverContent, PopoverTrigger, SegmentedControl, SegmentedControlItem, Tabs, TabsList, TabsTrigger, Text, Textarea, Toggle, cn, focusRing } from '@melu/ui'
+import { ArrowDown, ArrowUp, Eye, EyeOff, GripVertical, LayoutTemplate, Plus, Send, X } from 'lucide-react'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbPage, Button, Card, Chip, Eyebrow, Icon, IconButton, Input, Kbd, Popover, PopoverAnchor, PopoverContent, PopoverTrigger, SegmentedControl, SegmentedControlItem, Tabs, TabsList, TabsTrigger, Text, Textarea, Toggle, cn, focusRing } from '@melu/ui'
 import { api, newId, type Activity, type Block, type Criterion, type ManipulativeFigure, type Group, type Lens, type GameEngine, type BlockType } from '../lib/api'
 import { IS_INTERACTIVE, SETTINGS, EXPERIENCES, FIGURES, GAMES, SOCIAL, BLOCK_TYPES, EVIDENCE_MEDIA } from '../lib/composition'
 import { CompositionChips } from '../blocks/Chips'
 import { InteractiveBlock, ReadingBlock, splitBlanks } from '../blocks/Interactive'
 import { Modal } from '../blocks/Modal'
 import { Cover } from '../blocks/Cover'
+import { Cargando, NoLlego } from '../blocks/Estado'
 
 // The editor: a Notion-style page. Cover, title, properties, phases, blocks with "/" and drag.
 export function Editor() {
   const { id } = useParams()
   const q = useQuery({ queryKey: ['activity', id], queryFn: () => api.get<Activity>(`/api/activities/${id}`) })
-  if (!q.data) return null
+  if (q.isPending) return <Cargando bloques={3} />
+  if (!q.data) return <NoLlego que="la actividad" error={q.error} onRetry={() => void q.refetch()} />
   return <EditorLoaded key={q.data.id} initial={q.data} />
 }
 
@@ -80,7 +82,10 @@ function EditorLoaded({ initial }: { initial: Activity }) {
     <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
       <div className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
-          <Link to="/activities" className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> Actividades</Link>
+          <Breadcrumb>
+            <BreadcrumbItem asChild><Link to="/activities">Actividades</Link></BreadcrumbItem>
+            <BreadcrumbPage>{a.title || 'Sin título'}</BreadcrumbPage>
+          </Breadcrumb>
           <div className="flex items-center gap-3"><Text size="xs" variant="muted" className="flex items-center gap-x-3">
             {a.description.trim() === ''
               ? <span className="font-medium text-danger">Falta la descripción</span>

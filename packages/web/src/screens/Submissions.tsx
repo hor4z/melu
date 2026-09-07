@@ -133,7 +133,8 @@ export function Submissions() {
   }
   const sentido = (por: Por) => (orden_.por === por ? orden_.dir : false)
 
-  const abrir = (e: SubmissionSummary) => nav(`/review/${e.assignmentId}`)
+  // La fila que se toca es la que se abre: la dirección lleva la entrega y no solo la misión.
+  const abrir = (e: SubmissionSummary) => nav(`/groups/${e.groupId}/missions/${e.assignmentId}/submissions/${e.submissionId}`)
   const accion = (e: SubmissionSummary) => (
     <Button
       size="sm" variant={e.status === 'submitted' ? 'primary' : 'ghost'}
@@ -216,7 +217,7 @@ export function Submissions() {
                     const st = ESTADOS[e.status]
                     return (
                       <DataListItem key={e.submissionId} interactive onClick={() => abrir(e)}>
-                        <DataListMedia><Avatar name={e.learner ?? '?'} /></DataListMedia>
+                        <DataListMedia><Avatar aria-hidden="true" name={e.learner ?? '?'} /></DataListMedia>
                         <DataListHead>
                           <DataListTitle>{e.learner}</DataListTitle>
                           <Chip size="sm" color={st.color}>{st.label}</Chip>
@@ -254,7 +255,7 @@ export function Submissions() {
                       <TableRow key={e.submissionId} interactive onClick={() => abrir(e)}>
                         <TableCell>
                           <span className="flex items-center gap-2.5">
-                            <Avatar name={e.learner ?? '?'} size="sm" />
+                            <Avatar aria-hidden="true" name={e.learner ?? '?'} size="sm" />
                             <span className="font-medium">{e.learner}</span>
                           </span>
                         </TableCell>

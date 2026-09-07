@@ -11,13 +11,15 @@ import { StatTile } from '../blocks/Product'
 import { api, type Dashboard } from '../lib/api'
 import { useSpaceId } from '../lib/space'
 import { ago } from '../lib/time'
+import { Cargando, NoLlego } from '../blocks/Estado'
 
 export function Home() {
   const nav = useNavigate()
   const spaceId = useSpaceId()
   const q = useQuery({ queryKey: ['dashboard', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?space=${spaceId}`) })
   const p = q.data
-  if (!p) return null
+  if (q.isPending) return <Cargando bloques={3} />
+  if (!p) return <NoLlego que="tu panel" error={q.error} onRetry={() => void q.refetch()} />
   // La lista la arma la api: son las que esperan devolución y nada más. Filtrarla acá sobre una
   // ventana mezclada dejaba la tarjeta vacía justo después de corregir varias seguidas.
   const esperando = p.awaitingReview ?? []
@@ -99,7 +101,7 @@ export function Home() {
           <ul className="mt-4 divide-y divide-line">
             {esperando.map((e) => (
               <li key={e.submissionId} className="flex flex-wrap items-center gap-4 py-3">
-                <Avatar name={e.learner ?? '?'} size="sm" />
+                <Avatar aria-hidden="true" name={e.learner ?? '?'} size="sm" />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-baseline gap-x-2">
                     <span className="font-medium">{e.learner}</span>
@@ -113,7 +115,7 @@ export function Home() {
                     <span className="inline-flex items-center gap-1 text-ink-subtle"><Icon icon={Clock} size="xs" />{ago(e.when)}</span>
                   </Text>
                 </div>
-                <Button size="sm" onClick={() => nav(`/review/${e.assignmentId}`)}>Corregir</Button>
+                <Button size="sm" onClick={() => nav(`/groups/${e.groupId}/missions/${e.assignmentId}/submissions/${e.submissionId}`)}>Corregir</Button>
               </li>
             ))}
           </ul>

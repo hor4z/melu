@@ -1,90 +1,310 @@
+// Corregir: una entrega a la vez, la rúbrica como botonera y la pila siempre a la vista.
+//
+// La pantalla contesta tres preguntas en este orden: qué falta corregir, qué hizo esta persona,
+// y qué nivel le pongo. Lo que no contestaba era la cuarta, que es la primera que hace quien
+// corrige: de quién falta. Por eso la pila trae al grupo entero y no solo a los que entregaron.
 import { useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft } from 'lucide-react'
-import { Avatar, Button, Card, Chip, cn, Eyebrow, Heading, Icon, Text } from '@melu/ui'
-import { api, type Assignment, type Submission, type Score } from '../lib/api'
+import { Check, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  Alert, Avatar, Breadcrumb, BreadcrumbItem, BreadcrumbPage, Button, Card, Chip, cn, Eyebrow, Field,
+  Heading, Icon, NativeSelect, Progress, RadioCard, RadioGroup, Skeleton, Text,
+} from '@melu/ui'
+import { api, type Assignment, type Learner, type Submission, type Score } from '../lib/api'
 import { InteractiveBlock } from '../blocks/Interactive'
 import { IS_INTERACTIVE } from '../lib/composition'
 import { Empty } from '../blocks/Modal'
+import { NoLlego } from '../blocks/Estado'
 
-// One submission at a time, the rubric as a button bar. Built for the thumb.
-/** A step stores milliseconds; here they are read the way a person reads them. */
-const duration = (ms: number) => (ms < 60_000 ? `${Math.round(ms / 1000)} s` : `${Math.round(ms / 60_000)} min`)
+type Estado = 'submitted' | 'in_progress' | 'graded' | 'missing'
+type Pila = { id: string; learner: string; entrega?: Submission; estado: Estado }
+
+const ESTADO = {
+  submitted: { label: 'Para mirar', color: 'warning', punto: 'bg-warning' },
+  in_progress: { label: 'Sin terminar', color: 'default', punto: 'bg-ink-subtle' },
+  graded: { label: 'Corregida', color: 'success', punto: 'bg-success' },
+  missing: { label: 'Sin abrir', color: 'default', punto: 'bg-line-strong' },
+} as const
+
+// El orden es el del trabajo: lo que espera, lo que quedó a medias (que no se corrige pero se
+// mira), lo hecho, y al final quienes no la abrieron.
+const ORDEN: Estado[] = ['submitted', 'in_progress', 'graded', 'missing']
+
+/** Lo que se ve como respuesta vacía: la caja de escribir en blanco no dice que no entregó nada. */
+const vacio = (v: unknown) => v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0)
 
 export function Review() {
-  const { id } = useParams()
+  const { groupId, id, entregaId } = useParams()
+  const nav = useNavigate()
   const qc = useQueryClient()
-  const q = useQuery({ queryKey: ['submissions', id], queryFn: () => api.get<{ assignment: Assignment; submissions: Submission[] }>(`/api/assignments/${id}/submissions`) })
-  const [sel, setSel] = useState<string | null>(null)
-  const [scores, setScores] = useState<Record<string, number>>({})
-  const gradeIt = useMutation({
-    mutationFn: (e: Submission) => api.put(`/api/submissions/${e.id}/scores`, { scores: Object.entries(scores).map(([cid, level]): Score => ({ id: cid, level })) }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['submissions', id] }); setScores({}); setSel(null) },
+  const q = useQuery({
+    queryKey: ['submissions', id],
+    queryFn: () => api.get<{ assignment: Assignment; submissions: Submission[]; learners: Learner[] }>(`/api/assignments/${id}/submissions`),
   })
-  if (!q.data) return null
-  const { assignment: a, submissions } = q.data
-  const lists = submissions.filter((e) => e.status !== 'in_progress')
-  const current = lists.find((e) => e.id === sel) ?? lists.find((e) => e.status === 'submitted') ?? lists[0]
+  // Qué entrega se está mirando lo dice la dirección y no un estado adentro de la pantalla:
+  // así se puede abrir la de una persona directo, pegarla en un chat o guardarla, y la fila que
+  // se toca en la lista de entregas es la que se abre.
+  // Ir a otra persona es navegar de verdad, con su entrada en el historial: la flecha de atrás
+  // del navegador vuelve a la que estabas mirando, que es lo que espera cualquiera que abrió
+  // tres. Lo único que se reemplaza son las dos correcciones automáticas de la dirección.
+  const irA = (sid?: string) => { if (sid) nav(`/groups/${groupId}/missions/${id}/submissions/${sid}`) }
+  // El borrador es de una entrega: mientras estás en esa, manda lo que tocaste; en cualquier
+  // otra manda lo que ya tiene puesto el servidor. Antes el estado era uno solo para todas, así
+  // que abrir una ya corregida mostraba la rúbrica en blanco y pedía elegir todo de nuevo.
+  const [draft, setDraft] = useState<{ id: string; scores: Record<string, number> } | null>(null)
+  // Recibe la entrega, los niveles y a quién seguir: así vive arriba de los cortes por carga y
+  // por error, que es donde tiene que estar un hook, y no depende de lo que se calcula abajo.
+  const guardar = useMutation({
+    mutationFn: (v: { e: Submission; scores: Record<string, number>; sigue: string }) =>
+      api.put(`/api/submissions/${v.e.id}/scores`, { scores: Object.entries(v.scores).map(([cid, level]): Score => ({ id: cid, level })) }),
+    onSuccess: (_r, v) => {
+      void qc.invalidateQueries({ queryKey: ['submissions', id] })
+      void qc.invalidateQueries({ queryKey: ['dashboard'] })
+      setDraft(null)
+      if (v.sigue) irA(v.sigue)
+    },
+  })
+
+  if (q.isPending) return <Cargando />
+  if (q.error || !q.data) return <NoLlego que="las entregas" error={q.error} onRetry={() => void q.refetch()} />
+
+  const { assignment: a, submissions, learners } = q.data
+  // La ruta vieja ("/review/:id") no sabe de qué grupo es la misión: eso lo dice la respuesta,
+  // así que en cuanto llega, la barra de direcciones queda en la dirección de verdad.
+  if (!groupId) return <Navigate to={`/groups/${a.groupId}/missions/${id}`} replace />
+
+  const entregadas = submissions.filter((e) => e.status !== 'in_progress')
+  // La pila es el grupo entero, no solo quienes entregaron: "de quién falta" es la primera
+  // pregunta de quien corrige. Y una que quedó a medias no es lo mismo que una sin abrir: hay
+  // algo escrito para mirar, que es lo que promete "ver qué hizo" en Cómo vienen.
+  const pila: Pila[] = [
+    ...submissions.map((e) => ({ id: e.id, learner: e.learner ?? '?', entrega: e, estado: e.status as Estado })),
+    ...learners
+      .filter((p) => !submissions.some((e) => e.learnerId === p.id))
+      .map((p) => ({ id: p.id, learner: p.name, estado: 'missing' as const })),
+  ].sort((x, y) => ORDEN.indexOf(x.estado) - ORDEN.indexOf(y.estado))
+  const conEntrega = pila.filter((x) => x.entrega)
+  const pedida = conEntrega.find((x) => x.id === entregaId)
+  // Una entrega que no es de esta misión no se cambia por otra en silencio: mostrar a otra
+  // persona de la que dice la dirección es la peor de las dos respuestas posibles.
+  const perdida = Boolean(entregaId) && !pedida
+  const actual = pedida ?? conEntrega[0]
+  const donde = actual ? conEntrega.indexOf(actual) : -1
+  const corregidas = entregadas.filter((e) => e.status === 'graded').length
   const rubric = a.rubric ?? []
-  const answered = (a.document?.phases ?? []).flatMap((f) => f.blocks.filter((b) => IS_INTERACTIVE(b.type)).map((b) => ({ ...b, phase: f.name })))
+  const bloques = (a.document?.phases ?? []).flatMap((f) => f.blocks.filter((b) => IS_INTERACTIVE(b.type)).map((b) => ({ ...b, phase: f.name })))
+
+  // La dirección siempre nombra lo que está en pantalla. Entrar por la misión sola elige la
+  // primera que espera y lo escribe arriba, así lo que se copia ya apunta a esa entrega.
+  if (actual && !entregaId) return <Navigate to={`/groups/${a.groupId}/missions/${id}/submissions/${actual.id}`} replace />
+
+  const puestos = actual?.entrega
+    ? (draft?.id === actual.id ? draft.scores : Object.fromEntries(actual.entrega.scores.map((p) => [p.id, p.level])))
+    : {}
+  const faltan = rubric.filter((c) => puestos[c.id] === undefined).map((c) => c.label)
+
+  // A la siguiente que espera, que es para lo que se entró. Si no queda ninguna, se queda donde
+  // está: mandar a la primera de la lista después de terminar es perder el lugar.
+  const sigue = conEntrega.find((x) => x.estado === 'submitted' && x.id !== actual?.id)?.id ?? actual?.id ?? ''
+
+  const paso = (cuanto: -1 | 1) => irA(conEntrega[donde + cuanto]?.id)
 
   return (
     <div className="flex flex-col gap-6">
-      <Link to={`/groups/${a.groupId}`} className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> {a.groupName}</Link>
-      <header className="border-b border-line pb-4"><Eyebrow>Corregir</Eyebrow><Heading level={1} size="xl" className="mt-1">{a.title}</Heading><Text variant="muted" className="flex flex-wrap items-center gap-x-4">
-        <span>{lists.length} de {a.submissionsTotal} entregaron</span>
-        <span className="text-ink-subtle">{lists.filter((e) => e.status === 'graded').length} corregidas</span>
-      </Text></header>
+      <Breadcrumb>
+        <BreadcrumbItem asChild><Link to="/groups">Grupos</Link></BreadcrumbItem>
+        <BreadcrumbItem asChild><Link to={`/groups/${a.groupId}`}>{a.groupName}</Link></BreadcrumbItem>
+        <BreadcrumbPage>{a.title}</BreadcrumbPage>
+      </Breadcrumb>
 
-      {lists.length === 0 && <Empty title="Nadie entregó todavía" text="Cuando alguien entregue, aparece acá." />}
-
-      {current && (
-        <div className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-          <Card asChild padding="none"><ul className="flex flex-col gap-1 self-start p-2">
-            {lists.map((e) => (
-              <li key={e.id}><button type="button" onClick={() => { setSel(e.id); setScores(Object.fromEntries(e.scores.map((p) => [p.id, p.level]))) }}
-                className={cn('flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm', current.id === e.id ? 'bg-teal font-medium text-accent' : 'hover:bg-hover')}>
-                <Avatar name={e.learner ?? '?'} size="sm" /><span className="flex-1 truncate">{e.learner}</span>
-                <span className={`size-2 rounded-full ${e.status === 'graded' ? 'bg-success' : 'bg-warning'}`} aria-label={e.status === 'graded' ? 'Corregida' : 'Para mirar'} />
-              </button></li>
-            ))}
-          </ul></Card>
-
-          <div className="flex flex-col gap-6">
-            <section className="flex flex-col gap-4">
-              <Heading level={2} size="lg">{current.learner}</Heading>
-              {answered.map((b) => { const p = current.steps?.[b.id]; return (
-                <div key={b.id} className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <Eyebrow className="text-brand-text">{b.phase}</Eyebrow>
-                    {p && p.ok !== null && <Chip size="sm" color={p.ok ? 'success' : 'danger'}>{p.ok ? 'Bien' : 'Se trabó'}{p.attempts > 1 && <span className="ml-1.5 opacity-70">{p.attempts} intentos</span>}{p.ms ? <span className="ml-1.5 opacity-70">{duration(p.ms)}</span> : ''}</Chip>}
-                  </div>
-                  {b.type !== 'fill_in' && <p className="font-medium">{b.text}</p>}
-                  <InteractiveBlock b={b} value={current.answers?.[b.id]} onChange={() => {}} status="review" reveal />
-                </div>
-              )})}
-            </section>
-            {rubric.length > 0 && (
-              <Card padding="md" className="gap-4">
-                <Heading level={3} size="sm">Rúbrica</Heading>
-                {rubric.map((c) => (
-                  <div key={c.id} className="flex flex-col gap-2">
-                    <span className="text-sm font-medium">{c.label}</span>
-                    <div className="grid grid-cols-3 gap-2">
-                      {c.levels.map((n, i) => (
-                        <button key={i} type="button" onClick={() => setScores((p) => ({ ...p, [c.id]: i }))}
-                          className={cn('rounded-md border-2 px-3 py-3 text-sm transition-colors', scores[c.id] === i ? 'border-ink bg-accent-subtle font-medium' : 'border-line hover:border-ink')}>{n}</button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                <Button onClick={() => gradeIt.mutate(current)} loading={gradeIt.isPending} disabled={Object.keys(scores).length < rubric.length}>{current.status === 'graded' ? 'Guardar cambios' : 'Guardar y siguiente'}</Button>
-              </Card>
-            )}
-          </div>
+      <header className="flex flex-col gap-3 border-b border-line pb-4">
+        <div className="max-w-2xl">
+          <Eyebrow>Corregir</Eyebrow>
+          <Heading level={1} size="xl" className="mt-1">{a.title}</Heading>
+          {a.description && <Text variant="muted" className="mt-1">{a.description}</Text>}
         </div>
-      )}
+        {/* Una sola cuenta, y es la del trabajo: cuánto de lo que llegó ya tiene devolución.
+            "3 de 4 entregaron" lo contesta la pila, que además dice quiénes son. */}
+        {entregadas.length > 0 && (
+          <Progress className="max-w-xs" value={corregidas} max={entregadas.length} showValue
+            label={corregidas >= entregadas.length ? 'Corregidas, todas' : 'Corregidas'} />
+        )}
+      </header>
+
+      {entregadas.length === 0
+        ? <Empty title="Nadie entregó todavía" text="Cuando alguien entregue, aparece acá." />
+        : (
+          <div className="grid w-full gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+            {/* La pila entera con ancho; en el celular, un selector y las flechas, que ocupan una
+                fila en vez de una pantalla de nombres antes de llegar al trabajo. */}
+            {/* El `hidden lg:block` va en el envoltorio y no en la tarjeta: la tarjeta le presta
+                los estilos al `<ul>`, y `flex` del `<ul>` le ganaba a `hidden` al fusionarse. La
+                pila aparecía en el celular igual, abajo del selector. */}
+            <div className="hidden self-start lg:block">
+            <Card asChild padding="none">
+              <ul className="flex flex-col gap-1 p-2">
+                {pila.map((x) => {
+                  const e = ESTADO[x.estado]
+                  const activo = actual?.id === x.id
+                  return (
+                    <li key={x.id}>
+                      <button
+                        type="button" disabled={!x.entrega} onClick={() => irA(x.id)}
+                        aria-current={activo || undefined}
+                        className={cn('flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm',
+                          x.entrega ? 'hover:bg-hover' : 'cursor-default opacity-55',
+                          activo && 'bg-teal font-medium text-accent hover:bg-teal')}
+                      >
+                        <Avatar aria-hidden="true" name={x.learner} size="sm" />
+                        <span className="min-w-0 flex-1 truncate">{x.learner}</span>
+                        {x.estado === 'graded'
+                          ? <Icon icon={Check} size="sm" className="shrink-0 text-success" label="Corregida" />
+                          : <span className={cn('size-2 shrink-0 rounded-full', e.punto)} aria-label={e.label} />}
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </Card>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-wrap items-end gap-3 lg:hidden">
+                <Field label="Quién" className="min-w-48 flex-1">
+                  <NativeSelect value={actual?.id ?? ''} onChange={(ev) => irA(ev.target.value)}>
+                    {conEntrega.map((x) => <option key={x.id} value={x.id}>{x.learner}, {ESTADO[x.estado].label.toLowerCase()}</option>)}
+                  </NativeSelect>
+                </Field>
+                <Pasos donde={donde} total={conEntrega.length} paso={paso} />
+              </div>
+
+              {perdida && (
+                <Alert variant="warning" title="No encontramos esa entrega en esta misión">
+                  Revisá el enlace, o elegí a alguien de la lista.
+                </Alert>
+              )}
+
+              {!perdida && actual?.entrega && (
+                <>
+                  <section className="flex flex-col gap-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar aria-hidden="true" name={actual.learner} />
+                        <div>
+                          <Heading level={2} size="lg">{actual.learner}</Heading>
+                          <Chip size="sm" color={ESTADO[actual.estado].color}>{ESTADO[actual.estado].label}</Chip>
+                        </div>
+                      </div>
+                      <div className="hidden lg:block"><Pasos donde={donde} total={conEntrega.length} paso={paso} /></div>
+                    </div>
+
+                    {bloques.map((b) => {
+                      const paso = actual.entrega?.steps?.[b.id]
+                      const sinRespuesta = vacio(actual.entrega?.answers?.[b.id])
+                      return (
+                        <Card key={b.id} padding="md" className="gap-2">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <Eyebrow className="text-brand-text">{b.phase}</Eyebrow>
+                            {/* Sin el tiempo: para poner un nivel no cambia nada, y al lado de
+                                "se trabó" pedía compararlo con algo que no está. Los intentos sí,
+                                y solo cuando hubo más de uno. */}
+                            {paso && paso.ok !== null && (
+                              <Chip size="sm" color={paso.ok ? 'success' : 'danger'}>
+                                {paso.ok ? 'Bien' : 'Se trabó'}
+                                {paso.attempts > 1 && <span className="ml-1.5 opacity-70">{paso.attempts} intentos</span>}
+                              </Chip>
+                            )}
+                          </div>
+                          {b.type !== 'fill_in' && <p className="font-medium">{b.text}</p>}
+                          {sinRespuesta
+                            ? <Text size="sm" variant="muted">Dejó esto en blanco.</Text>
+                            : <InteractiveBlock b={b} value={actual.entrega?.answers?.[b.id]} onChange={() => {}} status="review" reveal />}
+                        </Card>
+                      )
+                    })}
+                  </section>
+
+                  {actual.estado === 'in_progress' && (
+                    <Alert variant="info" title="Todavía no la entregó">
+                      Se puede mirar lo que hay hasta acá, pero no corregirla: los niveles se
+                      ponen sobre algo terminado.
+                    </Alert>
+                  )}
+
+                  {rubric.length > 0 && actual.estado !== 'in_progress' && (
+                    <Card padding="md" className="gap-5">
+                      <div>
+                        <Heading level={3} size="sm">Rúbrica</Heading>
+                        <Text size="sm" variant="muted">Un nivel por criterio. Se puede volver a cambiar después.</Text>
+                      </div>
+                      {rubric.map((c) => (
+                        <Field key={c.id} asGroup label={c.label}>
+                          {/* Las columnas salen de cuántos niveles hay y no de un número escrito
+                              a mano: la rúbrica de una actividad puede tener dos o cuatro. */}
+                          <RadioGroup
+                            className="grid gap-2 sm:auto-cols-fr sm:grid-flow-col"
+                            value={puestos[c.id] === undefined ? '' : String(puestos[c.id])}
+                            onValueChange={(v) => setDraft({ id: actual.id, scores: { ...puestos, [c.id]: Number(v) } })}
+                          >
+                            {c.levels.map((n, i) => <RadioCard key={i} value={String(i)} className="p-3">{n}</RadioCard>)}
+                          </RadioGroup>
+                        </Field>
+                      ))}
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Button
+                          onClick={() => actual.entrega && guardar.mutate({ e: actual.entrega, scores: puestos, sigue })}
+                          loading={guardar.isPending} disabled={faltan.length > 0}
+                        >
+                          {actual.estado === 'graded' ? 'Guardar cambios' : 'Guardar y seguir'}
+                        </Button>
+                        {/* En vez de un botón apagado sin motivo: qué falta, por su nombre. */}
+                        {faltan.length > 0 && (
+                          <Text size="sm" variant="muted">
+                            Falta el nivel de {faltan.length === 1 ? faltan[0] : `${faltan.slice(0, -1).join(', ')} y ${faltan[faltan.length - 1]}`}.
+                          </Text>
+                        )}
+                        {guardar.isError && <Text size="sm" variant="danger">No se pudo guardar. Probá de nuevo.</Text>}
+                      </div>
+                    </Card>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+    </div>
+  )
+}
+
+/** Anterior y siguiente dentro de la pila. Se apagan en las puntas y no se van, como en la tabla. */
+function Pasos({ donde, total, paso }: { donde: number; total: number; paso: (cuanto: -1 | 1) => void }) {
+  return (
+    <div className="flex items-center gap-1">
+      <Button size="sm" variant="ghost" disabled={donde <= 0} onClick={() => paso(-1)} startIcon={<Icon icon={ChevronLeft} size="sm" />}>Anterior</Button>
+      <Button size="sm" variant="ghost" disabled={donde < 0 || donde >= total - 1} onClick={() => paso(1)} endIcon={<Icon icon={ChevronRight} size="sm" />}>Siguiente</Button>
+    </div>
+  )
+}
+
+/** Mientras llega: la forma de la pantalla, no una pantalla en blanco. */
+function Cargando() {
+  return (
+    <div className="flex flex-col gap-6">
+      <Skeleton className="h-4 w-64" />
+      <div className="flex flex-col gap-3 border-b border-line pb-4">
+        <Skeleton className="h-7 w-72" />
+        <Skeleton className="h-4 w-full max-w-md" />
+        <Skeleton className="h-6 w-48" />
+      </div>
+      <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+        <Skeleton className="hidden h-64 lg:block" />
+        <div className="flex flex-col gap-4">
+          <Skeleton className="h-10 w-56" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+        </div>
+      </div>
     </div>
   )
 }

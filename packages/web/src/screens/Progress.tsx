@@ -5,12 +5,14 @@ import { Button, Card, Chip, DoodleSprout, Eyebrow, Heading, Icon, ProgressRing,
 import { StatTile } from '../blocks/Product'
 import { api, type Progress as P } from '../lib/api'
 import { EXPERIENCES } from '../lib/composition'
+import { Cargando, NoLlego } from '../blocks/Estado'
 
 export function Progress() {
   const nav = useNavigate()
   const q = useQuery({ queryKey: ['progress'], queryFn: () => api.get<P>('/api/my-progress') })
   const p = q.data
-  if (!p) return null
+  if (q.isPending) return <Cargando bloques={2} />
+  if (!p) return <NoLlego que="tu progreso" error={q.error} onRetry={() => void q.refetch()} />
   const total = p.done + p.inProgress
   return (
     <div className="flex flex-col gap-8">
@@ -39,7 +41,7 @@ export function Progress() {
                   {m.accuracy >= 0 && <span className="text-ink-subtle">{Math.round(m.accuracy * 100)}% aciertos</span>}
                 </Text></div>
                 <Chip size="sm" color={m.status === 'graded' ? 'success' : m.status === 'submitted' ? 'default' : 'warning'}>{m.status === 'graded' ? 'Con devolución' : m.status === 'submitted' ? 'Entregada' : 'En curso'}</Chip>
-                <Button size="sm" variant="ghost" onClick={() => nav(`/mission/${m.assignmentId}`)}>Abrir</Button>
+                <Button size="sm" variant="ghost" onClick={() => nav(`/missions/${m.assignmentId}`)}>Abrir</Button>
               </li>
             ))}
           </ul>

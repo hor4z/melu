@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { ChevronLeft, FilePlus2 } from 'lucide-react'
-import { Button, Card, CardContent, CardMedia, Chip, Field, FormActions, Eyebrow, Heading, Icon, Input, Text, Textarea, Toggle, ToggleGroup, ToggleGroupItem } from '@melu/ui'
+import { FilePlus2 } from 'lucide-react'
+import { Breadcrumb, BreadcrumbItem, BreadcrumbPage, Button, Card, CardContent, CardMedia, Chip, Field, FormActions, Eyebrow, Heading, Icon, Input, Text, Textarea, Toggle, ToggleGroup, ToggleGroupItem } from '@melu/ui'
 import { Stepper } from '../blocks/Product'
 import { api, type Activity, type Composition, type Lens } from '../lib/api'
 import { useSpaceId } from '../lib/space'
@@ -42,7 +42,10 @@ export function NewActivity() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Link to="/activities" className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> Actividades</Link>
+      <Breadcrumb>
+        <BreadcrumbItem asChild><Link to="/activities">Actividades</Link></BreadcrumbItem>
+        <BreadcrumbPage>Nueva actividad</BreadcrumbPage>
+      </Breadcrumb>
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div><Eyebrow>Nueva actividad</Eyebrow><Heading level={1} size="2xl" className="mt-1">{step === 0 ? 'Empezá desde una plantilla' : 'Ajustá la composición'}</Heading><Text variant="muted">{step === 0 ? 'Cada plantilla es una combinación que funciona: qué hacen, cómo se recorre, dónde, con quién. La copiás y la hacés tuya.' : 'Seis decisiones. Lo que elijas acá define las fases y qué evidencia vuelve. Todo se puede cambiar después.'}</Text></div>
         <Stepper steps={['Plantilla', 'Ajustar', 'Editar']} current={step} />

@@ -36,6 +36,12 @@ export const COPY: Record<string, string> = {
   'Textarea.autoGrow': 'Crece con el contenido en vez de hacer scroll.',
   'Switch.children': 'La etiqueta al lado del control. Sin esto, poné el Switch adentro de un Field.',
   'Switch.spread': 'Empuja la etiqueta al borde opuesto: es la forma de una lista de ajustes.',
+  // Navegación
+  'Breadcrumb.label': 'El nombre accesible del camino. Por defecto "Dónde estás".',
+  'BreadcrumbItem.asChild': 'Rinde el hijo (un `<Link>` del router) con los estilos del paso.',
+  'BreadcrumbItem.back': 'Dibuja la flecha de vuelta. La pone `Breadcrumb` en el padre para la fila del celular: a mano queda una flecha en el medio del camino, apuntando a nada.',
+  BreadcrumbPage: 'El último paso, donde estás. No es un enlace, y lleva `aria-current` para que también se diga.',
+
   RadioGroupItem: 'Un radio con su etiqueta. Las flechas se mueven entre opciones, como corresponde.',
   RadioCard: 'La variante en tarjeta: toda la caja es clickeable. Sirve para elegir un modo o un plan.',
   'ToggleGroup.type': '`single` deja uno activo; `multiple` permite varios.',

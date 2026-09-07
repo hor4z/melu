@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Activity, BookOpen, Check, Compass, Home, LayoutDashboard, Plus, School, Users } from 'lucide-react'
+import { Activity, BookOpen, Check, Compass, Home, Inbox, LayoutDashboard, Plus, School, Users } from 'lucide-react'
 import {
   Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
   DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, Input, Logo, Logomark, MenuButton,
@@ -15,12 +15,24 @@ import { api, type Space, type SpaceKind, type Me } from './lib/api'
 import { SPACE_KINDS } from './lib/composition'
 import { Modal } from './blocks/Modal'
 
-// Los destinos del docente, en el orden en que se visitan.
+// Los destinos del docente, en el orden en que se visitan: primero qué pasa, después el
+// trabajo del día, después la gente y el material.
+//
+// "Corregir" estaba en la aplicación y no en el panel: se llegaba solo por el "ver todas" de
+// Inicio, así que la pantalla donde se pasa más tiempo era la única sin puerta de entrada.
 const DESTINOS: [string, string, typeof LayoutDashboard][] = [
   ['/home', 'Inicio', LayoutDashboard],
-  ['/focus', 'Cómo vienen', Activity],
+  // "Entregas", igual que el título de esa pantalla. Un destino que se llama distinto en el
+  // panel y adentro obliga a comprobar que llegaste a donde querías.
+  ['/submissions', 'Entregas', Inbox],
+  ['/progress', 'Cómo vienen', Activity],
   ['/groups', 'Grupos', Users],
   ['/activities', 'Actividades', BookOpen],
+]
+
+// Material de consulta, no un destino diario: se abre cuando aparece la duda y se cierra. Con
+// los otros cinco arriba, competía por el ojo cada vez que alguien buscaba sus grupos.
+const REFERENCIA: [string, string, typeof LayoutDashboard][] = [
   ['/lenses', 'Lentes', Compass],
 ]
 
@@ -111,6 +123,12 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
           <SidebarNav>
             <SidebarLabel>Enseñar</SidebarLabel>
             {DESTINOS.map(([to, nombre, icono]) => (
+              <SidebarItem key={to} asChild label={nombre} icon={<Icon icon={icono} size="lg" />}>
+                <NavLink to={to} />
+              </SidebarItem>
+            ))}
+            <SidebarLabel>Referencia</SidebarLabel>
+            {REFERENCIA.map(([to, nombre, icono]) => (
               <SidebarItem key={to} asChild label={nombre} icon={<Icon icon={icono} size="lg" />}>
                 <NavLink to={to} />
               </SidebarItem>
