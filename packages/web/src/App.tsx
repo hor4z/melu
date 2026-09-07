@@ -74,6 +74,9 @@ export function App() {
         <Route path="/groups" element={<Groups />} />
         <Route path="/groups/:id" element={<GroupDetail />} />
         <Route path="/groups/:groupId/missions/:id" element={<Review />} />
+        {/* Una entrega tiene dirección propia: es lo que se mira, y sin ella "abrir la entrega
+            de Martina" desde la lista abría la de quien estuviera primero. */}
+        <Route path="/groups/:groupId/missions/:id/submissions/:entregaId" element={<Review />} />
         <Route path="/activities" element={<Library />} />
         <Route path="/activities/new" element={<NewActivity />} />
         <Route path="/activities/:id" element={<Editor />} />

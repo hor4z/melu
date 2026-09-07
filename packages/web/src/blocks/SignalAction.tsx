@@ -39,7 +39,7 @@ export function SignalAction({ signal }: { signal: Signal }) {
       <Button size="sm" variant="secondary" asChild startIcon={<Icon icon={Eye} size="sm" />}>
         {/* Un `Link` y no un `<a>`: el `<a>` recargaba la aplicación entera para ir a otra
             pantalla de la misma aplicación. */}
-        <Link to={`/groups/${signal.groupId}/missions/${signal.assignmentId}`} aria-label={`Ver qué hizo ${signal.learner}`}>Ver</Link>
+        <Link to={`/groups/${signal.groupId}/missions/${signal.assignmentId}/submissions/${signal.submissionId}`} aria-label={`Ver qué hizo ${signal.learner}`}>Ver</Link>
       </Button>
     )
   }

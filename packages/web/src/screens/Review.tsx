@@ -4,11 +4,11 @@
 // y qué nivel le pongo. Lo que no contestaba era la cuarta, que es la primera que hace quien
 // corrige: de quién falta. Por eso la pila trae al grupo entero y no solo a los que entregaron.
 import { useState } from 'react'
-import { Link, Navigate, useParams } from 'react-router'
+import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import {
-  Avatar, Breadcrumb, BreadcrumbItem, BreadcrumbPage, Button, Card, Chip, cn, Eyebrow, Field,
+  Alert, Avatar, Breadcrumb, BreadcrumbItem, BreadcrumbPage, Button, Card, Chip, cn, Eyebrow, Field,
   Heading, Icon, NativeSelect, Progress, RadioCard, RadioGroup, Skeleton, Text,
 } from '@melu/ui'
 import { api, type Assignment, type Learner, type Submission, type Score } from '../lib/api'
@@ -17,25 +17,38 @@ import { IS_INTERACTIVE } from '../lib/composition'
 import { Empty } from '../blocks/Modal'
 import { NoLlego } from '../blocks/Estado'
 
-type Pila = { id: string; learner: string; entrega?: Submission; estado: 'submitted' | 'graded' | 'missing' }
+type Estado = 'submitted' | 'in_progress' | 'graded' | 'missing'
+type Pila = { id: string; learner: string; entrega?: Submission; estado: Estado }
 
 const ESTADO = {
-  submitted: { label: 'Para mirar', color: 'warning' },
-  graded: { label: 'Corregida', color: 'success' },
-  missing: { label: 'Sin entregar', color: 'default' },
+  submitted: { label: 'Para mirar', color: 'warning', punto: 'bg-warning' },
+  in_progress: { label: 'Sin terminar', color: 'default', punto: 'bg-ink-subtle' },
+  graded: { label: 'Corregida', color: 'success', punto: 'bg-success' },
+  missing: { label: 'Sin abrir', color: 'default', punto: 'bg-line-strong' },
 } as const
+
+// El orden es el del trabajo: lo que espera, lo que quedó a medias (que no se corrige pero se
+// mira), lo hecho, y al final quienes no la abrieron.
+const ORDEN: Estado[] = ['submitted', 'in_progress', 'graded', 'missing']
 
 /** Lo que se ve como respuesta vacía: la caja de escribir en blanco no dice que no entregó nada. */
 const vacio = (v: unknown) => v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0)
 
 export function Review() {
-  const { groupId, id } = useParams()
+  const { groupId, id, entregaId } = useParams()
+  const nav = useNavigate()
   const qc = useQueryClient()
   const q = useQuery({
     queryKey: ['submissions', id],
     queryFn: () => api.get<{ assignment: Assignment; submissions: Submission[]; learners: Learner[] }>(`/api/assignments/${id}/submissions`),
   })
-  const [sel, setSel] = useState<string | null>(null)
+  // Qué entrega se está mirando lo dice la dirección y no un estado adentro de la pantalla:
+  // así se puede abrir la de una persona directo, pegarla en un chat o guardarla, y la fila que
+  // se toca en la lista de entregas es la que se abre.
+  // Ir a otra persona es navegar de verdad, con su entrada en el historial: la flecha de atrás
+  // del navegador vuelve a la que estabas mirando, que es lo que espera cualquiera que abrió
+  // tres. Lo único que se reemplaza son las dos correcciones automáticas de la dirección.
+  const irA = (sid?: string) => { if (sid) nav(`/groups/${groupId}/missions/${id}/submissions/${sid}`) }
   // El borrador es de una entrega: mientras estás en esa, manda lo que tocaste; en cualquier
   // otra manda lo que ya tiene puesto el servidor. Antes el estado era uno solo para todas, así
   // que abrir una ya corregida mostraba la rúbrica en blanco y pedía elegir todo de nuevo.
@@ -49,7 +62,7 @@ export function Review() {
       void qc.invalidateQueries({ queryKey: ['submissions', id] })
       void qc.invalidateQueries({ queryKey: ['dashboard'] })
       setDraft(null)
-      setSel(v.sigue)
+      if (v.sigue) irA(v.sigue)
     },
   })
 
@@ -62,21 +75,29 @@ export function Review() {
   if (!groupId) return <Navigate to={`/groups/${a.groupId}/missions/${id}`} replace />
 
   const entregadas = submissions.filter((e) => e.status !== 'in_progress')
-  // El orden es el del trabajo: primero lo que espera, después lo hecho, y al final quienes no
-  // entregaron, que no son una tarea pero son la respuesta a "de quién falta".
+  // La pila es el grupo entero, no solo quienes entregaron: "de quién falta" es la primera
+  // pregunta de quien corrige. Y una que quedó a medias no es lo mismo que una sin abrir: hay
+  // algo escrito para mirar, que es lo que promete "ver qué hizo" en Cómo vienen.
   const pila: Pila[] = [
-    ...entregadas.filter((e) => e.status === 'submitted').map((e) => ({ id: e.id, learner: e.learner ?? '?', entrega: e, estado: 'submitted' as const })),
-    ...entregadas.filter((e) => e.status === 'graded').map((e) => ({ id: e.id, learner: e.learner ?? '?', entrega: e, estado: 'graded' as const })),
+    ...submissions.map((e) => ({ id: e.id, learner: e.learner ?? '?', entrega: e, estado: e.status as Estado })),
     ...learners
-      .filter((p) => !entregadas.some((e) => e.learnerId === p.id))
+      .filter((p) => !submissions.some((e) => e.learnerId === p.id))
       .map((p) => ({ id: p.id, learner: p.name, estado: 'missing' as const })),
-  ]
+  ].sort((x, y) => ORDEN.indexOf(x.estado) - ORDEN.indexOf(y.estado))
   const conEntrega = pila.filter((x) => x.entrega)
-  const actual = conEntrega.find((x) => x.id === sel) ?? conEntrega[0]
+  const pedida = conEntrega.find((x) => x.id === entregaId)
+  // Una entrega que no es de esta misión no se cambia por otra en silencio: mostrar a otra
+  // persona de la que dice la dirección es la peor de las dos respuestas posibles.
+  const perdida = Boolean(entregaId) && !pedida
+  const actual = pedida ?? conEntrega[0]
   const donde = actual ? conEntrega.indexOf(actual) : -1
   const corregidas = entregadas.filter((e) => e.status === 'graded').length
   const rubric = a.rubric ?? []
   const bloques = (a.document?.phases ?? []).flatMap((f) => f.blocks.filter((b) => IS_INTERACTIVE(b.type)).map((b) => ({ ...b, phase: f.name })))
+
+  // La dirección siempre nombra lo que está en pantalla. Entrar por la misión sola elige la
+  // primera que espera y lo escribe arriba, así lo que se copia ya apunta a esa entrega.
+  if (actual && !entregaId) return <Navigate to={`/groups/${a.groupId}/missions/${id}/submissions/${actual.id}`} replace />
 
   const puestos = actual?.entrega
     ? (draft?.id === actual.id ? draft.scores : Object.fromEntries(actual.entrega.scores.map((p) => [p.id, p.level])))
@@ -87,7 +108,7 @@ export function Review() {
   // está: mandar a la primera de la lista después de terminar es perder el lugar.
   const sigue = conEntrega.find((x) => x.estado === 'submitted' && x.id !== actual?.id)?.id ?? actual?.id ?? ''
 
-  const irA = (paso: -1 | 1) => setSel(conEntrega[donde + paso]?.id ?? null)
+  const paso = (cuanto: -1 | 1) => irA(conEntrega[donde + cuanto]?.id)
 
   return (
     <div className="flex flex-col gap-6">
@@ -129,7 +150,7 @@ export function Review() {
                   return (
                     <li key={x.id}>
                       <button
-                        type="button" disabled={!x.entrega} onClick={() => setSel(x.id)}
+                        type="button" disabled={!x.entrega} onClick={() => irA(x.id)}
                         aria-current={activo || undefined}
                         className={cn('flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm',
                           x.entrega ? 'hover:bg-hover' : 'cursor-default opacity-55',
@@ -139,7 +160,7 @@ export function Review() {
                         <span className="min-w-0 flex-1 truncate">{x.learner}</span>
                         {x.estado === 'graded'
                           ? <Icon icon={Check} size="sm" className="shrink-0 text-success" label="Corregida" />
-                          : <span className={cn('size-2 shrink-0 rounded-full', x.estado === 'submitted' ? 'bg-warning' : 'bg-line-strong')} aria-label={e.label} />}
+                          : <span className={cn('size-2 shrink-0 rounded-full', e.punto)} aria-label={e.label} />}
                       </button>
                     </li>
                   )
@@ -151,14 +172,20 @@ export function Review() {
             <div className="flex flex-col gap-6">
               <div className="flex flex-wrap items-end gap-3 lg:hidden">
                 <Field label="Quién" className="min-w-48 flex-1">
-                  <NativeSelect value={actual?.id ?? ''} onChange={(ev) => setSel(ev.target.value)}>
+                  <NativeSelect value={actual?.id ?? ''} onChange={(ev) => irA(ev.target.value)}>
                     {conEntrega.map((x) => <option key={x.id} value={x.id}>{x.learner}, {ESTADO[x.estado].label.toLowerCase()}</option>)}
                   </NativeSelect>
                 </Field>
-                <Pasos donde={donde} total={conEntrega.length} irA={irA} />
+                <Pasos donde={donde} total={conEntrega.length} paso={paso} />
               </div>
 
-              {actual?.entrega && (
+              {perdida && (
+                <Alert variant="warning" title="No encontramos esa entrega en esta misión">
+                  Revisá el enlace, o elegí a alguien de la lista.
+                </Alert>
+              )}
+
+              {!perdida && actual?.entrega && (
                 <>
                   <section className="flex flex-col gap-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -169,7 +196,7 @@ export function Review() {
                           <Chip size="sm" color={ESTADO[actual.estado].color}>{ESTADO[actual.estado].label}</Chip>
                         </div>
                       </div>
-                      <div className="hidden lg:block"><Pasos donde={donde} total={conEntrega.length} irA={irA} /></div>
+                      <div className="hidden lg:block"><Pasos donde={donde} total={conEntrega.length} paso={paso} /></div>
                     </div>
 
                     {bloques.map((b) => {
@@ -198,7 +225,14 @@ export function Review() {
                     })}
                   </section>
 
-                  {rubric.length > 0 && (
+                  {actual.estado === 'in_progress' && (
+                    <Alert variant="info" title="Todavía no la entregó">
+                      Se puede mirar lo que hay hasta acá, pero no corregirla: los niveles se
+                      ponen sobre algo terminado.
+                    </Alert>
+                  )}
+
+                  {rubric.length > 0 && actual.estado !== 'in_progress' && (
                     <Card padding="md" className="gap-5">
                       <div>
                         <Heading level={3} size="sm">Rúbrica</Heading>
@@ -244,11 +278,11 @@ export function Review() {
 }
 
 /** Anterior y siguiente dentro de la pila. Se apagan en las puntas y no se van, como en la tabla. */
-function Pasos({ donde, total, irA }: { donde: number; total: number; irA: (paso: -1 | 1) => void }) {
+function Pasos({ donde, total, paso }: { donde: number; total: number; paso: (cuanto: -1 | 1) => void }) {
   return (
     <div className="flex items-center gap-1">
-      <Button size="sm" variant="ghost" disabled={donde <= 0} onClick={() => irA(-1)} startIcon={<Icon icon={ChevronLeft} size="sm" />}>Anterior</Button>
-      <Button size="sm" variant="ghost" disabled={donde < 0 || donde >= total - 1} onClick={() => irA(1)} endIcon={<Icon icon={ChevronRight} size="sm" />}>Siguiente</Button>
+      <Button size="sm" variant="ghost" disabled={donde <= 0} onClick={() => paso(-1)} startIcon={<Icon icon={ChevronLeft} size="sm" />}>Anterior</Button>
+      <Button size="sm" variant="ghost" disabled={donde < 0 || donde >= total - 1} onClick={() => paso(1)} endIcon={<Icon icon={ChevronRight} size="sm" />}>Siguiente</Button>
     </div>
   )
 }

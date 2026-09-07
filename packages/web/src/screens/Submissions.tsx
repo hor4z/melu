@@ -133,7 +133,8 @@ export function Submissions() {
   }
   const sentido = (por: Por) => (orden_.por === por ? orden_.dir : false)
 
-  const abrir = (e: SubmissionSummary) => nav(`/groups/${e.groupId}/missions/${e.assignmentId}`)
+  // La fila que se toca es la que se abre: la dirección lleva la entrega y no solo la misión.
+  const abrir = (e: SubmissionSummary) => nav(`/groups/${e.groupId}/missions/${e.assignmentId}/submissions/${e.submissionId}`)
   const accion = (e: SubmissionSummary) => (
     <Button
       size="sm" variant={e.status === 'submitted' ? 'primary' : 'ghost'}

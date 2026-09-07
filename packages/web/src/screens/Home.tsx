@@ -115,7 +115,7 @@ export function Home() {
                     <span className="inline-flex items-center gap-1 text-ink-subtle"><Icon icon={Clock} size="xs" />{ago(e.when)}</span>
                   </Text>
                 </div>
-                <Button size="sm" onClick={() => nav(`/groups/${e.groupId}/missions/${e.assignmentId}`)}>Corregir</Button>
+                <Button size="sm" onClick={() => nav(`/groups/${e.groupId}/missions/${e.assignmentId}/submissions/${e.submissionId}`)}>Corregir</Button>
               </li>
             ))}
           </ul>
