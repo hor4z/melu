@@ -1,13 +1,6 @@
-/**
- * The plugins that ship with the package, and the two ways of putting them together.
- *
- * `basics()` is the writing surface: text, media and structure. It has nothing to do with school,
- * so it is what any other page in the platform would use. `activityKit()` adds the blocks that
- * ask something of a learner, which is the editor a guide opens.
- *
- * Both are just lists. Dropping a plugin, reordering them or slipping one of your own in the
- * middle is a line at the call site, and none of them knows about the others.
- */
+// Los plugins que vienen, y las dos formas de juntarlos. `basics()` no sabe nada de escuela:
+// sirve para cualquier página. `activityKit()` le suma las preguntas. Son listas, y ninguno de
+// los plugins sabe de los otros.
 
 import type { Plugin } from '../core/plugins.ts'
 import { text } from './text.ts'

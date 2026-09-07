@@ -1,13 +1,6 @@
-/**
- * The text plugin: the blocks a page is mostly made of, and the keys and typing rules that make
- * them appear without opening a menu.
- *
- * Headings are three types and not one type with a level, which is the choice Notion made and it
- * pays off everywhere downstream: the insert menu is the list of types, `Mod-Alt-2` is one
- * binding, "## " is one rule, and turning a heading into a list is one command with no props to
- * reconcile. The document format the platform stores maps them back to a level, and that mapping
- * lives in the serialiser where it belongs.
- */
+// Los bloques de los que está hecha una página, con sus teclas y sus reglas de tipeo.
+// Los títulos son tres tipos y no uno con nivel, como en Notion: así el menú es la lista de tipos,
+// "## " es una regla y convertir uno es un comando sin props que reconciliar.
 
 import type { BlockSpec, PropSpec } from '../core/schema.ts'
 import type { InputRule, KeyBinding, Plugin } from '../core/plugins.ts'
@@ -381,10 +374,7 @@ const toggleOpen: Command<{ id: string }> = ({ tr }, { id }) => {
   return true
 }
 
-/**
- * Keeps the plugin's own promises. Two of them: a divider never holds children, because you
- * cannot see them, and a code block never holds marks, because a paste can bring them in.
- */
+/** Un separador no tiene hijos (no se verían) y un bloque de código no tiene marcas. */
 const normalizeText: Plugin['normalize'] = ({ tr, state, touched }) => {
   for (const id of touched) {
     const b = tr.doc.blocks[id]

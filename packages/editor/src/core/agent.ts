@@ -1,21 +1,6 @@
-/**
- * The door an agent writes through.
- *
- * The temptation was a second API for the machine: a function that takes a description of an
- * activity and builds a document. It would have been a second implementation of everything, and
- * the two would have drifted apart within a month.
- *
- * So there is no second implementation. An agent sends the same named commands a click sends, and
- * it learns which ones exist and what they take by reading a manifest generated from the same
- * specs the editor runs on. When someone adds a block type, the agent can use it that afternoon
- * and nobody had to tell it anything.
- *
- * Three things are needed for that to actually work, and they are what this file is:
- *
- *   manifest   what exists: block types, their props, the commands, the keys
- *   outline    what the document currently is, short enough to fit in a prompt, with the ids
- *   apply      a batch of operations, all in one transaction, all or nothing
- */
+// La puerta del agente, y no hay una segunda implementación: manda los mismos comandos con nombre
+// que manda un click, y aprende cuáles existen leyendo un manifiesto generado de los mismos specs.
+// `manifest` dice qué existe, `outline` qué hay ahora, `apply` corre un lote atómico.
 
 import type { Editor } from './editor.ts'
 import { ctxOf } from './editor.ts'
@@ -108,10 +93,7 @@ export type OutlineOptions = {
   depth?: number
 }
 
-/**
- * The document as a short list an agent can read and point at. Every line starts with the id,
- * because the whole reason to send this is so the next operation can name a block.
- */
+/** El documento como una lista corta. Cada línea arranca con el id: es para poder apuntarle. */
 export function outline(editor: Editor, opts: OutlineOptions = {}): string {
   const { chars = 80, props = false, depth = 6 } = opts
   const lines: string[] = []
@@ -135,10 +117,7 @@ export const readMarkdown = (editor: Editor): string => toMarkdown(editor.doc)
 
 // ---------------------------------------------------------------------------- operations
 
-/**
- * One operation. `do` is a command name, or one of the two conveniences below, and `args` is
- * whatever that command takes. It is JSON, so it can arrive from a tool call unchanged.
- */
+/** `do` es un nombre de comando y `args` lo que ese comando toma. Es JSON: llega tal cual. */
 export type AgentOp =
   | { do: 'markdown'; args: { text: string; at?: 'end' | 'replace'; parent?: BlockId } }
   | { do: string; args?: unknown }
@@ -152,9 +131,8 @@ export type AgentReport = {
 }
 
 /**
- * Applies a batch of operations in a single transaction. All of them or none: an activity half
- * written by a model that lost its way is worse than one that was not written, and one undo has
- * to take the whole thing back.
+ * Un lote en una sola transacción, todo o nada: una actividad a medio escribir por un modelo que
+ * se perdió es peor que una que no se escribió, y un solo deshacer tiene que llevarse todo.
  */
 export function apply(editor: Editor, ops: readonly AgentOp[], opts: { label?: string } = {}): AgentReport {
   const results: AgentReport['results'] = []
@@ -217,10 +195,7 @@ export function authorBlocks(editor: Editor, blocks: readonly BlockInit[], paren
   return apply(editor, [{ do: 'appendBlocks', args: { blocks, parent } }], { label: 'blocks' })
 }
 
-/**
- * A one-shot description of the editor for a system prompt: what it can build, what is there now,
- * and how to say what it wants. Short on purpose.
- */
+/** Todo junto para un system prompt: qué puede armar, qué hay, y cómo pedirlo. */
 export function brief(editor: Editor): string {
   const groups = editor.schema.groups
     .map((g) => `${g.group}: ${g.items.map((s) => s.type).join(', ')}`)

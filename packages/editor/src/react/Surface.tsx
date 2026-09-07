@@ -1,14 +1,6 @@
-/**
- * The surface: the component the platform mounts, and where the browser's events meet the engine.
- *
- * It owns four things that cannot live in a block:
- *
- *   the page          which blocks to draw, recursively, each one subscribed to itself
- *   the clipboard     copy, cut and paste, which are about a selection and not about a block
- *   whole selections  dragging across paragraphs, which the browser cannot express, so it becomes
- *                     a block selection, exactly as it does in Notion
- *   the chrome        what floats: the handle, the insert menu, the format bar, the drop line
- */
+// El componente que la plataforma monta, y donde los eventos del navegador se encuentran con el
+// motor. Tiene lo que no puede vivir en un bloque: la página, el portapapeles, las selecciones de
+// bloques enteros, y lo que flota.
 
 import {
   createContext,
@@ -113,13 +105,9 @@ const Page = memo(function Page({ renderers, readOnly }: { renderers: Renderers;
 })
 
 /**
- * Whether an event came from a block's own controls rather than from the editor's text.
- *
- * A media block has an input asking for an address, a question has one per option, the toolbox has
- * a search box. Those are plain form controls, and the surface must keep its hands off them:
- * without this check, pasting a url into the address box was caught by the editor's paste handler,
- * which cancelled the event and inserted a block somewhere else, so the address never arrived and
- * the box stayed empty. The same for copy, cut and undo.
+ * Si el evento vino de un control propio de un bloque y no del texto del editor. Sin esto, pegar
+ * una dirección en la caja de un video lo agarraba el editor, cancelaba el evento e insertaba un
+ * bloque en otro lado. Vale igual para copiar, cortar y deshacer.
  */
 const fromWidget = (target: EventTarget | null): boolean => {
   const el = target instanceof Element ? target : null
@@ -150,11 +138,8 @@ export function Surface({
 
   // -------------------------------------------------------------------------- selection
 
-  /**
-   * The browser cannot select across two editable regions, so a drag that leaves the block it
-   * started in becomes a selection of whole blocks. This is what Notion does, and it is why
-   * dragging down a page highlights blocks rather than half sentences.
-   */
+  // El navegador no puede seleccionar cruzando dos regiones editables, así que un arrastre que
+  // sale del bloque donde empezó se vuelve una selección de bloques enteros, como en Notion.
   useEffect(() => {
     const container = ref.current
     if (!container) return
@@ -317,9 +302,8 @@ export function Surface({
           ev.clientY,
           (parent, child) => editor.state.schema.accepts(parent, child),
         )
-        // El ref se escribe acá, donde se calcula, y no durante el render: `pointerup` se registra
-        // una sola vez y necesita el último destino, pero escribir un ref mientras se dibuja es un
-        // efecto en medio del render y React tiene todo el derecho de dibujar dos veces.
+        // El ref se escribe donde se calcula y no durante el render: `pointerup` se registra una
+        // sola vez y necesita el último destino.
         latestDrop.current = target
         setDrop(target)
       }
@@ -418,9 +402,8 @@ function DropIndicator({ target, surface }: { target: DropTarget; surface: HTMLE
 export type DragContextValue = {
   startDrag: (id: BlockId, e: React.PointerEvent) => void
   /**
-   * La superficie de este editor. Va por el contexto y no se busca en el documento: con dos
-   * editores montados, `querySelector` devuelve la del primero y el asa del segundo mide y busca
-   * en la página equivocada, así que nunca aparece.
+   * La superficie de este editor. Por el contexto y no por `querySelector`: con dos editores
+   * montados, el asa del segundo medía la página del primero y nunca aparecía.
    */
   surface: () => HTMLElement | null
   onOpenBlockMenu?: (id: BlockId, at: { x: number; y: number }) => void

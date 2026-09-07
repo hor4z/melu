@@ -1,14 +1,6 @@
-/**
- * The toolbox: a panel that floats over the page with every block in it, and you drag one out.
- *
- * The point of it is discoverability. A "/" menu is faster once you know the names, and it is
- * invisible until then; a panel you can see is how someone finds out that a timer, a formula or a
- * balance exists at all. So both are here and they do the same thing through the same commands.
- *
- * It can be moved and collapsed, and it remembers neither: where a panel sits is not part of an
- * activity, and reopening it in the corner it always opens in beats reopening it wherever it was
- * left three weeks ago.
- */
+// El panel de bloques, del que se arrastra uno. Existe por lo que el menú "/" no puede hacer: el
+// menú es más rápido una vez que sabés los nombres, y es invisible hasta entonces. Se mueve y se
+// repliega, y no recuerda ninguna de las dos: dónde queda un panel no es parte de una actividad.
 
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { BlockSpec } from '../core/schema.ts'
@@ -33,13 +25,8 @@ export function Toolbox({ initial = { top: 16, right: 16 }, extras, title = 'Blo
   const editor = useEditor()
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
   /**
-   * Arranca abierta solo si hay lugar al costado de la columna de texto: un panel que se abre
-   * encima de lo que alguien está escribiendo es peor que uno que hay que abrir.
-   *
-   * Se decide en un efecto y no al crear el estado porque al crearlo la columna todavía no está
-   * en el documento (este panel es hijo de la superficie que hay que medir), así que ahí la
-   * respuesta sería siempre la misma. `null` es "todavía no se sabe", y se resuelve antes de que
-   * el navegador pinte, así que no se ve abrir y cerrar.
+   * Abierta solo si hay lugar al costado de la columna. Se decide en un efecto porque al crear el
+   * estado la columna todavía no está en el documento: este panel es hijo de lo que hay que medir.
    */
   const [open, setOpen] = useState<boolean | null>(null)
   useLayoutEffect(() => {
@@ -94,17 +81,13 @@ export function Toolbox({ initial = { top: 16, right: 16 }, extras, title = 'Blo
     [editor, commands],
   )
 
-  /**
-   * Dragging a tool onto the page. The block is not created until the pointer is let go, and it
-   * lands after whatever block it was dropped on, so it goes where it looked like it would go.
-   */
+  /** El bloque no se crea hasta soltar, y cae después de aquel sobre el que se soltó. */
   const startDragTool = useCallback(
     (spec: BlockSpec) => (e: React.PointerEvent) => {
       e.preventDefault()
       const desde = { x: e.clientX, y: e.clientY }
-      // Un click no es un arrastre. Sin esta distinción el `pointerup` insertaba (soltar sobre el
-      // propio panel cae adentro de la superficie) y después el `click` del botón insertaba otra
-      // vez, porque cancelar el `pointerdown` no cancela el `click`.
+      // Un click no es un arrastre. Sin distinguirlos insertaba dos veces: el `pointerup` y
+      // después el `click`, porque cancelar el `pointerdown` no cancela el `click`.
       let arrastro = false
       const ghost = document.createElement('div')
       ghost.className = 'melu-tool-ghost'

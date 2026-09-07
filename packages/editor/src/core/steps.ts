@@ -1,16 +1,6 @@
-/**
- * Steps: the only way the document ever changes.
- *
- * A step is plain JSON, it is deterministic, and it knows how to build its own inverse. Those
- * three properties are worth more than they look:
- *
- *   plain JSON      an agent can send steps, and they can travel over a socket some day
- *   deterministic   no ids are minted while applying, so replaying gives the same document
- *   invertible      undo is not a snapshot of the document, it is the inverse of what was done
- *
- * Snapshots were the obvious alternative and they are the wrong one at this size: a document with
- * a thousand blocks would copy a thousand entries per keystroke to remember one character.
- */
+// La única forma en que cambia un documento. Un paso es JSON (lo puede mandar un agente),
+// determinista (no acuña ids, así que se puede repetir) e invertible (de ahí sale deshacer, sin
+// guardar una copia del documento por tecla).
 
 import type { Block, BlockId, Doc, Props } from './doc.ts'
 import { childrenOf, dropBlocks, has, isAncestor, setBlock, setBlocks, subtree } from './doc.ts'

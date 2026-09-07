@@ -1,15 +1,8 @@
-/**
- * The activity plugin: the blocks that ask something of a learner.
- *
- * These are the block types the platform already has, and the shape is the same in all of them:
- * the prompt is the block's own rich text, and the answer is props. That split is deliberate. The
- * prompt gets bold, links, formulas and the "/" menu for free because it is text like any other
- * text; the answer gets validation, defaults and a manifest because it is declared props. Nothing
- * here knows how a question is drawn or graded, which stays where it already is: the grading maths
- * lives in Go so the number is the same whoever looks at it.
- *
- * This is also the file that shows what the extension point is worth. Everything below is data.
- */
+// Los bloques que le piden algo a un aprendiz. La consigna es el texto del bloque y la respuesta
+// son props: la consigna gana negrita, links y el menú "/" gratis, y la respuesta gana validación,
+// defaults y manifiesto. Nada acá sabe cómo se corrige: esa matemática vive en Go.
+//
+// Todo lo que sigue es data, que es lo que vale el punto de extensión.
 
 import type { BlockSpec } from '../core/schema.ts'
 import type { Plugin } from '../core/plugins.ts'
@@ -258,10 +251,7 @@ const syncBlanks: Command<{ id: string }> = ({ tr }, { id }) => {
   return true
 }
 
-/**
- * A fill in the blank sentence carries its answers inside the text, so the props follow the text
- * and not the other way round. Typing another `{{hueco}}` is all it takes.
- */
+/** Un completar lleva las respuestas en el texto, así que las props siguen al texto y no al revés. */
 const normalizeActivity: Plugin['normalize'] = ({ tr, touched }) => {
   for (const id of touched) {
     if (tr.doc.blocks[id]?.type === 'fill_in') syncBlanks({ state: tr.current, tr }, { id })

@@ -1,15 +1,6 @@
-/**
- * Getting content in and out: JSON, Markdown and HTML.
- *
- * JSON is the document as the platform stores it, a nested tree rather than the flat map the
- * engine runs on. The flat map is right for editing and the tree is right for a jsonb column and
- * for a person reading a diff, so the conversion lives here and nowhere else.
- *
- * Markdown is not a nicety. It is the format a model writes without being taught, so it is the
- * cheapest possible door for an agent to author an activity through, and it is also what makes
- * pasting from anywhere work. It is lossy on purpose: a colour has no markdown, and the
- * alternative was inventing a dialect nobody else can read.
- */
+// JSON es el árbol que guarda la plataforma; el motor corre sobre un mapa plano, y la conversión
+// vive acá. El markdown es el formato que un modelo escribe sin que se lo enseñen, y es con
+// pérdida a propósito: un color no tiene markdown, e inventar un dialecto no lo lee nadie.
 
 import type { Block, BlockId, BlockInit, Doc, Props } from './doc.ts'
 import { childrenOf, emptyDoc, materialize, setBlocks } from './doc.ts'
@@ -41,10 +32,7 @@ export function toJSON(doc: Doc, from: BlockId = doc.root): BlockJSON[] {
   })
 }
 
-/**
- * Reads a tree back. Ids are kept when they are there, so a round trip through the database does
- * not renumber a document and break every anchor pointing into it.
- */
+/** Los ids se conservan: un viaje a la base no puede renumerar lo que apunta a un bloque. */
 export const fromJSON = (blocks: readonly BlockJSON[]): BlockInit[] =>
   blocks.map((b) => ({
     ...(b.id ? { id: b.id } : {}),
@@ -227,23 +215,15 @@ const INLINE = [
 ] as const
 
 /**
- * Un carácter escapado se guarda en la zona de uso privado antes de mirar el markup, y se
- * devuelve a su forma al final.
- *
- * Sin esto, `\*asterisco\*` se lee como una cursiva: la regla de la cursiva no tiene forma de
- * saber que la barra invertida de al lado la estaba cancelando, porque para una expresión regular
- * la barra es un carácter más. Enmascarar es la única manera de que el escape gane sin escribir un
- * tokenizador entero.
+ * Un carácter escapado se esconde en la zona de uso privado antes de mirar el markup. Sin esto,
+ * `\*asterisco\*` se lee como cursiva: para una expresión regular la barra es un carácter más.
  */
 const MASK = 0xe000
 const ESCAPABLE = /\\([\\`*_[\]~=<>|$#{}()!-])/g
 const mask = (s: string) => s.replace(ESCAPABLE, (_, c: string) => String.fromCharCode(MASK + c.charCodeAt(0)))
 const unmask = (s: string) => s.replace(/[\uE000-\uE0ff]/g, (c) => String.fromCharCode(c.charCodeAt(0) - MASK))
 
-/**
- * Parses the inline markup of one line. Recursive on the two sides of the match, so `**a `b`**`
- * comes back with both marks and not with backticks in the middle of bold text.
- */
+/** El markup de una línea. Recursivo a los dos lados, así ``**a `b`**`` vuelve con las dos marcas. */
 export function textFromMarkdown(line: string, carry: readonly Mark[] = []): RichText {
   return parseInline(mask(line), carry)
 }
@@ -271,11 +251,7 @@ const indentOf = (line: string) => Math.floor((line.match(/^ */)?.[0].length ?? 
 
 type Pending = { init: BlockInit; depth: number }
 
-/**
- * Parses markdown into blocks. It handles what a model or a person actually writes: headings,
- * both kinds of list, checkboxes, quotes, fenced code, rules, images, tables and paragraphs, with
- * two spaces of indentation meaning one level of nesting.
- */
+/** Lo que un modelo o una persona escriben de verdad. Dos espacios de sangría son un nivel. */
 export function fromMarkdown(source: string): BlockInit[] {
   const lines = source.replace(/\r\n?/g, '\n').split('\n')
   const flat: Pending[] = []
@@ -349,9 +325,8 @@ export function fromMarkdown(source: string): BlockInit[] {
       // Un guion solo es un ítem vacío, que es lo que queda al apretar Enter en una lista.
       flat.push({ init: { type: 'bulleted_list', text: textFromMarkdown(m[1] ?? '') }, depth })
     } else if ((m = body.match(/^(\d{1,3})[.)]\s+(.*)$/))) {
-      // `start` solo lo lleva el primero de una tira, y solo si no arranca en uno. Guardarlo en
-      // cada ítem sería guardar la numeración, y entonces reordenar la lista dejaría los números
-      // donde estaban: el número se cuenta al dibujar, no se almacena.
+      // `start` solo lo lleva el primero de una tira: guardarlo en cada ítem sería guardar la
+      // numeración, y reordenar la lista dejaría los números donde estaban.
       const start = Number(m[1])
       const previous = flat[flat.length - 1]
       const continues = previous?.depth === depth && previous.init.type === 'numbered_list'
@@ -598,9 +573,8 @@ const BLOCK_TAGS = new Set([...Object.keys(TAG_BLOCK), 'UL', 'OL', 'LI', 'TABLE'
 const hasBlockChild = (el: Element) => [...el.children].some((c) => BLOCK_TAGS.has(c.tagName))
 
 /**
- * Turns pasted HTML into blocks. It is deliberately forgiving: anything it does not recognise
- * contributes its text as a paragraph, because losing what someone pasted is the worst outcome
- * and a wrong block type is one keystroke away from being fixed.
+ * HTML pegado, a bloques. Es indulgente a propósito: lo que no reconoce aporta su texto como
+ * párrafo, porque perder lo que alguien pegó es peor que un tipo equivocado.
  */
 export function fromHtml(html: string, doc?: { parse: (html: string) => Element }): BlockInit[] {
   const root = doc
@@ -691,9 +665,8 @@ export function fromHtml(html: string, doc?: { parse: (html: string) => Element 
       case 'BR':
         return []
       default: {
-        // Un contenedor que envuelve otros bloques no aporta un bloque propio: aporta los de
-        // adentro. Y una etiqueta que no conocemos, si trae texto, es un párrafo: perder lo que
-        // alguien pegó es el peor final posible, y un tipo equivocado se arregla con una tecla.
+        // Un contenedor que envuelve bloques aporta los de adentro, no uno propio. Y una
+        // etiqueta desconocida con texto es un párrafo: perder lo pegado es lo peor.
         if (hasBlockChild(el)) return readChildren(el)
         const text = inlineFromDom(el)
         if (plain(text).trim() === '') return []

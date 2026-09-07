@@ -1,15 +1,5 @@
-/**
- * The stylesheet.
- *
- * Every colour is a token with a fallback: `var(--text, #1b2624)`. Mounted on its own the editor
- * looks finished; mounted inside the platform it picks up melu's tokens and looks like the rest of
- * the app, without this file knowing anything about that. That is the whole trick, and it is why
- * there is no theme prop and no styled anything.
- *
- * The measurements are Notion's, taken with a ruler: a 720px column, 16/24 text, 6px of padding
- * around a block and 26px above a heading. They are not sacred, they are just right, and they are
- * what makes a page of text feel like a page instead of a form.
- */
+/* Cada color es un token con respaldo: solo se ve como melu si melu está. Las medidas son las de
+   Notion, medidas con regla. */
 
 .melu-surface {
   /* ------- medidas ------- */
@@ -20,12 +10,8 @@
   --melu-gutter: 6px;
   --melu-indent: 26px;
   --melu-radius: 6px;
-  /*
-   * El canal donde vive el asa. Es padding de la superficie y no espacio afuera: pintar el asa a
-   * la izquierda de la superficie anda hasta que un ancestro tiene scroll o recorta, y ahí
-   * desaparece sin dejar rastro. Reservarlo adentro es la única forma de que no dependa de en qué
-   * la monten. El ancho tiene que coincidir con `RAIL` en BlockHandle.tsx.
-   */
+  /* El canal del asa, reservado adentro: afuera lo recorta cualquier ancestro con scroll. Tiene
+     que coincidir con `RAIL` en BlockHandle.tsx. */
   --melu-rail: 52px;
   --melu-size-sm: 14px;
   --melu-size-lg: 20px;
@@ -194,22 +180,12 @@
 
 .melu-bullet { font-size: 1.1em; line-height: calc(var(--melu-text) * var(--melu-line) / 1.1); }
 
-/*
- * La numeración de una lista, contada por el navegador.
- *
- * Cualquier bloque reinicia el contador y uno numerado lo incrementa, así que una tira de ítems
- * se numera sola y una tira nueva vuelve a empezar en uno. Recalcularlo es del navegador: contarlo
- * en JS obligaba a que cada ítem se enterara de los cambios de todos sus hermanos de arriba, y sin
- * eso el número quedaba viejo cuando el de arriba dejaba de ser una lista.
- */
+/* La numeración la cuenta el navegador: en JS quedaba vieja cuando el ítem de arriba dejaba de
+   ser una lista. */
 .melu-block { counter-reset: melu-ol 0; }
 .melu-block[data-type="numbered_list"] { counter-reset: none; }
-/*
- * El incremento va en la misma marca que lleva el reinicio, y no en el bloque. En un solo elemento
- * el reinicio se procesa antes que el incremento, que es lo que hace que un ítem que arranca en
- * cinco reinicie en cuatro y quede en cinco. Con el incremento en el bloque, el reinicio llegaba
- * después y el ítem mostraba cuatro.
- */
+/* El incremento va donde va el reinicio: en un mismo elemento se procesa después, y es lo que
+   hace que un ítem que arranca en cinco muestre cinco. */
 .melu-block[data-type="numbered_list"] > .melu-item > .melu-ordinal { counter-increment: melu-ol; }
 .melu-block[data-type="numbered_list"] > .melu-item > .melu-ordinal::before { content: counter(melu-ol) "."; }
 /* Una lista anidada empieza de nuevo en uno, y no sigue la numeración de la de afuera. */
@@ -473,17 +449,8 @@ pre.melu-code.melu-wrap { white-space: pre-wrap; overflow-x: visible; }
 
 .melu-table-wrap { position: relative; margin: 8px 0; }
 
-/*
- * La tabla es una grilla y no una tabla.
- *
- * Cada bloque va envuelto en su `.melu-block`, que es lo que hace que arrastrar, seleccionar y
- * repintar funcionen igual para todos. Con `display: table` esos envoltorios cortan la cadena
- * fila-celda y la tabla se desarma en una columna. Una grilla no tiene ese problema: los
- * envoltorios se sacan del layout con `display: contents` y las celdas se acomodan solas en
- * tantas columnas como diga la primera fila. De paso las columnas se reparten el ancho.
- *
- * El scroll es propio: una tabla ancha se desliza adentro y la página no se mueve de lado.
- */
+/* Grilla y no `display: table`: los envoltorios `.melu-block` cortan la cadena fila-celda y la
+   tabla se desarma en una columna. Con `display: contents` salen del layout. */
 .melu-table {
   display: grid;
   grid-template-columns: repeat(var(--melu-cols, 3), minmax(96px, 1fr));
@@ -786,15 +753,8 @@ pre.melu-code.melu-wrap { white-space: pre-wrap; overflow-x: visible; }
 
 /* -------------------------------------------------------------------------- el asa */
 
-/*
- * El asa. La ubica JS en coordenadas de la superficie, así que acá no hay `transform`: el `left`
- * que llega ya es el correcto y sumarle un corrimiento fue lo que la dejaba desalineada.
- *
- * `padding-right` no es decoración: es el puente. Sin él queda un hueco entre el asa y el texto,
- * y el puntero tiene que cruzarlo para llegar al más. Igual el hover no se pierde, porque el
- * bloque señalado se decide por la posición del puntero y no por lo que hay abajo, pero el puente
- * hace que el asa siga estando bajo el cursor todo el camino.
- */
+/* La ubica JS en coordenadas de la superficie: sin `transform`, que era lo que la desalineaba. El
+   `padding-right` es el puente para que el puntero llegue al más sin salirse del asa. */
 .melu-handle {
   position: absolute;
   display: flex;

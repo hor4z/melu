@@ -1,10 +1,5 @@
-/**
- * The format bar: appears over a selection, and disappears when there is nothing selected.
- *
- * The one thing it must not do is take the focus. A toolbar that steals the caret has nothing to
- * format by the time the click lands, which is why `keepFocus` cancels the pointer down on the
- * popover and every button acts on the selection the engine already has.
- */
+// La barra de formato. Lo único que no puede hacer es tomar el foco: una barra que se lleva el
+// caret no tiene qué formatear cuando llega el click, y de eso se ocupa `keepFocus`.
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { MarkType } from '../core/text.ts'
@@ -38,12 +33,9 @@ export function FormatBar() {
   const [panel, setPanel] = useState<'none' | 'turn' | 'color' | 'link'>('none')
 
   /**
-   * Aparece con texto seleccionado y también con bloques elegidos.
-   *
-   * Lo segundo faltaba, y era un agujero que solo se ve usándolo: una selección nativa no puede
-   * cruzar dos regiones editables, así que arrastrar sobre varios párrafos da bloques elegidos, y
-   * la barra no se mostraba. Poner negrita sobre varios bloques funcionaba desde el primer día;
-   * lo que no había era cómo pedirlo con el mouse.
+   * Con texto seleccionado y también con bloques elegidos. Lo segundo hace falta porque una
+   * selección nativa no cruza dos regiones: arrastrar sobre varios párrafos da bloques, y sin esto
+   * no había forma de pedir negrita con el mouse.
    */
   const visible = useMemo(() => {
     if (editor.readOnly) return false
@@ -70,11 +62,8 @@ export function FormatBar() {
   const close = useCallback(() => setPanel('none'), [])
 
   /**
-   * Mod+K abre el panel del link.
-   *
-   * El botón anunciaba el atajo y el atajo no existía, que es peor que no anunciarlo. Va acá y no
-   * en el keymap del motor porque lo que abre es un panel de esta barra, y el motor no sabe qué
-   * paneles hay: los comandos con nombre son para lo que cambia el documento.
+   * Mod+K abre el panel del link. Va acá y no en el keymap del motor porque lo que abre es un
+   * panel de esta barra: los comandos con nombre son para lo que cambia el documento.
    */
   useEffect(() => {
     if (!visible) return

@@ -1,22 +1,6 @@
-/**
- * The plugin contract: what the core is willing to be extended with.
- *
- * The core has no paragraphs in it. It knows how to split, merge, move, format and undo, and it
- * asks a schema what each type wants. Everything you can name comes from a plugin, and a plugin
- * is a plain object, not a class to inherit from:
- *
- *   blocks              the types that exist, with their behaviour and their props
- *   commands            new verbs, on the same footing as the built-in ones
- *   keys                bindings, several allowed per key, tried until one takes it
- *   rules               what typing "1. " or "**bold**" does
- *   normalize           the invariants the plugin keeps after every change
- *   paste               how foreign content becomes blocks
- *   view                anything the render layer should know, kept opaque here
- *
- * Bindings and rules are declared as data pointing at command names rather than as closures. It
- * costs one indirection and it buys a keymap that can be inspected, shown in a help panel,
- * overridden by the platform and serialised for an agent.
- */
+// El contrato de extensión. El core no tiene un párrafo adentro: todo lo que se puede nombrar
+// viene de un plugin, y un plugin es un objeto. Los bindings y las reglas apuntan a nombres de
+// comando y no a closures, así el keymap se puede inspeccionar, mostrar y serializar.
 
 import type { BlockId } from './doc.ts'
 import type { BlockSpec } from './schema.ts'
@@ -24,11 +8,7 @@ import type { Command, CommandCtx } from './commands.ts'
 import type { EditorState } from './state.ts'
 import type { Transaction } from './transaction.ts'
 
-/**
- * A key, written the way a person would: `Mod-b`, `Shift-Enter`, `Mod-Shift-8`, `Escape`, `Tab`.
- * `Mod` is Cmd on a Mac and Ctrl everywhere else, which is the only reason this is not a string
- * comparison against the event.
- */
+/** Una tecla como la escribiría alguien: `Mod-b`, `Shift-Enter`. `Mod` es Cmd en Mac y Ctrl en el resto. */
 export type KeyBinding = {
   key: string
   /** The name of a registered command. */
@@ -40,10 +20,7 @@ export type KeyBinding = {
   label?: string
 }
 
-/**
- * An input rule: a pattern matched against the text of the block up to the caret, right after a
- * character was typed. This is where "# " becomes a heading and "**word**" becomes bold.
- */
+/** Un patrón contra el texto hasta el caret, después de tipear: acá "# " se vuelve un título. */
 export type InputRule = {
   name: string
   /** Matched against the plain text from the start of the block to the caret. Anchor it with $. */
@@ -71,16 +48,11 @@ export type Plugin = {
   rules?: readonly InputRule[]
   paste?: readonly PasteHandler[]
   /**
-   * Runs after every transaction that changed the document, and may add steps to it. This is where
-   * a plugin keeps its own invariants: a table left with a missing cell, a column layout down to
-   * one column, a divider that ended up with children. Called until nothing changes, a few times
-   * at most.
+   * Corre después de cada transacción y puede agregarle pasos: acá un plugin mantiene sus
+   * invariantes (una tabla a la que le falta una celda, un armado que quedó con una columna).
    *
-   * `touched` is what changed, with the ancestors of each one included, and a normalizer has to
-   * look only at that. Walking the whole document instead is the difference between a keystroke
-   * costing the same on a page of five blocks and on a page of a thousand: with three plugins
-   * each sweeping every block, typing one letter into a long activity walked three thousand
-   * entries before the letter appeared.
+   * `touched` es lo que cambió con sus ancestros, y hay que mirar solo eso: recorrer el documento
+   * entero hacía que una tecla costara según el largo de la página.
    */
   normalize?: (args: { state: EditorState; tr: Transaction; touched: ReadonlySet<BlockId> }) => void
   /** Return false to throw the whole transaction away. Used by read-only mode. */

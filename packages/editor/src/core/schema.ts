@@ -1,15 +1,5 @@
-/**
- * The schema: what block types exist and how they behave.
- *
- * The core knows nothing about paragraphs, images or multiple choice. It knows how to move,
- * split, merge and format blocks, and it asks the schema what each type wants. Adding a block
- * type is writing one spec and handing it to a plugin, which is what keeps "cualquier tipo de
- * bloque" from being a promise.
- *
- * The declared props are not decoration either: they validate what comes in from a paste or from
- * an agent, they provide the defaults, and they are what `manifest()` publishes so a model can
- * author blocks it was never told about.
- */
+// Qué tipos de bloque existen y cómo se portan. El core no sabe qué es un párrafo: pregunta acá.
+// Las props declaradas validan lo que llega de un pegado o de un agente, y son el manifiesto.
 
 import type { MarkType, RichText } from './text.ts'
 import type { Props } from './doc.ts'
@@ -109,10 +99,7 @@ export function defaultProps(spec: BlockSpec | undefined): Props | undefined {
 export const fold = (s: string) =>
   s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
 
-/**
- * Scores a spec against a query. Exact and prefix matches beat contained ones, and the name beats
- * the keywords, so typing "im" puts Imagen first and not "Emparejar".
- */
+/** El nombre gana a las palabras clave y el prefijo a lo contenido: "im" trae Imagen, no Emparejar. */
 function score(spec: BlockSpec, q: string): number {
   const name = fold(spec.name)
   if (name === q) return 100
@@ -225,10 +212,7 @@ export function coerceProp(p: PropSpec, value: unknown): unknown {
   }
 }
 
-/**
- * Validates props against the spec. Unknown keys are kept: a block type may grow a prop before
- * the spec declares it, and dropping data silently is worse than carrying it.
- */
+/** Valida contra el spec. Una clave que no declara se conserva: perder datos en silencio es peor. */
 export function coerceProps(spec: BlockSpec | undefined, props: Props): { props: Props; dropped: string[] } {
   if (!spec?.props) return { props, dropped: [] }
   const out: Props = {}

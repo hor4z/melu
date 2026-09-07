@@ -1,13 +1,6 @@
-/**
- * Undo and redo, built out of the inverses the steps already know how to produce.
- *
- * Two details decide whether undo feels right or feels broken. The first is coalescing: typing a
- * word has to be one undo, not eleven, so transactions that share a key and land within a moment
- * of each other fold into one entry. Writing in another block, or pausing, starts a new one.
- *
- * The second is the selection. An undo that restores the text but leaves the caret elsewhere
- * makes you lose your place, so every entry remembers where the caret was before and after.
- */
+// Deshacer y rehacer, con los inversos que los pasos ya saben producir. Dos detalles deciden si
+// se siente bien: que escribir una palabra sea un deshacer y no once, y que el caret vuelva a
+// donde estaba, porque si no se pierde el lugar.
 
 import type { Selection } from './selection.ts'
 import type { Step } from './steps.ts'
@@ -107,10 +100,7 @@ export class History {
     return { steps: entry.redo, selection: entry.after }
   }
 
-  /**
-   * Closes the open entry so the next transaction cannot fold into it. Called when the editor
-   * loses focus or a menu opens: what happens after a pause is a separate change.
-   */
+  /** Cierra el grupo abierto: lo que pasa después de una pausa es otro cambio. */
   break(): void {
     const last = this.past[this.past.length - 1]
     if (last) last.key = undefined

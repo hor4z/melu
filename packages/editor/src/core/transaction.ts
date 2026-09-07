@@ -1,15 +1,6 @@
-/**
- * The transaction: everything one gesture does, gathered before anything is announced.
- *
- * Pressing Enter in the middle of a list item is four changes (cut the text, create the block,
- * hand it the tail, move the caret) and it has to be one entry in the history, one notification
- * to the view and one save. So commands do not touch the state: they fill a transaction, and the
- * editor applies it whole.
- *
- * The builder is fluent and it keeps a running document, so a command can read what the previous
- * line of the same command just wrote. Ids are minted here, never inside a step, which is what
- * keeps the steps replayable.
- */
+// Todo lo que hace un gesto, junto. Enter en el medio de una lista son cuatro cambios y tiene que
+// ser un solo deshacer, un solo aviso y un solo guardado, así que los comandos no tocan el estado:
+// llenan una transacción. Los ids se acuñan acá y nunca adentro de un paso.
 
 import type { BlockId, BlockInit, Doc, Props } from './doc.ts'
 import { childrenOf, has, materialize, newId, parentOf } from './doc.ts'
@@ -23,10 +14,7 @@ import { normalize } from './text.ts'
 import { coerceProps } from './schema.ts'
 
 export type TransactionMeta = {
-  /**
-   * Transactions sharing a key and close in time become one undo entry. Typing uses the block id
-   * so that writing a word is one undo, but writing in another block starts a new one.
-   */
+  /** Con la misma clave y cerca en el tiempo, se juntan en un solo deshacer. */
   coalesce?: string
   /** Keeps the change out of the history entirely: used by the DOM sync and by remote edits. */
   history?: false
@@ -164,9 +152,8 @@ export class Transaction {
   }
 
   /**
-   * The state as it stands mid transaction. This is what a command reads, which is what lets two
-   * commands compose: the second one sees what the first one just did instead of the state the
-   * gesture started from. An agent sending five operations at once depends on exactly this.
+   * El estado a mitad de camino. Es lo que lee un comando, y es lo que permite encadenarlos: el
+   * segundo ve lo que hizo el primero. Un lote de un agente depende de esto.
    */
   get current(): EditorState {
     return {

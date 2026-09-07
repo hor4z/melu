@@ -1,18 +1,10 @@
-/**
- * The layout plugin: blocks whose job is to arrange other blocks.
- *
- * A cell is a block. That is the decision this whole file rests on, and the alternative was
- * tempting: Notion keeps the cells of a simple table as an array of rich text inside the row, and
- * it is fewer objects. But then a cell is not a block, so none of the engine reaches it. No bold
- * inside a cell without a second code path for marks, no "/" menu, no input rules, no caret
- * walking out of the table with the arrow keys. Making a cell a block costs a table of five by
- * four twenty five entries in a flat map, which is nothing, and every command already written
- * works inside it for free.
- *
- * Columns are the same shape, and the width of a column is a fraction, not a pixel count, which
- * is what lets the same page put its two columns side by side on a projector and stack them on a
- * phone with one media query and no second layout.
- */
+// Bloques cuyo trabajo es acomodar otros bloques.
+//
+// Una celda es un bloque, y todo el archivo se apoya en eso. Notion las guarda como texto adentro
+// de la fila y son menos objetos, pero entonces el motor no las alcanza: no hay negrita sin un
+// segundo camino para las marcas, ni menú "/", ni flechas que salgan de la tabla. Una tabla de
+// cinco por cuatro son veinticinco entradas en un mapa plano, que no es nada, y todos los comandos
+// ya escritos funcionan adentro gratis.
 
 import type { BlockSpec } from '../core/schema.ts'
 import type { KeyBinding, Plugin } from '../core/plugins.ts'
@@ -308,9 +300,8 @@ const cellBelow: Command = (ctx) => {
 // ---------------------------------------------------------------------------- invariants
 
 /**
- * What this plugin promises about its own shapes, checked after every change:
- * a table is rectangular, it always has one row, and a column layout with one column left is not
- * a layout any more, so it gives its content back to the page instead of pretending.
+ * Lo que este plugin promete: una tabla es rectangular y tiene al menos una fila, y un armado que
+ * quedó con una sola columna devuelve su contenido a la página en lugar de disimular.
  */
 const normalizeLayout: Plugin['normalize'] = ({ tr, touched }) => {
   for (const id of touched) {

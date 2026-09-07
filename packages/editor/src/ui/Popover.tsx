@@ -1,10 +1,6 @@
-/**
- * The one floating container everything else sits in.
- *
- * It handles what every menu needs and nobody wants to write four times: it goes where it fits,
- * it closes on Escape and on a click outside, it traps nothing, and while it is open the page
- * behind it keeps its selection so the format bar still knows what it is formatting.
- */
+// El único contenedor flotante, con lo que todo menú necesita y nadie quiere escribir cuatro
+// veces: va donde cabe, cierra con Escape y con un click afuera, y no le roba la selección a la
+// página, así que la barra de formato sigue sabiendo qué está formateando.
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { place, type Anchor, type Placement } from './float.ts'
@@ -42,13 +38,9 @@ export function Popover({
   const [pos, setPos] = useState<{ top: number; left: number; maxHeight: number } | null>(null)
 
   /**
-   * Se mide después de pintar y antes de que el navegador lo muestre, y se mide en cada render y
-   * no solo al abrir: un menú que se filtra mientras alguien escribe cambia de alto en cada letra,
-   * y con una sola medición queda ubicado por el tamaño que tenía la primera vez.
-   *
-   * Se pregunta por `scrollHeight` y no por `offsetHeight` porque el alto máximo que este mismo
-   * cálculo escribe recorta al segundo: medir el recortado daría un alto distinto cada vez y las
-   * dos cosas se perseguirían para siempre.
+   * Se mide en cada render y no solo al abrir: un menú que se filtra cambia de alto en cada letra.
+   * Por `scrollHeight` y no `offsetHeight`, porque el alto máximo que este mismo cálculo escribe
+   * recorta al segundo y los dos se perseguirían para siempre.
    */
   useLayoutEffect(() => {
     if (!open || !anchor) {

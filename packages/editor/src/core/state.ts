@@ -1,9 +1,5 @@
-/**
- * The state: the document, where the caret is, and the schema that explains both.
- *
- * It is one immutable value. Every change produces a new one, which is what makes undo cheap,
- * makes a render comparable by reference, and makes a bug reproducible from a single JSON dump.
- */
+// El documento, dónde está el caret, y el schema que explica los dos. Un valor inmutable: cada
+// cambio produce otro, y por eso un render se compara por referencia.
 
 import type { Doc } from './doc.ts'
 import { emptyDoc, materialize, setBlocks, type BlockInit } from './doc.ts'
@@ -17,12 +13,9 @@ export type EditorState = {
   readonly selection: Selection
   readonly schema: Schema
   /**
-   * What the next character typed should be formatted as, when it is not simply what is to the
-   * left. It is the answer to two things that otherwise feel wrong: pressing the bold shortcut on
-   * an empty line and having the next word come out bold, and writing `**algo**` and having what
-   * follows come out plain instead of staying bold forever.
-   *
-   * It is not part of the document, and it is dropped by the next change that does not set it.
+   * Con qué formato sale la próxima letra, cuando no es simplemente el de la izquierda: el atajo
+   * de negrita en una línea vacía, o seguir escribiendo después de `**algo**`. No es del
+   * documento, y se descarta con el próximo cambio que no lo fije.
    */
   readonly storedMarks?: readonly Mark[] | null
 }

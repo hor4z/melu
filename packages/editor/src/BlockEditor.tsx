@@ -1,10 +1,6 @@
-/**
- * The assembled editor: the surface plus the chrome, ready to mount.
- *
- * It is a convenience and not the API. Everything it does is public: the platform can take the
- * surface, drop the toolbox, bring its own format bar, add its own renderers, or use nothing from
- * here and drive the engine itself. This component exists so that the common case is one line.
- */
+// El editor armado, listo para montar. Es una comodidad y no la API: todo lo que hace es público,
+// así que la plataforma puede tomar la superficie y traer su propio marco. Existe para que el caso
+// común sea una línea.
 
 import { useMemo, type ReactNode } from 'react'
 import type { BlockInit } from './core/doc.ts'
@@ -64,8 +60,8 @@ export function BlockEditor({
       ...(readOnly ? { readOnly } : {}),
       ...(strict ? { strict } : {}),
     }
-    // A propósito solo al montar: el documento se carga una vez y desde ahí manda el editor. Un
-    // `value` que vuelve del guardado no puede pisar lo que alguien está escribiendo.
+    // Solo al montar, a propósito: un `value` que vuelve del guardado no puede pisar lo que
+    // alguien está escribiendo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

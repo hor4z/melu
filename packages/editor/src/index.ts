@@ -1,14 +1,6 @@
-/**
- * `@melu/editor`: the engine, the blocks and the surface that draws them.
- *
- * Three doors, and which one to use depends on how much control you want:
- *
- *   <BlockEditor />          the whole thing, one line, for the common case
- *   <Surface editor={...} />  the page, with your own chrome and renderers around it
- *   @melu/editor/core        the engine alone, with no React and no DOM
- *
- * The runtime has no dependencies. React is a peer, and only the components need it.
- */
+// El motor, los bloques y la superficie que los dibuja. Tres puertas según cuánto control se
+// quiera: `<BlockEditor />` entero, `<Surface />` con tu propio marco, o `@melu/editor/core` sin
+// React ni DOM. Sin dependencias de runtime: React es peer y solo lo piden los componentes.
 
 export * from './core/index.ts'
 export * from './plugins/index.ts'

@@ -1,15 +1,6 @@
-/**
- * The media plugin: what a guide attaches to an activity.
- *
- * Two decisions worth naming. The width of an image is stored as a percentage of the column and
- * not in pixels, so the same activity fits a phone in the yard and a projector in the classroom
- * without anyone resizing anything twice. And an embed is not a special block per service: it is
- * one block with a url, and a table of providers that recognise the url and say how to frame it.
- * Adding GeoGebra later is a row in that table, not a block type.
- *
- * Nothing here uploads anything. The block holds a url and the platform decides where files live,
- * which is what keeps this package free of a storage dependency.
- */
+// Lo que un guía adjunta. El ancho es un porcentaje de la columna y no píxeles, así la misma
+// actividad entra en un celular y en un proyector. Un incrustado no es un bloque por servicio:
+// es uno con una dirección y una tabla de proveedores. Nada acá sube archivos.
 
 import type { BlockSpec } from '../core/schema.ts'
 import type { InputRule, KeyBinding, Plugin } from '../core/plugins.ts'
@@ -169,10 +160,7 @@ const id = (url: URL, ...keys: string[]) => {
   return url.pathname.split('/').filter(Boolean).pop() ?? ''
 }
 
-/**
- * The services worth recognising for a school activity. The list is data and a plugin can replace
- * it, which is the point: nobody has to touch this package to support the next one.
- */
+/** Los servicios que vale reconocer. Es data: un plugin la reemplaza sin tocar el package. */
 export const PROVIDERS: Provider[] = [
   {
     name: 'YouTube',
@@ -235,13 +223,7 @@ export const PROVIDERS: Provider[] = [
   },
 ]
 
-/**
- * El nombre del archivo de una dirección, legible.
- *
- * `decodeURIComponent` tira una excepción con un `%` suelto (`/100%.mp3` es una dirección
- * perfectamente válida), y acá no es un error del motor: es el nombre que se muestra. Sin la
- * guarda, pegar esa dirección rompía la sesión.
- */
+/** `decodeURIComponent` tira con un `%` suelto, y `/100%.mp3` es una dirección válida. */
 function nombreDeArchivo(url: URL): string {
   const crudo = url.pathname.split('/').pop() ?? ''
   try {
@@ -257,10 +239,7 @@ const EXT = {
   audio: /\.(mp3|wav|ogg|m4a|aac|flac|opus)(\?|#|$)/i,
 }
 
-/**
- * What a pasted url should become. The order is the guess: a file extension is certain, a known
- * service is close, and anything else is a card, which is the honest answer for a link.
- */
+/** En qué se convierte una dirección: la extensión es certeza, el servicio es cercanía, el resto tarjeta. */
 export function classify(raw: string): { type: string; props: Record<string, unknown> } | undefined {
   let url: URL
   try {
@@ -294,13 +273,8 @@ const insertFromUrl: Command<{ url: string; at?: 'after' | 'before' | 'end'; tar
 }
 
 /**
- * Sets the address of a media block, through the same recogniser a paste goes through.
- *
- * It matters for two reasons. A YouTube watch address cannot be put in an iframe (the site
- * refuses it), so it has to become the embed address, and typing it into the box has to do that
- * just as pasting it does. And if the address turns out to point at something else than the block
- * it was typed into, the block becomes what the address says: someone who opens a video and pastes
- * a `.png` meant an image.
+ * La dirección pasa por el mismo reconocedor que un pegado: la de una página de YouTube no se
+ * puede incrustar, y si apunta a otra cosa el bloque se convierte en lo que la dirección dice.
  */
 const setMediaSource: Command<{ id: string; url: string }> = (ctx, { id, url }) => {
   const block = getBlock(ctx.tr.doc, id)
@@ -338,11 +312,8 @@ const describeMedia: Command<{ id: string; props: Record<string, unknown> }> = (
 
 /** Pasting a bare url on an empty line turns into the right block instead of a naked link. */
 /**
- * Typing a media address and then a space turns the line into the block it points at.
- *
- * The space is not decoration: without it the rule fires on the address half written, and
- * "https://www.youtube.com/w" is already a valid YouTube url as far as the parser is concerned, so
- * you would get a video of nothing before finishing the word "watch".
+ * Una dirección tipeada y un espacio se vuelven el bloque que apuntan. El espacio no es adorno:
+ * sin él la regla dispara con la dirección a medio escribir, y "youtube.com/w" ya parece válida.
  */
 const typedUrl: InputRule = {
   name: 'media-url',

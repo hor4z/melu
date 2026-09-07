@@ -1,15 +1,6 @@
-/**
- * El menú que aparece al pegar una dirección.
- *
- * Pegar un link no puede adivinar. Si adivina que era un video, pegarlo sobre una oración mete un
- * iframe en el medio de la frase; si adivina que era texto, quien quería el reproductor tiene que
- * ir a buscarlo al menú. Así que el pegado hace lo menos destructivo (el texto con su link, que es
- * literalmente lo que se pegó) y acá se ofrece el resto, al lado, con el link ya puesto.
- *
- * Lo que se ofrece sale del reconocedor: un link de YouTube ofrece el video, una imagen ofrece la
- * imagen, y cualquier página ofrece la tarjeta con miniatura. Ignorarlo también es una opción, y es
- * la que gana si alguien sigue escribiendo: el menú se va y el link queda.
- */
+// El menú que aparece al pegar una dirección. Pegar un link no puede adivinar, así que el pegado
+// hace lo menos destructivo (el texto con su link) y acá se ofrece el resto. Lo que se ofrece sale
+// del reconocedor. Seguir escribiendo también es una respuesta: el menú se va y el link queda.
 
 import { useCallback, useEffect, useState } from 'react'
 import { PASTED_URL, type PastedUrl } from '../plugins/paste.ts'

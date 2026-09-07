@@ -1,14 +1,5 @@
-/**
- * The document: a flat map of blocks plus the pointers that give it shape.
- *
- * The tree is not nested in memory. Every block knows its children in order and its parent, and
- * the document is a dictionary from id to block. This is the shape Notion uses and the reason is
- * performance: finding a block is O(1) instead of a walk, and replacing one block copies one
- * entry instead of every ancestor. Typing in block 900 of 1000 rewrites exactly one object, so
- * the render layer can subscribe per block and re-render one paragraph per keystroke.
- *
- * Nothing here mutates. Every function returns a new document sharing the untouched blocks.
- */
+// Un mapa plano de bloques con punteros, como en Notion: encontrar uno es O(1) y escribir en uno
+// reescribe un objeto, así que la vista se suscribe por bloque. Nada acá muta.
 
 import type { RichText } from './text.ts'
 import { len as textLen } from './text.ts'
@@ -107,10 +98,7 @@ export function isAncestor(doc: Doc, ancestor: BlockId, of: BlockId): boolean {
   return false
 }
 
-/**
- * The blocks in reading order, which is the order they render, the order the keyboard walks and
- * the order a drag drops into. The root is not part of it.
- */
+/** El orden en que se ven, que es el que camina el teclado y en el que cae un arrastre. */
 export function flatten(doc: Doc, from: BlockId = doc.root): BlockId[] {
   const out: BlockId[] = []
   // La guarda no es paranoia: `validate` recorre con esto para poder contar qué está mal, y un
@@ -192,18 +180,9 @@ export const textLength = (doc: Doc, id: BlockId): number => textLen(doc.blocks[
 // ---------------------------------------------------------------------------- writing
 
 /**
- * A document with `block` in place of whatever was at that id.
- *
- * Copying the map is O(n), and that is worth being upfront about because it is the only thing in
- * the engine that is: measured against a page of three thousand blocks, one keystroke costs
- * 0.79 ms and 0.73 of those are this copy. Everything else, commands included, is flat.
- *
- * It stays this way on purpose. An activity has tens of blocks, where the copy is under a
- * hundredth of a millisecond, and immutability is what makes undo an inverse instead of a
- * snapshot and a render a reference comparison. The way out, if a document ever gets big, is a map
- * with structural sharing: split the blocks across a fixed number of buckets and copy the one
- * bucket a write touches. It is not much code, and it touches every `doc.blocks` access in the
- * package, so it is the next step and not this one. `tests/perf.test.ts` pins the numbers.
+ * Copiar el mapa es O(n), y es lo único que lo es: en 3000 bloques son 0,73 de los 0,79 ms que
+ * cuesta una tecla. Se deja así porque una actividad tiene decenas. La salida, si crece, es
+ * repartir los bloques en baldes y copiar solo el que se toca. Los números están en `perf.test.ts`.
  */
 export const setBlock = (doc: Doc, block: Block): Doc => ({
   ...doc,
@@ -282,11 +261,7 @@ export { structuredCloneish as clone }
 
 // ---------------------------------------------------------------------------- invariants
 
-/**
- * Checks the pointers agree with each other. The engine never breaks these, but a document that
- * arrives from the database, from a paste or from an agent might, and finding out here beats
- * finding out in a render. Returns the problems in Spanish because they surface in the console.
- */
+/** Los punteros se contradicen o no. El motor no los rompe; un documento que llega de afuera sí. */
 export function validate(doc: Doc): string[] {
   const bad: string[] = []
   const root = doc.blocks[doc.root]

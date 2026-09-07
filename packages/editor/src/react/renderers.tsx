@@ -1,15 +1,6 @@
-/**
- * How each block type is drawn.
- *
- * A registry, not a switch: a plugin hands over a component for its types and the surface renders
- * whatever it finds. A type with no renderer falls back to plain text with a small label, which is
- * the difference between a page that shows something it does not fully understand and a page that
- * shows a stack trace.
- *
- * The media blocks all resize the same way, by a percentage of the column rather than in pixels,
- * so the same activity lays out on a phone in the yard and on a projector in the classroom without
- * anybody resizing anything twice. The stylesheet does the rest.
- */
+// Cómo se dibuja cada tipo. Un registro y no un switch: un plugin entrega un componente para sus
+// tipos. Uno sin renderizador cae en texto con una etiqueta, que es la diferencia entre mostrar
+// algo que no se entiende del todo y mostrar un stack trace.
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import type { Block, BlockId, Props } from '../core/doc.ts'
@@ -119,16 +110,8 @@ const Bulleted: Renderer = function Bulleted({ id, block, readOnly, children }) 
 }
 
 /**
- * The number is not stored and it is not computed here either: the stylesheet counts it.
- *
- * It used to be counted in JS, and it went stale. A numbered item re-renders when its own block
- * changes, and its number depends on its siblings: turning the item above into a paragraph left
- * this one still saying "2." because nothing told it to look again. Subscribing each item to all
- * of its previous siblings would fix it and cost a subscription per item per sibling.
- *
- * A CSS counter has none of that. Any block resets it and a numbered one increments it, so a run
- * numbers itself and the browser recomputes on its own. An item that starts at something other
- * than one carries the offset inline, which works because only the first of a run ever has it.
+ * El número no se guarda ni se calcula acá: lo cuenta el CSS. Contarlo en JS quedaba viejo, porque
+ * un ítem se redibuja cuando cambia su propio bloque y el número depende de sus hermanos.
  */
 const Numbered: Renderer = function Numbered({ id, block, readOnly, children }) {
   return (
@@ -252,12 +235,8 @@ const Divider: Renderer = function Divider() {
 // ---------------------------------------------------------------------------- media
 
 /**
- * Un bloque de medios vacío: el hueco que pide una dirección en lugar de no mostrar nada.
- *
- * Confirma al pegar, al salir del campo y con Enter, y no solo con Enter: quien pega una dirección
- * espera que aparezca el video, no que haya que apretar una tecla más para que algo pase. El
- * pegado se lee en el cuadro siguiente porque en el momento del evento el campo todavía tiene el
- * valor de antes.
+ * El hueco que pide una dirección. Confirma al pegar, al salir del campo y con Enter, y no solo
+ * con Enter: quien pega una dirección espera que aparezca el video.
  */
 function Placeholder({ id, icon, label }: { id: BlockId; icon: IconName; label: string }) {
   const editor = useEditor()
@@ -454,10 +433,7 @@ const Embed: Renderer = function Embed({ id, block, readOnly }) {
   )
 }
 
-/**
- * The two handles on the sides of a media block. Dragging one changes a percentage, and the
- * percentage is clamped by the prop spec, so a drag can never push the block out of range.
- */
+/** Las manijas de los costados. El ancho es un porcentaje que el spec recorta, así que no se va de rango. */
 function ResizeHandles({ id }: { id: BlockId }) {
   const editor = useEditor()
   const ref = useRef<HTMLDivElement>(null)
@@ -624,9 +600,8 @@ const Timer: Renderer = function Timer({ block }) {
 }
 
 /**
- * A formula. There is no LaTeX engine in here and there will not be one: it would be a
- * dependency, and a big one. The platform injects a renderer through `view.math` and until it
- * does the block shows the source, which is honest and still editable.
+ * Una fórmula. Acá no hay motor de LaTeX: sería una dependencia grande. La plataforma inyecta uno
+ * por `view.math`, y hasta entonces se muestra la fuente, que es honesto y sigue siendo editable.
  */
 const MathBlock: Renderer = function MathBlock({ id, block }) {
   const editor = useEditor()
@@ -663,12 +638,8 @@ const MathBlock: Renderer = function MathBlock({ id, block }) {
 // ---------------------------------------------------------------------------- activity
 
 /**
- * The question blocks. The prompt is the block's own text, so it gets bold, links and the "/"
- * menu for free; the answer is props, and it is drawn by a small editor per type.
- *
- * What a learner sees is not this. This is the authoring side, and the platform renders the
- * playing side with its own components: the grading lives in Go so the number is the same
- * whoever looks at it.
+ * Las preguntas, del lado de quien las escribe. Lo que ve un aprendiz no es esto: la plataforma
+ * dibuja ese lado con sus componentes, y la corrección vive en Go.
  */
 function Ask({ id, block, readOnly, children, icon, label, extra }: BlockViewProps & { icon: IconName; label: string; extra?: ReactNode }) {
   const editor = useEditor()
@@ -741,13 +712,8 @@ function OptionList({ id, block, multi }: { id: BlockId; block: Block; multi: bo
 }
 
 /**
- * Un campo numérico de props, con su etiqueta.
- *
- * Mientras se escribe, lo que manda es lo tecleado y no el número guardado. Con el input atado
- * directo a las props no se podía escribir ningún decimal: al teclear "0." el valor se guardaba
- * como 0, las props cambiaban de objeto aunque no de valor, el componente se volvía a dibujar y
- * React reescribía el campo en "0", comiéndose el punto. Justo en `tolerance` y en `answer`, que
- * son los que el manifiesto ejemplifica con 0,5.
+ * Mientras se escribe manda lo tecleado y no el número guardado. Atado directo a las props no se
+ * podía escribir un decimal: al teclear "0." se guardaba 0 y React reescribía el campo en "0".
  */
 function NumField({ id, block, name, label, step }: { id: BlockId; block: Block; name: string; label: string; step?: number }) {
   const editor = useEditor()
@@ -1026,15 +992,9 @@ function PairField({ id, block }: { id: BlockId; block: Block }) {
 // ---------------------------------------------------------------------------- registry
 
 /**
- * El estilo que necesita el envoltorio de un bloque, no su contenido.
- *
- * Hoy es una sola cosa: un ítem numerado que arranca en otro número lleva el reinicio del contador
- * acá y no adentro. El alcance de un contador CSS llega al elemento, a sus descendientes y a los
- * hermanos que le siguen, así que puesto adentro del ítem el reinicio le servía solo a él y el
- * resto de la tira volvía a empezar en uno.
- *
- * Vive en esta capa porque es la que sabe de tipos: el envoltorio lo dibuja la superficie, que
- * pregunta y no decide.
+ * El estilo del envoltorio de un bloque, no de su contenido. Hoy una cosa: un ítem que arranca en
+ * otro número reinicia el contador acá, porque el alcance de un contador CSS llega a los hermanos
+ * que siguen y puesto adentro le servía solo a él.
  */
 export function wrapperStyle(block: Block): CSSProperties | undefined {
   if (block.type !== 'numbered_list') return undefined
@@ -1072,11 +1032,7 @@ export const defaultRenderers: Renderers = {
   ...asks,
 }
 
-/**
- * What is drawn for a type nobody registered. It keeps the text editable and says what it is,
- * because a document that arrives from a newer version of the platform has to survive being
- * opened by an older one.
- */
+/** Un tipo que nadie registró: el texto sigue editable y dice qué es. Un documento más nuevo se abre igual. */
 export const Unknown: Renderer = function Unknown({ id, block, readOnly, children }) {
   const editor = useEditor()
   const spec = editor.state.schema.spec(block.type)

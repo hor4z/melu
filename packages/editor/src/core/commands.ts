@@ -1,17 +1,7 @@
-/**
- * Commands: every gesture the editor knows, as a named function over a transaction.
- *
- * A command returns true if it did something and false if it did not apply, and that is the whole
- * protocol. It buys three things at once. The keymap can offer a key to several commands and stop
- * at the first that takes it, so Backspace can mean "unindent", "turn back into text" or "merge
- * with the block above" without a single nested conditional. The toolbar can ask whether a
- * command applies before drawing a button. And an agent can send `{"do":"setBlockType",...}` and
- * go through exactly the same code a click goes through, so there is no second implementation to
- * keep honest.
- *
- * Nothing here touches the DOM or React. This file is the whole behaviour of the editor and it
- * runs in a test with no browser.
- */
+// Cada gesto, como una función con nombre. Devuelve true si hizo algo y false si no aplicaba, y
+// ese es todo el protocolo: la misma tecla se le ofrece a varios comandos hasta que uno la toma,
+// la barra puede preguntar antes de dibujar un botón, y un agente entra por la misma puerta.
+// Nada acá toca el DOM: es todo el comportamiento del editor y corre sin navegador.
 
 import type { BlockId, BlockInit, Props } from './doc.ts'
 import {
@@ -77,10 +67,7 @@ function textualBefore(ctx: CommandCtx, id: BlockId): BlockId | null {
   return at
 }
 
-/**
- * Grapheme-aware, so one Backspace deletes one thing you can see. Without this, deleting a family
- * emoji takes seven presses and each one leaves a different broken emoji on screen.
- */
+/** Por grafema: sin esto, borrar un emoji de familia son siete teclas y seis emojis roscos. */
 function graphemeBefore(text: string, offset: number): number {
   if (offset <= 0) return 0
   const Seg = (Intl as { Segmenter?: typeof Intl.Segmenter }).Segmenter
@@ -163,12 +150,8 @@ export const selectAll: Command = ({ tr }) => {
 }
 
 /**
- * Lo que hace Mod+A: primero todo el texto de este bloque, y recién después toda la página.
- *
- * Es lo que hace Notion, y la razón es que seleccionar todo de una es casi siempre demasiado.
- * Alguien que está escribiendo un párrafo y aprieta Mod+A quiere ese párrafo; si de verdad quería
- * la actividad entera, lo aprieta otra vez. No necesita recordar nada: el segundo paso se reconoce
- * porque el texto del bloque ya está entero seleccionado.
+ * Mod+A: primero el texto de este bloque, y de nuevo toda la página. No recuerda nada, el segundo
+ * paso se reconoce porque el texto ya estaba entero seleccionado.
  */
 export const selectAllStep: Command = (ctx) => {
   const { tr, state } = ctx
@@ -223,9 +206,8 @@ export const deleteSelection: Command = (ctx) => {
   const head = isTextual(ctx, from.block) ? sliceText(textOf(ctx, from.block), 0, from.offset) : []
   const tail = isTextual(ctx, to.block) ? sliceText(textOf(ctx, to.block), to.offset, textLen(textOf(ctx, to.block))) : []
 
-  // Los hijos del último bloque quedan por debajo del corte y hay que rescatarlos. Van adentro
-  // del bloque que queda si puede tenerlos, para no perder la sangría que se veía, y como
-  // hermanos si no.
+  // Los hijos del último quedan bajo el corte: van adentro del que queda si puede tenerlos, para
+  // no perder la sangría, y como hermanos si no.
   const orphans = [...childrenOf(tr.doc, to.block)]
 
   if (isTextual(ctx, from.block)) tr.setText(from.block, concat(head, tail))
@@ -272,13 +254,7 @@ function writeAt(ctx: CommandCtx, at: Point, text: string, marks?: readonly Mark
   return true
 }
 
-/**
- * Inserts text that already carries formatting, at the caret.
- *
- * `insertText` takes one set of marks for the whole insertion, which is right for typing and wrong
- * for pasting: what comes off a clipboard is a bold word in the middle of a sentence, and pushing
- * it through the plain path would flatten it to one format or none.
- */
+/** Texto que ya trae formato. `insertText` toma un solo juego de marcas, y un pegado no es eso. */
 export const insertRichText: Command<{ text: RichText }> = (ctx, { text }) => {
   if (textLen(text) === 0) return false
   if (!isCollapsed(ctx.state.selection) && !deleteSelection(ctx, undefined)) return false
@@ -297,9 +273,8 @@ export const insertRichText: Command<{ text: RichText }> = (ctx, { text }) => {
 export const insertSoftBreak: Command = (ctx) => insertText(ctx, { text: '\n' })
 
 /**
- * Backspace. The order of the branches is the behaviour: unwrap before unindent, unindent before
- * merge, and never merge into a block that has no text, because deleting an image by pressing
- * Backspace once is a surprise. Notion selects it instead, and so do we.
+ * Backspace, y el orden de las ramas es el comportamiento. Nunca se pega con un bloque sin texto:
+ * borrar una imagen con una tecla es una sorpresa, así que se la selecciona.
  */
 export const deleteBackward: Command = (ctx) => {
   const { tr, state } = ctx
@@ -320,10 +295,8 @@ export const deleteBackward: Command = (ctx) => {
     return true
   }
 
-  // Al principio del texto, y el orden importa: primero salir del nivel, después deshacer el
-  // tipo. Al revés, un ítem anidado se volvería texto sin desanidarse nunca, y la única forma de
-  // sacarlo del nivel sería Shift+Tab. Notion hace esto mismo y por eso se siente natural: cada
-  // Backspace deshace una cosa, de la más chica a la más grande.
+  // Primero salir del nivel, después deshacer el tipo. Al revés, un ítem anidado se volvería
+  // texto sin desanidarse nunca. Cada Backspace deshace una cosa, de la más chica a la más grande.
   if (depthOf(tr.doc, block) > 0) return outdent(ctx, { id: block })
 
   const spec = specOf(ctx, block)
@@ -426,9 +399,8 @@ export const deleteWordBackward: Command = (ctx) => {
 }
 
 /**
- * Enter. Four different things depending on where the caret is, and each one is what you would
- * expect if you never thought about it: an empty list item stops being a list, the end of a
- * heading gives you a paragraph, the start of a line pushes it down, and the middle splits.
+ * Enter, cuatro cosas según dónde esté el caret: un ítem vacío deja de ser lista, el final de un
+ * título da un párrafo, el principio empuja hacia abajo, y el medio parte.
  */
 export const splitBlock: Command = (ctx) => {
   const { tr, state } = ctx
@@ -502,9 +474,8 @@ export const toggleMark: Command<{ type: MarkType; value?: string }> = (ctx, mar
 
   const m: Mark = mark.value === undefined ? { type: mark.type } : { type: mark.type, value: mark.value }
 
-  // Un caret sin selección no tiene qué marcar. Si está sobre una palabra se marca la palabra
-  // entera, que es lo que hace Notion y lo que alguien espera al apretar el atajo mientras lee.
-  // Si no hay palabra, la marca queda pendiente para lo que se escriba a continuación.
+  // Sin selección se marca la palabra donde está el caret, como Notion. Si no hay palabra, la
+  // marca queda pendiente para lo que se escriba.
   if (isText(sel) && isCollapsed(sel)) {
     const { block, offset } = sel.head
     const { from, to } = wordAt(textOf(ctx, block), offset)
@@ -748,10 +719,7 @@ export const moveDown: Command<{ id?: BlockId }> = (ctx, { id } = {}) => {
   return true
 }
 
-/**
- * Tab. The previous sibling becomes the parent, which is how Notion nests and why nesting never
- * needs a separate list structure: indentation is just parenthood.
- */
+/** Tab: el hermano de arriba pasa a ser el padre. La sangría es parentesco, no una estructura aparte. */
 export const indent: Command<{ id?: BlockId }> = (ctx, { id } = {}) => {
   const { tr, state } = ctx
   const targets = id ? [id] : selectedBlocks(tr.doc, state.selection)

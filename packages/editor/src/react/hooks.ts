@@ -1,12 +1,5 @@
-/**
- * The React bindings. Small on purpose: React renders, the engine decides.
- *
- * `useBlock` is the one that matters. It subscribes to a single block, so a keystroke wakes one
- * component and repaints one paragraph. The alternative, subscribing every block to the document,
- * is what makes a long page feel like it is thinking: a thousand components would compare
- * themselves on every letter. Here the transaction already knows which blocks it touched, so the
- * notification is exact and React has nothing to look for.
- */
+// Los bindings de React. Chicos a propósito: React dibuja, el motor decide. El que importa es
+// `useBlock`, que se suscribe a un solo bloque: una tecla despierta un componente.
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 import type { Block, BlockId } from '../core/doc.ts'
@@ -37,10 +30,7 @@ export function useNewEditor(options: EditorOptions): Editor {
   return ref.current
 }
 
-/**
- * One block. Re-renders only when that block changes, which is the whole performance story of
- * this package.
- */
+/** Un bloque. Se redibuja solo cuando ese bloque cambió, y ahí está todo el rendimiento. */
 export function useBlock(id: BlockId): Block | undefined {
   const editor = useEditor()
   const subscribe = useCallback((fn: () => void) => editor.subscribeBlock(id, fn), [editor, id])
@@ -79,13 +69,11 @@ export function useSelection(): Selection {
 }
 
 /**
- * Whether this block is the one being edited, or one of the ones picked.
+ * Si este bloque es el que se está editando, o uno de los elegidos.
  *
- * The snapshot is a string and not an object, and that is the whole reason this hook exists
- * instead of reading the selection directly. Every block on the page calls this, so if it woke up
- * on every selection change it would re-render the entire page on every keystroke, which is
- * exactly what the per-block subscription was built to avoid. Answering with a primitive lets
- * React bail out: a block only re-renders when its own answer changed.
+ * Contesta con un string y no con un objeto, y por eso existe el hook: lo llama cada bloque de la
+ * página, así que despertarse con cada cambio de selección repintaría todo. Con un primitivo React
+ * se abstiene, y un bloque se redibuja solo cuando su propia respuesta cambió.
  */
 export function useIsSelected(id: BlockId): { active: boolean; picked: boolean } {
   const editor = useEditor()
@@ -135,12 +123,9 @@ export function useHistoryState(): { canUndo: boolean; canRedo: boolean } {
 }
 
 /**
- * Calls back after every change to the document, debounced. What autosave hangs from: the editor
- * has no opinion about where a document is stored, so the platform gets told and decides.
- *
- * On the way out it fires whatever was pending instead of cancelling it. That is the whole
- * difference between an autosave and a lost paragraph: someone types a sentence and navigates
- * away within the debounce window, and dropping the timer would drop the sentence with it.
+ * Avisa después de cada cambio, con espera. De acá cuelga el autoguardado: el editor no opina
+ * dónde vive un documento. Al desmontar dispara lo pendiente en lugar de cancelarlo, que es la
+ * diferencia entre un autoguardado y un párrafo perdido.
  */
 export function useOnChange(fn: (state: EditorState) => void, delay = 700): void {
   const editor = useEditor()

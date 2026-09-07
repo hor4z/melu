@@ -1,13 +1,6 @@
-/**
- * The "/" menu: how a block gets inserted without anybody learning a shortcut.
- *
- * It is opened by typing a slash on an empty line or after a space, and from then on what you
- * type filters it. Two details are the difference between it feeling instant and feeling like a
- * form: the query lives in the block's own text, so it looks like you are just typing, and
- * closing without picking leaves what you typed exactly where it was.
- *
- * The list comes from the schema, so a plugin's block shows up here with no wiring at all.
- */
+// El menú "/": cómo se inserta un bloque sin aprenderse un atajo. La consulta vive en el texto
+// del bloque, así que parece que uno está escribiendo, y cerrar sin elegir deja lo tecleado donde
+// estaba. La lista sale del schema: el bloque de un plugin aparece acá sin cablear nada.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { BlockSpec } from '../core/schema.ts'

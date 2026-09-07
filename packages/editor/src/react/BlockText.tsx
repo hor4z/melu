@@ -1,22 +1,13 @@
-/**
- * The editable text of one block.
- *
- * Two rules, and both of them are the difference between an editor that works and one that
- * corrupts what you type.
- *
- * **The browser inserts characters, we read them back.** Intercepting every keystroke and writing
- * the DOM ourselves is the tempting version, and it breaks the moment someone types an accent with
- * a dead key, dictates on a phone, or uses an input method that composes several presses into one
- * letter. In a Spanish speaking classroom those are not edge cases, they are Tuesday. So the
- * browser owns what happens inside a paragraph, and the engine owns everything that crosses a
- * block boundary: Enter, Tab, Backspace at the very start, the shortcuts and the menus.
- *
- * **React does not own the children of this element.** It renders the element and its attributes
- * and stops there; the runs inside are put in by hand. This is not a preference, it is forced:
- * React diffs against the tree it last rendered, and the browser has been editing that tree behind
- * its back, so its idea of "before" is a fiction. Let it reconcile and it duplicates text. Every
- * serious editor arrives at this same split, and this is where it lives here.
- */
+// El texto editable de un bloque, y dos reglas que son la diferencia entre un editor que anda y
+// uno que corrompe lo que escribís.
+//
+// El navegador inserta las letras y nosotros las leemos de vuelta. Interceptar cada tecla se rompe
+// con el primer acento de tecla muerta o el primer dictado. Así que el navegador se queda con lo
+// que pasa adentro de un párrafo, y el motor con todo lo que cruza un borde de bloque.
+//
+// React no maneja los hijos de este elemento: los runs se ponen a mano. No es preferencia, es
+// obligación, porque React compara contra el árbol que dibujó y el navegador lo estuvo editando
+// por atrás. Si se lo deja reconciliar, duplica texto.
 
 import { memo, useCallback, useEffect, useLayoutEffect, useRef, type CSSProperties, type JSX } from 'react'
 import type { BlockId } from '../core/doc.ts'
@@ -83,12 +74,9 @@ function spanElement(sp: Span): HTMLSpanElement {
 const sameText = (a: RichText, b: RichText) => a.length === b.length && JSON.stringify(a) === JSON.stringify(b)
 
 /**
- * Makes the DOM say what the model says, and only when it does not already.
- *
- * The "only when" is the whole point: right after someone typed a letter the DOM is already
- * correct, and rewriting it would move the caret and cancel the accent being composed. So the
- * common case does nothing at all, and a rebuild happens when a command changed the text from
- * outside: bolding a word, undoing, an agent writing.
+ * Hace que el DOM diga lo que dice el modelo, y solo cuando no lo dice ya. Ese "solo cuando" es
+ * todo: recién tipeada la letra el DOM ya está bien, y reescribirlo movería el caret y cancelaría
+ * el acento que se está componiendo.
  */
 function reconcile(root: HTMLElement, text: RichText): boolean {
   if (sameText(readText(root), text)) return false
@@ -113,10 +101,7 @@ export const BlockText = memo(function BlockText({
   const text = value ?? []
   const empty = plain(text) === ''
 
-  /**
-   * After every render: bring the DOM in line, and put the caret where the model says. Both in a
-   * layout effect so it happens before the browser paints and nothing is ever seen out of place.
-   */
+  // Después de cada render, y en un efecto de layout para que nada se vea fuera de lugar.
   useLayoutEffect(() => {
     const root = ref.current
     if (!root || composing.current) return
@@ -130,9 +115,8 @@ export const BlockText = memo(function BlockText({
     // y hace parpadear la selección.
     if (!rebuilt && caretIsAt(root, from, to)) return
     if (document.activeElement !== root && !root.contains(document.activeElement)) {
-      // Adentro del editor manda el modelo: si el caret pasó a este bloque, este bloque toma el
-      // foco, que es cómo Enter deja escribiendo en el bloque nuevo. Si el foco está afuera del
-      // editor no se le roba: una página montada de fondo no se queda con el teclado.
+      // Adentro del editor manda el modelo, y así Enter deja escribiendo en el bloque nuevo. Si
+      // el foco está afuera no se le roba: una página de fondo no se queda con el teclado.
       const surface = root.closest('[data-melu-surface]')
       if (!surface?.contains(document.activeElement)) return
       root.focus({ preventScroll: true })
@@ -254,10 +238,8 @@ export const BlockText = memo(function BlockText({
       lang="es"
       data-placeholder={placeholder}
       {...{ [TEXT_ATTR]: 'true' }}
-      // Sin `role`: un `role="textbox"` encima de un `h1` le tapa el rol de título, y navegar un
-      // documento por sus títulos es la primera cosa que hace alguien con un lector de pantalla.
-      // Un elemento con `contenteditable` ya se anuncia como editable, así que el rol no hacía
-      // falta y costaba. Notion tampoco lo pone, y por esto.
+      // Sin `role`: un `role="textbox"` encima de un `h1` le tapa el rol de título, y navegar por
+      // los títulos es lo primero que hace un lector de pantalla. Notion tampoco lo pone.
       onInput={onInput}
       onKeyDown={onKeyDown}
       onBeforeInput={onBeforeInput}
@@ -302,12 +284,8 @@ function placeCaret(root: HTMLElement, from: number, to: number): void {
 }
 
 /**
- * Whether an up or down arrow should leave the block, and where it should land.
- *
- * It should only leave from the first or the last visual line: in the middle of a long paragraph,
- * down means the next line, not the next block. And it aims at the column the caret was in, which
- * is the difference between walking a page and jumping between boxes. The column is geometry, so
- * it is measured here and not in the engine, which has no idea how anything is drawn.
+ * Si una flecha vertical tiene que salir del bloque, y dónde caer. Solo sale del primer o último
+ * renglón, y apunta a la columna donde estaba el caret. Eso es geometría, así que se mide acá.
  */
 function crossBlockArrow(editor: Editor, id: BlockId, root: HTMLElement | null, up: boolean): boolean {
   if (!root) return false

@@ -1,15 +1,6 @@
-/**
- * Dragging blocks, on pointer events and nothing else.
- *
- * A drag and drop library would have been the obvious call and it is the wrong one here: what a
- * block editor needs is not "sortable list", it is a drop target that can be *between* two blocks
- * or *inside* one, at a nesting level chosen by how far to the right the pointer is. That last
- * part is what makes Notion's drag feel like it understands what you meant, and it is not
- * something a generic library exposes.
- *
- * So: the geometry is measured from the block rectangles on screen, the drop is a single `move`
- * step through the engine, and the whole thing is about a hundred lines with no dependency.
- */
+// Arrastrar bloques, con eventos de puntero y nada más. Una librería habría sido lo obvio y es lo
+// incorrecto: lo que hace falta no es "lista ordenable", es un destino que puede caer entre dos
+// bloques o adentro de uno, a un nivel que elige cuánto se fue el puntero a la derecha.
 
 import type { BlockId, Doc } from '../core/doc.ts'
 import { childrenOf, flatten, isAncestor, parentOf } from '../core/doc.ts'
@@ -54,13 +45,9 @@ const depthOf = (doc: Doc, id: BlockId): number => {
 const STEP = 28
 
 /**
- * Where a drop at this point should go.
- *
- * Two things are decided here. Which gap: the nearest horizontal boundary between two blocks,
- * measured from the middle of each. And which level: how far right the pointer is, clamped to what
- * the document allows, because you can nest under the block above but not two levels under it.
- *
- * `dragging` is excluded from every candidate, so a block cannot be dropped into itself.
+ * Dónde caería un arrastre. Se deciden dos cosas: en qué hueco (el borde más cercano, medido desde
+ * el medio de cada bloque) y a qué nivel (cuánto se fue el puntero a la derecha, recortado a lo
+ * que el documento permite). El bloque que se arrastra queda fuera de los candidatos.
  */
 export function targetAt(
   doc: Doc,
@@ -128,10 +115,7 @@ export function targetAt(
   }
 }
 
-/**
- * Which parent a drop just below `anchor` means, given how far right the pointer went. One step
- * right of a block means "inside it"; further right cannot go deeper than that.
- */
+/** Un paso a la derecha de un bloque quiere decir "adentro"; más a la derecha no baja más. */
 function nextParentFor(doc: Doc, anchor: BlockId, wantedDepth: number): BlockId {
   const own = depthOf(doc, anchor)
   if (wantedDepth > own) return anchor
@@ -144,10 +128,7 @@ function nextParentFor(doc: Doc, anchor: BlockId, wantedDepth: number): BlockId 
   return parent
 }
 
-/**
- * Whether a move would actually change anything. A drop right back where the block came from is
- * not a change, and letting it through would put a pointless entry in the undo stack.
- */
+/** Si el movimiento cambia algo. Soltar donde estaba no es un cambio y no va al historial. */
 export function isRealMove(doc: Doc, id: BlockId, target: DropTarget): boolean {
   const parent = parentOf(doc, id)
   if (parent !== target.parent) return true

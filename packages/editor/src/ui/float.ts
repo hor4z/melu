@@ -1,15 +1,6 @@
-/**
- * Where a floating thing goes.
- *
- * This is the part everyone reaches for a library for, and the reason not to here is that the
- * library solves a harder problem than we have: arbitrary placements, flipping, shifting,
- * arrows, virtual elements, scroll containers. What a menu over a page of text needs is three
- * rules, and they fit on a screen:
- *
- *   put it under the anchor, or over it when there is no room under
- *   keep it inside the viewport, sliding sideways if it would poke out
- *   never let it cover the anchor
- */
+// Dónde va lo que flota. Acá todos usan una librería, y la librería resuelve un problema más
+// difícil del que tenemos: un menú sobre una página de texto son tres reglas. Abajo del ancla, o
+// arriba si no hay lugar; adentro de la ventana; y nunca tapándola.
 
 export type Anchor = { top: number; left: number; right: number; bottom: number; width: number; height: number }
 
@@ -41,11 +32,8 @@ export const pointAnchor = (x: number, y: number, height = 0): Anchor => ({
 })
 
 /**
- * Places a box of `size` next to `anchor`, in viewport coordinates.
- *
- * It never returns a position that would put the box off screen: if it does not fit below it goes
- * above, and if it does not fit either way it takes the taller side and says how much room there
- * is, so the box can scroll instead of being cut off.
+ * Ubica una caja al lado del ancla. Nunca devuelve una posición fuera de la pantalla: si no cabe
+ * abajo va arriba, y si no cabe de ningún lado dice cuánto lugar hay para que la caja scrollee.
  */
 export function place(anchor: Anchor, size: { width: number; height: number }, opts: PlaceOptions = {}): Placed {
   const gap = opts.gap ?? 6

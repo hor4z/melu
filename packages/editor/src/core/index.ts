@@ -1,10 +1,5 @@
-/**
- * The core, whole, with no React in it.
- *
- * Importing `@melu/editor/core` gets the engine and nothing else: no components, no styles, no
- * framework. That is what lets a server render an activity to HTML, a script migrate a thousand
- * documents, and a test cover the whole behaviour of the editor without a browser.
- */
+// El core entero, sin React adentro: eso es lo que deja que un servidor rinda una actividad, que
+// un script migre mil documentos y que un test cubra todo el comportamiento sin navegador.
 
 export * from './text.ts'
 export * from './doc.ts'
@@ -20,8 +15,7 @@ export * from './editor.ts'
 export * from './serialize.ts'
 export * from './agent.ts'
 
-// `toggleMark` existe dos veces con dos significados: la función que reescribe un texto y el
-// comando que actúa sobre la selección. Afuera vale el comando, que es el que se usa; la función
-// pura sigue disponible con su nombre largo.
+// `toggleMark` existe dos veces: la función que reescribe un texto y el comando que actúa sobre
+// la selección. Afuera vale el comando; la función pura queda con su nombre largo.
 export { toggleMark } from './commands.ts'
 export { toggleMark as toggleTextMark } from './text.ts'

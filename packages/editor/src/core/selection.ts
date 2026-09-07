@@ -1,15 +1,5 @@
-/**
- * The selection: where the caret is, or what is highlighted.
- *
- * Two kinds, because a block editor has two. Inside a block you have a text range, which may
- * start in one block and end in another when you drag across paragraphs. Outside, you have whole
- * blocks selected, which is what you get by clicking a drag handle or pressing Escape, and what
- * lets Delete remove an image.
- *
- * Anchor and head are kept apart from `from` and `to` on purpose: the anchor is where the drag
- * started and the head is where the mouse is, so a backwards selection stays backwards and
- * shift+arrow keeps growing from the right end.
- */
+// Dos clases, porque un editor de bloques tiene dos: un rango de texto, o bloques enteros.
+// El ancla y la cabeza se guardan aparte del orden para que una selección al revés siga al revés.
 
 import type { BlockId, Doc } from './doc.ts'
 import { flatten, has, textLength } from './doc.ts'
@@ -61,10 +51,7 @@ export function selectedBlocks(doc: Doc, s: Selection): BlockId[] {
   return order.slice(Math.min(a, b), Math.max(a, b) + 1)
 }
 
-/**
- * The selection in document order: `from` always before `to`. Commands work with this, so none
- * of them has to think about which way the user dragged.
- */
+/** En orden de documento, para que ningún comando tenga que pensar hacia dónde se arrastró. */
 export function ordered(doc: Doc, s: TextSelection): { from: Point; to: Point } {
   if (s.anchor.block === s.head.block) {
     const [from, to] = s.anchor.offset <= s.head.offset ? [s.anchor, s.head] : [s.head, s.anchor]
@@ -77,9 +64,8 @@ export function ordered(doc: Doc, s: TextSelection): { from: Point; to: Point } 
 }
 
 /**
- * How much of one block's text a selection covers. A block selected whole covers all of it, which
- * is what lets a command written for a text range also work on picked blocks: putting three
- * paragraphs in bold from the drag handle goes through the same code as dragging across them.
+ * Cuánto del texto de un bloque abarca la selección. Un bloque elegido entero abarca todo, y eso
+ * es lo que hace que un comando escrito para un rango funcione también con bloques elegidos.
  */
 export function rangeIn(doc: Doc, s: Selection, id: BlockId): { from: number; to: number } | null {
   if (isBlocks(s)) return s.ids.includes(id) ? { from: 0, to: textLength(doc, id) } : null
@@ -94,11 +80,7 @@ export function rangeIn(doc: Doc, s: Selection, id: BlockId): { from: number; to
   return touched.includes(id) ? { from: 0, to: total } : null
 }
 
-/**
- * Pulls a selection back onto a document that changed under it. Offsets are clamped to the text
- * that is actually there and blocks that vanished are dropped, so an undo, a collaborator or an
- * agent can never leave the caret pointing at nothing.
- */
+/** La trae de vuelta a un documento que cambió abajo, para que el caret nunca apunte a nada. */
 export function repair(doc: Doc, s: Selection): Selection {
   if (isBlocks(s)) {
     const ids = s.ids.filter((id) => has(doc, id))

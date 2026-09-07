@@ -1,14 +1,5 @@
-/**
- * The editor: the one object that owns the state and the only one that changes it.
- *
- * Everything else in the package reads. Commands fill transactions, the view renders the state,
- * plugins add types and keys, an agent sends operations. They all come through here.
- *
- * The performance decision lives here too, and it is the per-block subscription. A change knows
- * exactly which blocks it touched, because every step reports it, so typing in a document of a
- * thousand blocks notifies one listener and re-renders one paragraph. Without it every keystroke
- * would diff a thousand components and the editor would feel like it is thinking.
- */
+// El único que cambia el estado; todo lo demás lee. Acá vive la decisión de rendimiento: cada
+// paso informa qué bloques tocó, así que una tecla avisa a un suscriptor y repinta un párrafo.
 
 import type { Block, BlockId, BlockInit, Doc } from './doc.ts'
 import { emptyDoc, validate } from './doc.ts'
@@ -91,9 +82,8 @@ const BUILT_IN: Record<string, Command<never>> = {
 const MAX_NORMALIZE_PASSES = 8
 
 /**
- * The context a command runs in. `state` is a getter on purpose: it has to answer with the
- * transaction as it stands, not as it started, or two commands in one transaction would both act
- * on the same starting selection and the second one would undo the first one's work.
+ * `state` es un getter a propósito: contesta con la transacción como está, no como empezó. Si no,
+ * dos comandos en una transacción actuarían sobre la misma selección inicial.
  */
 /** The touched blocks plus every ancestor of each: who might have something to fix about them. */
 function withAncestors(doc: Doc, ids: ReadonlySet<BlockId>): Set<BlockId> {
@@ -257,9 +247,8 @@ export class Editor {
     const next = tr.result()
     const docChanged = next.doc !== previous.doc
     const selectionChanged = !sameSelection(next.selection, previous.selection)
-    // Un atajo de formato con el caret en una línea vacía no cambia el documento ni mueve el
-    // caret: lo único que cambia es lo que va a pasarle a la próxima letra. Igual tiene que salir,
-    // porque la barra de formato lo muestra apretado.
+    // El atajo de negrita en una línea vacía no cambia el documento ni el caret, solo lo que le
+    // pasa a la próxima letra. Igual tiene que salir: la barra lo muestra apretado.
     const marksChanged = JSON.stringify(next.storedMarks ?? null) !== JSON.stringify(previous.storedMarks ?? null)
     if (!docChanged && !selectionChanged && !marksChanged) return
 
@@ -275,12 +264,8 @@ export class Editor {
   }
 
   /**
-   * Lets the plugins fix up what a command left behind, until nothing more changes.
-   *
-   * Each pass hands them what changed so far, ancestors included, because a plugin's invariant is
-   * usually about a container: take a cell out and the one who has something to say about it is
-   * the table. And each pass sees what the previous pass added, so a fix that causes another fix
-   * still settles.
+   * Deja que los plugins arreglen lo que quedó, hasta que nada cambie. Reciben lo que cambió con
+   * sus ancestros: sacar una celda es asunto de la tabla, no de la celda.
    */
   private normalize(tr: Transaction): void {
     if (this.normalizers.length === 0) return
@@ -294,13 +279,9 @@ export class Editor {
   }
 
   /**
-   * Tells everyone watching. Each listener is called inside its own try, and that is deliberate:
-   * without it, one throwing listener would stop the rest from ever hearing about the change, and
-   * the change is already applied, so the document and the screen would drift apart from that
-   * point on. A menu with a bug in it has to be a menu with a bug in it, not an editor that
-   * cannot be typed into.
-   *
-   * In strict mode it throws instead, because in a test a broken listener is the finding.
+   * Cada suscriptor va en su propio try: el cambio ya está aplicado, así que uno que explota no
+   * puede impedir que los demás se enteren. Un menú con un bug es un menú con un bug, no un editor
+   * que no se puede tipear. En `strict` tira, porque en un test eso es el hallazgo.
    */
   private announce(change: Change): void {
     for (const id of change.touched) {
@@ -359,11 +340,7 @@ export class Editor {
 
   // -------------------------------------------------------------------------- keys
 
-  /**
-   * Offers a keyboard event to the bindings, most recently registered first, and stops at the
-   * first command that takes it. Returns true when the event was handled, which is the caller's
-   * cue to call preventDefault.
-   */
+  /** Le ofrece la tecla a los bindings, el último registrado primero, hasta que uno la toma. */
   handleKey(event: KeyEventish): boolean {
     if (this.readOnly) return false
     const list = this.keys.get(nameKey(event))
@@ -377,10 +354,7 @@ export class Editor {
     return false
   }
 
-  /**
-   * Runs the input rules against the block the caret is in. Called after text went in, so "# "
-   * has already been typed when the rule that turns it into a heading fires.
-   */
+  /** Las reglas de tipeo, después de que el texto entró: "# " ya está escrito cuando la regla corre. */
   applyInputRules(): boolean {
     const sel = this.state.selection
     if (!isText(sel)) return false
@@ -419,10 +393,7 @@ export class Editor {
     return () => this.listeners.delete(listener)
   }
 
-  /**
-   * Called only when that block changed. The view uses one of these per rendered block, which is
-   * what keeps a keystroke to a single re-render.
-   */
+  /** Solo cuando ese bloque cambió. Uno por bloque dibujado: es lo que deja una tecla en un render. */
   subscribeBlock(id: BlockId, listener: () => void): () => void {
     let subs = this.perBlock.get(id)
     if (!subs) {

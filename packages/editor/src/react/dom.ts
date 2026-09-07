@@ -1,21 +1,11 @@
-/**
- * The translation between the DOM and the model. It is the whole risk of a rich text editor and
- * it lives in this one file.
- *
- * The shape of the thing: every block owns its own `contenteditable`, the way Notion does it and
- * not the way ProseMirror or Lexical do. One editable region per block means the browser handles
- * typing, accents, dead keys and phone keyboards inside a paragraph, which is the part nobody
- * should reimplement; and a mistake can only ever damage one paragraph, because that is all the
- * browser can reach.
- *
- * It costs one thing, and it is worth naming: a native selection cannot span two editable
- * regions. So dragging across paragraphs does not give a text selection, it gives whole blocks
- * selected. That is exactly what Notion does, and it turns out to be what people expect.
- *
- * Offsets are read by walking text nodes rather than by trusting the element structure, because
- * the browser will put a text node wherever it likes while someone types and any assumption about
- * the markup is a bug waiting for a Tuesday.
- */
+// La traducción entre el DOM y el modelo: todo el riesgo de un editor, en un archivo.
+//
+// Un `contenteditable` por bloque, como Notion y no como ProseMirror o Lexical: el navegador se
+// queda con los acentos y los teclados de celular, y un error solo puede dañar un párrafo. Cuesta
+// que una selección nativa no pueda cruzar dos regiones, así que arrastrar da bloques enteros.
+//
+// Los offsets se leen recorriendo nodos de texto y no confiando en el markup: el navegador pone un
+// nodo donde quiere mientras alguien escribe.
 
 import type { Mark, RichText } from '../core/text.ts'
 import { normalize } from '../core/text.ts'
@@ -116,12 +106,9 @@ export function domFromOffset(root: HTMLElement, offset: number): { node: Node; 
 }
 
 /**
- * Reads the text of a block back out of the DOM, formatting included.
- *
- * This runs after the browser inserted a character on its own, which is the whole point: what
- * someone typed is already there, correct, with its accent composed, and all that is left is to
- * find out what it was. The marks come from the run the browser typed into, so writing at the end
- * of a bold word stays bold without anyone deciding it here.
+ * Lee el texto de vuelta del DOM, con su formato. Corre después de que el navegador insertó la
+ * letra: ya está ahí, con su acento compuesto, y solo falta averiguar qué fue. Las marcas salen
+ * del run donde se escribió.
  */
 export function readText(root: HTMLElement): RichText {
   const out: { text: string; marks?: Mark[] }[] = []
@@ -193,10 +180,7 @@ export function focusBlockElement(container: HTMLElement, block: string): void {
 
 // ---------------------------------------------------------------------------- geometry
 
-/**
- * Which offset in a block a point on screen is over. Used by the arrow keys, so going up from the
- * third line of a paragraph lands on the same column of the block above instead of at its end.
- */
+/** Qué offset hay bajo un punto. Lo usan las flechas, para caer en la misma columna del de arriba. */
 export function offsetAtPoint(root: HTMLElement, x: number, y: number): number | null {
   const doc = root.ownerDocument
   type WithCaret = Document & {
@@ -215,20 +199,13 @@ export function offsetAtPoint(root: HTMLElement, x: number, y: number): number |
   return null
 }
 
-/**
- * What is under a point on screen. Null where there is no layout to ask about, which keeps a drop
- * handler from throwing halfway through and leaving a drag that never ends.
- */
+/** Qué hay bajo un punto. Null sin geometría, así un arrastre no queda colgado a mitad de camino. */
 export const elementAtPoint = (x: number, y: number): Element | null =>
   typeof document.elementFromPoint === 'function' ? document.elementFromPoint(x, y) : null
 
 /**
- * Where the caret is on screen, for placing what floats next to it.
- *
- * Returns null instead of throwing when there is no layout to ask about. That is not politeness:
- * this runs from inside a change notification, and a throw there would take down every other
- * listener along with it, so a menu that cannot find the caret would stop someone from typing.
- * An environment with no layout engine is real: a test runner, a server render, a hidden tab.
+ * Dónde está el caret, para ubicar lo que flota. Devuelve null en lugar de tirar: esto corre desde
+ * un aviso de cambio, y un throw ahí se llevaría a los demás suscriptores.
  */
 export function caretRect(): DOMRect | null {
   try {

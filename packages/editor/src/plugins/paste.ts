@@ -1,14 +1,6 @@
-/**
- * The paste plugin: how content from anywhere else becomes blocks.
- *
- * Pasting is the most common way a real activity gets written. A guide has the material in a
- * document, in a chat, in a page, and drags it in. So the order of the handlers is the order of
- * how much the source knew about structure: our own clipboard payload first, then HTML, then
- * markdown, then plain text, and a bare url gets treated as what it points at.
- *
- * Pasting inside a code block is the exception that has to come first: there, everything is text,
- * because pasting a program into a program is the whole point.
- */
+// Cómo entra lo que viene de otro lado, que es como se escribe la mayor parte de una actividad.
+// El orden de los handlers es cuánto sabía de estructura la fuente: nuestro formato, HTML,
+// markdown, texto. Adentro de un bloque de código todo es texto, y eso va primero.
 
 import type { PasteHandler, Plugin } from '../core/plugins.ts'
 import { appendBlocks, insertBlock, insertRichText, insertText, setLink, splitBlock, type Command } from '../core/commands.ts'
@@ -30,20 +22,15 @@ function inRawText(ctx: Parameters<Command>[0]): boolean {
   return ctx.state.schema.spec(b?.type ?? '')?.marks === false
 }
 
-/**
- * Puts blocks in at the caret. An empty paragraph is replaced rather than left behind, and the
- * first pasted block merges into the text that is already there so pasting mid sentence does not
- * cut the sentence in two.
- */
+/** Los mete en el caret: un párrafo vacío se reemplaza, y pegar en el medio no corta la oración. */
 function insertBlocks(ctx: Parameters<Command>[0], blocks: readonly BlockInit[]): boolean {
   if (blocks.length === 0) return false
   const sel = ctx.state.selection
   const at = isText(sel) ? sel.head.block : undefined
   const block = at ? getBlock(ctx.tr.doc, at) : undefined
 
-  // Un solo párrafo es una inserción de texto y no un bloque nuevo: pegar media oración en el
-  // medio de otra tiene que dejar una sola oración. Va por `insertRichText` y no por `insertText`
-  // porque lo que viene del portapapeles trae formato, y aplanarlo sería perder lo que se copió.
+  // Un solo párrafo es texto y no un bloque nuevo. Por `insertRichText`: lo que viene del
+  // portapapeles trae formato, y aplanarlo sería perder lo que se copió.
   const only = blocks.length === 1 ? blocks[0] : undefined
   if (only && only.type === 'paragraph' && !only.children?.length && block && ctx.state.schema.isTextual(block.type)) {
     const rich = only.text ?? []
@@ -58,9 +45,8 @@ function insertBlocks(ctx: Parameters<Command>[0], blocks: readonly BlockInit[])
   const offset = isText(sel) ? sel.head.offset : total
   if (!isEmpty(block.text) && offset < total) splitBlock(ctx, undefined)
 
-  // El destino es el bloque donde estaba el caret, que después de partir es la cabeza. Preguntarle
-  // a la selección dónde está no sirve: partir deja el caret en la cola, así que lo pegado
-  // terminaba abajo de la cola en lugar de entre las dos mitades.
+  // El destino es la cabeza, y no lo que diga la selección: partir deja el caret en la cola, así
+  // que lo pegado terminaba abajo de la cola en lugar de entre las dos mitades.
   let target = at
   let did = false
   for (const b of blocks) {
@@ -142,17 +128,9 @@ export type PastedUrl = {
 export const PASTED_URL = 'pastedUrl'
 
 /**
- * Una dirección pegada.
- *
- * Se pega como link y se ofrece el resto, en lugar de adivinar. Adivinar es tentador y está mal
- * en las dos direcciones: pegar el link de un video sobre una oración no puede meter un iframe en
- * el medio, y pegarlo en un renglón vacío tampoco puede decidir por su cuenta que lo que alguien
- * quería era un reproductor de 400px. Así que el pegado hace lo menos destructivo (texto con su
- * link, que es lo que se pegó) y anota en el meta de la transacción en qué podría convertirse; el
- * menú que aparece al lado ofrece las opciones. Es lo que hace Notion, y por esto.
- *
- * Con texto seleccionado no hay menú: pegar una dirección encima de algo elegido ya dijo qué
- * hacer, que es linkear eso.
+ * Una dirección se pega como link y el menú de al lado ofrece el resto, en lugar de adivinar:
+ * adivinar está mal en las dos direcciones. En el meta de la transacción queda anotado en qué
+ * podría convertirse. Con algo seleccionado no hay menú, porque ya se dijo qué hacer.
  */
 const url: PasteHandler = {
   name: 'url',
@@ -166,9 +144,8 @@ const url: PasteHandler = {
     const block = getBlock(ctx.tr.doc, sel.head.block)
     if (!block || !ctx.state.schema.allowsMark(block.type, 'link')) return false
 
-    // Con algo seleccionado lo resuelve el comando del core, que sabe de rangos que cruzan
-    // bloques. La cuenta a mano de acá mezclaba el offset de un bloque con el de otro: linkeaba un
-    // pedazo cualquiera del segundo y no pegaba nada.
+    // Lo resuelve el comando del core, que sabe de rangos que cruzan bloques: la cuenta a mano
+    // mezclaba el offset de un bloque con el del otro.
     if (sel.anchor.block !== sel.head.block || sel.anchor.offset !== sel.head.offset) {
       return setLink(ctx, { href })
     }
@@ -188,12 +165,7 @@ const url: PasteHandler = {
   },
 }
 
-/**
- * Escribe la dirección en el caret y la deja linkeada.
- *
- * Solo para el caret colapsado, que es cuando los dos extremos están en el mismo bloque: los
- * offsets de acá son de un bloque, y usarlos con una selección que cruza dos era el bug.
- */
+/** Solo para el caret colapsado: los offsets de acá son de un bloque. */
 function writeLinkedUrl(ctx: Parameters<Command>[0], href: string): boolean {
   if (!insertText(ctx, { text: href })) return false
   const sel = ctx.state.selection
@@ -209,10 +181,7 @@ function writeLinkedUrl(ctx: Parameters<Command>[0], href: string): boolean {
 
 // ---------------------------------------------------------------------------- copying
 
-/**
- * What to put on the clipboard for a selection of whole blocks: our own format so a paste back in
- * is exact, plus html and markdown so a paste anywhere else is useful.
- */
+/** Nuestro formato para que pegar de vuelta sea exacto, más html y markdown para pegar afuera. */
 export function clipboardFor(doc: Doc, ids: readonly BlockId[]): Record<string, string> {
   const present = ids.filter((id) => doc.blocks[id])
   const json: BlockJSON[] = present.map((id) => asJson(doc, id))
@@ -241,16 +210,9 @@ function asJson(doc: Doc, id: BlockId): BlockJSON {
 }
 
 /**
- * Lo último que se prueba, y lo que más se usa: texto sin nada especial.
- *
- * Sin este handler pegar un párrafo de prosa no hacía nada, porque ninguno de los otros lo quería:
- * no es nuestro formato, no es HTML, no es una dirección y no parece markdown. Es el caso más
- * común de todos y el más fácil de olvidar, justamente porque no tiene nada interesante.
- *
- * Un renglón vacío separa párrafos, que es cómo se lee un texto pegado de cualquier lado. Un salto
- * solo queda adentro del mismo bloque, como un Shift+Enter. Y un pegado de una sola parte entra
- * literal, sin recortarle los espacios: pegar " bien" en el medio de una oración tiene que dejar
- * el espacio donde estaba.
+ * Lo último que se prueba y lo que más se usa: texto sin nada especial. Sin este handler, pegar
+ * prosa no hacía nada, porque ninguno de los otros la quería. Un renglón vacío separa párrafos, y
+ * una sola parte entra literal: pegar " bien" tiene que dejar el espacio donde estaba.
  */
 const plainText: PasteHandler = {
   name: 'plain',

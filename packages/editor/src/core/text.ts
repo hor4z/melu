@@ -1,15 +1,5 @@
-/**
- * The inline model: a paragraph is not a string, it is a list of runs.
- *
- * Notion stores the text of a block as an array of segments, each one carrying its own
- * formatting, and that is exactly what this is. The shape survives a JSON round trip, which is
- * what lets the same value travel to the database, to a snapshot and to an agent.
- *
- *   [{ text: 'todas las acciones son ' }, { text: 'false', marks: [{ type: 'code' }] }]
- *
- * Every function here is pure and total: it clamps offsets instead of throwing, so a stale
- * selection can never crash a render. Nothing in this file touches the DOM.
- */
+// El texto de un bloque es una lista de runs con su formato, como en Notion. Todo acá es puro y
+// total: recorta los offsets en lugar de tirar, así una selección vieja no puede romper un render.
 
 export type MarkType = 'bold' | 'italic' | 'underline' | 'strike' | 'code' | 'link' | 'color' | 'bg'
 
@@ -70,11 +60,7 @@ export function span(text: string, marks?: readonly Mark[]): Span {
   return c ? { text, marks: c } : { text }
 }
 
-/**
- * Drops empty runs and merges adjacent runs that share formatting. Called at the end of every
- * operation: without it, typing one character at a time would leave one run per keystroke and
- * the array would grow forever.
- */
+/** Junta los runs que comparten formato. Sin esto, cada tecla dejaría un run y crecerían para siempre. */
 export function normalize(rt: RichText): RichText {
   const out: Span[] = []
   for (const sp of rt) {
@@ -125,13 +111,8 @@ function marksOfChar(rt: RichText, index: number): Mark[] | undefined {
 }
 
 /**
- * The marks a character typed at `offset` should inherit. Typing continues the run on the left,
- * which is what feels right: you finish a bold word and the next letter is still bold. At the
- * very start there is nothing on the left, so it takes the run on the right instead.
- *
- * A link is the exception, and every editor makes it: it is only inherited strictly inside the
- * link, never at its edges. Otherwise typing right after a link would silently swallow the new
- * text into the href, and there would be no way to write next to a link again.
+ * El formato que hereda lo que se escribe: el del run de la izquierda, o el de la derecha al
+ * principio. Un link solo se hereda estrictamente adentro, o escribir al lado lo extendería.
  */
 export function marksAt(rt: RichText, offset: number): Mark[] | undefined {
   const total = len(rt)
@@ -206,10 +187,7 @@ export const clearMark = (rt: RichText, from: number, to: number, type: MarkType
 export const clearMarks = (rt: RichText, from: number, to: number): RichText =>
   mapRange(rt, from, to, () => undefined)
 
-/**
- * Whether the whole range already carries the mark. This is what decides if the toolbar button
- * looks pressed, and what makes toggling behave: a partly bold selection turns fully bold first.
- */
+/** Si todo el rango ya la tiene. Decide el botón apretado y que una selección a medias se complete. */
 export function rangeHasMark(rt: RichText, from: number, to: number, type: MarkType, value?: string): boolean {
   const total = len(rt)
   const a = clamp(Math.min(from, to), 0, total)

@@ -1,10 +1,5 @@
-/**
- * The icon set, drawn here.
- *
- * A package with no dependencies cannot import an icon library, and it turns out not to want one:
- * these are twenty short paths on a 24 grid, they weigh nothing, they inherit `currentColor`, and
- * nobody has to keep two icon sets looking like each other.
- */
+// Los iconos, dibujados acá: un package sin dependencias no puede importar una librería, y
+// resulta que no la quiere. Son paths cortos en una grilla de 24 que heredan `currentColor`.
 
 import type { SVGProps } from 'react'
 
