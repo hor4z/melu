@@ -43,3 +43,7 @@ func (g *Groups) OfGuide(ctx context.Context, id, spaceID string) ([]domain.Grou
 func (g *Groups) ByID(ctx context.Context, id string) (*domain.Group, error) {
 	return g.r.ByID(ctx, id)
 }
+
+func (g *Groups) Update(ctx context.Context, id, name, description string) (*domain.Group, error) {
+	return g.r.UpdateGroup(ctx, id, name, description)
+}

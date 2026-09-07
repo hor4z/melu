@@ -122,6 +122,7 @@ func (s *Services) Library(ctx context.Context, p domain.Person, spaceID string)
 type NewActivity struct {
 	SpaceID     string          `json:"spaceId"`
 	Title       string          `json:"title"`
+	Description string          `json:"description"`
 	FromRecipe  string          `json:"fromRecipe"` // id of the recipe to duplicate, optional
 	Composition json.RawMessage `json:"composition"`
 }
@@ -130,7 +131,7 @@ func (s *Services) CreateActivity(ctx context.Context, p domain.Person, in NewAc
 	if !s.isMember(ctx, p.ID, in.SpaceID, domain.RoleGuide, domain.RoleCoordinator) {
 		return nil, domain.ErrNotAllowed
 	}
-	a := domain.Activity{SpaceID: &in.SpaceID, Title: in.Title, Authors: []string{p.ID}}
+	a := domain.Activity{SpaceID: &in.SpaceID, Title: in.Title, Description: in.Description, Authors: []string{p.ID}}
 	if in.FromRecipe != "" {
 		r, err := s.Activities.ByID(ctx, in.FromRecipe)
 		if err != nil {
@@ -140,6 +141,11 @@ func (s *Services) CreateActivity(ctx context.Context, p domain.Person, in NewAc
 		if a.Title == "" {
 			a.Title = r.Title
 		}
+		// Duplicar una receta se lleva su descripción si no se escribió otra: la copia arranca
+		// diciendo lo mismo que la original, y editarla es de quien la copió.
+		if a.Description == "" {
+			a.Description = r.Description
+		}
 	} else {
 		a.Composition = in.Composition
 		a.Document = s.documentFromLens(ctx, in.Composition)
@@ -147,6 +153,11 @@ func (s *Services) CreateActivity(ctx context.Context, p domain.Person, in NewAc
 	}
 	if a.Title == "" {
 		a.Title = "Sin título"
+	}
+	// Obligatoria, como en un grupo: una actividad que no dice de qué se trata obliga a abrirla
+	// para saber si es la que se está buscando.
+	if err := domain.ValidateDescription(a.Description); err != nil {
+		return nil, err
 	}
 	out, err := s.Activities.Create(ctx, a)
 	if err != nil {
@@ -201,7 +212,10 @@ func (s *Services) SaveActivity(ctx context.Context, p domain.Person, a domain.A
 	if current.IsRecipe {
 		return domain.ErrNotAllowed
 	}
-	current.Title, current.Composition, current.Document, current.Rubric = a.Title, a.Composition, a.Document, a.Rubric
+	if err := domain.ValidateDescription(a.Description); err != nil {
+		return err
+	}
+	current.Title, current.Description, current.Composition, current.Document, current.Rubric = a.Title, a.Description, a.Composition, a.Document, a.Rubric
 	if err := s.Activities.Save(ctx, *current); err != nil {
 		return err
 	}
@@ -364,7 +378,7 @@ func (s *Services) SaveAsTemplate(ctx context.Context, p domain.Person, id strin
 	if err != nil {
 		return nil, err
 	}
-	r := domain.Activity{SpaceID: a.SpaceID, Title: a.Title, IsRecipe: true, Composition: a.Composition, Document: a.Document, Rubric: a.Rubric, Authors: []string{p.ID}}
+	r := domain.Activity{SpaceID: a.SpaceID, Title: a.Title, Description: a.Description, IsRecipe: true, Composition: a.Composition, Document: a.Document, Rubric: a.Rubric, Authors: []string{p.ID}}
 	out, err := s.Activities.Create(ctx, r)
 	if err != nil {
 		return nil, err

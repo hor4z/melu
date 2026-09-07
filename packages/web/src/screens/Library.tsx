@@ -35,7 +35,7 @@ export function Library() {
               <Card key={a.id} asChild interactive>
                 <button type="button" onClick={() => nav(`/activities/${a.id}`)} className="text-left">
                   <CardMedia><Cover title={a.title} className="h-28 w-full" size={72} /></CardMedia>
-                  <CardContent className="flex flex-col gap-2 p-4"><span className="font-semibold">{a.title}</span><CompositionChips c={a.composition} compact /><Text size="xs" variant="muted" className="flex flex-wrap items-center gap-x-3">
+                  <CardContent className="flex flex-col gap-2 p-4"><span className="font-semibold">{a.title}</span><CompositionChips c={a.composition} compact /><p className="line-clamp-2 text-sm text-ink-muted">{a.description}</p><Text size="xs" variant="muted" className="flex flex-wrap items-center gap-x-3">
                     <span>{a.document.phases.length} fases</span>
                     <span>{a.document.phases.reduce((n, f) => n + f.blocks.length, 0)} bloques</span>
                     <span className="text-ink-subtle">editada {new Date(a.updatedAt).toLocaleDateString('es-AR')}</span>
@@ -69,7 +69,7 @@ function RecipeCard({ r, onUse, isLoading }: { r: Activity; onUse: () => void; i
       <CardContent className="flex flex-1 flex-col gap-3 p-4">
         <span className="font-semibold leading-snug">{r.title}</span>
         <CompositionChips c={r.composition} compact />
-        <p className="line-clamp-3 text-sm text-ink-muted">{r.document.phases[0]?.blocks.find((b) => b.type === 'paragraph')?.text}</p>
+        <p className="line-clamp-3 text-sm text-ink-muted">{r.description}</p>
         <Text size="xs" variant="muted">{r.document.phases.map((f) => f.name).join(' → ')}</Text>
         <div className="mt-auto pt-1"><Button size="sm" variant="secondary" block onClick={onUse} loading={isLoading}>Usar esta plantilla</Button></div>
       </CardContent>

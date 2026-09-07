@@ -14,11 +14,11 @@ type Activities struct{ r *Repos }
 
 func (r *Repos) Activities() *Activities { return &Activities{r: r} }
 
-const activityCols = `id, space_id, title, is_recipe, composition, document, rubric, authors, updated_at`
+const activityCols = `id, space_id, title, coalesce(description, ''), is_recipe, composition, document, rubric, authors, updated_at`
 
 func scanActivity(row pgx.CollectableRow) (domain.Activity, error) {
 	var a domain.Activity
-	err := row.Scan(&a.ID, &a.SpaceID, &a.Title, &a.IsRecipe, &a.Composition, &a.Document, &a.Rubric, &a.Authors, &a.UpdatedAt)
+	err := row.Scan(&a.ID, &a.SpaceID, &a.Title, &a.Description, &a.IsRecipe, &a.Composition, &a.Document, &a.Rubric, &a.Authors, &a.UpdatedAt)
 	if a.Authors == nil {
 		a.Authors = []string{}
 	}
@@ -60,14 +60,15 @@ func (x *Activities) Create(ctx context.Context, a domain.Activity) (*domain.Act
 	if a.Composition == nil {
 		a.Composition = json.RawMessage(`{}`)
 	}
-	err := x.r.db.QueryRow(ctx, `insert into activities(space_id, title, is_recipe, composition, document, rubric, authors) values($1,$2,$7,$3,$4,$5,$6::uuid[]) returning id, updated_at`,
-		a.SpaceID, a.Title, a.Composition, a.Document, a.Rubric, a.Authors, a.IsRecipe).Scan(&a.ID, &a.UpdatedAt)
+	err := x.r.db.QueryRow(ctx, `insert into activities(space_id, title, description, is_recipe, composition, document, rubric, authors)
+	  values($1,$2,nullif($3,''),$8,$4,$5,$6,$7::uuid[]) returning id, updated_at`,
+		a.SpaceID, a.Title, a.Description, a.Composition, a.Document, a.Rubric, a.Authors, a.IsRecipe).Scan(&a.ID, &a.UpdatedAt)
 	return &a, err
 }
 
 func (x *Activities) Save(ctx context.Context, a domain.Activity) error {
-	_, err := x.r.db.Exec(ctx, `update activities set title=$2, composition=$3, document=$4, rubric=$5, updated_at=now() where id=$1`,
-		a.ID, a.Title, a.Composition, a.Document, a.Rubric)
+	_, err := x.r.db.Exec(ctx, `update activities set title=$2, description=nullif($6,''), composition=$3, document=$4, rubric=$5, updated_at=now() where id=$1`,
+		a.ID, a.Title, a.Composition, a.Document, a.Rubric, a.Description)
 	return err
 }
 
@@ -82,13 +83,13 @@ func (x *Assignments) Create(ctx context.Context, a domain.Assignment) (*domain.
 	return &a, err
 }
 
-const assignmentCols = `s.id, s.activity_id, s.group_id, a.title, a.composition, s.opens_at, s.closes_at,
+const assignmentCols = `s.id, s.activity_id, s.group_id, a.title, coalesce(a.description, ''), a.composition, s.opens_at, s.closes_at,
   (select count(*) from submissions e where e.assignment_id=s.id and e.status<>'in_progress'),
   (select count(*) from memberships m where m.group_id=s.group_id and m.role='learner')`
 
 func scanAssignment(row pgx.CollectableRow) (domain.Assignment, error) {
 	var a domain.Assignment
-	return a, row.Scan(&a.ID, &a.ActivityID, &a.GroupID, &a.Title, &a.Composition, &a.OpensAt, &a.ClosesAt, &a.Submissions, &a.SubmissionsTotal)
+	return a, row.Scan(&a.ID, &a.ActivityID, &a.GroupID, &a.Title, &a.Description, &a.Composition, &a.OpensAt, &a.ClosesAt, &a.Submissions, &a.SubmissionsTotal)
 }
 
 func (x *Assignments) OfGroup(ctx context.Context, groupID string) ([]domain.Assignment, error) {
@@ -109,14 +110,14 @@ func (x *Assignments) OfLearner(ctx context.Context, learnerID string) ([]domain
 	}
 	return pgx.CollectRows(rows, func(row pgx.CollectableRow) (domain.Assignment, error) {
 		var a domain.Assignment
-		return a, row.Scan(&a.ID, &a.ActivityID, &a.GroupID, &a.Title, &a.Composition, &a.OpensAt, &a.ClosesAt, &a.Submissions, &a.SubmissionsTotal, &a.GroupName, &a.MyStatus)
+		return a, row.Scan(&a.ID, &a.ActivityID, &a.GroupID, &a.Title, &a.Description, &a.Composition, &a.OpensAt, &a.ClosesAt, &a.Submissions, &a.SubmissionsTotal, &a.GroupName, &a.MyStatus)
 	})
 }
 
 func (x *Assignments) ByID(ctx context.Context, id string) (*domain.Assignment, error) {
 	var a domain.Assignment
 	err := x.r.db.QueryRow(ctx, `select `+assignmentCols+`, s.document_snapshot, s.rubric_snapshot, g.name from assignments s join activities a on a.id=s.activity_id join groups g on g.id=s.group_id where s.id=$1`, id).
-		Scan(&a.ID, &a.ActivityID, &a.GroupID, &a.Title, &a.Composition, &a.OpensAt, &a.ClosesAt, &a.Submissions, &a.SubmissionsTotal, &a.Document, &a.Rubric, &a.GroupName)
+		Scan(&a.ID, &a.ActivityID, &a.GroupID, &a.Title, &a.Description, &a.Composition, &a.OpensAt, &a.ClosesAt, &a.Submissions, &a.SubmissionsTotal, &a.Document, &a.Rubric, &a.GroupName)
 	if err != nil {
 		return nil, noRows(err)
 	}

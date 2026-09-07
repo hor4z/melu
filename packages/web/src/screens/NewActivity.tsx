@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ChevronLeft, FilePlus2 } from 'lucide-react'
-import { Button, Card, CardContent, CardMedia, Chip, Field, FormActions, Eyebrow, Heading, Icon, Input, Text, Toggle, ToggleGroup, ToggleGroupItem } from '@melu/ui'
+import { Button, Card, CardContent, CardMedia, Chip, Field, FormActions, Eyebrow, Heading, Icon, Input, Text, Textarea, Toggle, ToggleGroup, ToggleGroupItem } from '@melu/ui'
 import { Stepper } from '../blocks/Product'
 import { api, type Activity, type Composition, type Lens } from '../lib/api'
 import { useSpaceId } from '../lib/space'
@@ -19,6 +19,7 @@ export function NewActivity() {
   const [step, setStep] = useState(0)
   const [base, setBase] = useState<Activity | null>(null)
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [comp, setComp] = useState<Composition>({ experience: 'challenge', lens: 'no_lens', setting: ['screen'], social: 'alone', disciplines: [] })
   const [disc, setDisc] = useState('')
   const [query, setQuery] = useState<string>('')
@@ -28,11 +29,13 @@ export function NewActivity() {
 
   const create = useMutation({
     mutationFn: () => api.post<Activity>('/api/activities', base
-      ? { spaceId, fromRecipe: base.id, title }
-      : { spaceId, title, composition: { ...comp, disciplines: disc.split(',').map((s) => s.trim()).filter(Boolean), evidence: [] } }),
+      ? { spaceId, fromRecipe: base.id, title, description }
+      : { spaceId, title, description, composition: { ...comp, disciplines: disc.split(',').map((s) => s.trim()).filter(Boolean), evidence: [] } }),
     onSuccess: (a) => nav(`/activities/${a.id}`),
   })
-  const pick = (r: Activity | null) => { setBase(r); if (r) { setTitle(r.title); setComp(r.composition); setDisc((r.composition.disciplines ?? []).join(', ')) } else { setTitle('') } setStep(1) }
+  // Copiar una plantilla arranca con su descripción puesta: es un punto de partida para
+  // editar, no un campo en blanco que hay que volver a pensar.
+  const pick = (r: Activity | null) => { setBase(r); if (r) { setTitle(r.title); setDescription(r.description); setComp(r.composition); setDisc((r.composition.disciplines ?? []).join(', ')) } else { setTitle(''); setDescription('') } setStep(1) }
   const set = (k: keyof Composition, v: string) => setComp((c) => ({ ...c, [k]: v }))
   const toggleEsc = (v: string) => setComp((c) => ({ ...c, setting: (c.setting ?? []).includes(v) ? (c.setting ?? []).filter((x) => x !== v) : [...(c.setting ?? []), v] }))
   const lensPhases = lenses.data?.find((l) => l.key === comp.lens)?.phases ?? []
@@ -67,7 +70,7 @@ export function NewActivity() {
                   <CardContent className="flex flex-1 flex-col gap-2 p-4">
                     <div className="flex items-start justify-between gap-2"><span className="font-semibold leading-snug">{r.title}</span>{r.spaceId && <Chip size="sm" color="lilac">Mía</Chip>}</div>
                     <CompositionChips c={r.composition} compact />
-                    <p className="line-clamp-2 text-sm text-ink-muted">{r.document.phases[0]?.blocks.find((b) => b.type === 'paragraph')?.text}</p>
+                    <p className="line-clamp-2 text-sm text-ink-muted">{r.description}</p>
                     <Text size="xs" variant="muted" className="flex flex-wrap items-center gap-x-3">
                       <span>{r.document.phases.length} fases</span>
                       <span className="text-ink-subtle">{r.document.phases.map((f) => f.name).join(' → ')}</span>
@@ -84,6 +87,9 @@ export function NewActivity() {
         <form className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[1fr_320px]" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
           <Card padding="lg" className="gap-6">
             <Field label="Título"><Input placeholder="Puente de espagueti" value={title} onChange={(e) => setTitle(e.target.value)} required autoFocus /></Field>
+            <Field label="Descripción" required description="De qué se trata, para reconocerla en la lista sin abrirla.">
+              <Textarea placeholder="Construir un puente que aguante un libro, con lo que haya en el aula." value={description} onChange={(e) => setDescription(e.target.value)} rows={2} autoGrow />
+            </Field>
             <AxisRow title="Experiencia" hint="qué van a hacer" options={EXPERIENCES} value={[comp.experience ?? '']} onPick={(v) => set('experience', v)} />
             <AxisRow title="Lente" hint="cómo se recorre; trae las fases" options={Object.fromEntries((lenses.data ?? []).map((l) => [l.key, l.name]))} value={[comp.lens ?? '']} onPick={(v) => set('lens', v)} />
             {lensPhases.length > 1 && <div className="-mt-3 flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">Fases: {lensPhases.map((f, i) => <span key={f.key} className="flex items-center gap-1.5"><span className="rounded-sm bg-teal px-1.5 py-0.5 font-medium text-brand-text">{f.name}</span>{i < lensPhases.length - 1 && '→'}</span>)}</div>}
@@ -93,7 +99,7 @@ export function NewActivity() {
               <Input placeholder="Matemática · medida, Física · fuerzas" value={disc} onChange={(e) => setDisc(e.target.value)} />
             </Field>
             {create.isError && <Text size="sm" variant="danger">No se pudo crear.</Text>}
-            <FormActions><Button type="submit" loading={create.isPending}>Abrir en el editor</Button><Button variant="ghost" onClick={() => setStep(0)}>Volver a plantillas</Button></FormActions>
+            <FormActions><Button type="submit" loading={create.isPending} disabled={title.trim() === '' || description.trim() === ''}>Abrir en el editor</Button><Button variant="ghost" onClick={() => setStep(0)}>Volver a plantillas</Button></FormActions>
           </Card>
           <Card padding="md" asChild><aside className="gap-4 self-start">
             <Eyebrow>Vista previa</Eyebrow>

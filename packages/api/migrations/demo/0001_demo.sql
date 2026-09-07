@@ -57,17 +57,19 @@ begin
 
   insert into spaces(name, slug, kind) values('Escuela 12 · Demo','school-demo','school') returning id into space;
   insert into memberships(person_id, space_id, role) values(guide, space, 'coordinator'),(guide, space, 'guide');
-  insert into groups(space_id, name, tags) values(space,'4° A · Matemática','{"grado":"4°","materia":"Matemática"}') returning id into g1;
-  insert into groups(space_id, name, tags) values(space,'Taller de robótica','{"turno":"sábados"}') returning id into g2;
+  insert into groups(space_id, name, description, tags)
+    values(space,'4° A · Matemática','El grado de la mañana. Este trimestre venimos con fracciones y con problemas que piden pensar antes de operar.','{"grado":"4°","materia":"Matemática"}') returning id into g1;
+  insert into groups(space_id, name, description, tags)
+    values(space,'Taller de robótica','Contraturno de los sábados, para quien se quiera anotar. Trabajamos en equipo y armamos cosas que se mueven.','{"turno":"sábados"}') returning id into g2;
   insert into memberships(person_id, space_id, group_id, role) values(guide, space, g1, 'guide'),(guide, space, g2, 'guide');
 
   -- space activities, copied from three recipes
-  insert into activities(space_id, title, is_recipe, composition, document, rubric, authors)
-    select space, title, false, composition, document, rubric, array[guide] from activities where is_recipe and title='Escape del aula' returning id into a1;
-  insert into activities(space_id, title, is_recipe, composition, document, rubric, authors)
-    select space, title, false, composition, document, rubric, array[guide] from activities where is_recipe and title='Gallinas y conejos' returning id into a2;
-  insert into activities(space_id, title, is_recipe, composition, document, rubric, authors)
-    select space, title, false, composition, document, rubric, array[guide] from activities where is_recipe and title='El robot que cuenta' returning id into a3;
+  insert into activities(space_id, title, description, is_recipe, composition, document, rubric, authors)
+    select space, title, description, false, composition, document, rubric, array[guide] from activities where is_recipe and title='Escape del aula' returning id into a1;
+  insert into activities(space_id, title, description, is_recipe, composition, document, rubric, authors)
+    select space, title, description, false, composition, document, rubric, array[guide] from activities where is_recipe and title='Gallinas y conejos' returning id into a2;
+  insert into activities(space_id, title, description, is_recipe, composition, document, rubric, authors)
+    select space, title, description, false, composition, document, rubric, array[guide] from activities where is_recipe and title='El robot que cuenta' returning id into a3;
 
   insert into assignments(activity_id, group_id, document_snapshot, rubric_snapshot, opens_at) select a1, g1, document, rubric, now()-interval '6 days' from activities where id=a1 returning id into s1;
   insert into assignments(activity_id, group_id, document_snapshot, rubric_snapshot, opens_at) select a2, g1, document, rubric, now()-interval '3 days' from activities where id=a2 returning id into s2;

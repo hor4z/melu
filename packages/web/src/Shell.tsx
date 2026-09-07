@@ -119,8 +119,6 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
         </Sidebar>
         <div className="min-w-0 flex-1">
           <header className="sticky top-0 z-20 flex h-16 items-center justify-end gap-4 border-b border-line bg-surface/90 px-6 backdrop-blur">
-            {/* El logo solo aparece abajo de md, donde el sidebar no está. El `mr-auto` es lo que
-                lo manda a la izquierda sin que el header dependa de que haya algo más al lado. */}
             {/* La marca abajo de md, donde no hay riel; y también con el riel doblado, donde no
                 entra al lado del botón. El `mr-auto` es lo que empuja el resto a la derecha. */}
             <div className="mr-auto flex items-center gap-3 md:hidden"><Logo size="sm" /></div>

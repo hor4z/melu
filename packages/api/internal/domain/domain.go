@@ -60,11 +60,13 @@ type Space struct {
 }
 
 type Group struct {
-	ID       string          `json:"id"`
-	SpaceID  string          `json:"spaceId"`
-	Name     string          `json:"name"`
-	Tags     json.RawMessage `json:"tags"`
-	Learners int             `json:"learners"`
+	ID      string `json:"id"`
+	SpaceID string `json:"spaceId"`
+	Name    string `json:"name"`
+	// Qué es el grupo, en una o dos líneas. El nombre lo distingue; esto lo explica.
+	Description string          `json:"description"`
+	Tags        json.RawMessage `json:"tags"`
+	Learners    int             `json:"learners"`
 	// Who is in it. The card shows their faces: a number says how many, and a face says who.
 	Names []string `json:"names"`
 }
@@ -99,8 +101,21 @@ type Event struct {
 	OccurredAt time.Time
 }
 
+// Cómo se llama una cosa. Como la descripción: solo se pide que esté. Los dos caracteres y los
+// ciento veinte de antes no salían de ninguna regla del dominio, y un grupo llamado "A" es un
+// nombre igual de válido que cualquier otro.
 func ValidateName(s string) error {
-	if len(s) < 2 || len(s) > 120 {
+	if strings.TrimSpace(s) == "" {
+		return ErrInvalid
+	}
+	return nil
+}
+
+// Lo que una cosa dice de sí. Solo se pide que esté: ni mínimo ni máximo. Un largo lo decide
+// quien escribe, y el día que haga falta un tope lo va a poner desde la interfaz y no una
+// constante acá adentro.
+func ValidateDescription(s string) error {
+	if strings.TrimSpace(s) == "" {
 		return ErrInvalid
 	}
 	return nil
@@ -109,9 +124,12 @@ func ValidateName(s string) error {
 // ---- content and the loop ----
 
 type Activity struct {
-	ID          string          `json:"id"`
-	SpaceID     *string         `json:"spaceId"`
-	Title       string          `json:"title"`
+	ID      string  `json:"id"`
+	SpaceID *string `json:"spaceId"`
+	Title   string  `json:"title"`
+	// De qué se trata, sin abrirla. Antes la pantalla lo sacaba del primer párrafo del documento,
+	// que no es una descripción: es la primera consigna.
+	Description string          `json:"description"`
 	IsRecipe    bool            `json:"isRecipe"`
 	Composition json.RawMessage `json:"composition"`
 	Document    json.RawMessage `json:"document"`
@@ -125,6 +143,7 @@ type Assignment struct {
 	ActivityID       string          `json:"activityId"`
 	GroupID          string          `json:"groupId"`
 	Title            string          `json:"title"`
+	Description      string          `json:"description"`
 	Composition      json.RawMessage `json:"composition"`
 	Document         json.RawMessage `json:"document,omitempty"`
 	Rubric           json.RawMessage `json:"rubric,omitempty"`
