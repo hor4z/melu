@@ -9,12 +9,14 @@ import { CompositionChips } from '../blocks/Chips'
 import { InteractiveBlock, ReadingBlock, splitBlanks } from '../blocks/Interactive'
 import { Modal } from '../blocks/Modal'
 import { Cover } from '../blocks/Cover'
+import { Cargando, NoLlego } from '../blocks/Estado'
 
 // The editor: a Notion-style page. Cover, title, properties, phases, blocks with "/" and drag.
 export function Editor() {
   const { id } = useParams()
   const q = useQuery({ queryKey: ['activity', id], queryFn: () => api.get<Activity>(`/api/activities/${id}`) })
-  if (!q.data) return null
+  if (q.isPending) return <Cargando bloques={3} />
+  if (!q.data) return <NoLlego que="la actividad" error={q.error} onRetry={() => void q.refetch()} />
   return <EditorLoaded key={q.data.id} initial={q.data} />
 }
 

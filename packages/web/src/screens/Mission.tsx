@@ -8,6 +8,7 @@ import { SELF_GRADED, IS_INTERACTIVE } from '../lib/composition'
 import { InteractiveBlock, ReadingBlock, evaluate, hasValue, type StepState } from '../blocks/Interactive'
 import { gameScore } from '../blocks/Games'
 import { Cover } from '../blocks/Cover'
+import { Cargando, NoLlego } from '../blocks/Estado'
 
 /** One screen: either an interactive block, or a stretch of reading. */
 type StepView = { phase: number; phaseName: string; reading: Block[]; block?: Block }
@@ -29,7 +30,10 @@ function buildSteps(phases: PhaseDoc[]): StepView[] {
 export function MissionScreen() {
   const { id } = useParams()
   const q = useQuery({ queryKey: ['mission', id], queryFn: () => api.get<Mission>(`/api/missions/${id}`) })
-  if (!q.data) return null
+  // A pantalla completa no hay riel ni cabecera, así que la silueta va centrada con aire: es
+  // toda la pantalla lo que está viniendo.
+  if (q.isPending) return <div className="mx-auto w-full max-w-3xl px-5 py-10"><Cargando bloques={2} /></div>
+  if (!q.data) return <div className="mx-auto w-full max-w-3xl px-5 py-10"><NoLlego que="la misión" error={q.error} onRetry={() => void q.refetch()} /></div>
   return <Runner key={q.data.submission.id} m={q.data} />
 }
 

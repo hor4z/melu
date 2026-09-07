@@ -8,6 +8,7 @@ import { AddLearners } from '../blocks/AddLearners'
 import { Cover } from '../blocks/Cover'
 import { CompositionChips } from '../blocks/Chips'
 import { Modal, Empty } from '../blocks/Modal'
+import { Cargando, NoLlego } from '../blocks/Estado'
 
 export function GroupDetail() {
   const { id } = useParams()
@@ -16,7 +17,8 @@ export function GroupDetail() {
   const [tab, setTab] = useState('missions')
   const [adding, setAdding] = useState(false)
   const [editing, setEditing] = useState(false)
-  if (!q.data) return null
+  if (q.isPending) return <Cargando bloques={2} />
+  if (!q.data) return <NoLlego que="el grupo" error={q.error} onRetry={() => void q.refetch()} />
   const { group: g, assignments, learners } = q.data
 
   return (
@@ -92,7 +94,7 @@ export function GroupDetail() {
       {tab === 'learners' && (learners.length === 0
         ? <Empty title="Todavía nadie se unió" text='Sumalos por email con "Invitar". Entran con Google y ya están adentro.' action={<Button onClick={() => setAdding(true)}>Invitar</Button>} />
         : <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">{learners.map((a) => (
-            <li key={a.id}><Card padding="sm" className="flex-row items-center gap-3 py-3"><Avatar name={a.name} size="sm" />{a.name}</Card></li>
+            <li key={a.id}><Card padding="sm" className="flex-row items-center gap-3 py-3"><Avatar aria-hidden="true" name={a.name} size="sm" />{a.name}</Card></li>
           ))}</ul>)}
 
       <AddDialog isOpen={adding} onClose={() => setAdding(false)} groupId={g.id} groupName={g.name} />

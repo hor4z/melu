@@ -216,7 +216,7 @@ export function Submissions() {
                     const st = ESTADOS[e.status]
                     return (
                       <DataListItem key={e.submissionId} interactive onClick={() => abrir(e)}>
-                        <DataListMedia><Avatar name={e.learner ?? '?'} /></DataListMedia>
+                        <DataListMedia><Avatar aria-hidden="true" name={e.learner ?? '?'} /></DataListMedia>
                         <DataListHead>
                           <DataListTitle>{e.learner}</DataListTitle>
                           <Chip size="sm" color={st.color}>{st.label}</Chip>
@@ -254,7 +254,7 @@ export function Submissions() {
                       <TableRow key={e.submissionId} interactive onClick={() => abrir(e)}>
                         <TableCell>
                           <span className="flex items-center gap-2.5">
-                            <Avatar name={e.learner ?? '?'} size="sm" />
+                            <Avatar aria-hidden="true" name={e.learner ?? '?'} size="sm" />
                             <span className="font-medium">{e.learner}</span>
                           </span>
                         </TableCell>

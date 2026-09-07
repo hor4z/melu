@@ -8,13 +8,14 @@ import { Link, Navigate, useParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import {
-  Alert, Avatar, Breadcrumb, BreadcrumbItem, BreadcrumbPage, Button, Card, Chip, cn, Eyebrow, Field,
+  Avatar, Breadcrumb, BreadcrumbItem, BreadcrumbPage, Button, Card, Chip, cn, Eyebrow, Field,
   Heading, Icon, NativeSelect, Progress, RadioCard, RadioGroup, Skeleton, Text,
 } from '@melu/ui'
 import { api, type Assignment, type Learner, type Submission, type Score } from '../lib/api'
 import { InteractiveBlock } from '../blocks/Interactive'
 import { IS_INTERACTIVE } from '../lib/composition'
 import { Empty } from '../blocks/Modal'
+import { NoLlego } from '../blocks/Estado'
 
 type Pila = { id: string; learner: string; entrega?: Submission; estado: 'submitted' | 'graded' | 'missing' }
 
@@ -53,13 +54,7 @@ export function Review() {
   })
 
   if (q.isPending) return <Cargando />
-  if (q.error || !q.data) {
-    return (
-      <Alert variant="danger" title="No pudimos traer las entregas" actions={<Button size="sm" variant="secondary" onClick={() => void q.refetch()}>Probar de nuevo</Button>}>
-        Puede ser la conexión. Los datos están, no se perdió nada.
-      </Alert>
-    )
-  }
+  if (q.error || !q.data) return <NoLlego que="las entregas" error={q.error} onRetry={() => void q.refetch()} />
 
   const { assignment: a, submissions, learners } = q.data
   // La ruta vieja ("/review/:id") no sabe de qué grupo es la misión: eso lo dice la respuesta,
