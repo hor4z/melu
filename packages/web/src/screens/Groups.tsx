@@ -55,9 +55,9 @@ function NewGroup({ isOpen, onClose, onReady }: { isOpen: boolean; onClose: () =
     mutationFn: () => api.post<Group>('/api/groups', { spaceId, name, description }),
     onSuccess: () => { setName(''); setDescription(''); onReady() },
   })
-  // Las dos hacen falta: el nombre distingue el grupo y la descripción dice qué es. Un grupo sin
-  // lo segundo se lo pregunta a quien lo abre dentro de dos meses.
-  const listo = name.trim().length >= 2 && description.trim().length >= 4
+  // Las dos hacen falta: el nombre distingue el grupo y la descripción dice qué es. Que estén,
+  // nada más: cuánto escribir lo decide quien escribe.
+  const listo = name.trim() !== '' && description.trim() !== ''
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Nuevo grupo" description="Vas a recibir un código para que los chicos se unan."
       footer={<><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button form="new-group" type="submit" loading={create.isPending} disabled={!listo}>Crear</Button></>}>
@@ -65,9 +65,11 @@ function NewGroup({ isOpen, onClose, onReady }: { isOpen: boolean; onClose: () =
         <Field label="Nombre" required description={space ? `Se crea en "${space.name}".` : undefined}>
           <Input placeholder="Robótica de los sábados" value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
         </Field>
-        <Field label="Descripción" required description="Cuándo se juntan, con qué acuerdo, qué están haciendo. Lo lee quien abra el grupo dentro de dos meses.">
+        {/* La ayuda y el ejemplo empujan a contar en palabras lo que la pantalla ya cuenta en
+            números. Acá va lo que no se puede contar: de qué se trata y con qué acuerdo. */}
+        <Field label="Descripción" required description="De qué se trata y con qué acuerdo. Las cantidades ya están en la pantalla: esto es lo que no se puede contar.">
           <Textarea
-            placeholder="Séptimo grado, sábados de 10 a 12. Este trimestre armamos un robot que cuenta."
+            placeholder="Contraturno de los sábados, para quien se quiera anotar. Trabajamos en equipo."
             value={description} onChange={(e) => setDescription(e.target.value)} rows={3} autoGrow required
           />
         </Field>

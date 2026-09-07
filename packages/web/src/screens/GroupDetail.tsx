@@ -87,7 +87,7 @@ function EditGroup({ grupo, isOpen, onClose }: { grupo: Group; isOpen: boolean; 
   const qc = useQueryClient()
   const [name, setName] = useState(grupo.name)
   const [description, setDescription] = useState(grupo.description)
-  const listo = name.trim().length >= 2 && description.trim().length >= 4
+  const listo = name.trim() !== '' && description.trim() !== ''
   const guardar = useMutation({
     mutationFn: () => api.patch<Group>(`/api/groups/${grupo.id}`, { name, description }),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: ['group', grupo.id] }); void qc.invalidateQueries({ queryKey: ['groups'] }); onClose() },
@@ -100,7 +100,7 @@ function EditGroup({ grupo, isOpen, onClose }: { grupo: Group; isOpen: boolean; 
     >
       <form id="editar-grupo" className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); guardar.mutate() }}>
         <Field label="Nombre" required><Input value={name} onChange={(e) => setName(e.target.value)} /></Field>
-        <Field label="Descripción" required description="Cuándo se juntan, con qué acuerdo, qué están haciendo este mes.">
+        <Field label="Descripción" required description="De qué se trata y con qué acuerdo. Las cantidades ya están en la pantalla.">
           <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} autoGrow />
         </Field>
         {guardar.isError && <Text size="sm" className="text-danger">No se pudo guardar. Probá de nuevo.</Text>}

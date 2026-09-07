@@ -108,10 +108,11 @@ func ValidateName(s string) error {
 	return nil
 }
 
-// Lo que una cosa dice de sí. Va con mínimo porque es obligatoria donde se pide: una descripción
-// de una letra es no haberla escrito, y el que la lee después no puede hacer nada con eso.
+// Lo que una cosa dice de sí. Solo se pide que esté: ni mínimo ni máximo. Un largo lo decide
+// quien escribe, y el día que haga falta un tope lo va a poner desde la interfaz y no una
+// constante acá adentro.
 func ValidateDescription(s string) error {
-	if len(strings.TrimSpace(s)) < 4 || len(s) > 500 {
+	if strings.TrimSpace(s) == "" {
 		return ErrInvalid
 	}
 	return nil
