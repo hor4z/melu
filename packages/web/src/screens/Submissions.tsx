@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import {
   Avatar, Button, Card, Chip, FilterBar, FilterSearch, FilterSet, Heading, Icon, Text,
-  DataList, DataListActions, DataListHead, DataListItem, DataListMedia, DataListMeta, DataListText, DataListTitle,
+  Alert, DataList, DataListActions, DataListHead, DataListItem, DataListMedia, DataListMeta, DataListSkeleton, DataListText, DataListTitle,
   Pagination, PaginationNext, PaginationPrev, PaginationStatus,
-  Table, TableBody, TableCell, TableEmpty, TableHead, TableHeader, TableRow,
+  Table, TableBody, TableCell, TableEmpty, TableHead, TableHeader, TableRow, TableSkeleton,
   facets, useDevice,
 } from '@melu/ui'
 import { CircleDot, School, User } from 'lucide-react'
@@ -144,7 +144,26 @@ export function Submissions() {
     />
   )
 
-  if (!q.data) return null
+  // La cabecera y la barra se rinden siempre. Devolver `null` mientras carga deja la pantalla en
+  // blanco y hace saltar todo cuando llegan los datos; y como `!q.data` también es cierto cuando
+  // falla, un error se veía igual que una demora: nada, para siempre.
+  if (q.isError) {
+    return (
+      <div className="flex min-w-0 flex-col gap-6">
+        <header className="max-w-2xl border-b border-line pb-4">
+          <Heading level={1} size="2xl">Entregas</Heading>
+          <Text variant="muted">Todo lo que llegó, de todos tus grupos, con lo último arriba.</Text>
+        </header>
+        <Alert
+          variant="danger" title="No se pudieron traer las entregas"
+          actions={<Button size="sm" variant="secondary" loading={q.isFetching} onClick={() => void q.refetch()}>Reintentar</Button>}
+        >
+          Puede ser la conexión. Lo que ya estaba corregido sigue estando.
+        </Alert>
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-w-0 flex-col gap-6">
       <header className="max-w-2xl border-b border-line pb-4">
@@ -160,7 +179,25 @@ export function Submissions() {
       {/* `rounded-md` y no el `xl` del Card: una tabla es una grilla de líneas rectas y una
           esquina de 16 px se le nota de más. */}
       <Card className="overflow-hidden rounded-md">
-        {!conTabla
+        {q.isPending
+          ? (conTabla
+            ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Aprendiz</TableHead>
+                    <TableHead>Actividad</TableHead>
+                    <TableHead>Grupo</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Cuándo</TableHead>
+                    <TableHead align="end"><span className="sr-only">Acciones</span></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableSkeleton columns={6} />
+              </Table>
+            )
+            : <DataListSkeleton />)
+          : !conTabla
           ? (lista.length === 0
             ? <div className="px-4 py-10">{vacio}</div>
             : (
@@ -224,7 +261,7 @@ export function Submissions() {
             </Table>
           )}
 
-        {lista.length > 0 && (
+        {!q.isPending && lista.length > 0 && (
           <Pagination>
             <PaginationStatus from={desde + 1} to={desde + alaVista.length} total={lista.length} noun="entregas" />
             <PaginationPrev disabled={desde === 0} onClick={() => setPagina((p) => p - 1)} />

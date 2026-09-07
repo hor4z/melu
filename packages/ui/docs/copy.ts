@@ -105,6 +105,12 @@ export const COPY: Record<string, string> = {
   'TableCell.numeric': 'Números: a la derecha y con dígitos parejos, para que la columna se lea como columna.',
   TableCaption: 'Qué es la tabla, para quien no puede verla. Se lee debajo.',
   TableEmpty: 'La fila de "no hay nada": una celda a lo ancho, con el `EmptyState` adentro.',
+  TableSkeleton:
+    'El cuerpo mientras las filas viajan. Va en lugar de `TableBody`, así la cabecera se queda '
+    + 'quieta y la tabla no cambia de tamaño cuando llegan los datos: una pantalla vacía que '
+    + 'después salta es peor que una gris que no se mueve. Los anchos cambian de celda a celda a '
+    + 'propósito: todos iguales se leen como un formulario y no como una lista de nombres.',
+  'TableSkeleton.columns': 'Cuántas columnas tiene la tabla: el gris tiene que tener la forma de lo que viene.',
   Pagination:
     'La línea de abajo de una tabla: qué tramo se está viendo, y cómo pasar al de al lado. No hay '
     + 'números de página a propósito: la api entrega un tramo y dice si hay más, y un número '
@@ -140,6 +146,9 @@ export const COPY: Record<string, string> = {
     'La letra chica, en pedazos: las columnas de la tabla que en el celular pasan a ser una sola '
     + 'línea. Pone el punto entre una y otra, así nadie escribe separadores a mano y terminan todos distintos.',
   DataListActions: 'Las acciones, en la esquina de cierre de la ficha.',
+  DataListSkeleton:
+    'La lista mientras las fichas viajan. La misma forma que van a tener, así no salta nada '
+    + 'cuando llegan los datos. Es el gemelo de `TableSkeleton`, para el ancho donde no hay tabla.',
   FilterSet:
     'Los filtros de una tabla, agregados de a uno. Es un botón mientras no hay nada filtrando, y '
     + 'cada filtro que se elige ahí aparece como una pastilla con su panel y su X. Mostrar todos '

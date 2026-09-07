@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { EmptyState, Table, TableBody, TableCell, TableEmpty, TableHead, TableHeader, TableRow } from '@melu/ui'
+import { EmptyState, Table, TableBody, TableCell, TableEmpty, TableHead, TableHeader, TableRow, TableSkeleton } from '@melu/ui'
 
 const FILAS = [
   { grupo: '4° A', entregas: 18, aciertos: 0.82 },
@@ -13,6 +13,7 @@ export default function Demo() {
   const [orden, setOrden] = useState<{ por: Por; dir: 'asc' | 'desc' }>({ por: 'entregas', dir: 'desc' })
   const [elegido, setElegido] = useState('4° A')
   const [vacia, setVacia] = useState(false)
+  const [cargando, setCargando] = useState(false)
 
   const ordenarPor = (por: Por) =>
     setOrden((o) => (o.por === por ? { por, dir: o.dir === 'asc' ? 'desc' : 'asc' } : { por, dir: por === 'grupo' ? 'asc' : 'desc' }))
@@ -26,9 +27,14 @@ export default function Demo() {
 
   return (
     <div className="flex w-full flex-col gap-3">
-      <label className="flex items-center gap-2 text-sm text-ink-muted">
-        <input type="checkbox" checked={vacia} onChange={(e) => setVacia(e.target.checked)} /> Sin resultados
-      </label>
+      <div className="flex flex-wrap gap-4">
+        <label className="flex items-center gap-2 text-sm text-ink-muted">
+          <input type="checkbox" checked={vacia} onChange={(e) => setVacia(e.target.checked)} /> Sin resultados
+        </label>
+        <label className="flex items-center gap-2 text-sm text-ink-muted">
+          <input type="checkbox" checked={cargando} onChange={(e) => setCargando(e.target.checked)} /> Cargando
+        </label>
+      </div>
       <Table size="sm">
         <TableHeader>
           <TableRow>
@@ -37,6 +43,7 @@ export default function Demo() {
             <TableHead align="end" sort={sentido('aciertos')} onSort={() => ordenarPor('aciertos')}>Aciertos</TableHead>
           </TableRow>
         </TableHeader>
+        {cargando ? <TableSkeleton columns={3} rows={3} /> : (
         <TableBody>
           {filas.length === 0
             ? <TableEmpty colSpan={3}><EmptyState title="Nada acá" description="Ningún grupo entregó todavía." /></TableEmpty>
@@ -48,6 +55,7 @@ export default function Demo() {
               </TableRow>
             ))}
         </TableBody>
+        )}
       </Table>
     </div>
   )

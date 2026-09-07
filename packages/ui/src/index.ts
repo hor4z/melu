@@ -43,8 +43,8 @@ export { Popover, PopoverAnchor, PopoverTrigger, PopoverContent, PopoverClose } 
 export { Portal } from './portal'
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'
 export {
-  Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableEmpty,
-  type TableProps, type TableRowProps, type TableHeadProps, type TableCellProps,
+  Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableEmpty, TableSkeleton,
+  type TableProps, type TableRowProps, type TableHeadProps, type TableCellProps, type TableSkeletonProps,
 } from './table'
 export {
   Pagination, PaginationStatus, PaginationPrev, PaginationNext,
@@ -52,7 +52,7 @@ export {
 } from './pagination'
 export {
   DataList, DataListItem, DataListMedia, DataListHead, DataListTitle, DataListText, DataListMeta, DataListActions,
-  type DataListItemProps,
+  DataListSkeleton, type DataListItemProps,
 } from './data-list'
 export {
   Filter, FilterSet, FilterBar, FilterSearch, FilterReset, facets,

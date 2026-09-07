@@ -2,6 +2,7 @@ import { createContext, useContext, type ComponentPropsWithoutRef } from 'react'
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react'
 import { cn, focusRing } from './lib'
 import { Icon } from './icon'
+import { Skeleton } from './feedback'
 
 type Ctx = { size: 'sm' | 'md' }
 const TableCtx = createContext<Ctx>({ size: 'md' })
@@ -122,6 +123,37 @@ export function TableCell({ className, align, numeric, ...props }: TableCellProp
 /** What the table is, for whoever cannot see it. It reads below the table. */
 export function TableCaption({ className, ...props }: ComponentPropsWithoutRef<'caption'>) {
   return <caption className={cn('mt-3 text-left text-sm text-ink-muted', className)} {...props} />
+}
+
+export interface TableSkeletonProps extends ComponentPropsWithoutRef<'tbody'> {
+  /** How many columns the table has: the grey has to be the same shape as what is coming. */
+  columns: number
+  rows?: number
+}
+
+/**
+ * The body while the rows travel. It goes instead of `TableBody`, so the header stays put and
+ * the table does not change size when the data lands: an empty screen that then jumps is worse
+ * than a grey one that does not.
+ *
+ * The widths change from cell to cell on purpose. All of them the same reads as a form, not as
+ * a list of names.
+ */
+export function TableSkeleton({ columns, rows = 5, className, ...props }: TableSkeletonProps) {
+  const anchos = ['w-32', 'w-24', 'w-40', 'w-20', 'w-28', 'w-16']
+  return (
+    <tbody aria-hidden="true" className={cn('[&>tr:last-child]:border-0', className)} {...props}>
+      {Array.from({ length: rows }, (_, fila) => (
+        <TableRow key={fila}>
+          {Array.from({ length: columns }, (_, celda) => (
+            <TableCell key={celda}>
+              <Skeleton className={cn('h-4', anchos[(fila + celda) % anchos.length])} />
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </tbody>
+  )
 }
 
 /** The "nothing here" row: one cell across the whole width, with the `EmptyState` inside. */
