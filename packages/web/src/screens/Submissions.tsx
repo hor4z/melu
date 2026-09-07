@@ -22,6 +22,9 @@ const ESTADOS = {
 type Estado = keyof typeof ESTADOS
 type Por = 'learner' | 'when' | 'minutes' | 'accuracy'
 
+// El orden de entrada, y el que se recupera cuando no hay cabecera que explique otro.
+const ULTIMO = { por: 'when' as Por, dir: 'desc' as const }
+
 export function Submissions() {
   const nav = useNavigate()
   const spaceId = useSpaceId()
@@ -42,7 +45,18 @@ export function Submissions() {
   // lo que tiene elegido. Que un filtro esté puesto y vacío es un estado válido, y es el que
   // queda cuando alguien lo agrega y todavía no eligió nada.
   const [filtros, setFiltros] = useState<Record<string, string[]>>({})
-  const [orden, setOrden] = useState<{ por: Por; dir: 'asc' | 'desc' }>({ por: 'when', dir: 'desc' })
+  const [orden, setOrden] = useState<{ por: Por; dir: 'asc' | 'desc' }>(ULTIMO)
+
+  // Cambiar de espacio no desmonta la pantalla, así que lo que había filtrado se quedaba puesto
+  // sobre datos de otro lado: un grupo del espacio anterior dejando la tabla en cero. Se
+  // reacomoda durante el render, que es como React pide hacer esto y no con un efecto.
+  const [espacioPrevio, setEspacioPrevio] = useState(spaceId)
+  if (espacioPrevio !== spaceId) {
+    setEspacioPrevio(spaceId)
+    setTexto('')
+    setFiltros({})
+    setOrden(ULTIMO)
+  }
 
   const todas = useMemo(() => q.data ?? [], [q.data])
 
@@ -76,13 +90,15 @@ export function Submissions() {
       options: [...new Set(todas.map((e) => e.learner).filter((n): n is string => !!n))].sort(alfabetico)
         .map((n) => ({ value: n, label: n, avatar: true, count: porPersona[n] ?? 0 })),
     },
-  ].filter((f) => f.options.length > 1)
+    // Con una sola opción no vale la pena ofrecerlo, salvo que ya esté puesto: un filtro que
+    // filtra y no está en la barra es una tabla vacía sin nada que explique por qué.
+  ].filter((f) => f.options.length > 1 || filtros[f.name] !== undefined)
 
   // El orden se lee de una cabecera: donde esa cabecera no está, no hay orden raro que explicar
   // y la lista va como promete el título, con lo último arriba. Se guarda igual, así que volver
   // a agrandar la ventana lo devuelve.
   const escondida = !conRelleno && (orden.por === 'minutes' || orden.por === 'accuracy')
-  const orden_ = !conTabla || escondida ? { por: 'when' as Por, dir: 'desc' as const } : orden
+  const orden_ = !conTabla || escondida ? ULTIMO : orden
 
   const valor = (e: SubmissionSummary) =>
     orden_.por === 'learner' ? (e.learner ?? '') : orden_.por === 'when' ? e.when : orden_.por === 'minutes' ? e.minutes : e.accuracy
@@ -96,8 +112,12 @@ export function Submissions() {
   const filtrando = texto.trim() !== '' || Object.values(filtros).some((v) => v.length > 0)
   const limpiar = () => { setTexto(''); setFiltros({}) }
 
+  // Desde `orden_` y no desde `orden`: si la columna que ordenaba se escondió, la cabecera que
+  // se ve activa es otra, y el primer clic tiene que darla vuelta y no repetir lo que ya está.
   const ordenarPor = (por: Por) =>
-    setOrden((o) => (o.por === por ? { por, dir: o.dir === 'asc' ? 'desc' : 'asc' } : { por, dir: por === 'learner' ? 'asc' : 'desc' }))
+    setOrden(orden_.por === por
+      ? { por, dir: orden_.dir === 'asc' ? 'desc' : 'asc' }
+      : { por, dir: por === 'learner' ? 'asc' : 'desc' })
   const sentido = (por: Por) => (orden_.por === por ? orden_.dir : false)
 
   const abrir = (e: SubmissionSummary) => nav(`/review/${e.assignmentId}`)
