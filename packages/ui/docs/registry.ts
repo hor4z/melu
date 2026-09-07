@@ -337,7 +337,7 @@ export const REGISTRY: Entry[] = [
     summary: 'El riel de la izquierda, en partes: replegado son íconos, desplegado son íconos con nombre.',
     exports: ['Sidebar', 'SidebarHeader', 'SidebarNav', 'SidebarLabel', 'SidebarItem', 'SidebarToggle'],
     demos: [
-      { id: 'basic', title: 'Replegar y desplegar', note: 'El destino activo se pinta con `aria-current="page"`, que un enlace de router ya pone: el riel no necesita saber en qué router vive.' },
+      { id: 'basic', title: 'Replegar y desplegar', note: 'El destino activo se pinta con `aria-current="page"`, que un enlace de router ya pone: el riel no necesita saber en qué router vive. El ancho no se anima a propósito: deslizarlo hace que la pantalla de al lado se rearme en cada frame.' },
     ],
     when: [
       'La navegación principal de una app con varias secciones que se visitan todo el tiempo.',

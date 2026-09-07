@@ -6,7 +6,7 @@ import { Compass, LayoutDashboard } from 'lucide-react'
 
 const riel = (props: { expanded?: boolean; defaultExpanded?: boolean; onExpandedChange?: (v: boolean) => void } = {}) => (
   <Sidebar {...props}>
-    <SidebarHeader>melu</SidebarHeader>
+    <SidebarHeader>melu<SidebarToggle /></SidebarHeader>
     <SidebarNav>
       <SidebarLabel>Enseñar</SidebarLabel>
       <SidebarItem asChild label="Inicio" icon={<Icon icon={LayoutDashboard} size="lg" />}>
@@ -16,7 +16,6 @@ const riel = (props: { expanded?: boolean; defaultExpanded?: boolean; onExpanded
         <a href="/lenses" />
       </SidebarItem>
     </SidebarNav>
-    <SidebarToggle />
   </Sidebar>
 )
 
@@ -75,6 +74,25 @@ describe('Sidebar', () => {
     expect(container.firstElementChild?.className).toContain('w-16')
     await userEvent.click(screen.getByRole('button', { name: 'Desplegar el panel' }))
     expect(container.firstElementChild?.className).toContain('w-56')
+  })
+
+  test('recorta lo que asoma y no anima el ancho: así no aparecía una barra de scroll ni parpadeaba', () => {
+    const { container, rerender } = render(riel({ expanded: false }))
+    const aside = container.firstElementChild as HTMLElement
+    // Doblado, los nombres siguen en el DOM y son más anchos que el riel: hay que recortarlos.
+    expect(aside.className).toContain('overflow-hidden')
+    expect(aside.className).not.toContain('transition-[width]')
+    // Y el nav no puede dejar el eje horizontal en `auto`, que es lo que dibujaba la barra.
+    expect(screen.getByRole('navigation').className).toContain('overflow-x-hidden')
+
+    rerender(riel({ expanded: true }))
+    expect((container.firstElementChild as HTMLElement).className).toContain('overflow-hidden')
+  })
+
+  test('el botón está en la cabecera, que es donde se lo busca', () => {
+    const { container } = render(riel())
+    const cabecera = container.firstElementChild?.firstElementChild
+    expect(cabecera?.contains(screen.getByRole('button', { name: 'Replegar el panel' }))).toBe(true)
   })
 
   test('sus partes no se usan por fuera: avisan en vez de rendir cualquier cosa', () => {

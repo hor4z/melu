@@ -89,17 +89,25 @@ export const COPY: Record<string, string> = {
   Sidebar:
     'El riel del costado, en partes. Replegado son íconos; desplegado, íconos con su nombre. No '
     + 'se acuerda solo: quien lo usa guarda el estado, porque dónde se guarda (la url, una '
-    + 'preferencia, en ningún lado) es una decisión de la app y no del riel. El ancho se anima y '
-    + 'el contenido no: un nombre que aparece en el medio de un deslizamiento se lee como una '
-    + 'falla, así que entra entero.',
-  SidebarHeader: 'Lo que va arriba: el logo, el nombre del lugar. Centrado mientras está replegado.',
+    + 'preferencia, en ningún lado) es una decisión de la app y no del riel. El ancho no se anima, '
+    + 'y eso es a propósito: deslizarlo hace que la pantalla de al lado se rearme en cada frame '
+    + '(una tabla recalcula sus columnas sesenta veces y el texto tiembla), que se lee como una '
+    + 'falla y no como un movimiento. Plegar es un cambio de estado, no un viaje.',
+  SidebarHeader:
+    'Lo que va arriba: el logo de un lado y el botón de plegar del otro. Replegado queda solo el '
+    + 'botón, centrado: en sesenta y cuatro píxeles no entran una marca y un control, y de los dos '
+    + 'el que tiene que estar a mano es el control.',
   SidebarLabel: 'El rótulo de un tramo del menú. Replegado sigue para quien escucha y deja de ocupar lugar.',
   SidebarItem:
     'Un destino. El activo se pinta a partir de `aria-current="page"`, que un enlace de router ya '
     + 'pone: así el riel no necesita saber en qué router está viviendo.',
   'SidebarItem.label': 'El nombre. Replegado queda como nombre accesible y vuelve como tooltip.',
   'SidebarItem.asChild': 'Le presta los estilos a un enlace de router, que es lo que esto es casi siempre.',
-  SidebarToggle: 'Repliega y despliega. Dice cuál de las dos cosas va a hacer, y a quién.',
+  SidebarToggle:
+    'Repliega y despliega. Dice cuál de las dos cosas va a hacer, y a quién. Va en la cabecera y '
+    + 'no en el pie: el control que cambia la forma del riel se busca donde el riel empieza, y al '
+    + 'fondo de una columna del alto de la pantalla queda lo más lejos posible del ojo que lo va a '
+    + 'usar.',
 
   // Estado y datos
   EmptyState: 'El vacío con una explicación: siempre decir qué falta y qué se puede hacer.',

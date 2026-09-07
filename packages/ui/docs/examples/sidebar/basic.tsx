@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Activity, BookOpen, Compass, LayoutDashboard, Users } from 'lucide-react'
-import { Icon, Logo, Logomark, Sidebar, SidebarHeader, SidebarItem, SidebarLabel, SidebarNav, SidebarToggle, Text } from '@melu/ui'
+import { Icon, Logo, Sidebar, SidebarHeader, SidebarItem, SidebarLabel, SidebarNav, SidebarToggle, Text } from '@melu/ui'
 
 const DESTINOS = [
   ['Inicio', LayoutDashboard], ['Cómo vienen', Activity], ['Grupos', Users],
@@ -15,7 +15,10 @@ export default function Demo() {
     // El `h-96` es del ejemplo: en la app el riel mide lo que mide la pantalla.
     <div className="flex h-96 w-full overflow-hidden rounded-lg border border-line">
       <Sidebar expanded={abierto} onExpandedChange={setAbierto} className="h-full">
-        <SidebarHeader>{abierto ? <Logo size="sm" /> : <Logomark size={24} />}</SidebarHeader>
+        <SidebarHeader>
+          {abierto && <Logo size="sm" />}
+          <SidebarToggle />
+        </SidebarHeader>
         <SidebarNav>
           <SidebarLabel>Enseñar</SidebarLabel>
           {DESTINOS.map(([nombre, icono]) => (
@@ -30,11 +33,10 @@ export default function Demo() {
             </SidebarItem>
           ))}
         </SidebarNav>
-        <SidebarToggle />
       </Sidebar>
       <div className="min-w-0 flex-1 p-5">
         <Text variant="muted">Estás en <span className="font-semibold text-ink">{donde}</span>.</Text>
-        <Text size="sm" variant="subtle" className="mt-2">Replegalo con el botón de abajo: los nombres se van de la vista pero no del lector, y vuelven como tooltip.</Text>
+        <Text size="sm" variant="subtle" className="mt-2">Replegalo con el botón de arriba: los nombres se van de la vista pero no del lector, y vuelven como tooltip.</Text>
       </div>
     </div>
   )

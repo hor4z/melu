@@ -2,6 +2,7 @@ import { createContext, useContext, type ComponentPropsWithoutRef, type ReactNod
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { cn, focusRing, Slot, Slottable, useControllableState } from './lib'
 import { Icon } from './icon'
+import { IconButton } from './icon-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip'
 
 type Ctx = { expanded: boolean; setExpanded: (v: boolean) => void }
@@ -22,9 +23,11 @@ export interface SidebarProps extends Omit<ComponentPropsWithoutRef<'aside'>, 'o
  * The rail on the side, in parts. Folded it is icons; unfolded, icons with their names.
  *
  * It does not remember on its own: whoever uses it holds the state, because where that is kept
- * (the url, a preference, nothing) is a decision of the app and not of the rail. The width is
- * animated and the content is not: a name that appears in the middle of a slide reads as a
- * glitch, so it comes in whole.
+ * (the url, a preference, nothing) is a decision of the app and not of the rail.
+ *
+ * The width is not animated, and that is the point. Sliding it means the page beside it reflows
+ * on every frame: a table recomputes its columns sixty times and the text jitters, which reads
+ * as a glitch and not as a movement. Folding is a change of state, not a trip.
  */
 export function Sidebar({ expanded, defaultExpanded = true, onExpandedChange, className, children, ...props }: SidebarProps) {
   const [open, setOpen] = useControllableState({ value: expanded, defaultValue: defaultExpanded, onChange: onExpandedChange })
@@ -33,7 +36,9 @@ export function Sidebar({ expanded, defaultExpanded = true, onExpandedChange, cl
       <aside
         data-expanded={open || undefined}
         className={cn(
-          'sticky top-0 flex h-screen shrink-0 flex-col gap-2 border-r border-line bg-surface transition-[width] duration-200',
+          // `overflow-hidden`: doblado, los nombres siguen en el DOM y son más anchos que el
+          // riel. Sin recortarlos, se desbordaban y aparecía una barra de scroll horizontal.
+          'sticky top-0 flex h-screen shrink-0 flex-col gap-2 overflow-hidden border-r border-line bg-surface',
           open ? 'w-56' : 'w-16',
           className,
         )}
@@ -45,15 +50,26 @@ export function Sidebar({ expanded, defaultExpanded = true, onExpandedChange, cl
   )
 }
 
-/** What goes on top: the logo, the name of the place. Centred while it is folded. */
+/**
+ * What goes on top: the logo on one side and the fold button on the other. Folded, only the
+ * button is left, centred: sixty-four pixels do not fit a brand and a control, and of the two
+ * the one that has to be reachable is the control.
+ */
 export function SidebarHeader({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
   const { expanded } = useSidebar()
-  return <div className={cn('flex h-16 shrink-0 items-center', expanded ? 'px-5' : 'justify-center px-2', className)} {...props} />
+  return (
+    <div
+      className={cn('flex h-16 shrink-0 items-center gap-2', expanded ? 'justify-between px-4' : 'justify-center px-2', className)}
+      {...props}
+    />
+  )
 }
 
 export function SidebarNav({ className, ...props }: ComponentPropsWithoutRef<'nav'>) {
   const { expanded } = useSidebar()
-  return <nav className={cn('flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto', expanded ? 'px-3' : 'px-2', className)} {...props} />
+  // `overflow-x-hidden` a mano: con solo `overflow-y-auto`, el eje horizontal se calcula en
+  // `auto` y el nombre que asoma mientras el riel está doblado dibuja una barra de scroll.
+  return <nav className={cn('flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overflow-x-hidden pb-3', expanded ? 'px-3' : 'px-2', className)} {...props} />
 }
 
 /** The heading of a stretch of the nav. Folded it stays for whoever listens and stops taking room. */
@@ -110,24 +126,22 @@ export function SidebarItem({ label, icon, asChild, className, children, ...prop
   )
 }
 
-/** Folds and unfolds. It says which of the two it is doing, and to whom. */
-export function SidebarToggle({ className, ...props }: Omit<ComponentPropsWithoutRef<'button'>, 'children'>) {
+/**
+ * Folds and unfolds. It says which of the two it is doing, and to whom.
+ *
+ * It goes in the header and not at the foot: the control that changes the shape of the rail is
+ * looked for where the rail starts, and at the bottom of a screen-tall column it is the furthest
+ * thing from the eye that is going to use it.
+ */
+export function SidebarToggle({ className, ...props }: Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'aria-label'>) {
   const { expanded, setExpanded } = useSidebar()
   const label = expanded ? 'Replegar el panel' : 'Desplegar el panel'
   return (
-    <div className={cn('mt-auto shrink-0 border-t border-line', expanded ? 'p-3' : 'p-2')}>
-      <button
-        type="button" onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-label={label} title={label}
-        className={cn(
-          `flex w-full items-center gap-3 rounded-md py-2.5 text-sm text-ink-subtle transition-colors hover:bg-hover hover:text-ink ${focusRing}`,
-          expanded ? 'px-3' : 'justify-center px-0',
-          className,
-        )}
-        {...props}
-      >
-        <Icon icon={expanded ? PanelLeftClose : PanelLeftOpen} size="lg" />
-        {expanded && <span className="truncate">Replegar</span>}
-      </button>
-    </div>
+    <IconButton
+      label={label} variant="ghost" size="sm" aria-expanded={expanded}
+      onClick={() => setExpanded(!expanded)} className={className}
+      icon={<Icon icon={expanded ? PanelLeftClose : PanelLeftOpen} size="lg" />}
+      {...props}
+    />
   )
 }
