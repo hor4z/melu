@@ -389,10 +389,10 @@ export const REGISTRY: Entry[] = [
     slug: 'pagination',
     title: 'Pagination',
     group: 'Datos',
-    summary: 'La línea de abajo de una tabla: cuánto se ve y cómo pedir más.',
-    exports: ['Pagination', 'PaginationStatus', 'PaginationMore'],
+    summary: 'La línea de abajo de una tabla: qué tramo se ve, y el anterior y el siguiente.',
+    exports: ['Pagination', 'PaginationStatus', 'PaginationPrev', 'PaginationNext'],
     demos: [
-      { id: 'basic', title: 'Cargar más', note: 'El botón se va solo cuando ya no queda nada para pedir: no se deshabilita, desaparece.' },
+      { id: 'basic', title: 'Anterior y siguiente', note: 'El `disabled` del siguiente es el `more` que contesta la api. En las puntas los botones se apagan y no se van: un par que aparece y desaparece corre al otro debajo del dedo.' },
     ],
     when: [
       'Una tabla o una lista que puede crecer más de lo que entra en una pantalla.',

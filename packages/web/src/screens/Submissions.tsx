@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   Avatar, Button, Card, Chip, FilterBar, FilterSearch, FilterSet, Heading, Icon, Text,
   DataList, DataListActions, DataListHead, DataListItem, DataListMedia, DataListMeta, DataListText, DataListTitle,
-  Pagination, PaginationMore, PaginationStatus,
+  Pagination, PaginationNext, PaginationPrev, PaginationStatus,
   Table, TableBody, TableCell, TableEmpty, TableHead, TableHeader, TableRow,
   BREAKPOINTS, facets, useDevice, useMediaQuery,
 } from '@melu/ui'
@@ -26,8 +26,7 @@ type Por = 'learner' | 'when' | 'minutes' | 'accuracy'
 // El orden de entrada, y el que se recupera cuando no hay cabecera que explique otro.
 const ULTIMO = { por: 'when' as Por, dir: 'desc' as const }
 
-// Cuántas filas se traen de una. Es aproximadamente una pantalla: la idea es que el botón de
-// abajo aparezca cuando hay más para ver, no que haya que pedirlo todo el tiempo.
+// Cuántas filas entran en un tramo. Es aproximadamente una pantalla.
 const TRAMO = 15
 
 export function Submissions() {
@@ -51,7 +50,7 @@ export function Submissions() {
   // queda cuando alguien lo agrega y todavía no eligió nada.
   const [filtros, setFiltros] = useState<Record<string, string[]>>({})
   const [orden, setOrden] = useState<{ por: Por; dir: 'asc' | 'desc' }>(ULTIMO)
-  const [visibles, setVisibles] = useState(TRAMO)
+  const [pagina, setPagina] = useState(0)
 
   // Cambiar de espacio no desmonta la pantalla, así que lo que había filtrado se quedaba puesto
   // sobre datos de otro lado: un grupo del espacio anterior dejando la tabla en cero. Se
@@ -62,7 +61,7 @@ export function Submissions() {
     setTexto('')
     setFiltros({})
     setOrden(ULTIMO)
-    setVisibles(TRAMO)
+    setPagina(0)
   }
 
   const todas = useMemo(() => q.data ?? [], [q.data])
@@ -116,9 +115,16 @@ export function Submissions() {
   })
 
   // `trim`, como filtra `pasa`: un espacio solo no filtra nada y no tiene que decir que sí.
-  // Lo que se ve es un tramo de lo que quedó filtrado. Pedir más agranda el tramo; el día que
-  // el back entregue de a pedazos, lo que cambia es de dónde salen las filas y no esta línea.
-  const alaVista = lista.slice(0, visibles)
+  // Lo que se ve es un tramo de lo que quedó filtrado. El día que el back entregue de a pedazos,
+  // lo que cambia es de dónde salen las filas y no esta línea.
+  //
+  // La página se acomoda si el filtro dejó menos de las que hacían falta para llegar hasta acá:
+  // sin esto, filtrar estando en la tres dejaba una tabla vacía y sin nada que tocar.
+  const ultima = Math.max(0, Math.ceil(lista.length / TRAMO) - 1)
+  if (pagina > ultima) setPagina(ultima)
+  const desde = Math.min(pagina, ultima) * TRAMO
+  const alaVista = lista.slice(desde, desde + TRAMO)
+  const hayMas = desde + TRAMO < lista.length
 
   const filtrando = texto.trim() !== '' || Object.values(filtros).some((v) => v.length > 0)
   const limpiar = () => { setTexto(''); setFiltros({}) }
@@ -236,8 +242,9 @@ export function Submissions() {
 
         {lista.length > 0 && (
           <Pagination>
-            <PaginationStatus shown={alaVista.length} total={todas.length} noun="entregas" />
-            <PaginationMore hasMore={alaVista.length < lista.length} onClick={() => setVisibles((v) => v + TRAMO)} />
+            <PaginationStatus from={desde + 1} to={desde + alaVista.length} total={lista.length} noun="entregas" />
+            <PaginationPrev disabled={desde === 0} onClick={() => setPagina((p) => p - 1)} />
+            <PaginationNext disabled={!hayMas} onClick={() => setPagina((p) => p + 1)} />
           </Pagination>
         )}
       </Card>

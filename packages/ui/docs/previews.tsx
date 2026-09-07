@@ -176,8 +176,11 @@ export const PREVIEWS: Record<string, () => React.ReactNode> = {
   ),
   pagination: () => (
     <div className="pointer-events-none flex w-full max-w-64 items-center justify-between gap-3 rounded-lg border border-line bg-surface px-3 py-2">
-      <Text size="sm" variant="muted">15 de 17 entregas</Text>
-      <span className="inline-flex h-8 items-center rounded-md border border-line px-3 text-sm font-medium">Cargar más</span>
+      <Text size="sm" variant="muted">16 a 30 de 42</Text>
+      <span className="flex gap-1.5">
+        <span className="inline-flex h-8 items-center rounded-md border border-line px-2.5 text-sm font-medium text-ink-subtle">Anterior</span>
+        <span className="inline-flex h-8 items-center rounded-md border border-line px-2.5 text-sm font-medium">Siguiente</span>
+      </span>
     </div>
   ),
   filter: () => (

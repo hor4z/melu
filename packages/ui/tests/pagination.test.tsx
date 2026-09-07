@@ -1,68 +1,89 @@
 import { describe, expect, test, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Pagination, PaginationMore, PaginationStatus } from '@melu/ui'
+import { Pagination, PaginationNext, PaginationPrev, PaginationStatus } from '@melu/ui'
 
 describe('PaginationStatus', () => {
-  test('dice cuánto se ve de cuánto', () => {
-    render(<PaginationStatus shown={15} total={17} noun="entregas" />)
-    expect(screen.getByText('15 de 17 entregas')).toBeInTheDocument()
+  test('dice qué tramo se está viendo', () => {
+    render(<PaginationStatus from={16} to={30} total={42} noun="entregas" />)
+    expect(screen.getByText('16 a 30 de 42 entregas')).toBeInTheDocument()
   })
 
-  test('cuando ya se ve todo, el "de" sobra', () => {
-    render(<PaginationStatus shown={17} total={17} noun="entregas" />)
+  test('cuando el tramo es todo, no cuenta desde dónde: eso sería decirlo tres veces', () => {
+    render(<PaginationStatus from={1} to={17} total={17} noun="entregas" />)
     expect(screen.getByText('17 entregas')).toBeInTheDocument()
   })
 
-  test('sin total solo cuenta lo que hay a la vista, que es lo que se sabe cuando el back pagina por cursor', () => {
-    render(<PaginationStatus shown={40} noun="entregas" />)
-    expect(screen.getByText('40 entregas')).toBeInTheDocument()
+  test('sin total dice el tramo y nada más, que es lo que se sabe con un cursor', () => {
+    render(<PaginationStatus from={16} to={30} noun="entregas" />)
+    expect(screen.getByText('16 a 30 entregas')).toBeInTheDocument()
+  })
+
+  test('arranca en uno si no le dicen otra cosa', () => {
+    render(<PaginationStatus to={15} total={42} noun="entregas" />)
+    expect(screen.getByText('1 a 15 de 42 entregas')).toBeInTheDocument()
   })
 
   test('la pantalla puede escribir su propia frase', () => {
-    render(<PaginationStatus shown={3} total={9}>Tres de nueve, y las demás las corrigió Ana</PaginationStatus>)
-    expect(screen.getByText('Tres de nueve, y las demás las corrigió Ana')).toBeInTheDocument()
+    render(<PaginationStatus to={9}>Las nueve que faltan corregir</PaginationStatus>)
+    expect(screen.getByText('Las nueve que faltan corregir')).toBeInTheDocument()
   })
 })
 
-describe('PaginationMore', () => {
-  test('pide el tramo siguiente', async () => {
-    const mas = vi.fn()
-    render(<PaginationMore onClick={mas} />)
-    await userEvent.click(screen.getByRole('button', { name: 'Cargar más' }))
-    expect(mas).toHaveBeenCalledOnce()
+describe('PaginationPrev y PaginationNext', () => {
+  test('llevan al tramo de al lado', async () => {
+    const antes = vi.fn()
+    const despues = vi.fn()
+    render(<><PaginationPrev onClick={antes} /><PaginationNext onClick={despues} /></>)
+    await userEvent.click(screen.getByRole('button', { name: 'Anterior' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Siguiente' }))
+    expect(antes).toHaveBeenCalledOnce()
+    expect(despues).toHaveBeenCalledOnce()
   })
 
-  test('sin más para pedir, no hay botón: no se deshabilita, se va', () => {
-    render(<PaginationMore hasMore={false} onClick={() => {}} />)
-    expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  test('en las puntas se apagan, no se van: un par que aparece y desaparece corre al otro debajo del dedo', async () => {
+    const antes = vi.fn()
+    render(<PaginationPrev disabled onClick={antes} />)
+    const boton = screen.getByRole('button', { name: 'Anterior' })
+    expect(boton).toBeInTheDocument()
+    expect(boton).toBeDisabled()
+    await userEvent.click(boton)
+    expect(antes).not.toHaveBeenCalled()
   })
 
-  test('mientras viaja, hila y no se puede tocar de nuevo', async () => {
-    const mas = vi.fn()
-    render(<PaginationMore loading onClick={mas} />)
+  test('el `disabled` del siguiente es el `more` que contesta la api', () => {
+    const { rerender } = render(<PaginationNext disabled={!true} />)
+    expect(screen.getByRole('button', { name: 'Siguiente' })).toBeEnabled()
+    rerender(<PaginationNext disabled={!false} />)
+    expect(screen.getByRole('button', { name: 'Siguiente' })).toBeDisabled()
+  })
+
+  test('mientras el tramo viaja, hilan y no se puede tocar de nuevo', async () => {
+    const despues = vi.fn()
+    render(<PaginationNext loading onClick={despues} />)
     const boton = screen.getByRole('button')
     expect(boton).toBeDisabled()
     expect(boton).toHaveAttribute('aria-busy', 'true')
     await userEvent.click(boton)
-    expect(mas).not.toHaveBeenCalled()
+    expect(despues).not.toHaveBeenCalled()
   })
 
   test('el texto se puede cambiar', () => {
-    render(<PaginationMore>Ver más entregas</PaginationMore>)
-    expect(screen.getByRole('button', { name: 'Ver más entregas' })).toBeInTheDocument()
+    render(<PaginationNext>Más entregas</PaginationNext>)
+    expect(screen.getByRole('button', { name: /Más entregas/ })).toBeInTheDocument()
   })
 })
 
 describe('Pagination', () => {
-  test('la cuenta de un lado y la acción del otro', () => {
+  test('el tramo de un lado y los dos botones del otro', () => {
     render(
       <Pagination>
-        <PaginationStatus shown={15} total={17} noun="entregas" />
-        <PaginationMore onClick={() => {}} />
+        <PaginationStatus from={16} to={30} total={42} noun="entregas" />
+        <PaginationPrev onClick={() => {}} />
+        <PaginationNext onClick={() => {}} />
       </Pagination>,
     )
-    expect(screen.getByText('15 de 17 entregas')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Cargar más' })).toBeInTheDocument()
+    expect(screen.getByText('16 a 30 de 42 entregas')).toBeInTheDocument()
+    expect(screen.getAllByRole('button')).toHaveLength(2)
   })
 })
