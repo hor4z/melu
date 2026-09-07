@@ -7,7 +7,7 @@
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, Check, Hourglass, Inbox, Plus, Users } from 'lucide-react'
-import { Avatar, Button, Card, DoodleBulb, Eyebrow, Heading, Icon, Text } from '@melu/ui'
+import { Avatar, Button, Card, DoodleBulb, Eyebrow, Heading, Icon, Progress, Text } from '@melu/ui'
 import { StatTile } from '../blocks/Product'
 import { api, type Dashboard } from '../lib/api'
 import { useSpaceId } from '../lib/space'
@@ -19,10 +19,10 @@ export function Home() {
   const q = useQuery({ queryKey: ['dashboard', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?space=${spaceId}`) })
   const p = q.data
   if (!p) return null
-  // Solo lo que espera algo del docente. Lo ya corregido no es urgente, y mezclarlo obliga a
-  // leer cada fila para saber cuál de las dos cosas es.
-  const esperando = (p.recentSubmissions ?? []).filter((e) => e.status !== 'graded')
-  const faltan = Math.max(0, p.assigned - (p.toReview + p.graded))
+  // Solo lo que espera una devolución. Lo ya corregido no es urgente; lo que abrieron y no
+  // entregaron tampoco espera nada del docente, y eso se mira en "Cómo vienen".
+  const esperando = (p.recentSubmissions ?? []).filter((e) => e.status === 'submitted')
+  const llegaron = p.toReview + p.graded
   const steps: [string, string, string, string][] = [
     ['group', 'Creá un grupo', 'Un aula, un taller, tres alumnos: gente que aprende junta.', '/groups'],
     ['invite', 'Sumá a los chicos', 'Escribí sus emails. Entran con Google y el grupo ya los espera.', '/groups'],
@@ -73,15 +73,15 @@ export function Home() {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <Eyebrow>Entregas</Eyebrow>
-              {/* El título es lo que hay que hacer, no la cuenta de lo que pasó: "15 de 52
-                  entregadas" es aritmética que el docente no le pide a esta pantalla. */}
-              <Heading level={2} size="lg" className="mt-1">
-                {p.toReview === 1 ? 'Una espera tu devolución' : `${p.toReview} esperan tu devolución`}
-              </Heading>
-              {faltan > 0 && (
-                <Text size="sm" variant="muted">
-                  {faltan === 1 ? 'Falta una por llegar.' : `Faltan ${faltan} por llegar.`}
-                </Text>
+              {/* El título dice qué es la lista, y los números están en un solo lugar: la barra.
+                  Repartidos entre el título, la bajada y el dibujo, había que juntarlos con la
+                  cabeza para entender una sola cosa. */}
+              <Heading level={2} size="lg" className="mt-1">Lo que espera tu devolución</Heading>
+              {p.assigned > 0 && (
+                <Progress
+                  className="mt-3 max-w-xs" value={llegaron} max={p.assigned} showValue
+                  label={llegaron === p.assigned ? 'Completadas, todas' : 'Completadas'}
+                />
               )}
             </div>
             <Button variant="ghost" size="sm" onClick={() => nav('/submissions')} endIcon={<Icon icon={ArrowRight} size="sm" />}>Ver todas</Button>
