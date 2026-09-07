@@ -68,7 +68,10 @@ export function NewActivity() {
                     <div className="flex items-start justify-between gap-2"><span className="font-semibold leading-snug">{r.title}</span>{r.spaceId && <Chip size="sm" color="lilac">Mía</Chip>}</div>
                     <CompositionChips c={r.composition} compact />
                     <p className="line-clamp-2 text-sm text-ink-muted">{r.document.phases[0]?.blocks.find((b) => b.type === 'paragraph')?.text}</p>
-                    <Text size="xs" variant="muted">{r.document.phases.length} fases · {r.document.phases.map((f) => f.name).join(' → ')}</Text>
+                    <Text size="xs" variant="muted" className="flex flex-wrap items-center gap-x-3">
+                      <span>{r.document.phases.length} fases</span>
+                      <span className="text-ink-subtle">{r.document.phases.map((f) => f.name).join(' → ')}</span>
+                    </Text>
                   </CardContent>
                 </button>
               </Card>
@@ -108,7 +111,7 @@ export function NewActivity() {
 function AxisRow({ title, hint, options, value, onPick }: { title: string; hint: string; options: Record<string, string>; value: string[]; onPick: (v: string) => void }) {
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-1 text-sm font-semibold">{title} <span className="font-normal text-ink-subtle">· {hint}</span></legend>
+      <legend className="mb-1 text-sm font-semibold">{title} <span className="ml-1 font-normal text-ink-subtle">{hint}</span></legend>
       <ToggleGroup type="multiple" variant="outline" value={value} onValueChange={(next) => {
         // El grupo devuelve la selección entera; la pantalla razona de a una opción.
         const changed = next.filter((k) => !value.includes(k)).concat(value.filter((k) => !next.includes(k)))

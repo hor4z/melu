@@ -29,23 +29,11 @@ describe('DataList', () => {
     expect(abrir).toHaveBeenCalledOnce()
   })
 
-  test('`DataListMeta` pone el punto entre pedazo y pedazo, y no antes del primero', () => {
-    render(<DataList><DataListItem><DataListMeta><span>4° A</span><span>hace 2 h</span><span>12 min</span></DataListMeta></DataListItem></DataList>)
-    const meta = screen.getByText('4° A').parentElement as HTMLElement
-    expect(meta.textContent).toBe('4° A·hace 2 h·12 min')
-    expect(meta.querySelectorAll('[aria-hidden="true"]')).toHaveLength(2)
-  })
-
-  test('un pedazo que no está no deja un punto suelto', () => {
-    const minutos = 0
-    render(
-      <DataList>
-        <DataListItem>
-          <DataListMeta><span>4° A</span>{minutos > 0 && <span>{minutos} min</span>}<span>hace 2 h</span></DataListMeta>
-        </DataListItem>
-      </DataList>,
-    )
-    expect((screen.getByText('4° A').parentElement as HTMLElement).textContent).toBe('4° A·hace 2 h')
+  test('`DataListMeta` separa con aire y no mete ningún carácter entre los pedazos', () => {
+    render(<DataList><DataListItem><DataListMeta><span>4° A</span><span>hace 2 h</span></DataListMeta></DataListItem></DataList>)
+    const meta = screen.getByText('hace 2 h').parentElement as HTMLElement
+    expect(meta.textContent).toBe('4° Ahace 2 h')
+    expect(meta.className).toContain('gap-x-')
   })
 
   test('el esqueleto tiene la forma de las fichas y el lector no lo lee', () => {

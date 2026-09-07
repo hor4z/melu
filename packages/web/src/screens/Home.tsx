@@ -6,7 +6,7 @@
 // min" no.
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, Check, Hourglass, Inbox, Plus, Users } from 'lucide-react'
+import { ArrowRight, Check, Clock, Hourglass, Inbox, Plus, Users } from 'lucide-react'
 import { Avatar, Button, Card, DoodleBulb, Eyebrow, Heading, Icon, Progress, Text } from '@melu/ui'
 import { StatTile } from '../blocks/Product'
 import { api, type Dashboard } from '../lib/api'
@@ -43,7 +43,7 @@ export function Home() {
       {firstTime && (
         <Card padding="lg" className="grid gap-6 lg:grid-cols-[1fr_auto]">
           <div>
-            <Eyebrow>Primeros pasos · {facts} de {steps.length}</Eyebrow>
+            <Eyebrow>Primeros pasos, {facts} de {steps.length}</Eyebrow>
             <Heading level={2} size="lg" className="mt-1">Así funciona melu, en cinco pasos</Heading>
             <ol className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
               {steps.map(([k, t, d, to], i) => { const ok = p.checklist[k]; return (
@@ -64,13 +64,15 @@ export function Home() {
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatTile label="Para mirar" value={p.toReview} hint="esperando tu devolución" tint="bg-yellow" icon={<Icon icon={Inbox} size="lg" />} />
         <StatTile label="Sin terminar" value={p.unfinished} hint="las abrieron y no entregaron" tint="bg-blue" icon={<Icon icon={Hourglass} size="lg" />} />
-        <StatTile label="Aprendices" value={p.learners} hint={`${p.groups} ${p.groups === 1 ? 'grupo' : 'grupos'} · ${p.spaces} ${p.spaces === 1 ? 'espacio' : 'espacios'}`} tint="bg-teal" icon={<Icon icon={Users} size="lg" />} />
+        <StatTile label="Aprendices" value={p.learners} hint={`${p.groups} ${p.groups === 1 ? 'grupo' : 'grupos'} en ${p.spaces} ${p.spaces === 1 ? 'espacio' : 'espacios'}`} tint="bg-teal" icon={<Icon icon={Users} size="lg" />} />
       </section>
 
 
       {esperando.length > 0 && (
         <Card padding="lg">
-          <div className="flex flex-wrap items-end justify-between gap-3">
+          {/* `items-start`: con la barra abajo del título, alinear al pie mandaba el "Ver todas"
+              al medio de la tarjeta. Va arriba a la derecha, que es donde se lo busca. */}
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <Eyebrow>Entregas</Eyebrow>
               {/* El título dice qué es la lista, y los números están en un solo lugar: la barra.
@@ -93,8 +95,17 @@ export function Home() {
               <li key={e.submissionId} className="flex flex-wrap items-center gap-4 py-3">
                 <Avatar name={e.learner ?? '?'} size="sm" />
                 <div className="min-w-0 flex-1">
-                  <div className="font-medium">{e.learner} <span className="text-ink-muted">· {e.title}</span></div>
-                  <Text size="xs" variant="muted">{e.group} · {ago(e.when)}</Text>
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-medium">{e.learner}</span>
+                    <span className="text-ink-muted">{e.title}</span>
+                  </div>
+                  {/* Separado por aire, un ícono y un tono, no por puntuación: el nombre de un
+                      grupo ya trae un "·" adentro ("4° A · Matemática"), así que un "·" entre
+                      campos se confunde con el que es parte del nombre. */}
+                  <Text size="xs" variant="muted" className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                    <span className="inline-flex items-center gap-1"><Icon icon={Users} size="xs" />{e.group}</span>
+                    <span className="inline-flex items-center gap-1 text-ink-subtle"><Icon icon={Clock} size="xs" />{ago(e.when)}</span>
+                  </Text>
                 </div>
                 <Button size="sm" onClick={() => nav(`/review/${e.assignmentId}`)}>Corregir</Button>
               </li>

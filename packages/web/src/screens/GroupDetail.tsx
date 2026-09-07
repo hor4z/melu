@@ -22,7 +22,11 @@ export function GroupDetail() {
     <div className="flex flex-col gap-6">
       <Link to="/groups" className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> Mis grupos</Link>
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div><Eyebrow>Grupo</Eyebrow><Heading level={1} size="2xl" className="mt-1">{g.name}</Heading><Text variant="muted">{learners.length} {learners.length === 1 ? 'aprendiz' : 'aprendices'} · {assignments.length} {assignments.length === 1 ? 'misión' : 'misiones'}{pending > 0 && ` · ${pending} entregas para mirar`}</Text></div>
+        <div><Eyebrow>Grupo</Eyebrow><Heading level={1} size="2xl" className="mt-1">{g.name}</Heading><Text variant="muted" className="flex flex-wrap items-center gap-x-4">
+          <span>{learners.length} {learners.length === 1 ? 'aprendiz' : 'aprendices'}</span>
+          <span>{assignments.length} {assignments.length === 1 ? 'misión' : 'misiones'}</span>
+          {pending > 0 && <span className="text-ink-subtle">{pending} entregas para mirar</span>}
+        </Text></div>
         <div className="flex gap-2"><Button variant="secondary" onClick={() => setAdding(true)} startIcon={<Icon icon={UserPlus} />}>Invitar</Button><Button onClick={() => nav('/activities/new')}>Nueva actividad</Button></div>
       </header>
 
