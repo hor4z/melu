@@ -6,8 +6,8 @@
 // min" no.
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, Check, CheckCheck, Hourglass, Inbox, Plus, Users } from 'lucide-react'
-import { Avatar, Button, Card, Chip, DoodleBulb, Eyebrow, Heading, Icon, Text } from '@melu/ui'
+import { ArrowRight, Check, Hourglass, Inbox, Plus, Users } from 'lucide-react'
+import { Avatar, Button, Card, DoodleBulb, Eyebrow, Heading, Icon, Text } from '@melu/ui'
 import { StatTile } from '../blocks/Product'
 import { api, type Dashboard } from '../lib/api'
 import { useSpaceId } from '../lib/space'
@@ -19,9 +19,10 @@ export function Home() {
   const q = useQuery({ queryKey: ['dashboard', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?space=${spaceId}`) })
   const p = q.data
   if (!p) return null
-  const recent = p.recentSubmissions ?? []
-  const entregadas = p.toReview + p.graded
-  const faltan = Math.max(0, p.assigned - entregadas)
+  // Solo lo que espera algo del docente. Lo ya corregido no es urgente, y mezclarlo obliga a
+  // leer cada fila para saber cuál de las dos cosas es.
+  const esperando = (p.recentSubmissions ?? []).filter((e) => e.status !== 'graded')
+  const faltan = Math.max(0, p.assigned - (p.toReview + p.graded))
   const steps: [string, string, string, string][] = [
     ['group', 'Creá un grupo', 'Un aula, un taller, tres alumnos: gente que aprende junta.', '/groups'],
     ['invite', 'Sumá a los chicos', 'Escribí sus emails. Entran con Google y el grupo ya los espera.', '/groups'],
@@ -58,37 +59,44 @@ export function Home() {
         </Card>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Lo corregido se fue de acá: es lo único de los cuatro números que no pedía nada. Un
+          panel donde todo lo que se ve espera algo se puede leer de un vistazo. */}
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatTile label="Para mirar" value={p.toReview} hint="esperando tu devolución" tint="bg-yellow" icon={<Icon icon={Inbox} size="lg" />} />
         <StatTile label="Sin terminar" value={p.unfinished} hint="las abrieron y no entregaron" tint="bg-blue" icon={<Icon icon={Hourglass} size="lg" />} />
-        <StatTile label="Corregidas" value={p.graded} hint="ya tienen tu devolución" tint="bg-lilac" icon={<Icon icon={CheckCheck} size="lg" />} />
         <StatTile label="Aprendices" value={p.learners} hint={`${p.groups} ${p.groups === 1 ? 'grupo' : 'grupos'} · ${p.spaces} ${p.spaces === 1 ? 'espacio' : 'espacios'}`} tint="bg-teal" icon={<Icon icon={Users} size="lg" />} />
       </section>
 
 
-      {recent.length > 0 && (
+      {esperando.length > 0 && (
         <Card padding="lg">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <Eyebrow>Entregas</Eyebrow>
+              {/* El título es lo que hay que hacer, no la cuenta de lo que pasó: "15 de 52
+                  entregadas" es aritmética que el docente no le pide a esta pantalla. */}
               <Heading level={2} size="lg" className="mt-1">
-                {entregadas} de {p.assigned} {p.assigned === 1 ? 'misión entregada' : 'misiones entregadas'}
+                {p.toReview === 1 ? 'Una espera tu devolución' : `${p.toReview} esperan tu devolución`}
               </Heading>
-              {/* Lo que falta es el dato que el docente busca acá, y con la resta hecha: si tiene
-                  que restar dos números para saber a cuántos chicos esperar, no lo hace. */}
-              <Text size="sm" variant="muted">
-                {faltan > 0 ? `Faltan ${faltan}.` : 'Están todas.'} {p.toReview > 0 ? `${p.toReview} esperan tu devolución.` : 'Ninguna espera devolución.'}
-              </Text>
+              {faltan > 0 && (
+                <Text size="sm" variant="muted">
+                  {faltan === 1 ? 'Falta una por llegar.' : `Faltan ${faltan} por llegar.`}
+                </Text>
+              )}
             </div>
             <Button variant="ghost" size="sm" onClick={() => nav('/submissions')} endIcon={<Icon icon={ArrowRight} size="sm" />}>Ver todas</Button>
           </div>
+          {/* Sin chip de estado: si todas las filas esperan lo mismo, el chip lo repite en cada
+              una y compite con el botón, que es lo único que hay que tocar. */}
           <ul className="mt-4 divide-y divide-line">
-            {recent.map((e) => (
+            {esperando.map((e) => (
               <li key={e.submissionId} className="flex flex-wrap items-center gap-4 py-3">
                 <Avatar name={e.learner ?? '?'} size="sm" />
-                <div className="min-w-0 flex-1"><div className="font-medium">{e.learner} <span className="text-ink-muted">· {e.title}</span></div><Text size="xs" variant="muted">{e.group} · {ago(e.when)} · {e.minutes ? `${e.minutes} min` : 'sin tiempo'}{e.accuracy >= 0 && ` · ${Math.round(e.accuracy * 100)}% aciertos`}</Text></div>
-                <Chip size="sm" color={e.status === 'graded' ? 'success' : 'warning'}>{e.status === 'graded' ? 'Corregida' : 'Para mirar'}</Chip>
-                <Button size="sm" variant={e.status === 'graded' ? 'ghost' : 'primary'} onClick={() => nav(`/review/${e.assignmentId}`)}>{e.status === 'graded' ? 'Ver' : 'Corregir'}</Button>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium">{e.learner} <span className="text-ink-muted">· {e.title}</span></div>
+                  <Text size="xs" variant="muted">{e.group} · {ago(e.when)}</Text>
+                </div>
+                <Button size="sm" onClick={() => nav(`/review/${e.assignmentId}`)}>Corregir</Button>
               </li>
             ))}
           </ul>
