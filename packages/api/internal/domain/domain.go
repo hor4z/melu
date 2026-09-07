@@ -101,8 +101,11 @@ type Event struct {
 	OccurredAt time.Time
 }
 
+// Cómo se llama una cosa. Como la descripción: solo se pide que esté. Los dos caracteres y los
+// ciento veinte de antes no salían de ninguna regla del dominio, y un grupo llamado "A" es un
+// nombre igual de válido que cualquier otro.
 func ValidateName(s string) error {
-	if len(s) < 2 || len(s) > 120 {
+	if strings.TrimSpace(s) == "" {
 		return ErrInvalid
 	}
 	return nil
