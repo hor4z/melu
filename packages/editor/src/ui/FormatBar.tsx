@@ -8,8 +8,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { MarkType } from '../core/text.ts'
-import { isText } from '../core/selection.ts'
+import { isBlocks, isText } from '../core/selection.ts'
 import { useActiveMarks, useEditor, useSelection } from '../react/hooks.ts'
+import { useDragHandle } from '../react/Surface.tsx'
+import { BLOCK_ATTR } from '../react/dom.ts'
 import { caretRect } from '../react/dom.ts'
 import { Icon, type IconName } from '../react/icons.tsx'
 import { Popover } from './Popover.tsx'
@@ -30,12 +32,22 @@ const TURN_INTO = ['paragraph', 'heading_1', 'heading_2', 'heading_3', 'bulleted
 export function FormatBar() {
   const editor = useEditor()
   const selection = useSelection()
+  const { surface: surfaceOf } = useDragHandle()
   const marks = useActiveMarks()
   const [anchor, setAnchor] = useState<Anchor | null>(null)
   const [panel, setPanel] = useState<'none' | 'turn' | 'color' | 'link'>('none')
 
+  /**
+   * Aparece con texto seleccionado y también con bloques elegidos.
+   *
+   * Lo segundo faltaba, y era un agujero que solo se ve usándolo: una selección nativa no puede
+   * cruzar dos regiones editables, así que arrastrar sobre varios párrafos da bloques elegidos, y
+   * la barra no se mostraba. Poner negrita sobre varios bloques funcionaba desde el primer día;
+   * lo que no había era cómo pedirlo con el mouse.
+   */
   const visible = useMemo(() => {
     if (editor.readOnly) return false
+    if (isBlocks(selection)) return selection.ids.length > 0
     if (!isText(selection)) return false
     return selection.anchor.offset !== selection.head.offset || selection.anchor.block !== selection.head.block
   }, [selection, editor.readOnly])
@@ -48,11 +60,12 @@ export function FormatBar() {
       return
     }
     const frame = requestAnimationFrame(() => {
-      const rect = caretRect()
+      // Con bloques elegidos no hay caret que medir: se mide lo que abarcan.
+      const rect = isBlocks(selection) ? boxOf(surfaceOf(), selection.ids) : caretRect()
       if (rect) setAnchor({ top: rect.top, left: rect.left, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height })
     })
     return () => cancelAnimationFrame(frame)
-  }, [visible, selection])
+  }, [visible, selection, surfaceOf])
 
   const close = useCallback(() => setPanel('none'), [])
 
@@ -266,6 +279,22 @@ export const normalizeHref = (raw: string): string => {
   if (/^(https?:|mailto:|tel:|\/|#)/.test(value)) return value
   return `https://${value}`
 }
+
+/** Lo que abarcan los bloques elegidos, para colgar la barra arriba de todo eso. */
+function boxOf(surface: HTMLElement | null, ids: readonly string[]): DOMRect | null {
+  if (!surface) return null
+  const cajas = ids
+    .map((id) => surface.querySelector(`[${BLOCK_ATTR}="${cssId(id)}"]`)?.getBoundingClientRect())
+    .filter((r): r is DOMRect => Boolean(r?.height))
+  if (cajas.length === 0) return null
+  const top = Math.min(...cajas.map((r) => r.top))
+  const left = Math.min(...cajas.map((r) => r.left))
+  const right = Math.max(...cajas.map((r) => r.right))
+  const bottom = Math.max(...cajas.map((r) => r.bottom))
+  return new DOMRect(left, top, right - left, bottom - top)
+}
+
+const cssId = (id: string) => (typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(id) : id.replace(/["\\]/g, '\\$&'))
 
 const currentType = (editor: ReturnType<typeof useEditor>): string => {
   const sel = editor.selection

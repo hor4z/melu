@@ -227,7 +227,7 @@ no se pierde el texto.
 
 ## Los tests
 
-439, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y no
+441, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y no
 "splitBlock con texto vacío". Doce archivos:
 
 ```
