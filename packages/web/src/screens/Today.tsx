@@ -31,7 +31,7 @@ export function Today({ me }: { me: Me }) {
             <Heading level={2} size="xl">{upcoming.title}</Heading>
             <CompositionChips c={upcoming.composition} compact />
             <Text size="sm" variant="muted">{upcoming.groupName}. Se guarda solo mientras trabajás: podés parar y volver.</Text>
-            <div className="mt-auto pt-2"><Button size="lg" onClick={() => nav(`/mission/${upcoming.id}`)} endIcon={<Icon icon={ArrowRight} size="sm" />}>{upcoming.myStatus === 'in_progress' ? 'Continuar' : 'Empezar'}</Button></div>
+            <div className="mt-auto pt-2"><Button size="lg" onClick={() => nav(`/missions/${upcoming.id}`)} endIcon={<Icon icon={ArrowRight} size="sm" />}>{upcoming.myStatus === 'in_progress' ? 'Continuar' : 'Empezar'}</Button></div>
           </div>
         </Card>
       )}
@@ -51,7 +51,7 @@ export function Today({ me }: { me: Me }) {
                 <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
                   <div className="flex items-start justify-between gap-2"><span className="font-semibold leading-snug">{m.title}</span>{m.myStatus === 'graded' && <Chip color="success" size="sm">Corregida</Chip>}{m.myStatus === 'submitted' && <Chip size="sm">Entregada</Chip>}</div>
                   <CompositionChips c={m.composition} compact />
-                  <div className="mt-auto pt-1"><Button variant={variant} size="sm" onClick={() => nav(`/mission/${m.id}`)}>{label}</Button></div>
+                  <div className="mt-auto pt-1"><Button variant={variant} size="sm" onClick={() => nav(`/missions/${m.id}`)}>{label}</Button></div>
                 </div>
               </li>
             )})}

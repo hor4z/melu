@@ -62,15 +62,18 @@ type Dashboard struct {
 }
 
 type SubmissionSummary struct {
-	SubmissionID string    `json:"submissionId"`
-	AssignmentID string    `json:"assignmentId"`
-	Learner      string    `json:"learner"`
-	Title        string    `json:"title"`
-	Group        string    `json:"group"`
-	Status       string    `json:"status"`
-	Minutes      float64   `json:"minutes"`
-	Accuracy     float64   `json:"accuracy"`
-	When         time.Time `json:"when"`
+	SubmissionID string `json:"submissionId"`
+	AssignmentID string `json:"assignmentId"`
+	Learner      string `json:"learner"`
+	Title        string `json:"title"`
+	// El grupo, con su id: corregir vive adentro del grupo (`/groups/{grupo}/missions/{id}`),
+	// así que quien arma ese enlace necesita las dos cosas y no solo el nombre.
+	GroupID  string    `json:"groupId"`
+	Group    string    `json:"group"`
+	Status   string    `json:"status"`
+	Minutes  float64   `json:"minutes"`
+	Accuracy float64   `json:"accuracy"`
+	When     time.Time `json:"when"`
 }
 
 type Fact = domain.Fact
@@ -91,7 +94,7 @@ func (s *Services) AllSubmissions(ctx context.Context, p domain.Person, spaceID 
 		}
 		out = append(out, SubmissionSummary{
 			SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Learner: h.Learner, Title: h.Title,
-			Group: h.Group, Status: h.Status, Minutes: min, Accuracy: accuracy(h.Document, h.Answers, h.Steps), When: when,
+			GroupID: h.GroupID, Group: h.Group, Status: h.Status, Minutes: min, Accuracy: accuracy(h.Document, h.Answers, h.Steps), When: when,
 		})
 	}
 	return out, nil
@@ -170,7 +173,7 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 			if h.SubmittedAt != nil {
 				cu = *h.SubmittedAt
 			}
-			out.AwaitingReview = append(out.AwaitingReview, SubmissionSummary{SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Learner: h.Learner, Title: h.Title, Group: h.Group, Status: h.Status, Minutes: min, Accuracy: ac, When: cu})
+			out.AwaitingReview = append(out.AwaitingReview, SubmissionSummary{SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Learner: h.Learner, Title: h.Title, GroupID: h.GroupID, Group: h.Group, Status: h.Status, Minutes: min, Accuracy: ac, When: cu})
 		}
 	}
 	// El promedio del grupo no se publica: nadie lo muestra. Se calcula porque es la referencia
@@ -313,7 +316,7 @@ func (s *Services) MiProgreso(ctx context.Context, p domain.Person) (*Progress, 
 		if h.SubmittedAt != nil {
 			cu = *h.SubmittedAt
 		}
-		out.Missions = append(out.Missions, SubmissionSummary{SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Title: h.Title, Group: h.Group, Status: h.Status, Minutes: min, Accuracy: ac, When: cu})
+		out.Missions = append(out.Missions, SubmissionSummary{SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Title: h.Title, GroupID: h.GroupID, Group: h.Group, Status: h.Status, Minutes: min, Accuracy: ac, When: cu})
 	}
 	out.Minutes = round1(out.Minutes)
 	if nAc > 0 {

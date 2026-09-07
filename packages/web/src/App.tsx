@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Navigate, Route, Routes } from 'react-router'
+import { Navigate, Route, Routes, useParams } from 'react-router'
 import { Spinner } from '@melu/ui'
 import { useMe } from './lib/session'
 import { GuideShell, LearnerShell } from './Shell'
@@ -21,6 +21,12 @@ import { Progress } from './screens/Progress'
 import { Profile } from './screens/Profile'
 import { Submissions } from './screens/Submissions'
 
+/** Manda una ruta vieja a la nueva conservando el id: `/mission/7` sale por `/missions/7`. */
+function VieneDe({ to }: { to: string }) {
+  const { id } = useParams()
+  return <Navigate to={`${to}/${id}`} replace />
+}
+
 export function App() {
   const me = useMe()
   const mode = me.data?.mode
@@ -36,7 +42,10 @@ export function App() {
   if (me.data.mode === 'learner') {
     return (
       <Routes>
-        <Route path="/mission/:id" element={<MissionScreen />} />
+        {/* Una misión se abre a pantalla completa, sin riel ni cabecera: es la única pantalla
+            del aprendiz donde hay algo que hacer y no algo que mirar. */}
+        <Route path="/missions/:id" element={<MissionScreen />} />
+        <Route path="/mission/:id" element={<VieneDe to="/missions" />} />
         <Route path="*" element={
           <LearnerShell me={me.data}>
             <Routes>
@@ -54,18 +63,27 @@ export function App() {
   return (
     <SpaceProvider me={me.data}>
     <GuideShell me={me.data}>
+      {/* El árbol dice de qué es cada id, y cada nivel existe como pantalla: se puede subir uno
+          y llegar a algo. Lo que se corrige es una actividad asignada a un grupo, así que vive
+          adentro del grupo y no en una raíz suelta ("/review/:id" no decía qué era ese id, y
+          la misma actividad está asignada a varios grupos con entregas distintas). */}
       <Routes>
         <Route path="/home" element={<Home />} />
-        <Route path="/focus" element={<Focus />} />
+        <Route path="/progress" element={<Focus />} />
+        <Route path="/submissions" element={<Submissions />} />
         <Route path="/groups" element={<Groups />} />
         <Route path="/groups/:id" element={<GroupDetail />} />
+        <Route path="/groups/:groupId/missions/:id" element={<Review />} />
         <Route path="/activities" element={<Library />} />
         <Route path="/activities/new" element={<NewActivity />} />
         <Route path="/activities/:id" element={<Editor />} />
-        <Route path="/review/:id" element={<Review />} />
-        <Route path="/submissions" element={<Submissions />} />
         <Route path="/lenses" element={<Lenses />} />
         <Route path="/profile" element={<Profile me={me.data} />} />
+        {/* Las de antes siguen andando. Un enlace guardado o pegado en un chat no tiene por qué
+            enterarse de que acá adentro se reordenó nada; "/review/:id" ni sabe de qué grupo es,
+            así que esa la manda la pantalla cuando la respuesta se lo dice. */}
+        <Route path="/focus" element={<Navigate to="/progress" replace />} />
+        <Route path="/review/:id" element={<Review />} />
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
     </GuideShell>

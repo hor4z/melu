@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, Navigate, useParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft } from 'lucide-react'
-import { Avatar, Button, Card, Chip, cn, Eyebrow, Heading, Icon, Text } from '@melu/ui'
+import { Avatar, Breadcrumb, BreadcrumbItem, BreadcrumbPage, Button, Card, Chip, cn, Eyebrow, Heading, Text } from '@melu/ui'
 import { api, type Assignment, type Submission, type Score } from '../lib/api'
 import { InteractiveBlock } from '../blocks/Interactive'
 import { IS_INTERACTIVE } from '../lib/composition'
@@ -13,7 +12,7 @@ import { Empty } from '../blocks/Modal'
 const duration = (ms: number) => (ms < 60_000 ? `${Math.round(ms / 1000)} s` : `${Math.round(ms / 60_000)} min`)
 
 export function Review() {
-  const { id } = useParams()
+  const { groupId, id } = useParams()
   const qc = useQueryClient()
   const q = useQuery({ queryKey: ['submissions', id], queryFn: () => api.get<{ assignment: Assignment; submissions: Submission[] }>(`/api/assignments/${id}/submissions`) })
   const [sel, setSel] = useState<string | null>(null)
@@ -24,6 +23,9 @@ export function Review() {
   })
   if (!q.data) return null
   const { assignment: a, submissions } = q.data
+  // La ruta vieja ("/review/:id") no sabe de qué grupo es la misión: eso lo dice la respuesta,
+  // así que en cuanto llega, la barra de direcciones queda en la dirección de verdad.
+  if (!groupId) return <Navigate to={`/groups/${a.groupId}/missions/${id}`} replace />
   const lists = submissions.filter((e) => e.status !== 'in_progress')
   const current = lists.find((e) => e.id === sel) ?? lists.find((e) => e.status === 'submitted') ?? lists[0]
   const rubric = a.rubric ?? []
@@ -31,7 +33,11 @@ export function Review() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Link to={`/groups/${a.groupId}`} className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> {a.groupName}</Link>
+      <Breadcrumb>
+        <BreadcrumbItem asChild><Link to="/groups">Grupos</Link></BreadcrumbItem>
+        <BreadcrumbItem asChild><Link to={`/groups/${a.groupId}`}>{a.groupName}</Link></BreadcrumbItem>
+        <BreadcrumbPage>{a.title}</BreadcrumbPage>
+      </Breadcrumb>
       <header className="border-b border-line pb-4"><Eyebrow>Corregir</Eyebrow><Heading level={1} size="xl" className="mt-1">{a.title}</Heading><Text variant="muted" className="flex flex-wrap items-center gap-x-4">
         <span>{lists.length} de {a.submissionsTotal} entregaron</span>
         <span className="text-ink-subtle">{lists.filter((e) => e.status === 'graded').length} corregidas</span>

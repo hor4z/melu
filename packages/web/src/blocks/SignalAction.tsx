@@ -9,6 +9,7 @@
 // El botón dice una palabra y va al costado de la tarjeta: el qué y el a quién ya están en el
 // cuerpo de la señal, así que repetirlos adentro del botón lo convertía en un párrafo con borde.
 // La frase entera se queda en la etiqueta accesible, que es donde hace falta.
+import { Link } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, Eye, Wand2 } from 'lucide-react'
 import { Button, Icon, Text } from '@melu/ui'
@@ -36,7 +37,9 @@ export function SignalAction({ signal }: { signal: Signal }) {
     if (!signal.assignmentId) return null
     return (
       <Button size="sm" variant="secondary" asChild startIcon={<Icon icon={Eye} size="sm" />}>
-        <a href={`/review/${signal.assignmentId}`} aria-label={`Ver qué hizo ${signal.learner}`}>Ver</a>
+        {/* Un `Link` y no un `<a>`: el `<a>` recargaba la aplicación entera para ir a otra
+            pantalla de la misma aplicación. */}
+        <Link to={`/groups/${signal.groupId}/missions/${signal.assignmentId}`} aria-label={`Ver qué hizo ${signal.learner}`}>Ver</Link>
       </Button>
     )
   }

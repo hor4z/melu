@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ChevronLeft, Pencil, UserPlus } from 'lucide-react'
-import { Avatar, Button, Card, Eyebrow, Field, Heading, Icon, Input, MoreMenu, Tabs, TabsList, TabsTrigger, Text, Textarea } from '@melu/ui'
+import { Pencil, UserPlus } from 'lucide-react'
+import { Avatar, Breadcrumb, BreadcrumbItem, BreadcrumbPage, Button, Card, Eyebrow, Field, Heading, Icon, Input, MoreMenu, Tabs, TabsList, TabsTrigger, Text, Textarea } from '@melu/ui'
 import { api, type Group, type GroupDetail as GD } from '../lib/api'
 import { AddLearners } from '../blocks/AddLearners'
 import { Cover } from '../blocks/Cover'
@@ -21,7 +21,10 @@ export function GroupDetail() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Link to="/groups" className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> Mis grupos</Link>
+      <Breadcrumb>
+        <BreadcrumbItem asChild><Link to="/groups">Grupos</Link></BreadcrumbItem>
+        <BreadcrumbPage>{g.name}</BreadcrumbPage>
+      </Breadcrumb>
       <header className="flex flex-wrap items-start justify-between gap-4">
         {/* Donde estaban las tres cuentas va lo que el grupo es. Los números decían lo que las
             pestañas de abajo ya dicen; la descripción dice algo que no está en ningún otro lado. */}
@@ -80,7 +83,7 @@ export function GroupDetail() {
                     <div className="mb-1 flex justify-between gap-2 text-xs text-ink-muted"><span>Entregas</span><span className="tabular-nums">{a.submissions}/{a.submissionsTotal}</span></div>
                     <div className="h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-accent" style={{ width: `${a.submissionsTotal ? (a.submissions / a.submissionsTotal) * 100 : 0}%` }} /></div>
                   </div>
-                  <Button size="sm" className="shrink-0" onClick={() => nav(`/review/${a.id}`)}>Corregir</Button>
+                  <Button size="sm" className="shrink-0" onClick={() => nav(`/groups/${g.id}/missions/${a.id}`)}>Corregir</Button>
                 </div>
               </li>
             ))}

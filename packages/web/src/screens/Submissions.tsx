@@ -133,7 +133,7 @@ export function Submissions() {
   }
   const sentido = (por: Por) => (orden_.por === por ? orden_.dir : false)
 
-  const abrir = (e: SubmissionSummary) => nav(`/review/${e.assignmentId}`)
+  const abrir = (e: SubmissionSummary) => nav(`/groups/${e.groupId}/missions/${e.assignmentId}`)
   const accion = (e: SubmissionSummary) => (
     <Button
       size="sm" variant={e.status === 'submitted' ? 'primary' : 'ghost'}

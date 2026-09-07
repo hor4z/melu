@@ -39,7 +39,7 @@ export function Progress() {
                   {m.accuracy >= 0 && <span className="text-ink-subtle">{Math.round(m.accuracy * 100)}% aciertos</span>}
                 </Text></div>
                 <Chip size="sm" color={m.status === 'graded' ? 'success' : m.status === 'submitted' ? 'default' : 'warning'}>{m.status === 'graded' ? 'Con devolución' : m.status === 'submitted' ? 'Entregada' : 'En curso'}</Chip>
-                <Button size="sm" variant="ghost" onClick={() => nav(`/mission/${m.assignmentId}`)}>Abrir</Button>
+                <Button size="sm" variant="ghost" onClick={() => nav(`/missions/${m.assignmentId}`)}>Abrir</Button>
               </li>
             ))}
           </ul>
