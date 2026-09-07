@@ -47,6 +47,10 @@ export function Submissions() {
   const [filtros, setFiltros] = useState<Record<string, string[]>>({})
   const [orden, setOrden] = useState<{ por: Por; dir: 'asc' | 'desc' }>(ULTIMO)
   const [pagina, setPagina] = useState(0)
+  // Cambiar lo que se está mirando devuelve a la primera página. Sin esto, buscar desde la
+  // página tres saltaba directo al resultado 31 de una lista nueva: los treinta primeros
+  // pasaban de largo sin que nada lo dijera.
+  const filtrar = <T,>(set: (v: T) => void) => (v: T) => { set(v); setPagina(0) }
 
   // Cambiar de espacio no desmonta la pantalla, así que lo que había filtrado se quedaba puesto
   // sobre datos de otro lado: un grupo del espacio anterior dejando la tabla en cero. Se
@@ -117,14 +121,16 @@ export function Submissions() {
   const hayMas = desde + TRAMO < lista.length
 
   const filtrando = texto.trim() !== '' || Object.values(filtros).some((v) => v.length > 0)
-  const limpiar = () => { setTexto(''); setFiltros({}) }
+  const limpiar = () => { setTexto(''); setFiltros({}); setPagina(0) }
 
   // Desde `orden_` y no desde `orden`: si la columna que ordenaba se escondió, la cabecera que
   // se ve activa es otra, y el primer clic tiene que darla vuelta y no repetir lo que ya está.
-  const ordenarPor = (por: Por) =>
+  const ordenarPor = (por: Por) => {
+    setPagina(0)
     setOrden(orden_.por === por
       ? { por, dir: orden_.dir === 'asc' ? 'desc' : 'asc' }
       : { por, dir: por === 'learner' ? 'asc' : 'desc' })
+  }
   const sentido = (por: Por) => (orden_.por === por ? orden_.dir : false)
 
   const abrir = (e: SubmissionSummary) => nav(`/review/${e.assignmentId}`)
@@ -172,15 +178,18 @@ export function Submissions() {
       </header>
 
       <FilterBar>
-        <FilterSearch value={texto} onValueChange={setTexto} placeholder="Buscar por nombre o actividad" />
-        <FilterSet filters={disponibles} value={filtros} onValueChange={setFiltros} onReset={limpiar} />
+        <FilterSearch value={texto} onValueChange={filtrar(setTexto)} placeholder="Buscar por nombre o actividad" />
+        <FilterSet filters={disponibles} value={filtros} onValueChange={filtrar(setFiltros)} onReset={limpiar} />
       </FilterBar>
 
       <Card className="overflow-hidden">
         {q.isPending
-          ? (conTabla
-            ? (
-              <Table>
+          ? (
+            <>
+              <span role="status" className="sr-only">Cargando las entregas</span>
+              {conTabla
+                ? (
+              <Table aria-busy="true">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Aprendiz</TableHead>
@@ -193,8 +202,10 @@ export function Submissions() {
                 </TableHeader>
                 <TableSkeleton columns={6} />
               </Table>
-            )
-            : <DataListSkeleton />)
+                )
+                : <DataListSkeleton />}
+            </>
+          )
           : !conTabla
           ? (lista.length === 0
             ? <div className="px-4 py-10">{vacio}</div>

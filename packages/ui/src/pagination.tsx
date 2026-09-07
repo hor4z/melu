@@ -46,8 +46,11 @@ export function PaginationStatus({ to, from = 1, total, noun, className, childre
     : total !== undefined
       ? `${from} a ${to} de ${total}${cola}`
       : `${from} a ${to}${cola}`
+  // `status` y no un texto suelto: quien pasa al tramo siguiente se queda con el foco en el
+  // botón y el cuerpo de la tabla cambia sin decir nada. Esta línea es lo único que puede
+  // contarlo, y como vive acá, ninguna pantalla se tiene que acordar.
   return (
-    <Text size="sm" variant="muted" className={cn('tabular-nums', className)} {...props}>
+    <Text role="status" size="sm" variant="muted" className={cn('tabular-nums', className)} {...props}>
       {children ?? frase}
     </Text>
   )
