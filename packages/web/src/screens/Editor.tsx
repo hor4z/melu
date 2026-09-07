@@ -42,13 +42,24 @@ function EditorLoaded({ initial }: { initial: Activity }) {
   const template = useMutation({ mutationFn: () => api.post<Activity>(`/api/activities/${a.id}/template`) })
   const change = useCallback((fn: (x: Activity) => Activity, snapshot = true) => setA((prev) => {
     if (snapshot) { history.current.push(prev); if (history.current.length > 60) history.current.shift() }
-    const next = fn(prev); setStatus('editing'); window.clearTimeout(timer.current); timer.current = window.setTimeout(() => save.mutate(next), 700); return next
+    const next = fn(prev); setStatus('editing'); window.clearTimeout(timer.current)
+    // El guardado automático espera a que la descripción esté: el servidor no acepta una
+    // actividad muda, y reintentar cada tecla contra un 400 deja el cartel en "Editando…"
+    // sin decir por qué. Se dice arriba, al lado del estado.
+    if (next.description.trim() !== '') timer.current = window.setTimeout(() => save.mutate(next), 700)
+    return next
   }), [save])
-  const undo = useCallback(() => { const prev = history.current.pop(); if (prev) { setA(prev); setStatus('editing'); window.clearTimeout(timer.current); timer.current = window.setTimeout(() => save.mutate(prev), 700) } }, [save])
+  const undo = useCallback(() => { const prev = history.current.pop(); if (prev) { setA(prev); setStatus('editing'); window.clearTimeout(timer.current); if (prev.description.trim() !== '') timer.current = window.setTimeout(() => save.mutate(prev), 700) } }, [save])
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undo() } }
-    window.addEventListener('keydown', onKey); return () => { window.removeEventListener('keydown', onKey); window.clearTimeout(timer.current) }
+    window.addEventListener('keydown', onKey); return () => { window.removeEventListener('keydown', onKey) }
   }, [undo])
+  // El timer del guardado se cancela al salir del editor y en ningún otro momento. Vivía en la
+  // limpieza del efecto de arriba, que depende de `undo`, y `undo` cambia en cada render porque
+  // la mutación de react-query devuelve un objeto nuevo: cada tecla programaba el guardado y el
+  // render siguiente lo cancelaba, así que el editor decía "Editando…" para siempre y no
+  // guardaba nada. Con las dependencias vacías corre una sola vez, al desmontar.
+  useEffect(() => () => window.clearTimeout(timer.current), [])
 
   const f = a.document.phases[phase] ?? a.document.phases[0]
   const setBlocks = (blocks: Block[], snapshot = true) => change((x) => ({ ...x, document: { phases: x.document.phases.map((ff, i) => (i === phase ? { ...ff, blocks } : ff)) } }), snapshot)
@@ -71,7 +82,9 @@ function EditorLoaded({ initial }: { initial: Activity }) {
         <div className="flex items-center justify-between">
           <Link to="/activities" className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> Actividades</Link>
           <div className="flex items-center gap-3"><Text size="xs" variant="muted" className="flex items-center gap-x-3">
-            <span>{{ saved: 'Guardado', editing: 'Editando…', saving: 'Guardando…' }[status]}</span>
+            {a.description.trim() === ''
+              ? <span className="font-medium text-danger">Falta la descripción</span>
+              : <span>{{ saved: 'Guardado', editing: 'Editando…', saving: 'Guardando…' }[status]}</span>}
             <span className="text-ink-subtle">{totalBlocks} bloques</span>
           </Text><Button size="sm" variant="ghost" startIcon={<Icon icon={preview ? EyeOff : Eye} />} onClick={() => setPreview((v) => !v)}>{preview ? 'Editar' : 'Ver como aprendiz'}</Button></div>
         </div>
@@ -81,6 +94,13 @@ function EditorLoaded({ initial }: { initial: Activity }) {
           <div className="flex flex-col gap-4 p-6 sm:p-8">
             <input value={a.title} onChange={(e) => change((x) => ({ ...x, title: e.target.value }), false)} aria-label="Título" placeholder="Sin título" readOnly={preview}
               className="w-full bg-transparent font-display text-display font-semibold tracking-tight outline-none placeholder:text-ink-subtle" />
+            {/* Debajo del título, como en una página: es lo que se lee de la actividad en la
+                biblioteca y en el grupo, así que se escribe acá y no en un formulario aparte.
+                Sin marco, como el título: acá adentro nada se ve como un formulario. */}
+            <textarea value={a.description} onChange={(e) => { e.target.style.height = '0'; e.target.style.height = `${e.target.scrollHeight}px`; change((x) => ({ ...x, description: e.target.value }), false) }}
+              aria-label="Descripción" placeholder="Contá de qué se trata, para reconocerla sin abrirla" readOnly={preview} rows={1}
+              ref={(el) => { if (el) { el.style.height = '0'; el.style.height = `${el.scrollHeight}px` } }}
+              className="w-full resize-none bg-transparent text-base text-ink-muted outline-none placeholder:text-ink-subtle" />
             {/* Properties, Notion-style: each one is an inline menu */}
             <div className="grid gap-y-1 text-sm sm:grid-cols-[130px_1fr]">
               <Prop name="Experiencia"><Picker options={EXPERIENCES} value={a.composition.experience} onPick={(v) => setComp({ experience: v })} disabled={preview} /></Prop>

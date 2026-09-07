@@ -121,9 +121,12 @@ func ValidateDescription(s string) error {
 // ---- content and the loop ----
 
 type Activity struct {
-	ID          string          `json:"id"`
-	SpaceID     *string         `json:"spaceId"`
-	Title       string          `json:"title"`
+	ID      string  `json:"id"`
+	SpaceID *string `json:"spaceId"`
+	Title   string  `json:"title"`
+	// De qué se trata, sin abrirla. Antes la pantalla lo sacaba del primer párrafo del documento,
+	// que no es una descripción: es la primera consigna.
+	Description string          `json:"description"`
 	IsRecipe    bool            `json:"isRecipe"`
 	Composition json.RawMessage `json:"composition"`
 	Document    json.RawMessage `json:"document"`
@@ -137,6 +140,7 @@ type Assignment struct {
 	ActivityID       string          `json:"activityId"`
 	GroupID          string          `json:"groupId"`
 	Title            string          `json:"title"`
+	Description      string          `json:"description"`
 	Composition      json.RawMessage `json:"composition"`
 	Document         json.RawMessage `json:"document,omitempty"`
 	Rubric           json.RawMessage `json:"rubric,omitempty"`

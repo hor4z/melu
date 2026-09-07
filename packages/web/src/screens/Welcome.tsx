@@ -142,7 +142,7 @@ function Onboarding({ onBack }: { onBack: () => void }) {
             {recipes.data?.recipes.slice(0, 6).map((r) => (
               <Card key={r.id} asChild interactive padding="sm">
                 <button type="button" disabled={assign.isPending} onClick={() => assign.mutate(r.id)} className="gap-2 text-left disabled:opacity-60">
-                  <span className="font-semibold">{r.title}</span><CompositionChips c={r.composition} compact /><span className="line-clamp-2 text-xs text-ink-muted">{r.document.phases[0]?.blocks.find((b) => b.type === 'paragraph')?.text}</span>
+                  <span className="font-semibold">{r.title}</span><CompositionChips c={r.composition} compact /><span className="line-clamp-2 text-xs text-ink-muted">{r.description}</span>
                 </button>
               </Card>
             ))}

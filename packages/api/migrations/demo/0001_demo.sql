@@ -64,12 +64,12 @@ begin
   insert into memberships(person_id, space_id, group_id, role) values(guide, space, g1, 'guide'),(guide, space, g2, 'guide');
 
   -- space activities, copied from three recipes
-  insert into activities(space_id, title, is_recipe, composition, document, rubric, authors)
-    select space, title, false, composition, document, rubric, array[guide] from activities where is_recipe and title='Escape del aula' returning id into a1;
-  insert into activities(space_id, title, is_recipe, composition, document, rubric, authors)
-    select space, title, false, composition, document, rubric, array[guide] from activities where is_recipe and title='Gallinas y conejos' returning id into a2;
-  insert into activities(space_id, title, is_recipe, composition, document, rubric, authors)
-    select space, title, false, composition, document, rubric, array[guide] from activities where is_recipe and title='El robot que cuenta' returning id into a3;
+  insert into activities(space_id, title, description, is_recipe, composition, document, rubric, authors)
+    select space, title, description, false, composition, document, rubric, array[guide] from activities where is_recipe and title='Escape del aula' returning id into a1;
+  insert into activities(space_id, title, description, is_recipe, composition, document, rubric, authors)
+    select space, title, description, false, composition, document, rubric, array[guide] from activities where is_recipe and title='Gallinas y conejos' returning id into a2;
+  insert into activities(space_id, title, description, is_recipe, composition, document, rubric, authors)
+    select space, title, description, false, composition, document, rubric, array[guide] from activities where is_recipe and title='El robot que cuenta' returning id into a3;
 
   insert into assignments(activity_id, group_id, document_snapshot, rubric_snapshot, opens_at) select a1, g1, document, rubric, now()-interval '6 days' from activities where id=a1 returning id into s1;
   insert into assignments(activity_id, group_id, document_snapshot, rubric_snapshot, opens_at) select a2, g1, document, rubric, now()-interval '3 days' from activities where id=a2 returning id into s2;

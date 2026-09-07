@@ -50,10 +50,10 @@ type Dashboard struct {
 	Graded     int `json:"graded"`
 	// Cuántas misiones hay puestas, contando una por chico. Con las tres de arriba alcanza para
 	// saber cuántas faltan sin que el front tenga que restar a ciegas.
-	Assigned          int                 `json:"assigned"`
-	Signals           []Signal            `json:"signals"`
-	ByKind            []ByKind            `json:"byKind"`
-	Checklist         map[string]bool     `json:"checklist"`
+	Assigned  int             `json:"assigned"`
+	Signals   []Signal        `json:"signals"`
+	ByKind    []ByKind        `json:"byKind"`
+	Checklist map[string]bool `json:"checklist"`
 	// Las que esperan una devolución, de las más nuevas a las más viejas. No son "las últimas
 	// que llegaron": corregir una le toca el `updated_at`, así que en una tanda de correcciones
 	// las recién corregidas empujaban a las pendientes fuera de la ventana y el panel se quedaba

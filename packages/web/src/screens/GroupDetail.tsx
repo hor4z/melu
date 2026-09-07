@@ -5,6 +5,7 @@ import { ChevronLeft, Pencil, UserPlus } from 'lucide-react'
 import { Avatar, Button, Card, Eyebrow, Field, Heading, Icon, Input, MoreMenu, Tabs, TabsList, TabsTrigger, Text, Textarea } from '@melu/ui'
 import { api, type Group, type GroupDetail as GD } from '../lib/api'
 import { AddLearners } from '../blocks/AddLearners'
+import { Cover } from '../blocks/Cover'
 import { CompositionChips } from '../blocks/Chips'
 import { Modal, Empty } from '../blocks/Modal'
 
@@ -59,13 +60,27 @@ export function GroupDetail() {
       {tab === 'missions' && (assignments.length === 0
         ? <Empty title="Nada asignado todavía" text='Elegí una plantilla o componé una actividad y asignala a este grupo. Los chicos la van a ver en "Hoy".' action={<Button onClick={() => nav('/activities/new')}>Nueva actividad</Button>} />
         : <Card asChild><ul className="divide-y divide-line overflow-hidden">
-            {assignments.map((a, i) => (
-              <li key={a.id} className="flex flex-wrap items-center gap-4 px-5 py-4">
-                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-teal font-bold text-accent">{i + 1}</span>
-                <div className="flex min-w-0 flex-1 flex-col gap-1.5"><span className="font-semibold">{a.title}</span><CompositionChips c={a.composition} compact /></div>
-                <div className="flex items-center gap-4">
-                  <div className="w-32"><div className="mb-1 flex justify-between text-xs text-ink-muted"><span>Entregas</span><span className="tabular-nums">{a.submissions}/{a.submissionsTotal}</span></div><div className="h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-accent" style={{ width: `${a.submissionsTotal ? (a.submissions / a.submissionsTotal) * 100 : 0}%` }} /></div></div>
-                  <Button size="sm" variant={a.submissions > 0 ? 'primary' : 'secondary'} onClick={() => nav(`/review/${a.id}`)}>Corregir</Button>
+            {/* En una columna la fila se parte en dos: arriba de qué actividad se trata, abajo
+                cuánto llegó y el botón. Todo en una línea, la barra y el botón le comían el
+                ancho al título y no entraba nada. */}
+            {assignments.map((a) => (
+              <li key={a.id} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:gap-4">
+                <div className="flex min-w-0 items-center gap-3 sm:flex-1">
+                  {/* La portada de la actividad en vez del cuadradito con el número: el número
+                      solo decía en qué orden se asignó, y la portada dice cuál es. */}
+                  <Cover title={a.title} size={30} className="size-12 shrink-0 rounded-md" />
+                  <div className="flex min-w-0 flex-col gap-1.5">
+                    <span className="font-semibold">{a.title}</span>
+                    {a.description && <span className="line-clamp-1 text-sm text-ink-muted">{a.description}</span>}
+                    <CompositionChips c={a.composition} compact />
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 sm:shrink-0">
+                  <div className="min-w-0 flex-1 sm:w-32 sm:flex-none">
+                    <div className="mb-1 flex justify-between gap-2 text-xs text-ink-muted"><span>Entregas</span><span className="tabular-nums">{a.submissions}/{a.submissionsTotal}</span></div>
+                    <div className="h-1.5 rounded-full bg-muted"><div className="h-full rounded-full bg-accent" style={{ width: `${a.submissionsTotal ? (a.submissions / a.submissionsTotal) * 100 : 0}%` }} /></div>
+                  </div>
+                  <Button size="sm" className="shrink-0" onClick={() => nav(`/review/${a.id}`)}>Corregir</Button>
                 </div>
               </li>
             ))}

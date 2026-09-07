@@ -69,7 +69,7 @@ function RecipeCard({ r, onUse, isLoading }: { r: Activity; onUse: () => void; i
       <CardContent className="flex flex-1 flex-col gap-3 p-4">
         <span className="font-semibold leading-snug">{r.title}</span>
         <CompositionChips c={r.composition} compact />
-        <p className="line-clamp-3 text-sm text-ink-muted">{r.document.phases[0]?.blocks.find((b) => b.type === 'paragraph')?.text}</p>
+        <p className="line-clamp-3 text-sm text-ink-muted">{r.description}</p>
         <Text size="xs" variant="muted">{r.document.phases.map((f) => f.name).join(' → ')}</Text>
         <div className="mt-auto pt-1"><Button size="sm" variant="secondary" block onClick={onUse} loading={isLoading}>Usar esta plantilla</Button></div>
       </CardContent>

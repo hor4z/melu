@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
-import { AvatarGroup, Button, Card, CardContent, CardMedia, cn, Field, Heading, Icon, Input, Text, Textarea } from '@melu/ui'
+import { Plus, Users } from 'lucide-react'
+import { AvatarGroup, Button, Card, cn, Field, Heading, Icon, Input, Text, Textarea } from '@melu/ui'
 import { api, type Group } from '../lib/api'
 import { useSpace } from '../lib/space'
 import { Modal, Empty } from '../blocks/Modal'
@@ -25,17 +25,21 @@ export function Groups() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {groups.data?.map((g, i) => (
-          <Card key={g.id} asChild interactive>
-            <Link to={`/groups/${g.id}`}>
-              {/* La franja de color estaba vacía. Las caras de quiénes están dicen de un vistazo
-                  lo que el número de abajo dice contando. */}
-              <CardMedia className={cn('h-24 items-end justify-start p-3', TINTS[i % TINTS.length])}>
-                {g.names.length > 0 && <AvatarGroup names={g.names} max={5} />}
-              </CardMedia>
-              <CardContent className="p-4">
+          <Card key={g.id} asChild interactive className="h-full">
+            {/* Sin la franja de color de 96 px: era casi todo vacío, y en una sola columna cada
+                grupo era un bloque de color más alto que su propio contenido. El tinte queda en
+                el mosaico, que es el mismo gesto que usa el selector de espacios. */}
+            <Link to={`/groups/${g.id}`} className="flex flex-col gap-3 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <span className={cn('grid size-9 shrink-0 place-items-center rounded-md', TINTS[i % TINTS.length])}>
+                  <Icon icon={Users} size="lg" />
+                </span>
+                {g.names.length > 0 && <AvatarGroup names={g.names} max={4} size="xs" />}
+              </div>
+              <div className="min-w-0">
                 <div className="font-semibold">{g.name}</div>
-                <Text size="sm" variant="muted">{g.learners} {g.learners === 1 ? 'aprendiz' : 'aprendices'}</Text>
-              </CardContent>
+                {g.description && <Text size="sm" variant="muted" className="mt-0.5 line-clamp-2">{g.description}</Text>}
+              </div>
             </Link>
           </Card>
         ))}

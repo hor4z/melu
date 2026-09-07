@@ -96,11 +96,11 @@ export type Composition = {
 }
 export type Criterion = { id: string; label: string; levels: string[]; discipline?: string }
 export type Activity = {
-  id: string; spaceId: string | null; title: string; isRecipe: boolean
+  id: string; spaceId: string | null; title: string; description: string; isRecipe: boolean
   composition: Composition; document: Document; rubric: Criterion[]; authors: string[]; updatedAt: string
 }
 export type Assignment = {
-  id: string; activityId: string; groupId: string; title: string; composition: Composition
+  id: string; activityId: string; groupId: string; title: string; description: string; composition: Composition
   document?: Document; rubric?: Criterion[]; opensAt: string; closesAt: string | null
   submissions: number; submissionsTotal: number; groupName?: string; myStatus: 'in_progress' | 'submitted' | 'graded' | null
 }
