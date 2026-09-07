@@ -43,6 +43,10 @@ export { Popover, PopoverAnchor, PopoverTrigger, PopoverContent, PopoverClose } 
 export { Portal } from './portal'
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'
 export {
+  Sidebar, SidebarHeader, SidebarNav, SidebarLabel, SidebarItem, SidebarToggle,
+  type SidebarProps, type SidebarItemProps,
+} from './sidebar'
+export {
   Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption, TableEmpty, TableSkeleton,
   type TableProps, type TableRowProps, type TableHeadProps, type TableCellProps, type TableSkeletonProps,
 } from './table'

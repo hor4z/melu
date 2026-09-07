@@ -5,7 +5,7 @@ import {
   Heading, Icon, IconButton, Input, Logo, Progress, ProgressRing, Slider, Sparkline, Spinner, Switch,
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Text,
 } from '@melu/ui'
-import { CircleCheck, CircleDot, Layers, ListFilter, MoreHorizontal, Search, Sparkles, Star, X } from 'lucide-react'
+import { BookOpen, CircleCheck, CircleDot, Layers, LayoutDashboard, ListFilter, MoreHorizontal, Search, Sparkles, Star, Users, X } from 'lucide-react'
 
 const frame = 'pointer-events-none flex flex-wrap items-center justify-center gap-2'
 
@@ -135,6 +135,19 @@ export const PREVIEWS: Record<string, () => React.ReactNode> = {
       <span className="-mb-px border-b-2 border-accent pb-1.5 font-medium text-accent">Resumen</span>
       <span className="pb-1.5 text-ink-muted">Entregas</span>
       <span className="pb-1.5 text-ink-muted">Señales</span>
+    </div>
+  ),
+  sidebar: () => (
+    <div className="pointer-events-none flex h-24 w-full max-w-56 overflow-hidden rounded-lg border border-line bg-surface">
+      <div className="flex w-14 flex-col items-center gap-2 border-r border-line py-2">
+        <Icon icon={LayoutDashboard} size="lg" className="text-accent" />
+        <Icon icon={Users} size="lg" color="subtle" />
+        <Icon icon={BookOpen} size="lg" color="subtle" />
+      </div>
+      <div className="flex flex-1 flex-col gap-1.5 p-2">
+        <span className="flex items-center gap-2 rounded-md bg-teal px-2 py-1 text-2xs font-semibold text-accent"><Icon icon={LayoutDashboard} size="xs" />Inicio</span>
+        <span className="flex items-center gap-2 px-2 py-1 text-2xs text-ink-muted"><Icon icon={Users} size="xs" />Grupos</span>
+      </div>
     </div>
   ),
   feedback: () => (

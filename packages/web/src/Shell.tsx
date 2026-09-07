@@ -4,8 +4,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Activity, BookOpen, Check, Compass, Home, LayoutDashboard, Plus, School, Users } from 'lucide-react'
 import {
   Button, Card, Chip, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
-  DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, Input, Logo, MenuButton, RadioGroup,
-  RadioGroupItem, Text, cn, focusRing,
+  DropdownMenuSeparator, DropdownMenuTrigger, Field, Icon, Input, Logo, Logomark, MenuButton,
+  RadioGroup, RadioGroupItem, Sidebar, SidebarHeader, SidebarItem, SidebarLabel, SidebarNav,
+  SidebarToggle, Text, cn, focusRing,
 } from '@melu/ui'
 import { UserMenu } from './blocks/Product'
 import { useSignOut } from './lib/session'
@@ -14,8 +15,22 @@ import { api, type Space, type SpaceKind, type Me } from './lib/api'
 import { SPACE_KINDS } from './lib/composition'
 import { Modal } from './blocks/Modal'
 
-const item = ({ isActive }: { isActive: boolean }) =>
-  cn('flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors', focusRing,
+// Los destinos del docente, en el orden en que se visitan.
+const DESTINOS: [string, string, typeof LayoutDashboard][] = [
+  ['/home', 'Inicio', LayoutDashboard],
+  ['/focus', 'Cómo vienen', Activity],
+  ['/groups', 'Grupos', Users],
+  ['/activities', 'Actividades', BookOpen],
+  ['/lenses', 'Lentes', Compass],
+]
+
+// Si el riel queda abierto o cerrado lo decide quien lo usa, no el componente: se guarda acá,
+// al lado del espacio elegido, y así sobrevive a recargar la página.
+const RIEL = 'melu.sidebar'
+
+// El menú del aprendiz es horizontal y va en la cabecera: dos destinos no justifican un riel.
+const destinoArriba = ({ isActive }: { isActive: boolean }) =>
+  cn('flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors', focusRing,
     isActive ? 'bg-teal font-semibold text-accent' : 'text-ink-muted hover:bg-hover hover:text-ink')
 
 /** Picks which space you work in. Everything below is filtered by this. */
@@ -81,25 +96,35 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
   const signOut = useSignOut()
   const { space, spaces, change } = useSpace()
   const [changing, setChanging] = useState(false)
+  const [riel, setRiel] = useState(() => localStorage.getItem(RIEL) !== 'cerrado')
   return (
     <div className="min-h-screen bg-canvas">
       <div className="flex">
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-surface md:flex">
-          <div className="px-5 py-5"><Logo /></div>
-          <nav className="mt-3 flex flex-col gap-0.5 px-3">
-            <p className="px-3 pb-1 pt-2 text-xs font-bold uppercase tracking-wider text-ink-subtle">Enseñar</p>
-            <NavLink to="/home" className={item}><Icon icon={LayoutDashboard} size="lg" /> Inicio</NavLink>
-            <NavLink to="/focus" className={item}><Icon icon={Activity} size="lg" /> Cómo vienen</NavLink>
-            <NavLink to="/groups" className={item}><Icon icon={Users} size="lg" /> Grupos</NavLink>
-            <NavLink to="/activities" className={item}><Icon icon={BookOpen} size="lg" /> Actividades</NavLink>
-            <NavLink to="/lenses" className={item}><Icon icon={Compass} size="lg" /> Lentes</NavLink>
-          </nav>
-        </aside>
+        <Sidebar
+          className="hidden md:flex" expanded={riel}
+          onExpandedChange={(v) => { setRiel(v); localStorage.setItem(RIEL, v ? 'abierto' : 'cerrado') }}
+        >
+          <SidebarHeader>
+            {riel && <Logo />}
+            <SidebarToggle />
+          </SidebarHeader>
+          <SidebarNav>
+            <SidebarLabel>Enseñar</SidebarLabel>
+            {DESTINOS.map(([to, nombre, icono]) => (
+              <SidebarItem key={to} asChild label={nombre} icon={<Icon icon={icono} size="lg" />}>
+                <NavLink to={to} />
+              </SidebarItem>
+            ))}
+          </SidebarNav>
+        </Sidebar>
         <div className="min-w-0 flex-1">
           <header className="sticky top-0 z-20 flex h-16 items-center justify-end gap-4 border-b border-line bg-surface/90 px-6 backdrop-blur">
             {/* El logo solo aparece abajo de md, donde el sidebar no está. El `mr-auto` es lo que
                 lo manda a la izquierda sin que el header dependa de que haya algo más al lado. */}
+            {/* La marca abajo de md, donde no hay riel; y también con el riel doblado, donde no
+                entra al lado del botón. El `mr-auto` es lo que empuja el resto a la derecha. */}
             <div className="mr-auto flex items-center gap-3 md:hidden"><Logo size="sm" /></div>
+            {!riel && <Logomark size={26} className="mr-auto hidden md:block" />}
             <div className="flex items-center gap-4">
               <SpacePicker />
               <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
@@ -148,8 +173,8 @@ export function LearnerShell({ me, children }: { me: Me; children: ReactNode }) 
                 en 375 px con las etiquetas puestas, y el desborde empujaba el menú fuera de la
                 pantalla. Los iconos se distinguen y el activo ya tiene fondo. */}
             <nav className="flex gap-1">
-              <NavLink to="/today" className={item}><Icon icon={Home} size="md" /> <span className="hidden sm:inline">Hoy</span></NavLink>
-              <NavLink to="/progress" className={item}><Icon icon={Compass} size="md" /> <span className="hidden sm:inline">Mi progreso</span></NavLink>
+              <NavLink to="/today" className={destinoArriba}><Icon icon={Home} size="md" /> <span className="hidden sm:inline">Hoy</span></NavLink>
+              <NavLink to="/progress" className={destinoArriba}><Icon icon={Compass} size="md" /> <span className="hidden sm:inline">Mi progreso</span></NavLink>
             </nav>
           </div>
           <UserMenu name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
