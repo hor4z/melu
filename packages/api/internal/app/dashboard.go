@@ -252,10 +252,10 @@ func (s *Services) signals(byLearner map[string][]Fact, median float64, recipes 
 		case untouched != nil:
 			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "dropout", Detail: `Abrió "` + untouched.Title + `" hace más de 2 días y no la entregó`, Suggestion: "Preguntale en qué fase se trabó. Si es la primera, la consigna puede no estar clara.", AssignmentID: untouched.AssignmentID})
 		case slow >= 2:
-			id, t := recipe("Reto de la semana")
+			id, t := recipe("Gallinas y conejos")
 			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "slow", Detail: "Tarda más del doble que el grupo en 2 misiones", Suggestion: "Partir la actividad en fases más cortas o trabajarla en pareja.", RecipeID: id, RecipeTitle: t})
 		case fastAndRight >= 2 && submitted >= 2:
-			id, t := recipe("Reto de la semana")
+			id, t := recipe("Gallinas y conejos")
 			out = append(out, Signal{LearnerID: base.LearnerID, Learner: base.Learner, GroupID: base.GroupID, Group: base.Group, Kind: "shines", Detail: "Resuelve rápido y bien", Suggestion: "Un reto con más pasos, o que explique su método en audio para otros.", RecipeID: id, RecipeTitle: t})
 		}
 	}

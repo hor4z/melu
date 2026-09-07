@@ -65,7 +65,7 @@ begin
   insert into activities(space_id, title, is_recipe, composition, document, rubric, authors)
     select space, title, false, composition, document, rubric, array[guide] from activities where is_recipe and title='Escape del aula' returning id into a1;
   insert into activities(space_id, title, is_recipe, composition, document, rubric, authors)
-    select space, title, false, composition, document, rubric, array[guide] from activities where is_recipe and title='Reto de la semana' returning id into a2;
+    select space, title, false, composition, document, rubric, array[guide] from activities where is_recipe and title='Gallinas y conejos' returning id into a2;
   insert into activities(space_id, title, is_recipe, composition, document, rubric, authors)
     select space, title, false, composition, document, rubric, array[guide] from activities where is_recipe and title='El robot que cuenta' returning id into a3;
 
