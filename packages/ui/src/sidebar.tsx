@@ -1,4 +1,4 @@
-import { createContext, useContext, type ComponentPropsWithoutRef, type ReactNode } from 'react'
+import { Children, createContext, isValidElement, useContext, type ComponentPropsWithoutRef, type ReactNode } from 'react'
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { cn, focusRing, Slot, Slottable, useControllableState } from './lib'
 import { Icon } from './icon'
@@ -54,17 +54,27 @@ export function Sidebar({ expanded, defaultExpanded = true, onExpandedChange, cl
  * What goes on top: the logo on one side and the fold button on the other. Folded, only the
  * button is left, centred: sixty-four pixels do not fit a brand and a control, and of the two
  * the one that has to be reachable is the control.
+ *
+ * It hides the rest by itself, and that is not a detail. Leaving it to whoever uses it means
+ * that a rail without a state to read (uncontrolled) keeps a ninety-pixel logo inside a
+ * forty-eight-pixel box: the row overflows, the rail clips it and the button is left as a
+ * sliver, with no way back to unfold.
  */
-export function SidebarHeader({ className, ...props }: ComponentPropsWithoutRef<'div'>) {
+export function SidebarHeader({ className, children, ...props }: ComponentPropsWithoutRef<'div'>) {
   const { expanded } = useSidebar()
+  const partes = Children.toArray(children)
+  const soloElBoton = partes.filter((n) => isValidElement(n) && n.type === SidebarToggle)
   return (
     <div
       className={cn('flex h-16 shrink-0 items-center gap-2', expanded ? 'justify-between px-4' : 'justify-center px-2', className)}
       {...props}
-    />
+    >
+      {expanded ? children : (soloElBoton.length > 0 ? soloElBoton : children)}
+    </div>
   )
 }
 
+/** The list of destinations. It is the one that scrolls when they do not fit, and nothing else. */
 export function SidebarNav({ className, ...props }: ComponentPropsWithoutRef<'nav'>) {
   const { expanded } = useSidebar()
   // `overflow-x-hidden` a mano: con solo `overflow-y-auto`, el eje horizontal se calcula en

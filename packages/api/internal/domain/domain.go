@@ -60,11 +60,13 @@ type Space struct {
 }
 
 type Group struct {
-	ID       string          `json:"id"`
-	SpaceID  string          `json:"spaceId"`
-	Name     string          `json:"name"`
-	Tags     json.RawMessage `json:"tags"`
-	Learners int             `json:"learners"`
+	ID      string `json:"id"`
+	SpaceID string `json:"spaceId"`
+	Name    string `json:"name"`
+	// Qué es el grupo, en una o dos líneas. El nombre lo distingue; esto lo explica.
+	Description string          `json:"description"`
+	Tags        json.RawMessage `json:"tags"`
+	Learners    int             `json:"learners"`
 	// Who is in it. The card shows their faces: a number says how many, and a face says who.
 	Names []string `json:"names"`
 }
@@ -101,6 +103,15 @@ type Event struct {
 
 func ValidateName(s string) error {
 	if len(s) < 2 || len(s) > 120 {
+		return ErrInvalid
+	}
+	return nil
+}
+
+// Lo que una cosa dice de sí. Va con mínimo porque es obligatoria donde se pide: una descripción
+// de una letra es no haberla escrito, y el que la lee después no puede hacer nada con eso.
+func ValidateDescription(s string) error {
+	if len(strings.TrimSpace(s)) < 4 || len(s) > 500 {
 		return ErrInvalid
 	}
 	return nil

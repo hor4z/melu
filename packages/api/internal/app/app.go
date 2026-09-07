@@ -133,19 +133,43 @@ func (s *Services) CreateSpace(ctx context.Context, p domain.Person, name, kind 
 	return e, nil
 }
 
-func (s *Services) CreateGroup(ctx context.Context, p domain.Person, spaceID, name string) (*domain.Group, error) {
+func (s *Services) CreateGroup(ctx context.Context, p domain.Person, spaceID, name, description string) (*domain.Group, error) {
 	if err := domain.ValidateName(name); err != nil {
+		return nil, err
+	}
+	// Obligatoria: un grupo sin decir qué es se lo pregunta a quien lo abre dentro de dos meses,
+	// y ese es justamente el que no se acuerda.
+	if err := domain.ValidateDescription(description); err != nil {
 		return nil, err
 	}
 	if !s.isMember(ctx, p.ID, spaceID, domain.RoleCoordinator, domain.RoleGuide) {
 		return nil, domain.ErrNotAllowed
 	}
-	g, err := s.Groups.Create(ctx, domain.Group{SpaceID: spaceID, Name: name}, p.ID)
+	g, err := s.Groups.Create(ctx, domain.Group{SpaceID: spaceID, Name: name, Description: description}, p.ID)
 	if err != nil {
 		return nil, err
 	}
 	_ = s.Events.Emit(ctx, domain.Event{PersonID: &p.ID, GroupID: &g.ID, Verb: "group.created", Source: "observed", OccurredAt: time.Now()})
 	return g, nil
+}
+
+// Editar lo que el grupo dice de sí. Es de quien enseña en ese espacio y de nadie más: el mismo
+// permiso que hace falta para crearlo.
+func (s *Services) UpdateGroup(ctx context.Context, p domain.Person, id, name, description string) (*domain.Group, error) {
+	if err := domain.ValidateName(name); err != nil {
+		return nil, err
+	}
+	if err := domain.ValidateDescription(description); err != nil {
+		return nil, err
+	}
+	g, err := s.Groups.ByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if !s.isMember(ctx, p.ID, g.SpaceID, domain.RoleCoordinator, domain.RoleGuide) {
+		return nil, domain.ErrNotAllowed
+	}
+	return s.Groups.Update(ctx, id, name, description)
 }
 
 func (s *Services) isMember(ctx context.Context, personID, spaceID string, roles ...domain.Role) bool {

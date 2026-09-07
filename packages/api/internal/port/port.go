@@ -30,6 +30,7 @@ type Groups interface {
 	Create(ctx context.Context, g domain.Group, guideID string) (*domain.Group, error)
 	OfGuide(ctx context.Context, personID, spaceID string) ([]domain.Group, error)
 	ByID(ctx context.Context, id string) (*domain.Group, error)
+	Update(ctx context.Context, id, name, description string) (*domain.Group, error)
 }
 
 type Lenses interface {

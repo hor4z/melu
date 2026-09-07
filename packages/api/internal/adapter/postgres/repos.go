@@ -178,7 +178,8 @@ func (r *Repos) CreateGroup(ctx context.Context, g domain.Group, guideID string)
 		return nil, err
 	}
 	defer tx.Rollback(ctx)
-	if err := tx.QueryRow(ctx, `insert into groups(space_id, name, tags) values($1,$2,$3) returning id`, g.SpaceID, g.Name, g.Tags).Scan(&g.ID); err != nil {
+	if err := tx.QueryRow(ctx, `insert into groups(space_id, name, description, tags) values($1,$2,nullif($3,''),$4) returning id`,
+		g.SpaceID, g.Name, g.Description, g.Tags).Scan(&g.ID); err != nil {
 		return nil, err
 	}
 	if _, err := tx.Exec(ctx, `insert into memberships(person_id, space_id, group_id, role) values($1,$2,$3,'guide')`, guideID, g.SpaceID, g.ID); err != nil {
@@ -190,24 +191,24 @@ func (r *Repos) CreateGroup(ctx context.Context, g domain.Group, guideID string)
 	return &g, tx.Commit(ctx)
 }
 
-const groupCols = `g.id, g.space_id, g.name, g.tags,
+const groupCols = `g.id, g.space_id, g.name, coalesce(g.description, ''), g.tags,
   (select count(*) from memberships a where a.group_id=g.id and a.role='learner')`
 
-// Con los nombres de quiénes están. Es de las consultas de la guía y de ninguna otra: la misma
-// lista de columnas la usa lo que ve un aprendiz, y ahí el nombre de sus compañeros no tiene
-// nada que hacer.
+// Con los nombres de quiénes están. Es de la lista de grupos y de ninguna otra: ahí las caras
+// dicen quién sin abrir nada. El detalle no lo necesita (trae los aprendices enteros) y lo que
+// ve un aprendiz tampoco: el nombre de sus compañeros no tiene nada que hacer en esa respuesta.
 const groupColsRoster = groupCols + `,
   (select coalesce(array_agg(p.name order by p.name), '{}') from memberships a
      join people p on p.id = a.person_id where a.group_id=g.id and a.role='learner')`
 
 func scanGroup(row pgx.CollectableRow) (domain.Group, error) {
 	var g domain.Group
-	return g, row.Scan(&g.ID, &g.SpaceID, &g.Name, &g.Tags, &g.Learners)
+	return g, row.Scan(&g.ID, &g.SpaceID, &g.Name, &g.Description, &g.Tags, &g.Learners)
 }
 
 func scanGroupRoster(row pgx.CollectableRow) (domain.Group, error) {
 	var g domain.Group
-	return g, row.Scan(&g.ID, &g.SpaceID, &g.Name, &g.Tags, &g.Learners, &g.Names)
+	return g, row.Scan(&g.ID, &g.SpaceID, &g.Name, &g.Description, &g.Tags, &g.Learners, &g.Names)
 }
 
 func (r *Repos) OfGuide(ctx context.Context, personID, spaceID string) ([]domain.Group, error) {
@@ -219,12 +220,21 @@ func (r *Repos) OfGuide(ctx context.Context, personID, spaceID string) ([]domain
 	return pgx.CollectRows(rows, scanGroupRoster)
 }
 
+// Editar lo que un grupo dice de sí: el nombre y la descripción. Lo demás (quién está adentro,
+// qué se le asignó) se toca por su propio camino.
+func (r *Repos) UpdateGroup(ctx context.Context, id, name, description string) (*domain.Group, error) {
+	if _, err := r.db.Exec(ctx, `update groups set name=$2, description=nullif($3,'') where id=$1`, id, name, description); err != nil {
+		return nil, err
+	}
+	return r.ByID(ctx, id)
+}
+
 func (r *Repos) ByID(ctx context.Context, id string) (*domain.Group, error) {
-	rows, err := r.db.Query(ctx, `select `+groupColsRoster+` from groups g where g.id=$1`, id)
+	rows, err := r.db.Query(ctx, `select `+groupCols+` from groups g where g.id=$1`, id)
 	if err != nil {
 		return nil, err
 	}
-	g, err := pgx.CollectExactlyOneRow(rows, scanGroupRoster)
+	g, err := pgx.CollectExactlyOneRow(rows, scanGroup)
 	if err != nil {
 		return nil, noRows(err)
 	}

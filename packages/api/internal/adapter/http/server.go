@@ -50,6 +50,7 @@ func (s *Server) routes() {
 	m.Handle("GET /api/groups", s.withSession(s.groups))
 	m.Handle("POST /api/groups", s.withSession(s.createGroup))
 	m.Handle("GET /api/groups/{id}", s.withSession(s.group))
+	m.Handle("PATCH /api/groups/{id}", s.withSession(s.updateGroup))
 
 	s.contentRoutes()
 	s.dashboardRoutes()
@@ -228,16 +229,31 @@ func (s *Server) groups(w http.ResponseWriter, r *http.Request, p domain.Person)
 
 func (s *Server) createGroup(w http.ResponseWriter, r *http.Request, p domain.Person) {
 	var in struct {
-		SpaceID string `json:"spaceId"`
-		Name    string `json:"name"`
+		SpaceID     string `json:"spaceId"`
+		Name        string `json:"name"`
+		Description string `json:"description"`
 	}
 	json.NewDecoder(r.Body).Decode(&in)
-	g, err := s.svc.CreateGroup(r.Context(), p, in.SpaceID, in.Name)
+	g, err := s.svc.CreateGroup(r.Context(), p, in.SpaceID, in.Name, in.Description)
 	if err != nil {
 		fail(w, err)
 		return
 	}
 	js(w, 201, g)
+}
+
+func (s *Server) updateGroup(w http.ResponseWriter, r *http.Request, p domain.Person) {
+	var in struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+	}
+	json.NewDecoder(r.Body).Decode(&in)
+	g, err := s.svc.UpdateGroup(r.Context(), p, r.PathValue("id"), in.Name, in.Description)
+	if err != nil {
+		fail(w, err)
+		return
+	}
+	js(w, 200, g)
 }
 
 func (s *Server) group(w http.ResponseWriter, r *http.Request, p domain.Person) {

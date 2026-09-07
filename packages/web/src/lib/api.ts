@@ -30,6 +30,7 @@ export const api = {
   get: <T>(p: string) => req<T>('GET', p),
   post: <T>(p: string, b?: unknown) => req<T>('POST', p, b),
   put: <T>(p: string, b?: unknown) => req<T>('PUT', p, b),
+  patch: <T>(p: string, b?: unknown) => req<T>('PATCH', p, b),
 }
 
 // ---- types mirroring the Go domain ----
@@ -42,7 +43,7 @@ export type Space = { id: string; name: string; slug: string; kind: SpaceKind }
 export type SpaceKind = 'school' | 'club' | 'tutoring' | 'personal'
 export type Role = 'guide' | 'learner' | 'companion' | 'coordinator'
 export type Membership = { spaceId: string; groupId: string | null; role: Role }
-export type Group = { id: string; spaceId: string; name: string; tags: Record<string, string>; learners: number; names: string[] }
+export type Group = { id: string; spaceId: string; name: string; description: string; tags: Record<string, string>; learners: number; names: string[] }
 export type Phase = { key: string; name: string; asks: string }
 export type Lens = { key: string; name: string; description: string; phases: Phase[] }
 export type Me = { person: Person; mode: 'guide' | 'learner' | 'new'; spaces: Space[]; memberships: Membership[] }

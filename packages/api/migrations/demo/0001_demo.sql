@@ -57,8 +57,10 @@ begin
 
   insert into spaces(name, slug, kind) values('Escuela 12 · Demo','school-demo','school') returning id into space;
   insert into memberships(person_id, space_id, role) values(guide, space, 'coordinator'),(guide, space, 'guide');
-  insert into groups(space_id, name, tags) values(space,'4° A · Matemática','{"grado":"4°","materia":"Matemática"}') returning id into g1;
-  insert into groups(space_id, name, tags) values(space,'Taller de robótica','{"turno":"sábados"}') returning id into g2;
+  insert into groups(space_id, name, description, tags)
+    values(space,'4° A · Matemática','Veintiocho chicos, dos horas por día. Este trimestre estamos con fracciones y con problemas de más de un paso.','{"grado":"4°","materia":"Matemática"}') returning id into g1;
+  insert into groups(space_id, name, description, tags)
+    values(space,'Taller de robótica','Contraturno de los sábados, de 10 a 12. Se anota quien quiere y trabajamos en equipos de tres.','{"turno":"sábados"}') returning id into g2;
   insert into memberships(person_id, space_id, group_id, role) values(guide, space, g1, 'guide'),(guide, space, g2, 'guide');
 
   -- space activities, copied from three recipes
