@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Avatar, DataList, DataListActions, DataListHead, DataListItem, DataListMedia, DataListMeta, DataListText, DataListTitle } from '@melu/ui'
+import { Avatar, DataList, DataListActions, DataListHead, DataListItem, DataListMedia, DataListMeta, DataListSkeleton, DataListText, DataListTitle } from '@melu/ui'
 
 const ficha = (props: { onClick?: () => void } = {}) => (
   <DataList>
@@ -46,6 +46,12 @@ describe('DataList', () => {
       </DataList>,
     )
     expect((screen.getByText('4° A').parentElement as HTMLElement).textContent).toBe('4° A·hace 2 h')
+  })
+
+  test('el esqueleto tiene la forma de las fichas y el lector no lo lee', () => {
+    render(<DataListSkeleton rows={3} />)
+    expect(screen.queryByRole('list')).not.toBeInTheDocument()
+    expect(document.querySelectorAll('li')).toHaveLength(3)
   })
 
   test('la figura ocupa las filas de la ficha en vez de estirar la primera', () => {

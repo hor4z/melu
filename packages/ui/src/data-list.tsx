@@ -1,5 +1,6 @@
 import { Children, Fragment, type ComponentPropsWithoutRef } from 'react'
 import { cn } from './lib'
+import { Skeleton } from './feedback'
 
 /**
  * The same rows as a `Table`, one under the other, for when there is no width. A table in a
@@ -71,6 +72,25 @@ export function DataListMeta({ className, children, ...props }: ComponentPropsWi
         </Fragment>
       ))}
     </div>
+  )
+}
+
+/**
+ * The list while the cards travel. The same shape they are going to have, so nothing jumps when
+ * the data lands. It is the twin of `TableSkeleton`, for the width where there is no table.
+ */
+export function DataListSkeleton({ rows = 4, className, ...props }: ComponentPropsWithoutRef<'ul'> & { rows?: number }) {
+  return (
+    <ul aria-hidden="true" className={cn('flex flex-col divide-y divide-line', className)} {...props}>
+      {Array.from({ length: rows }, (_, fila) => (
+        <li key={fila} className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 px-4 py-3.5">
+          <Skeleton className="row-span-full size-10 rounded-full" />
+          <Skeleton className="col-start-2 h-4 w-32" />
+          <Skeleton className="col-start-2 mt-2 h-3.5 w-48" />
+          <Skeleton className="col-start-2 mt-2 h-3 w-28" />
+        </li>
+      ))}
+    </ul>
   )
 }
 

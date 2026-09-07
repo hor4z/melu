@@ -37,7 +37,7 @@ export function Review() {
       {lists.length === 0 && <Empty title="Nadie entregó todavía" text="Cuando alguien entregue, aparece acá." />}
 
       {current && (
-        <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <div className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
           <Card asChild padding="none"><ul className="flex flex-col gap-1 self-start p-2">
             {lists.map((e) => (
               <li key={e.id}><button type="button" onClick={() => { setSel(e.id); setScores(Object.fromEntries(e.scores.map((p) => [p.id, p.level]))) }}

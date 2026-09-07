@@ -7,7 +7,7 @@ import { Spinner } from './spinner'
 import { fieldAria, useField } from './field'
 
 const frameCls = cva(
-  `flex w-full items-center gap-2 rounded-md border bg-surface text-ink transition-[border-color,box-shadow] has-disabled:bg-muted has-disabled:opacity-60 ${focusRingWithin}`,
+  `flex w-full items-center gap-2 rounded-lg border bg-surface text-ink transition-[border-color,box-shadow] has-disabled:bg-muted has-disabled:opacity-60 ${focusRingWithin}`,
   {
     variants: {
       size: { sm: 'h-8 px-2.5 text-sm', md: 'h-9.5 px-3 text-sm', lg: 'h-11 px-3.5 text-base' },
@@ -64,7 +64,7 @@ export function Textarea({ className, invalid, autoGrow, rows = 3, onChange, ...
       {...props} {...aria} aria-invalid={bad || undefined} rows={rows}
       onChange={(e) => { if (autoGrow) { e.target.style.height = '0'; e.target.style.height = `${e.target.scrollHeight}px` } onChange?.(e) }}
       className={cn(
-        'w-full resize-y rounded-md border bg-surface px-3 py-2 text-sm text-ink outline-none transition-[border-color,box-shadow] placeholder:text-ink-subtle focus:ring-3 focus:ring-focus/25 disabled:bg-muted disabled:opacity-60',
+        'w-full resize-y rounded-lg border bg-surface px-3 py-2 text-sm text-ink outline-none transition-[border-color,box-shadow] placeholder:text-ink-subtle focus:ring-3 focus:ring-focus/25 disabled:bg-muted disabled:opacity-60',
         bad ? 'border-danger focus:ring-danger/25' : 'border-line focus:border-ink',
         autoGrow && 'resize-none overflow-hidden',
         className,

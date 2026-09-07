@@ -184,10 +184,15 @@ export function Theme() {
 
             <Rule title="El radio de un hijo es el del padre menos el padding del padre"
               why="Si el hijo repite el radio del padre, la curva de adentro queda más abierta que la de afuera y el borde se ve torcido. Es la regla que evita elegir el número a ojo.">
-              El menú tiene <code className="font-mono text-xs">--radius-xl</code> (16) y{' '}
+              El menú tiene <code className="font-mono text-xs">--radius-xl</code> (10) y{' '}
               <code className="font-mono text-xs">p-1.5</code> (6), así que sus ítems van en{' '}
-              <code className="font-mono text-xs">--radius-lg</code> (12). El control segmentado tiene 12 y{' '}
-              <code className="font-mono text-xs">p-1</code> (4), así que los suyos van en 8.
+              <code className="font-mono text-xs">--radius-sm</code> (4). El control segmentado tiene 8 y{' '}
+              <code className="font-mono text-xs">p-1</code> (4), así que los suyos van en 4 también.
+            </Rule>
+
+            <Rule title="Redondear de más se nota en todo junto y en nada por separado"
+              why="La escala se abrió una vez para que ningún escalón valiera lo mismo que otro, y se abrió para arriba: los controles quedaron en 8 y las superficies en 16. Cada componente seguía la regla, y aun así la app entera se veía redonda. Bajar los valores fue un cambio en un archivo.">
+              Los campos son los que estaban bien, así que se quedaron en 8: cambió a qué escalón apuntan, no cuánto miden.
             </Rule>
 
             <Rule title="Una escala con dos escalones iguales no tiene medio"
@@ -220,9 +225,9 @@ export function Theme() {
 /** Cada radio con el rol que le toca. La lista es la doc: si se agrega uno, se dice para qué. */
 const RADII: [name: string, role: string][] = [
   ['--radius-xs', 'marcas: kbd, la X de un chip'],
-  ['--radius-sm', 'detalles: la imagen dentro de un marco'],
-  ['--radius-md', 'controles: botón, input, select, toggle'],
-  ['--radius-lg', 'dentro de una superficie: ítem de menú, pestaña'],
+  ['--radius-sm', 'lo que va adentro de una superficie: ítem de menú, opción de un segmentado'],
+  ['--radius-md', 'lo que se toca: botón, chip, toggle'],
+  ['--radius-lg', 'lo que se llena, y el riel que sostiene opciones: input, select, segmentado'],
   ['--radius-xl', 'superficies: card, modal, popover, alert'],
   ['--radius-2xl', 'piezas grandes y sueltas'],
 ]

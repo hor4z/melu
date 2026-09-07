@@ -105,6 +105,32 @@ export const COPY: Record<string, string> = {
   'TableCell.numeric': 'Números: a la derecha y con dígitos parejos, para que la columna se lea como columna.',
   TableCaption: 'Qué es la tabla, para quien no puede verla. Se lee debajo.',
   TableEmpty: 'La fila de "no hay nada": una celda a lo ancho, con el `EmptyState` adentro.',
+  TableSkeleton:
+    'El cuerpo mientras las filas viajan. Va en lugar de `TableBody`, así la cabecera se queda '
+    + 'quieta y la tabla no cambia de tamaño cuando llegan los datos: una pantalla vacía que '
+    + 'después salta es peor que una gris que no se mueve. Los anchos cambian de celda a celda a '
+    + 'propósito: todos iguales se leen como un formulario y no como una lista de nombres.',
+  'TableSkeleton.columns': 'Cuántas columnas tiene la tabla: el gris tiene que tener la forma de lo que viene.',
+  Pagination:
+    'La línea de abajo de una tabla: qué tramo se está viendo, y cómo pasar al de al lado. No hay '
+    + 'números de página a propósito: la api entrega un tramo y dice si hay más, y un número '
+    + 'prometería un total y un salto que un cursor no puede contestar. Lo que sí puede contestar '
+    + 'es el siguiente y el anterior, y eso es lo que hay acá.',
+  'PaginationStatus.to': 'La última de las que se ven, contando desde uno.',
+  'PaginationStatus.from': 'La primera de las que se ven.',
+  'PaginationStatus.total': 'Cuántas hay en total. Sin esto solo se dice el tramo.',
+  'PaginationStatus.noun': 'Qué se está contando, en plural: "entregas".',
+  'PaginationStatus.children': 'Reemplaza la frase entera cuando la pantalla tiene una mejor.',
+  PaginationStatus:
+    'Qué tramo se está viendo. Es la misma frase en todos lados para que nadie escriba la suya, y '
+    + 'cuando el tramo es todo deja de contar desde dónde: "17 entregas" y no "1 a 17 de 17 '
+    + 'entregas", que dice lo mismo tres veces.',
+  PaginationPrev:
+    'Van de a dos y están siempre, apagados en las puntas: un par que aparece y desaparece le '
+    + 'corre el otro botón debajo del dedo a quien iba a tocarlo. Son `ghost` y no van con marco: '
+    + 'la fila ya tiene su línea arriba y la tarjeta alrededor, y un tercer recuadro ahí adentro '
+    + 'es uno de más.',
+  PaginationNext: 'Su `disabled` es el `more` que contesta la api: mientras haya más, hay un siguiente.',
   DataList:
     'Las mismas filas de una `Table`, una abajo de la otra, para cuando no hay ancho. Una tabla en '
     + 'un celular o no se lee o se arrastra de costado, y de costado no la arrastra nadie: acá cada '
@@ -120,6 +146,9 @@ export const COPY: Record<string, string> = {
     'La letra chica, en pedazos: las columnas de la tabla que en el celular pasan a ser una sola '
     + 'línea. Pone el punto entre una y otra, así nadie escribe separadores a mano y terminan todos distintos.',
   DataListActions: 'Las acciones, en la esquina de cierre de la ficha.',
+  DataListSkeleton:
+    'La lista mientras las fichas viajan. La misma forma que van a tener, así no salta nada '
+    + 'cuando llegan los datos. Es el gemelo de `TableSkeleton`, para el ancho donde no hay tabla.',
   FilterSet:
     'Los filtros de una tabla, agregados de a uno. Es un botón mientras no hay nada filtrando, y '
     + 'cada filtro que se elige ahí aparece como una pastilla con su panel y su X. Mostrar todos '

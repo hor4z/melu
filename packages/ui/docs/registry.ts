@@ -349,10 +349,10 @@ export const REGISTRY: Entry[] = [
     title: 'Table',
     group: 'Datos',
     summary: 'Filas y columnas, en partes: la que ordena, la que se elige y la que quedó vacía.',
-    exports: ['Table', 'TableHeader', 'TableBody', 'TableFooter', 'TableRow', 'TableHead', 'TableCell', 'TableCaption', 'TableEmpty'],
+    exports: ['Table', 'TableHeader', 'TableBody', 'TableFooter', 'TableRow', 'TableHead', 'TableCell', 'TableCaption', 'TableEmpty', 'TableSkeleton'],
     demos: [
       { id: 'basic', title: 'Anatomía', note: 'Las partes son las del HTML, con los estilos puestos: `thead`, `tbody`, `tfoot`, `caption`.' },
-      { id: 'sortable', title: 'Ordenar, elegir y quedarse sin filas', note: 'El orden lo maneja quien la usa: `sort` dice para dónde va y `onSort` avisa el clic.' },
+      { id: 'sortable', title: 'Ordenar, y los dos estados que nadie dibuja', note: 'El orden lo maneja quien la usa: `sort` dice para dónde va y `onSort` avisa el clic. Y los dos tildes de arriba son el vacío y el cargando, que en una tabla son la mitad de lo que se ve.' },
     ],
     when: [
       'Los datos se comparan de a columnas: quién, cuándo, cuánto. Una lista no deja comparar.',
@@ -370,7 +370,7 @@ export const REGISTRY: Entry[] = [
     summary: 'La tabla cuando no hay ancho: cada fila es una ficha y se recorre para abajo.',
     exports: [
       'DataList', 'DataListItem', 'DataListMedia', 'DataListHead', 'DataListTitle', 'DataListText',
-      'DataListMeta', 'DataListActions', 'useDevice', 'useMediaQuery', 'BREAKPOINTS',
+      'DataListMeta', 'DataListActions', 'DataListSkeleton', 'useDevice', 'useMediaQuery', 'BREAKPOINTS',
     ],
     demos: [
       { id: 'basic', title: 'Una ficha por fila', note: 'El título con el estado, la línea de abajo, la letra chica y la acción al cierre.' },
@@ -383,6 +383,24 @@ export const REGISTRY: Entry[] = [
     whenNot: [
       'Si hay ancho, es una tabla: comparar de a columnas es lo que una lista no deja hacer.',
       'Si cada elemento merece una foto grande y su propia acción principal, eso es una grilla de `Card`.',
+    ],
+  },
+  {
+    slug: 'pagination',
+    title: 'Pagination',
+    group: 'Datos',
+    summary: 'La línea de abajo de una tabla: qué tramo se ve, y el anterior y el siguiente.',
+    exports: ['Pagination', 'PaginationStatus', 'PaginationPrev', 'PaginationNext'],
+    demos: [
+      { id: 'basic', title: 'Anterior y siguiente', note: 'El `disabled` del siguiente es el `more` que contesta la api. En las puntas los botones se apagan y no se van: un par que aparece y desaparece corre al otro debajo del dedo.' },
+    ],
+    when: [
+      'Una tabla o una lista que puede crecer más de lo que entra en una pantalla.',
+      'El back entrega de a tramos y dice si hay más, que es como entrega el nuestro.',
+    ],
+    whenNot: [
+      'Números de página: prometen un total y un salto que un cursor no puede contestar.',
+      'Si el total es chico y se sabe entero, no hay nada que paginar.',
     ],
   },
   {

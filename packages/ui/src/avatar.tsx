@@ -116,7 +116,9 @@ export function AvatarGroup({ names, max = 4, size = 'sm', className, ...props }
   const rest = names.length - shown.length
   return (
     <span className={cn('inline-flex items-center -space-x-2', className)} {...props}>
-      {shown.map((n) => <Avatar key={n} name={n} size={size} className="ring-2 ring-surface" />)}
+      {/* Por posición y no por nombre: en un grado hay dos Martina, y con el nombre de clave
+          React reusaba la misma cara para las dos. */}
+      {shown.map((n, i) => <Avatar key={i} name={n} size={size} className="ring-2 ring-surface" />)}
       {rest > 0 && (
         <span className={cn(avatarVariants({ size }), 'bg-muted text-ink-muted ring-2 ring-surface')} title={names.slice(max).join(', ')}>+{rest}</span>
       )}

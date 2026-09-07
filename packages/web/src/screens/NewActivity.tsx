@@ -78,7 +78,7 @@ export function NewActivity() {
       )}
 
       {step === 1 && (
-        <form className="grid gap-6 lg:grid-cols-[1fr_320px]" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
+        <form className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[1fr_320px]" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
           <Card padding="lg" className="gap-6">
             <Field label="Título"><Input placeholder="Puente de espagueti" value={title} onChange={(e) => setTitle(e.target.value)} required autoFocus /></Field>
             <AxisRow title="Experiencia" hint="qué van a hacer" options={EXPERIENCES} value={[comp.experience ?? '']} onPick={(v) => set('experience', v)} />

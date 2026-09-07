@@ -184,32 +184,47 @@ func (r *Repos) CreateGroup(ctx context.Context, g domain.Group, guideID string)
 	if _, err := tx.Exec(ctx, `insert into memberships(person_id, space_id, group_id, role) values($1,$2,$3,'guide')`, guideID, g.SpaceID, g.ID); err != nil {
 		return nil, err
 	}
+	// Recién creado no hay nadie adentro, pero la lista viaja vacía y no nula: el front dibuja
+	// caras con esto y `null` lo haría explotar.
+	g.Names = []string{}
 	return &g, tx.Commit(ctx)
 }
 
 const groupCols = `g.id, g.space_id, g.name, g.tags,
   (select count(*) from memberships a where a.group_id=g.id and a.role='learner')`
 
+// Con los nombres de quiénes están. Es de las consultas de la guía y de ninguna otra: la misma
+// lista de columnas la usa lo que ve un aprendiz, y ahí el nombre de sus compañeros no tiene
+// nada que hacer.
+const groupColsRoster = groupCols + `,
+  (select coalesce(array_agg(p.name order by p.name), '{}') from memberships a
+     join people p on p.id = a.person_id where a.group_id=g.id and a.role='learner')`
+
 func scanGroup(row pgx.CollectableRow) (domain.Group, error) {
 	var g domain.Group
 	return g, row.Scan(&g.ID, &g.SpaceID, &g.Name, &g.Tags, &g.Learners)
 }
 
+func scanGroupRoster(row pgx.CollectableRow) (domain.Group, error) {
+	var g domain.Group
+	return g, row.Scan(&g.ID, &g.SpaceID, &g.Name, &g.Tags, &g.Learners, &g.Names)
+}
+
 func (r *Repos) OfGuide(ctx context.Context, personID, spaceID string) ([]domain.Group, error) {
-	rows, err := r.db.Query(ctx, `select `+groupCols+` from groups g join memberships m on m.group_id=g.id
+	rows, err := r.db.Query(ctx, `select `+groupColsRoster+` from groups g join memberships m on m.group_id=g.id
 	  where m.person_id=$1 and m.role='guide' and ($2 = '' or g.space_id = $2::uuid) order by g.created_at desc`, personID, spaceID)
 	if err != nil {
 		return nil, err
 	}
-	return pgx.CollectRows(rows, scanGroup)
+	return pgx.CollectRows(rows, scanGroupRoster)
 }
 
 func (r *Repos) ByID(ctx context.Context, id string) (*domain.Group, error) {
-	rows, err := r.db.Query(ctx, `select `+groupCols+` from groups g where g.id=$1`, id)
+	rows, err := r.db.Query(ctx, `select `+groupColsRoster+` from groups g where g.id=$1`, id)
 	if err != nil {
 		return nil, err
 	}
-	g, err := pgx.CollectExactlyOneRow(rows, scanGroup)
+	g, err := pgx.CollectExactlyOneRow(rows, scanGroupRoster)
 	if err != nil {
 		return nil, noRows(err)
 	}

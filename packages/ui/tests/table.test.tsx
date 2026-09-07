@@ -1,7 +1,7 @@
 import { describe, expect, test, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { EmptyState, Table, TableBody, TableCaption, TableCell, TableEmpty, TableFooter, TableHead, TableHeader, TableRow } from '@melu/ui'
+import { EmptyState, Table, TableBody, TableCaption, TableCell, TableEmpty, TableFooter, TableHead, TableHeader, TableRow, TableSkeleton } from '@melu/ui'
 
 describe('Table', () => {
   test('es una tabla de verdad, con su cabecera y sus filas', () => {
@@ -68,6 +68,19 @@ describe('Table', () => {
     const caja = container.firstElementChild as HTMLElement
     expect(caja.className).toContain('overflow-x-auto')
     expect(caja.className).toContain('relative')
+  })
+
+  test('`TableSkeleton` tiene la forma de lo que viene, y el lector no lo lee', () => {
+    render(
+      <Table>
+        <TableHeader><TableRow><TableHead>A</TableHead><TableHead>B</TableHead><TableHead>C</TableHead></TableRow></TableHeader>
+        <TableSkeleton columns={3} rows={4} />
+      </Table>,
+    )
+    // Las filas del esqueleto no cuentan como filas: están escondidas del árbol de accesibilidad.
+    expect(screen.getAllByRole('row')).toHaveLength(1)
+    expect(document.querySelectorAll('tbody tr')).toHaveLength(4)
+    expect(document.querySelectorAll('tbody td')).toHaveLength(12)
   })
 
   test('`TableEmpty` ocupa todo el ancho', () => {
