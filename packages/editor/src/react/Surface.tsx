@@ -111,6 +111,20 @@ const Page = memo(function Page({ renderers, readOnly }: { renderers: Renderers;
   )
 })
 
+/**
+ * Whether an event came from a block's own controls rather than from the editor's text.
+ *
+ * A media block has an input asking for an address, a question has one per option, the toolbox has
+ * a search box. Those are plain form controls, and the surface must keep its hands off them:
+ * without this check, pasting a url into the address box was caught by the editor's paste handler,
+ * which cancelled the event and inserted a block somewhere else, so the address never arrived and
+ * the box stayed empty. The same for copy, cut and undo.
+ */
+const fromWidget = (target: EventTarget | null): boolean => {
+  const el = target instanceof Element ? target : null
+  return Boolean(el?.closest('input, textarea, select, button, [data-melu-skip]'))
+}
+
 export function Surface({
   editor,
   renderers,
@@ -204,6 +218,7 @@ export function Surface({
 
   const onCopy = useCallback(
     (e: React.ClipboardEvent) => {
+      if (fromWidget(e.target)) return
       if (writeClipboard(e)) e.preventDefault()
     },
     [writeClipboard],
@@ -211,7 +226,7 @@ export function Surface({
 
   const onCut = useCallback(
     (e: React.ClipboardEvent) => {
-      if (readOnly) return
+      if (readOnly || fromWidget(e.target)) return
       if (!writeClipboard(e)) return
       e.preventDefault()
       editor.run('deleteSelection')
@@ -221,7 +236,7 @@ export function Surface({
 
   const onPaste = useCallback(
     (e: React.ClipboardEvent) => {
-      if (readOnly) return
+      if (readOnly || fromWidget(e.target)) return
       const data: Record<string, string> = {}
       for (const type of [MELU_MIME, 'text/html', 'text/uri-list', 'text/plain']) {
         const value = e.clipboardData.getData(type)
@@ -237,7 +252,7 @@ export function Surface({
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (e.defaultPrevented) return
+      if (e.defaultPrevented || fromWidget(e.target)) return
       const mod = e.metaKey || e.ctrlKey
       if (mod && e.key.toLowerCase() === 'z') {
         e.preventDefault()

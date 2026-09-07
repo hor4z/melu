@@ -255,11 +255,26 @@ const Divider: Renderer = function Divider() {
 
 // ---------------------------------------------------------------------------- media
 
-/** Un bloque de medios vacío: el hueco que pide una dirección en lugar de no mostrar nada. */
+/**
+ * Un bloque de medios vacío: el hueco que pide una dirección en lugar de no mostrar nada.
+ *
+ * Confirma al pegar, al salir del campo y con Enter, y no solo con Enter: quien pega una dirección
+ * espera que aparezca el video, no que haya que apretar una tecla más para que algo pase. El
+ * pegado se lee en el cuadro siguiente porque en el momento del evento el campo todavía tiene el
+ * valor de antes.
+ */
 function Placeholder({ id, icon, label }: { id: BlockId; icon: IconName; label: string }) {
   const editor = useEditor()
   const [value, setValue] = useState('')
-  const key = icon === 'link' ? 'url' : 'src'
+
+  const confirmar = useCallback(
+    (url: string) => {
+      if (url.trim() === '') return
+      editor.run('setMediaSource', { id, url })
+    },
+    [editor, id],
+  )
+
   return (
     <div className="melu-media-empty" data-melu-skip="true">
       <Icon name={icon} size={20} />
@@ -268,11 +283,24 @@ function Placeholder({ id, icon, label }: { id: BlockId; icon: IconName; label: 
         className="melu-media-input"
         value={value}
         placeholder="Pegá la dirección"
+        aria-label={`Dirección del bloque de ${label.toLowerCase()}`}
         onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key !== 'Enter' || value.trim() === '') return
+        onPaste={(e) => {
+          const pegado = e.clipboardData.getData('text/plain')
+          if (pegado.trim() === '') return
           e.preventDefault()
-          editor.run('setBlockProps', { id, props: { [key]: value.trim() } })
+          setValue(pegado)
+          confirmar(pegado)
+        }}
+        onBlur={() => confirmar(value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') {
+            setValue('')
+            return
+          }
+          if (e.key !== 'Enter') return
+          e.preventDefault()
+          confirmar(value)
         }}
       />
     </div>

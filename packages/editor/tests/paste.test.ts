@@ -12,7 +12,7 @@
 
 import { describe, expect, it } from 'vitest'
 import { at, caretAt, editorWith, makeFullEditor, selectRange, sketch, textAt, typeAt } from './helpers.ts'
-import { clipboardFor, looksLikeMarkdown, MELU_MIME } from '../src/plugins/paste.ts'
+import { clipboardFor, looksLikeMarkdown, MELU_MIME, PASTED_URL, type PastedUrl } from '../src/plugins/paste.ts'
 import { plain } from '../src/core/text.ts'
 import { assertValid } from '../src/core/doc.ts'
 
@@ -190,63 +190,105 @@ describe('texto llano', () => {
 })
 
 describe('una dirección pegada', () => {
-  it('la de una imagen se vuelve una imagen', () => {
+  /** Pega y devuelve lo que el pegado anotó en el meta, que es lo que lee el menú. */
+  const pegar = (e: ReturnType<typeof editorWith>, url: string) => {
+    let meta: PastedUrl | undefined
+    const stop = e.subscribe((c) => {
+      const found = c.tr?.meta[PASTED_URL] as PastedUrl | undefined
+      if (found) meta = found
+    })
+    const did = e.handlePaste({ 'text/plain': url })
+    stop()
+    return { did, meta }
+  }
+
+  it('se pega como link y no como bloque: pegar no adivina', () => {
     const e = editorWith('')
     caretAt(e, 0, 0)
-    e.handlePaste({ 'text/plain': 'https://x.ar/patio.png' })
-    expect(typeAt(e, 0)).toBe('image')
-    expect(e.block(at(e, 0))!.props).toMatchObject({ src: 'https://x.ar/patio.png' })
+    const { did } = pegar(e, 'https://www.youtube.com/watch?v=abc123')
+    expect(did).toBe(true)
+    // Lo menos destructivo: el texto que se pegó, con su link. El resto lo ofrece el menú.
+    expect(typeAt(e, 0)).toBe('paragraph')
+    expect(textAt(e, 0)).toBe('https://www.youtube.com/watch?v=abc123')
+    expect(e.block(at(e, 0))!.text!.at(-1)!.marks).toEqual([
+      { type: 'link', value: 'https://www.youtube.com/watch?v=abc123' },
+    ])
   })
 
-  it('la de YouTube se vuelve un video, ya listo para incrustar', () => {
+  it('anota el rango exacto que ocupó, para poder deshacerlo si se elige otra cosa', () => {
+    const e = makeFullEditor([{ type: 'paragraph', text: [{ text: 'mirá: ' }] }])
+    caretAt(e, 0, 6)
+    const { meta } = pegar(e, 'https://educabot.com')
+    expect(meta).toMatchObject({ url: 'https://educabot.com', from: 6, to: 6 + 'https://educabot.com'.length })
+    expect(textAt(e, 0)).toBe('mirá: https://educabot.com')
+  })
+
+  it('la de YouTube ofrece el video, ya con la dirección que se puede incrustar', () => {
     const e = editorWith('')
     caretAt(e, 0, 0)
-    e.handlePaste({ 'text/plain': 'https://www.youtube.com/watch?v=abc123' })
-    expect(typeAt(e, 0)).toBe('video')
-    expect(String(e.block(at(e, 0))!.props!.src)).toContain('youtube-nocookie.com/embed/abc123')
+    const { meta } = pegar(e, 'https://www.youtube.com/watch?v=abc123')
+    expect(meta!.becomes).toMatchObject({ type: 'video' })
+    expect(String(meta!.becomes!.props.src)).toContain('youtube-nocookie.com/embed/abc123')
   })
 
-  it('la de un audio se vuelve un audio, con el nombre del archivo', () => {
+  it('una de YouTube con lista y radio adentro igual saca el video que importa', () => {
     const e = editorWith('')
     caretAt(e, 0, 0)
-    e.handlePaste({ 'text/plain': 'https://x.ar/consigna.mp3' })
-    expect(typeAt(e, 0)).toBe('audio')
-    expect(e.block(at(e, 0))!.props).toMatchObject({ title: 'consigna.mp3' })
+    const { meta } = pegar(e, 'https://www.youtube.com/watch?v=1WHPExTeOwg&list=RD1WHPExTeOwg&start_radio=1')
+    expect(String(meta!.becomes!.props.src)).toBe('https://www.youtube-nocookie.com/embed/1WHPExTeOwg')
   })
 
-  it('la de GeoGebra se vuelve un incrustado, con su servicio anotado', () => {
+  it('la de un video con segundo de arranque se lo lleva', () => {
     const e = editorWith('')
     caretAt(e, 0, 0)
-    e.handlePaste({ 'text/plain': 'https://www.geogebra.org/m/abcd1234' })
-    expect(typeAt(e, 0)).toBe('embed')
-    expect(e.block(at(e, 0))!.props).toMatchObject({ provider: 'GeoGebra' })
+    const { meta } = pegar(e, 'https://www.youtube.com/watch?v=abc123&t=90')
+    expect(String(meta!.becomes!.props.src)).toContain('start=90')
   })
 
-  it('la de una página cualquiera se vuelve una tarjeta, esperando sus datos', () => {
+  it('la de una imagen ofrece la imagen', () => {
     const e = editorWith('')
     caretAt(e, 0, 0)
-    e.handlePaste({ 'text/plain': 'https://educabot.com/algo' })
-    expect(typeAt(e, 0)).toBe('bookmark')
-    expect(e.block(at(e, 0))!.props).toMatchObject({ site: 'educabot.com', loading: true })
+    const { meta } = pegar(e, 'https://x.ar/patio.png')
+    expect(meta!.becomes).toMatchObject({ type: 'image', props: { src: 'https://x.ar/patio.png' } })
   })
 
-  it('sobre texto seleccionado, lo convierte en link', () => {
+  it('la de un audio ofrece el audio, con el nombre del archivo', () => {
+    const e = editorWith('')
+    caretAt(e, 0, 0)
+    const { meta } = pegar(e, 'https://x.ar/consigna.mp3')
+    expect(meta!.becomes).toMatchObject({ type: 'audio', props: { title: 'consigna.mp3' } })
+  })
+
+  it('la de GeoGebra ofrece incrustarlo, con su servicio anotado', () => {
+    const e = editorWith('')
+    caretAt(e, 0, 0)
+    const { meta } = pegar(e, 'https://www.geogebra.org/m/abcd1234')
+    expect(meta!.becomes).toMatchObject({ type: 'embed', props: { provider: 'GeoGebra' } })
+  })
+
+  it('una página cualquiera no ofrece nada especial: el menú igual da la tarjeta', () => {
+    const e = editorWith('')
+    caretAt(e, 0, 0)
+    const { meta } = pegar(e, 'https://educabot.com/algo')
+    expect(meta!.becomes).toBeUndefined()
+    expect(textAt(e, 0)).toBe('https://educabot.com/algo')
+  })
+
+  it('sobre texto seleccionado lo convierte en link, y no ofrece nada: ya se dijo qué hacer', () => {
     const e = editorWith('ver la página')
     selectRange(e, [0, 4], [0, 13])
-    e.handlePaste({ 'text/plain': 'https://educabot.com' })
+    const { meta } = pegar(e, 'https://educabot.com')
+    expect(meta).toBeUndefined()
     expect(sketch(e)).toEqual(['paragraph: ver la página'])
-    const conLink = e.block(at(e, 0))!.text!.find((s) => s.marks?.some((m) => m.type === 'link'))
+    const conLink = e.block(at(e, 0))!.text!.find((sp) => sp.marks?.some((m) => m.type === 'link'))
     expect(conLink).toMatchObject({ text: 'la página' })
   })
 
-  it('sobre un párrafo que ya tiene texto, se pega como texto con link y no como tarjeta', () => {
-    // A mano y no con markdown: el parser le recorta el espacio final, con razón.
+  it('en el medio de una oración no la corta: queda la oración con el link adentro', () => {
     const e = makeFullEditor([{ type: 'paragraph', text: [{ text: 'mirá esto: ' }] }])
     caretAt(e, 0, 11)
-    e.handlePaste({ 'text/plain': 'https://educabot.com' })
+    pegar(e, 'https://educabot.com')
     expect(sketch(e)).toEqual(['paragraph: mirá esto: https://educabot.com'])
-    const conLink = e.block(at(e, 0))!.text!.at(-1)!
-    expect(conLink.marks).toEqual([{ type: 'link', value: 'https://educabot.com' }])
   })
 
   it('una dirección que no es http no se convierte en nada', () => {
@@ -255,12 +297,14 @@ describe('una dirección pegada', () => {
     e.handlePaste({ 'text/plain': 'javascript:alert(1)' })
     expect(typeAt(e, 0)).toBe('paragraph')
     expect(textAt(e, 0)).toBe('javascript:alert(1)')
+    expect(e.block(at(e, 0))!.text!.every((sp) => !sp.marks)).toBe(true)
   })
 
-  it('adentro de un bloque de código una dirección es texto', () => {
+  it('adentro de un bloque de código una dirección es texto, sin link ni menú', () => {
     const e = editorWith('```python', 'x = 1', '```')
     caretAt(e, 0, 5)
-    e.handlePaste({ 'text/plain': 'https://x.ar/patio.png' })
+    const { meta } = pegar(e, 'https://x.ar/patio.png')
+    expect(meta).toBeUndefined()
     expect(sketch(e)).toHaveLength(1)
     expect(textAt(e, 0)).toContain('https://x.ar/patio.png')
   })

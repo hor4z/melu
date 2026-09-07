@@ -14,7 +14,7 @@
 import type { BlockSpec } from '../core/schema.ts'
 import type { InputRule, KeyBinding, Plugin } from '../core/plugins.ts'
 import type { Command } from '../core/commands.ts'
-import { insertBlock } from '../core/commands.ts'
+import { insertBlock, setBlockType } from '../core/commands.ts'
 import { getBlock } from '../core/doc.ts'
 import { plain } from '../core/text.ts'
 
@@ -271,6 +271,33 @@ const insertFromUrl: Command<{ url: string; at?: 'after' | 'before' | 'end'; tar
   return insertBlock(ctx, { type: guess.type, props: guess.props, at: args.at, target: args.target })
 }
 
+/**
+ * Sets the address of a media block, through the same recogniser a paste goes through.
+ *
+ * It matters for two reasons. A YouTube watch address cannot be put in an iframe (the site
+ * refuses it), so it has to become the embed address, and typing it into the box has to do that
+ * just as pasting it does. And if the address turns out to point at something else than the block
+ * it was typed into, the block becomes what the address says: someone who opens a video and pastes
+ * a `.png` meant an image.
+ */
+const setMediaSource: Command<{ id: string; url: string }> = (ctx, { id, url }) => {
+  const block = getBlock(ctx.tr.doc, id)
+  if (!block) return false
+  const clean = url.trim()
+  if (clean === '') return false
+
+  const guess = classify(clean)
+  // Lo que no se reconoce igual se guarda: puede ser una dirección interna que solo la plataforma
+  // sabe resolver, y negarse dejaría la caja sin forma de aceptar nada.
+  if (!guess) {
+    ctx.tr.setProps(id, { [block.type === 'bookmark' ? 'url' : 'src']: clean })
+    return true
+  }
+  if (guess.type !== block.type) return setBlockType(ctx, { type: guess.type, id, props: guess.props })
+  ctx.tr.setProps(id, guess.props)
+  return true
+}
+
 /** Resizes a media block. Clamped by the prop spec, so a drag can never go out of range. */
 const resizeBlock: Command<{ id: string; width: number }> = ({ tr }, { id, width }) => {
   const b = getBlock(tr.doc, id)
@@ -322,6 +349,7 @@ export const media = (): Plugin => ({
   rules: [typedUrl],
   commands: {
     insertFromUrl: insertFromUrl as Command<never>,
+    setMediaSource: setMediaSource as Command<never>,
     resizeBlock: resizeBlock as Command<never>,
     describeMedia: describeMedia as Command<never>,
   },

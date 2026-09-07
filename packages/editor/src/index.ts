@@ -25,6 +25,7 @@ export * from './ui/float.ts'
 export * from './ui/Popover.tsx'
 export * from './ui/SlashMenu.tsx'
 export * from './ui/FormatBar.tsx'
+export * from './ui/PasteMenu.tsx'
 export * from './ui/BlockHandle.tsx'
 export * from './ui/Toolbox.tsx'
 

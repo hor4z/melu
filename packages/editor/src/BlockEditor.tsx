@@ -18,6 +18,7 @@ import { useNewEditor, useOnChange } from './react/hooks.ts'
 import type { Renderers } from './react/renderers.tsx'
 import { SlashMenu } from './ui/SlashMenu.tsx'
 import { FormatBar } from './ui/FormatBar.tsx'
+import { PasteMenu } from './ui/PasteMenu.tsx'
 import { BlockHandle } from './ui/BlockHandle.tsx'
 import { Toolbox, type ToolboxProps } from './ui/Toolbox.tsx'
 
@@ -79,6 +80,7 @@ export function BlockEditor({
           <BlockHandle />
           <SlashMenu />
           <FormatBar />
+          <PasteMenu />
           {toolbox === false ? null : <Toolbox {...(typeof toolbox === 'object' ? toolbox : {})} />}
         </>
       ) : null}

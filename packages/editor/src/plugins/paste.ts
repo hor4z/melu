@@ -124,26 +124,60 @@ export function looksLikeMarkdown(s: string): boolean {
   return lines.some((l) => /^\s*(#{1,6} |[-*+] |\d{1,3}[.)] |> |```|\|.*\|)/.test(l))
 }
 
+/** Lo que el menú de pegado necesita saber para poder deshacer el link y poner otra cosa. */
+export type PastedUrl = {
+  url: string
+  block: BlockId
+  from: number
+  to: number
+  /** En qué se podría convertir, según el reconocedor. Undefined si no se reconoció nada. */
+  becomes?: { type: string; props: Record<string, unknown> }
+}
+
+/** La llave con la que viaja en el meta de la transacción. */
+export const PASTED_URL = 'pastedUrl'
+
+/**
+ * Una dirección pegada.
+ *
+ * Se pega como link y se ofrece el resto, en lugar de adivinar. Adivinar es tentador y está mal
+ * en las dos direcciones: pegar el link de un video sobre una oración no puede meter un iframe en
+ * el medio, y pegarlo en un renglón vacío tampoco puede decidir por su cuenta que lo que alguien
+ * quería era un reproductor de 400px. Así que el pegado hace lo menos destructivo (texto con su
+ * link, que es lo que se pegó) y anota en el meta de la transacción en qué podría convertirse; el
+ * menú que aparece al lado ofrece las opciones. Es lo que hace Notion, y por esto.
+ *
+ * Con texto seleccionado no hay menú: pegar una dirección encima de algo elegido ya dijo qué
+ * hacer, que es linkear eso.
+ */
 const url: PasteHandler = {
   name: 'url',
   priority: 5,
   types: ['text/uri-list', 'text/plain'],
   run: ({ ctx, data }) => {
-    const trimmed = data.trim()
-    if (!/^https?:\/\/\S+$/.test(trimmed)) return false
+    const href = data.trim()
+    if (!/^https?:\/\/\S+$/.test(href)) return false
     const sel = ctx.state.selection
-    // Con texto seleccionado, una dirección pegada encima lo convierte en link. Eso es lo que se espera.
-    if (isText(sel) && sel.anchor.offset !== sel.head.offset) {
-      return ctx.state.schema.allowsMark(getBlock(ctx.tr.doc, sel.head.block)?.type ?? '', 'link')
-        ? runSetLink(ctx, trimmed)
-        : false
+    if (!isText(sel)) return false
+    const block = getBlock(ctx.tr.doc, sel.head.block)
+    if (!block || !ctx.state.schema.allowsMark(block.type, 'link')) return false
+
+    if (sel.anchor.block !== sel.head.block || sel.anchor.offset !== sel.head.offset) {
+      return runSetLink(ctx, href)
     }
-    const guess = classify(trimmed)
-    if (!guess) return false
-    const block = isText(sel) ? getBlock(ctx.tr.doc, sel.head.block) : undefined
-    // Sobre un párrafo con texto, una dirección se pega como texto con link y no como tarjeta.
-    if (block && !isEmpty(block.text)) return runSetLink(ctx, trimmed, true)
-    return insertBlock(ctx, { type: guess.type, props: guess.props })
+
+    const at = sel.head.offset
+    if (!runSetLink(ctx, href, true)) return false
+    const guess = classify(href)
+    const pasted: PastedUrl = {
+      url: href,
+      block: sel.head.block,
+      from: at,
+      to: at + href.length,
+      ...(guess && guess.type !== 'bookmark' ? { becomes: guess } : {}),
+    }
+    ctx.tr.setMeta(PASTED_URL, pasted)
+    return true
   },
 }
 

@@ -20,6 +20,7 @@ import { useNewEditor } from '../src/react/hooks.ts'
 import { defaultRenderers, type Renderer, type Renderers } from '../src/react/renderers.tsx'
 import { activityKit } from '../src/plugins/index.ts'
 import { fromMarkdown, plain, type BlockJSON, type Editor } from '../src/core/index.ts'
+import { eventoDePegado } from './setup.ts'
 
 const json = (markdown: string): BlockJSON[] =>
   fromMarkdown(markdown).map(function walk(b): BlockJSON {
@@ -618,5 +619,166 @@ describe('el asa', () => {
     expect(screen.getByRole('menu', { name: 'Opciones del bloque' })).toBeInTheDocument()
     expect(screen.getByText('Convertir en')).toBeInTheDocument()
     expect(screen.getByText('Duplicar')).toBeInTheDocument()
+  })
+})
+
+/**
+ * El menú que aparece al pegar una dirección.
+ *
+ * Pegar un link no adivina: pega el link y ofrece el resto. Lo que se prueba acá es el camino
+ * entero, que es donde estaba el bug que se reportó usándolo: el pegado sobre la caja de un bloque
+ * de medios lo agarraba la superficie, cancelaba el evento y la dirección no llegaba a ningún lado.
+ */
+describe('pegar una dirección', () => {
+  const pegar = async (el: HTMLElement, texto: string) => {
+    await act(async () => {
+      el.dispatchEvent(eventoDePegado({ 'text/plain': texto }))
+      await new Promise((r) => requestAnimationFrame(r))
+    })
+  }
+
+  it('la deja como link y ofrece qué hacer con ella', async () => {
+    const { editor } = mount('')
+    caretTo(editor, 0, 0)
+    await pegar(blocks()[0]!, 'https://www.youtube.com/watch?v=1WHPExTeOwg&list=RD1WHPExTeOwg')
+    // El texto quedó, con su link.
+    expect(plain(editor.block(editor.doc.blocks[editor.doc.root]!.children[0]!)?.text)).toContain('youtube.com/watch')
+    const menu = await screen.findByRole('menu', { name: 'Qué hacer con el link' })
+    expect(menu).toBeInTheDocument()
+    expect(screen.getByText('Ponerlo como video')).toBeInTheDocument()
+    expect(screen.getByText('Tarjeta con miniatura')).toBeInTheDocument()
+    expect(screen.getByText('Dejarlo como link')).toBeInTheDocument()
+  })
+
+  it('elegir el video reemplaza el link por el reproductor, ya incrustable', async () => {
+    const user = userEvent.setup()
+    const { editor } = mount('')
+    caretTo(editor, 0, 0)
+    await pegar(blocks()[0]!, 'https://www.youtube.com/watch?v=1WHPExTeOwg&list=RD1WHPExTeOwg')
+    await screen.findByRole('menu', { name: 'Qué hacer con el link' })
+    await user.click(screen.getByText('Ponerlo como video'))
+
+    const ids = editor.doc.blocks[editor.doc.root]!.children
+    const video = ids.map((id) => editor.block(id)!).find((b) => b.type === 'video')
+    expect(video).toBeDefined()
+    expect(String(video!.props!.src)).toBe('https://www.youtube-nocookie.com/embed/1WHPExTeOwg')
+    // Y el link se fue: lo que quedó es el bloque, no las dos cosas.
+    expect(ids.map((id) => plain(editor.block(id)?.text)).join('')).not.toContain('youtube.com/watch')
+  })
+
+  it('dejarlo como link cierra el menú y no toca nada', async () => {
+    const user = userEvent.setup()
+    const { editor } = mount('')
+    caretTo(editor, 0, 0)
+    await pegar(blocks()[0]!, 'https://x.ar/patio.png')
+    await screen.findByRole('menu')
+    await user.click(screen.getByText('Dejarlo como link'))
+    expect(screen.queryByRole('menu')).toBeNull()
+    const tipos = editor.doc.blocks[editor.doc.root]!.children.map((id) => editor.block(id)!.type)
+    expect(tipos).toEqual(['paragraph'])
+  })
+
+  it('seguir escribiendo cierra el menú: el link queda y nadie molesta', async () => {
+    const user = userEvent.setup()
+    const { editor } = mount('')
+    caretTo(editor, 0, 0)
+    await pegar(blocks()[0]!, 'https://x.ar/patio.png')
+    await screen.findByRole('menu')
+    await user.type(blocks()[0]!, ' y')
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+  })
+
+  it('sobre texto seleccionado no aparece: pegar encima de algo elegido ya dijo qué hacer', async () => {
+    const { editor } = mount('ver la página')
+    caretTo(editor, 0, 4, 13)
+    await pegar(blocks()[0]!, 'https://educabot.com')
+    expect(screen.queryByRole('menu', { name: 'Qué hacer con el link' })).toBeNull()
+  })
+})
+
+/**
+ * La caja que pide la dirección de un bloque de medios.
+ *
+ * El bug que se reportó: se agregaba un video, se pegaba la dirección en la caja y no pasaba nada.
+ * La superficie agarraba el pegado antes de que llegara al campo, lo cancelaba, e insertaba un
+ * bloque en otro lado. La caja se quedaba vacía y el video nunca aparecía.
+ */
+describe('la caja de un bloque de medios', () => {
+  const cajaDe = (nombre: string) => screen.getByLabelText(`Dirección del bloque de ${nombre}`)
+
+  it('un video recién puesto pide su dirección', () => {
+    const { editor } = mount('')
+    act(() => {
+      editor.run('insertBlock', { type: 'video' })
+    })
+    expect(cajaDe('video')).toBeInTheDocument()
+  })
+
+  it('pegar la dirección en la caja la deja puesta: la superficie no se la roba', async () => {
+    const { editor } = mount('')
+    act(() => {
+      editor.run('insertBlock', { type: 'video' })
+    })
+    const caja = cajaDe('video')
+    await act(async () => {
+      caja.dispatchEvent(eventoDePegado({ 'text/plain': 'https://www.youtube.com/watch?v=1WHPExTeOwg&list=RD1WHPExTeOwg' }))
+      await new Promise((r) => requestAnimationFrame(r))
+    })
+    const video = Object.values(editor.doc.blocks).find((b) => b.type === 'video')!
+    // Y la dirección quedó lista para incrustar, no la de la página de YouTube.
+    expect(String(video.props!.src)).toBe('https://www.youtube-nocookie.com/embed/1WHPExTeOwg')
+    // La caja ya no está: el video ocupó su lugar.
+    expect(screen.queryByLabelText('Dirección del bloque de video')).toBeNull()
+  })
+
+  it('también confirma con Enter', async () => {
+    const user = userEvent.setup()
+    const { editor } = mount('')
+    act(() => {
+      editor.run('insertBlock', { type: 'image' })
+    })
+    await user.type(cajaDe('imagen'), 'https://x.ar/patio.png{Enter}')
+    const img = Object.values(editor.doc.blocks).find((b) => b.type === 'image')!
+    expect(img.props).toMatchObject({ src: 'https://x.ar/patio.png' })
+  })
+
+  it('y al salir del campo, sin apretar nada', async () => {
+    const user = userEvent.setup()
+    const { editor } = mount('')
+    act(() => {
+      editor.run('insertBlock', { type: 'image' })
+    })
+    await user.type(cajaDe('imagen'), 'https://x.ar/patio.png')
+    await act(async () => {
+      cajaDe('imagen').blur()
+    })
+    const img = Object.values(editor.doc.blocks).find((b) => b.type === 'image')!
+    expect(img.props).toMatchObject({ src: 'https://x.ar/patio.png' })
+  })
+
+  it('una dirección que apunta a otra cosa convierte el bloque', async () => {
+    const user = userEvent.setup()
+    const { editor } = mount('')
+    act(() => {
+      editor.run('insertBlock', { type: 'video' })
+    })
+    // Alguien abrió un video y pegó una imagen: lo que quiso decir es una imagen.
+    await user.type(cajaDe('video'), 'https://x.ar/patio.png{Enter}')
+    const tipos = editor.doc.blocks[editor.doc.root]!.children.map((id) => editor.block(id)!.type)
+    expect(tipos).toContain('image')
+    expect(tipos).not.toContain('video')
+  })
+
+  it('escribir en la caja no dispara los atajos del editor', async () => {
+    const user = userEvent.setup()
+    const { editor } = mount('uno')
+    act(() => {
+      editor.run('insertBlock', { type: 'image' })
+    })
+    const antes = editor.doc.blocks[editor.doc.root]!.children.length
+    // La "/" abriría el menú de bloques si la superficie estuviera escuchando.
+    await user.type(cajaDe('imagen'), '/tabla')
+    expect(screen.queryByRole('listbox')).toBeNull()
+    expect(editor.doc.blocks[editor.doc.root]!.children).toHaveLength(antes)
   })
 })
