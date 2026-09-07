@@ -150,7 +150,7 @@ insert into activities (title, is_recipe, composition, document, rubric) values
  '[{"id":"r1","label":"Opera con decimales en contexto de dinero","levels":["No","Con errores","Correctamente"]},
   {"id":"r2","label":"Participa de la decisión colectiva","levels":["No","Vota","Propone y argumenta"]}]'),
 
-('Reto de la semana', true,
+('Gallinas y conejos', true,
  '{"experience":"challenge","lens":"polya","disciplines":["Matemática · resolución de problemas"],"setting":["screen"],"social":"alone","evidence":["answer"]}',
  '{"phases":[
   {"key":"understand","name":"Entender","blocks":[
