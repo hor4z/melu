@@ -3,7 +3,9 @@
 El design system: los componentes, los tokens y el sitio que los documenta.
 
 ```sh
-npm run dev      # el sitio, en :5174, o `make ui` desde la raíz
+npm run dev        # el sitio, en :5174, o `make ui` desde la raíz
+npm test           # los tests, o `make test` desde la raíz
+npm run test:watch
 npm run typecheck
 npm run lint
 ```
@@ -33,6 +35,23 @@ docs/           el sitio
   examples/     un archivo por ejemplo; se rinde y se muestra el mismo módulo
   props-plugin  las props, leídas del compilador (`virtual:melu-props`)
 ```
+
+## Los tests
+
+Vitest sobre jsdom, con Testing Library. Un archivo por familia en `tests/`, y **fuera de
+`src/` a propósito**: el `@source` del theme escanea `src`, así que una clase escrita en un test
+terminaría en el CSS de la app.
+
+Lo que se prueba es lo que la pieza promete, no cómo está hecha por dentro: se busca por rol y
+por nombre accesible, igual que busca un lector de pantalla. Si un test se cae al refactorizar
+sin que cambie el comportamiento, el test estaba mal escrito.
+
+`tests/setup.ts` pone lo que jsdom no trae y el kit sí usa: `ResizeObserver` (lo pide
+floating-ui) y `matchMedia` (lo pide `useMediaQuery`), que contesta que no salvo que el test
+diga otra cosa con `respondeMedia`.
+
+Y como la doc, la suite se compara sola contra el barril: `tests/cobertura.test.ts` recorre el
+registry y falla si una pieza no aparece nombrada en ningún test.
 
 ## Las páginas de componente
 

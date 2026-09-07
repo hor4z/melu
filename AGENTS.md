@@ -72,4 +72,5 @@ cp .env.example .env     # cargale las credenciales de Google: son obligatorias
 make db                  # postgres en :5434
 make dev                 # api en :8787 + front en :5173
 make ui                  # el sitio del design system, en :5174
+make test                # los tests del kit (vitest + jsdom)
 ```
