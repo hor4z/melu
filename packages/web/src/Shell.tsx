@@ -107,7 +107,11 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
                 onChangeSpace={spaces.length > 1 ? () => setChanging(true) : undefined} onSignOut={signOut} />
             </div>
           </header>
-          <main className="mx-auto max-w-6xl px-6 py-8 lg:px-10">{children}</main>
+          {/* El tope es generoso a propósito: estas pantallas son tablas y grillas, y a 1152 px
+              dejaban aire al costado en cualquier monitor. Sigue habiendo tope para que una fila
+              no se vuelva ilegible de tan larga en una pantalla enorme; la pantalla que necesita
+              menos ancho lo pide ella (el editor). */}
+          <main className="mx-auto max-w-[120rem] px-6 py-8 lg:px-10">{children}</main>
         </div>
       </div>
 

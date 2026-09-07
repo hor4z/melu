@@ -386,6 +386,24 @@ export const REGISTRY: Entry[] = [
     ],
   },
   {
+    slug: 'pagination',
+    title: 'Pagination',
+    group: 'Datos',
+    summary: 'La línea de abajo de una tabla: cuánto se ve y cómo pedir más.',
+    exports: ['Pagination', 'PaginationStatus', 'PaginationMore'],
+    demos: [
+      { id: 'basic', title: 'Cargar más', note: 'El botón se va solo cuando ya no queda nada para pedir: no se deshabilita, desaparece.' },
+    ],
+    when: [
+      'Una tabla o una lista que puede crecer más de lo que entra en una pantalla.',
+      'El back entrega de a tramos y dice si hay más, que es como entrega el nuestro.',
+    ],
+    whenNot: [
+      'Números de página: prometen un total y un salto que un cursor no puede contestar.',
+      'Si el total es chico y se sabe entero, no hay nada que paginar.',
+    ],
+  },
+  {
     slug: 'filter',
     title: 'Filter',
     group: 'Datos',

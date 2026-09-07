@@ -66,7 +66,7 @@ function EditorLoaded({ initial }: { initial: Activity }) {
   const lensName = lenses.data?.find((l) => l.key === a.composition.lens)?.name
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="mx-auto grid w-full max-w-6xl gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
       <div className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <Link to="/activities" className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> Actividades</Link>

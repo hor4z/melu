@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import {
   Avatar, Button, Card, Chip, FilterBar, FilterSearch, FilterSet, Heading, Icon, Text,
   DataList, DataListActions, DataListHead, DataListItem, DataListMedia, DataListMeta, DataListText, DataListTitle,
-  Table, TableBody, TableCaption, TableCell, TableEmpty, TableHead, TableHeader, TableRow,
+  Pagination, PaginationMore, PaginationStatus,
+  Table, TableBody, TableCell, TableEmpty, TableHead, TableHeader, TableRow,
   BREAKPOINTS, facets, useDevice, useMediaQuery,
 } from '@melu/ui'
 import { CircleDot, School, User } from 'lucide-react'
@@ -24,6 +25,10 @@ type Por = 'learner' | 'when' | 'minutes' | 'accuracy'
 
 // El orden de entrada, y el que se recupera cuando no hay cabecera que explique otro.
 const ULTIMO = { por: 'when' as Por, dir: 'desc' as const }
+
+// Cuántas filas se traen de una. Es aproximadamente una pantalla: la idea es que el botón de
+// abajo aparezca cuando hay más para ver, no que haya que pedirlo todo el tiempo.
+const TRAMO = 15
 
 export function Submissions() {
   const nav = useNavigate()
@@ -46,6 +51,7 @@ export function Submissions() {
   // queda cuando alguien lo agrega y todavía no eligió nada.
   const [filtros, setFiltros] = useState<Record<string, string[]>>({})
   const [orden, setOrden] = useState<{ por: Por; dir: 'asc' | 'desc' }>(ULTIMO)
+  const [visibles, setVisibles] = useState(TRAMO)
 
   // Cambiar de espacio no desmonta la pantalla, así que lo que había filtrado se quedaba puesto
   // sobre datos de otro lado: un grupo del espacio anterior dejando la tabla en cero. Se
@@ -56,6 +62,7 @@ export function Submissions() {
     setTexto('')
     setFiltros({})
     setOrden(ULTIMO)
+    setVisibles(TRAMO)
   }
 
   const todas = useMemo(() => q.data ?? [], [q.data])
@@ -109,6 +116,10 @@ export function Submissions() {
   })
 
   // `trim`, como filtra `pasa`: un espacio solo no filtra nada y no tiene que decir que sí.
+  // Lo que se ve es un tramo de lo que quedó filtrado. Pedir más agranda el tramo; el día que
+  // el back entregue de a pedazos, lo que cambia es de dónde salen las filas y no esta línea.
+  const alaVista = lista.slice(0, visibles)
+
   const filtrando = texto.trim() !== '' || Object.values(filtros).some((v) => v.length > 0)
   const limpiar = () => { setTexto(''); setFiltros({}) }
 
@@ -129,7 +140,6 @@ export function Submissions() {
       {e.status === 'submitted' ? 'Corregir' : 'Ver'}
     </Button>
   )
-  const cuenta = filtrando ? `${lista.length} de ${todas.length} entregas` : `${todas.length} entregas`
   const vacio = (
     <Empty
       title="Nada acá"
@@ -160,7 +170,7 @@ export function Submissions() {
             : (
               <>
                 <DataList>
-                  {lista.map((e) => {
+                  {alaVista.map((e) => {
                     const st = ESTADOS[e.status]
                     return (
                       <DataListItem key={e.submissionId} interactive onClick={() => abrir(e)}>
@@ -181,12 +191,10 @@ export function Submissions() {
                     )
                   })}
                 </DataList>
-                <div className="border-t border-line px-4 py-3 text-sm text-ink-muted">{cuenta}</div>
               </>
             ))
           : (
             <Table>
-              <TableCaption className="px-4 pb-4">{cuenta}</TableCaption>
               <TableHeader>
                 <TableRow>
                   <TableHead sort={sentido('learner')} onSort={() => ordenarPor('learner')}>Aprendiz</TableHead>
@@ -202,7 +210,7 @@ export function Submissions() {
               <TableBody>
                 {lista.length === 0
                   ? <TableEmpty colSpan={conRelleno ? 8 : 5}>{vacio}</TableEmpty>
-                  : lista.map((e) => {
+                  : alaVista.map((e) => {
                     const st = ESTADOS[e.status]
                     return (
                       <TableRow key={e.submissionId} interactive onClick={() => abrir(e)}>
@@ -225,6 +233,13 @@ export function Submissions() {
               </TableBody>
             </Table>
           )}
+
+        {lista.length > 0 && (
+          <Pagination>
+            <PaginationStatus shown={alaVista.length} total={todas.length} noun="entregas" />
+            <PaginationMore hasMore={alaVista.length < lista.length} onClick={() => setVisibles((v) => v + TRAMO)} />
+          </Pagination>
+        )}
       </Card>
     </div>
   )

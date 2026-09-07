@@ -47,6 +47,10 @@ export {
   type TableProps, type TableRowProps, type TableHeadProps, type TableCellProps,
 } from './table'
 export {
+  Pagination, PaginationStatus, PaginationMore,
+  type PaginationStatusProps, type PaginationMoreProps,
+} from './pagination'
+export {
   DataList, DataListItem, DataListMedia, DataListHead, DataListTitle, DataListText, DataListMeta, DataListActions,
   type DataListItemProps,
 } from './data-list'

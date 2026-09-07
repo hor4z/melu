@@ -105,6 +105,18 @@ export const COPY: Record<string, string> = {
   'TableCell.numeric': 'Números: a la derecha y con dígitos parejos, para que la columna se lea como columna.',
   TableCaption: 'Qué es la tabla, para quien no puede verla. Se lee debajo.',
   TableEmpty: 'La fila de "no hay nada": una celda a lo ancho, con el `EmptyState` adentro.',
+  Pagination:
+    'La línea de abajo de una tabla: cuánto se está viendo y cómo pedir más. No hay números de '
+    + 'página a propósito. La api entrega un tramo y dice si hay más, así que lo que la persona '
+    + 'puede hacer es justamente eso: pedir más. Los números prometerían un total y un salto que '
+    + 'nadie atrás puede contestar.',
+  'PaginationStatus.shown': 'Cuántas se ven en la pantalla.',
+  'PaginationStatus.total': 'Cuántas hay en total. Sin esto solo se dice lo que se está viendo.',
+  'PaginationStatus.noun': 'Qué se está contando, en plural: "entregas".',
+  'PaginationStatus.children': 'Reemplaza la frase entera cuando la pantalla tiene una mejor.',
+  PaginationStatus: 'Cuánto de cuánto. Es la misma frase en todos lados para que nadie escriba la suya.',
+  PaginationMore: 'Pide el tramo siguiente. Se saca solo de la pantalla cuando ya no hay más.',
+  'PaginationMore.hasMore': 'Con `false` no se rinde: no queda nada para pedir.',
   DataList:
     'Las mismas filas de una `Table`, una abajo de la otra, para cuando no hay ancho. Una tabla en '
     + 'un celular o no se lee o se arrastra de costado, y de costado no la arrastra nadie: acá cada '
