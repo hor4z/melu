@@ -10,10 +10,10 @@ import {
   toJSON,
   toMarkdown,
   toPlainText,
-} from '../src/core/serialize.ts'
-import { assertValid } from '../src/core/doc.ts'
-import { plain } from '../src/core/text.ts'
-import { makeFullEditor } from './helpers.ts'
+} from './serialize.ts'
+import { assertValid } from './doc.ts'
+import { plain } from './text.ts'
+import { makeFullEditor } from '../test/engine.ts'
 
 const round = (md: string) => toMarkdown(docFromJSON(fromJSON(fromMarkdown(md))))
 

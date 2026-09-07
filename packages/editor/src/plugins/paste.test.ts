@@ -11,10 +11,10 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { at, caretAt, editorWith, makeFullEditor, selectRange, sketch, textAt, typeAt } from './helpers.ts'
-import { clipboardFor, looksLikeMarkdown, MELU_MIME, PASTED_URL, type PastedUrl } from '../src/plugins/paste.ts'
-import { plain } from '../src/core/text.ts'
-import { assertValid } from '../src/core/doc.ts'
+import { at, caretAt, editorWith, makeFullEditor, selectRange, sketch, textAt, typeAt } from '../test/engine.ts'
+import { clipboardFor, looksLikeMarkdown, MELU_MIME, PASTED_URL, type PastedUrl } from './paste.ts'
+import { plain } from '../core/text.ts'
+import { assertValid } from '../core/doc.ts'
 
 describe('nuestro propio portapapeles', () => {
   it('lo copiado vuelve exacto, con su anidado y su formato', () => {

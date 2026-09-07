@@ -6,10 +6,10 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { at, caretAt, editorWith, ids, makeEditor, press, selectBlocks, sketch, textAt, type, where } from './helpers.ts'
-import { Editor } from '../src/core/editor.ts'
-import { basics } from '../src/plugins/index.ts'
-import { toJSON } from '../src/core/serialize.ts'
+import { at, caretAt, editorWith, ids, makeEditor, press, selectBlocks, sketch, textAt, type, where } from '../test/engine.ts'
+import { Editor } from './editor.ts'
+import { basics } from '../plugins/index.ts'
+import { toJSON } from './serialize.ts'
 
 /** Un editor con reloj propio, para probar el agrupado sin esperar de verdad. */
 function withClock(...lines: string[]) {

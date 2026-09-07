@@ -5,10 +5,10 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { apply, authorBlocks, authorMarkdown, brief, manifest, outline, readMarkdown } from '../src/core/agent.ts'
-import { makeFullEditor, sketch } from './helpers.ts'
-import { toJSON } from '../src/core/serialize.ts'
-import { plain } from '../src/core/text.ts'
+import { apply, authorBlocks, authorMarkdown, brief, manifest, outline, readMarkdown } from './agent.ts'
+import { makeFullEditor, sketch } from '../test/engine.ts'
+import { toJSON } from './serialize.ts'
+import { plain } from './text.ts'
 
 describe('el manifiesto', () => {
   it('publica todos los tipos con sus props', () => {

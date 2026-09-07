@@ -22,7 +22,7 @@ import {
   toggleMark,
   wordAt,
   type RichText,
-} from '../src/core/text.ts'
+} from './text.ts'
 
 const bold = { type: 'bold' } as const
 const italic = { type: 'italic' } as const

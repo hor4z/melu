@@ -13,7 +13,7 @@ import {
   applySteps,
   StepError,
   type Step,
-} from '../src/core/steps.ts'
+} from './steps.ts'
 import {
   assertValid,
   childrenOf,
@@ -22,7 +22,7 @@ import {
   setBlocks,
   type Block,
   type Doc,
-} from '../src/core/doc.ts'
+} from './doc.ts'
 
 function scene(): Doc {
   let doc = emptyDoc()

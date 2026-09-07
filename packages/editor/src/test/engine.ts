@@ -10,8 +10,8 @@
  * lo produjo, y no uno cualquiera tres archivos más adelante.
  */
 
-import { Editor, fromMarkdown, nameKey, normalizeKey, plain, type BlockInit, type EditorOptions, type Selection } from '../src/core/index.ts'
-import { activityKit, basics } from '../src/plugins/index.ts'
+import { Editor, fromMarkdown, nameKey, normalizeKey, plain, type BlockInit, type EditorOptions, type Selection } from '../core/index.ts'
+import { activityKit, basics } from '../plugins/index.ts'
 
 /** Un editor con los plugins de escritura, sin las preguntas. */
 export const makeEditor = (blocks?: readonly BlockInit[], opts: Partial<EditorOptions> = {}) =>

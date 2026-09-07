@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { coerceProp, coerceProps, defineSchema, fold, type BlockSpec } from '../src/core/schema.ts'
-import { makeFullEditor } from './helpers.ts'
+import { coerceProp, coerceProps, defineSchema, fold, type BlockSpec } from './schema.ts'
+import { makeFullEditor } from '../test/engine.ts'
 
 const specs: BlockSpec[] = [
   { type: 'paragraph', name: 'Texto', group: 'Básicos', content: 'text', container: true },

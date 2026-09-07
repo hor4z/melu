@@ -21,7 +21,7 @@ import {
   subtree,
   validate,
   type Doc,
-} from '../src/core/doc.ts'
+} from './doc.ts'
 
 /**
  * Un documento armado a mano con ids fijos, para poder afirmar sobre nombres y no sobre índices.

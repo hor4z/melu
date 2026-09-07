@@ -15,8 +15,8 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { Editor, type BlockInit } from '../src/core/index.ts'
-import { activityKit, basics } from '../src/plugins/index.ts'
+import { Editor, type BlockInit } from './index.ts'
+import { activityKit, basics } from '../plugins/index.ts'
 
 const parrafos = (n: number): BlockInit[] =>
   Array.from({ length: n }, (_, i) => ({ type: 'paragraph', text: [{ text: `El paso número ${i}` }] }))

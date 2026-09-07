@@ -85,7 +85,7 @@ Eso es exactamente lo que hace Notion, y resulta que es lo que la gente espera.
 **React no maneja los hijos de la región editable.** Dibuja el elemento y sus atributos y ahí para;
 los runs de adentro se ponen a mano. No es preferencia, es obligación: React compara contra el árbol
 que dibujó la última vez, y el navegador estuvo editando ese árbol por atrás, así que su idea de
-"antes" es una ficción. Si se lo deja reconciliar, duplica texto. Está probado en `react.test.tsx`.
+"antes" es una ficción. Si se lo deja reconciliar, duplica texto. Está probado en `react/BlockText.test.tsx`.
 
 **Un paso es un dato JSON, determinista e invertible.** De ahí salen tres cosas: deshacer es el
 inverso de lo que se hizo y no una copia del documento, un agente puede mandar pasos, y algún día
@@ -96,8 +96,8 @@ recordar una letra.
 reemplazar uno copia una entrada. Tipear en el bloque 900 de 1000 reescribe un objeto, así que la
 vista se suscribe por bloque y repinta un párrafo por tecla.
 
-**La suscripción es por bloque y está medida.** `perf.test.ts` afirma que una tecla toca un solo
-bloque con 5 bloques y con 2000, y `react.test.tsx` cuenta los renders. Lo único O(n) del motor es
+**La suscripción es por bloque y está medida.** `core/editor.test.ts` afirma que una tecla toca un
+solo bloque con 5 bloques y con 2000, y `react/hooks.test.tsx` cuenta los renders. Lo único O(n) del motor es
 copiar el mapa al producir el documento nuevo: en una página de 3000 bloques una tecla cuesta
 0,79 ms y 0,73 son esa copia. Está explicado arriba de `setBlock`, con la salida que corresponde el
 día que un documento crezca de verdad.
@@ -227,27 +227,35 @@ no se pierde el texto.
 
 ## Los tests
 
-441, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y no
-"splitBlock con texto vacío". Doce archivos:
+441, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
+no "splitBlock con texto vacío". Cada archivo vive al lado del que prueba, y `src/test/` tiene el
+andamio que comparten (un motor armado, una vista montada):
 
 ```
-text          el modelo de texto: cortar, pegar, marcar, qué formato hereda lo que se escribe
-doc           el mapa plano, el orden de lectura, el chequeo de consistencia
-steps         que aplicar un paso y su inverso devuelva el documento exacto
-commands      el tacto: Enter, Backspace, Tab, borrar una selección que cruza bloques
-marks         formato, incluso sobre varios bloques
-history       deshacer, y que escribir una palabra sea un solo deshacer
-schema        el registro, la búsqueda del menú, la validación de props
-rules         lo que se escribe sin abrir un menú, y lo que el normalizador arregla solo
-serialize     JSON, markdown y HTML, de ida y de vuelta
-paste         el orden de los formatos, que pegar prosa en el medio de una oración no la corte, y
-              qué ofrece el menú al pegar una dirección
-agent         el manifiesto, el esquema, que un lote sea atómico, y que en solo lectura tampoco
-              escriba
-media         las direcciones que rompían: un % suelto, un mapa sin parámetros
-perf          que una tecla toque un bloque con 5 y con 2000, contando y no cronometrando
-react         la costura con el DOM, cuántos componentes se repintan por tecla, el asa y el menú
-              de pegado, de punta a punta
+core/text         el modelo de texto: cortar, pegar, marcar, qué formato hereda lo que se escribe
+core/doc          el mapa plano, el orden de lectura, el chequeo de consistencia
+core/steps        que aplicar un paso y su inverso devuelva el documento exacto
+core/schema       el registro, la búsqueda del menú, la validación de props
+core/history      deshacer, y que escribir una palabra sea un solo deshacer
+core/commands     el tacto: Enter, Backspace, Tab, borrar una selección que cruza bloques, formato
+core/serialize    JSON, markdown y HTML, de ida y de vuelta
+core/agent        el manifiesto, el esquema, que un lote sea atómico, y que en solo lectura no
+                  escriba
+core/editor       la transacción, los avisos, y que una tecla toque un bloque con 5 y con 2000
+plugins/text      lo que se escribe sin abrir un menú, y lo que el normalizador arregla solo
+plugins/layout    tabla y columnas
+plugins/activity  los bloques de pregunta y sus props
+plugins/media     las direcciones que rompían: un % suelto, un mapa sin parámetros
+plugins/paste     el orden de los formatos, y que pegar prosa en el medio de una oración no la corte
+react/renderers   que cada bloque se dibuje con su rol y sus atributos
+react/BlockText   la costura con el DOM: los runs a mano, el caret, el foco
+react/hooks       las suscripciones, y cuántos componentes se repintan por tecla
+react/Surface     la superficie de punta a punta: teclas, copiar, pegar, selección de bloques
+ui/SlashMenu      el menú "/", su filtro y lo que inserta
+ui/FormatBar      la barra que aparece con la selección, y también sobre bloques
+ui/Toolbox        la caja de herramientas y su arrastre
+ui/BlockHandle    el asa: qué bloque señala, el más y el menú de mover
+ui/PasteMenu      qué se ofrece al pegar una dirección
 ```
 
 Lo que depende de geometría (dónde se ubica un menú, en qué renglón está el caret, el arrastre) no

@@ -7,7 +7,15 @@
  */
 
 import { describe, expect, it } from 'vitest'
-import { classify, PROVIDERS } from '../src/plugins/media.ts'
+import { classify, PROVIDERS } from './media.ts'
+import { at, caretAt, makeEditor, type, typeAt } from '../test/engine.ts'
+
+/** Un editor vacío con el caret puesto. */
+function blank() {
+  const e = makeEditor()
+  caretAt(e, 0, 0)
+  return e
+}
 
 describe('direcciones que rompían', () => {
   it('un % suelto no tira una excepción: es un nombre, no un error', () => {
@@ -29,5 +37,26 @@ describe('direcciones que rompían', () => {
   it('y con parámetros usa "&"', () => {
     const maps = PROVIDERS.find((p) => p.name === 'Google Maps')!
     expect(maps.match(new URL('https://www.google.com/maps?q=escuela'))?.src).toContain('?q=escuela&output=embed')
+  })
+})
+
+describe('una dirección de video pegada sola se vuelve el bloque que corresponde', () => {
+  it('un link de YouTube se convierte en video', () => {
+    const e = blank()
+    type(e, 'https://www.youtube.com/watch?v=abc123 ')
+    expect(typeAt(e, 0)).toBe('video')
+    expect(String(e.block(at(e, 0))!.props!.src)).toContain('youtube-nocookie.com/embed/abc123')
+  })
+
+  it('un .png se convierte en imagen', () => {
+    const e = blank()
+    type(e, 'https://x.ar/foto.png ')
+    expect(typeAt(e, 0)).toBe('image')
+  })
+
+  it('una página cualquiera no se convierte sola: eso lo decide quien escribe', () => {
+    const e = blank()
+    type(e, 'https://educabot.com/algo ')
+    expect(typeAt(e, 0)).toBe('paragraph')
   })
 })
