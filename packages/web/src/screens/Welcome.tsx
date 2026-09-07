@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowRight, Check, Copy } from 'lucide-react'
-import { Button, Card, CardContent, CardMedia, DoodleWave, Field, Heading, Icon, Input, Logo, RadioGroup, RadioGroupItem, Text } from '@melu/ui'
+import { Button, Card, CardContent, CardMedia, DoodleWave, Field, Heading, Icon, Input, Logo, RadioGroup, RadioGroupItem, Text, Textarea } from '@melu/ui'
 import { Stepper, UserMenu } from '../blocks/Product'
 import { AddLearners } from '../blocks/AddLearners'
 import { api, type Activity, type Space, type SpaceKind, type Group, type Me } from '../lib/api'
@@ -79,6 +79,7 @@ function Onboarding({ onBack }: { onBack: () => void }) {
   const [name, setName] = useState('')
   const [kind, setKind] = useState<SpaceKind>('personal')
   const [groupName, setGroupName] = useState('')
+  const [groupAbout, setGroupAbout] = useState('')
   const [space, setSpace] = useState<Space | null>(null)
   const [group, setGroup] = useState<Group | null>(null)
   const recipes = useQuery({ queryKey: ['activities'], queryFn: () => api.get<{ recipes: Activity[]; mine: Activity[] }>('/api/activities'), enabled: step === 2 })
@@ -86,7 +87,7 @@ function Onboarding({ onBack }: { onBack: () => void }) {
   const create = useMutation({
     mutationFn: async () => {
       const e = await api.post<Space>('/api/spaces', { name, kind })
-      const g = await api.post<Group>('/api/groups', { spaceId: e.id, name: groupName || 'Mi primer grupo' })
+      const g = await api.post<Group>('/api/groups', { spaceId: e.id, name: groupName || 'Mi primer grupo', description: groupAbout })
       return { e, g }
     },
     onSuccess: ({ e, g }) => { setSpace(e); setGroup(g); setStep(1) },
@@ -114,8 +115,13 @@ function Onboarding({ onBack }: { onBack: () => void }) {
               </RadioGroup>
             </Field>
             <Field label="Tu primer grupo"><Input placeholder="4° A · Matemática" value={groupName} onChange={(e) => setGroupName(e.target.value)} required /></Field>
+            {/* Lo mismo que se pide para crear un grupo desde adentro: el nombre lo distingue,
+                esto cuenta de qué se trata. */}
+            <Field label="De qué se trata" required description="Cuándo se juntan, con qué acuerdo, qué están haciendo.">
+              <Textarea placeholder="El grado de la mañana. Este trimestre venimos con fracciones." value={groupAbout} onChange={(e) => setGroupAbout(e.target.value)} rows={2} autoGrow />
+            </Field>
             {create.isError && <Text size="sm" variant="danger">No se pudo crear. Probá de nuevo.</Text>}
-            <div className="flex gap-2"><Button type="submit" loading={create.isPending}>Crear y seguir</Button><Button variant="ghost" onClick={onBack}>Volver</Button></div>
+            <div className="flex gap-2"><Button type="submit" loading={create.isPending} disabled={groupAbout.trim() === ''}>Crear y seguir</Button><Button variant="ghost" onClick={onBack}>Volver</Button></div>
           </div>
           <Card variant="teal" padding="md" className="text-sm"><div className="font-semibold">Después vas a poder</div><ul className="mt-2 list-disc space-y-1 pl-4 text-ink-muted"><li>Crear más grupos y espacios.</li><li>Invitar a otros docentes a coeditar.</li><li>Cambiar todo esto.</li></ul></Card>
         </form></Card>
