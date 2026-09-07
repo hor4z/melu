@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   kit:
-    name: Kit y front
+    name: Kit, motor y front
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +36,15 @@ jobs:
 
       - name: Tests del kit
         run: npm test -w @melu/ui
+
+      - name: Tipos del motor de bloques
+        run: npm run typecheck -w @melu/editor
+
+      - name: Lint del motor de bloques
+        run: npm run lint -w @melu/editor
+
+      - name: Tests del motor de bloques
+        run: npm test -w @melu/editor
 
       - name: Lint del front
         run: npm run lint -w @melu/web

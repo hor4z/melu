@@ -1,0 +1,1119 @@
+/* Cada color es un token con respaldo: solo se ve como melu si melu está. Las medidas son las de
+   Notion, medidas con regla. */
+
+.melu-surface {
+  /* ------- medidas ------- */
+  --melu-column: 720px;
+  --melu-text: 16px;
+  --melu-line: 1.5;
+  --melu-pad: 3px;
+  --melu-gutter: 6px;
+  --melu-indent: 26px;
+  --melu-radius: 6px;
+  /* El canal del asa, reservado adentro: afuera lo recorta cualquier ancestro con scroll. Tiene
+     que coincidir con `RAIL` en BlockHandle.tsx. */
+  --melu-rail: 52px;
+  --melu-size-sm: 14px;
+  --melu-size-lg: 20px;
+
+  /* ------- colores, con lo de melu si está y algo propio si no ------- */
+  --melu-ink: var(--text, #1b2624);
+  --melu-ink-soft: var(--text-muted, #5c6b68);
+  --melu-ink-faint: var(--text-subtle, #93a19e);
+  --melu-paper: var(--surface, #ffffff);
+  --melu-hover: var(--surface-hover, rgba(34, 47, 45, 0.04));
+  --melu-active: var(--surface-active, rgba(34, 47, 45, 0.08));
+  --melu-edge: var(--border, #dce5e3);
+  --melu-edge-firm: var(--border-strong, #c3d2cf);
+  --melu-accent: var(--brand, #10756e);
+  --melu-accent-wash: var(--accent-subtle, #e6f2f1);
+  --melu-danger: var(--danger, #c2453c);
+  --melu-pop: var(--popover, #ffffff);
+  --melu-shadow: var(--shadow-card, 0 1px 2px rgba(34, 47, 45, 0.06), 0 12px 28px -14px rgba(34, 47, 45, 0.24));
+
+  /* ------- los diez tonos, para texto y para fondo ------- */
+  --melu-tone-default: var(--melu-ink);
+  --melu-tone-gray: #6b7a77;
+  --melu-tone-brown: #8a6a4f;
+  --melu-tone-orange: #c1703a;
+  --melu-tone-yellow: #a8842a;
+  --melu-tone-green: #3f7d55;
+  --melu-tone-blue: #3a6ea8;
+  --melu-tone-purple: #7255a8;
+  --melu-tone-pink: #b04f83;
+  --melu-tone-red: #c2453c;
+
+  --melu-wash-default: transparent;
+  --melu-wash-gray: #f1f3f2;
+  --melu-wash-brown: #f6efe8;
+  --melu-wash-orange: #fdf0e6;
+  --melu-wash-yellow: #fdf6e0;
+  --melu-wash-green: #ebf5ee;
+  --melu-wash-blue: #eaf1f9;
+  --melu-wash-purple: #f2eefa;
+  --melu-wash-pink: #fceef5;
+  --melu-wash-red: #fdeeed;
+
+  position: relative;
+  /* La columna de texto sigue midiendo lo mismo: el canal se suma, no se resta. */
+  max-width: calc(var(--melu-column) + var(--melu-rail));
+  margin-inline: auto;
+  padding-block: 8px 40vh;
+  padding-inline-start: var(--melu-rail);
+  color: var(--melu-ink);
+  font-size: var(--melu-text);
+  line-height: var(--melu-line);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif);
+  outline: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.melu-surface *,
+.melu-surface *::before,
+.melu-surface *::after {
+  box-sizing: border-box;
+}
+
+/* -------------------------------------------------------------------------- bloques */
+
+.melu-block {
+  position: relative;
+  scroll-margin-block: 96px;
+}
+
+.melu-children {
+  /* La sangría es un margen, no un padding: así el fondo de un bloque hijo llega hasta el borde. */
+  margin-left: var(--melu-indent);
+}
+
+.melu-block[data-picked] > :where(.melu-paragraph, .melu-h1, .melu-h2, .melu-h3, .melu-item, .melu-figure, .melu-quote, .melu-callout, .melu-ask, .melu-code-block, .melu-table-wrap) {
+  background: var(--melu-accent-wash);
+  border-radius: var(--melu-radius);
+}
+
+.melu-block[data-melu-drop-hint] {
+  box-shadow: inset 0 -2px 0 0 var(--melu-accent);
+}
+
+.melu-text {
+  padding: var(--melu-pad) var(--melu-gutter);
+  outline: none;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  /* Un editable sin esto no deja poner el caret en un bloque vacío en algunos navegadores. */
+  min-height: calc(var(--melu-text) * var(--melu-line));
+  caret-color: var(--melu-ink);
+}
+
+.melu-text.melu-empty::before {
+  content: attr(data-placeholder);
+  color: var(--melu-ink-faint);
+  pointer-events: none;
+  position: absolute;
+  /* Absoluto para no ocupar lugar: si no, el bloque vacío mide distinto que el escrito. */
+}
+
+.melu-paragraph {
+  font-size: inherit;
+}
+
+.melu-h1,
+.melu-h2,
+.melu-h3 {
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.melu-h1 { font-size: 1.875em; padding-top: 1.4em; }
+.melu-h2 { font-size: 1.45em; padding-top: 1.2em; }
+.melu-h3 { font-size: 1.175em; padding-top: 1em; }
+
+/* El primer bloque de la página no lleva ese aire arriba. */
+.melu-surface > .melu-block:first-child :where(.melu-h1, .melu-h2, .melu-h3) { padding-top: 0.25em; }
+
+/* -------------------------------------------------------------------------- marcas */
+
+.melu-b { font-weight: 650; }
+.melu-i { font-style: italic; }
+.melu-u { text-decoration: underline; text-underline-offset: 2px; }
+.melu-s { text-decoration: line-through; }
+
+.melu-code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 0.86em;
+  background: var(--melu-wash-gray);
+  color: var(--melu-tone-red);
+  padding: 0.15em 0.35em;
+  border-radius: 4px;
+}
+
+.melu-link {
+  color: var(--melu-accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--melu-accent) 40%, transparent);
+  text-underline-offset: 2px;
+  cursor: text;
+}
+
+/* -------------------------------------------------------------------------- listas */
+
+.melu-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.melu-item-body { flex: 1 1 auto; min-width: 0; }
+
+.melu-bullet,
+.melu-ordinal {
+  flex: 0 0 auto;
+  min-width: 22px;
+  padding-top: var(--melu-pad);
+  color: var(--melu-ink-soft);
+  text-align: center;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.melu-bullet { font-size: 1.1em; line-height: calc(var(--melu-text) * var(--melu-line) / 1.1); }
+
+/* La numeración la cuenta el navegador: en JS quedaba vieja cuando el ítem de arriba dejaba de
+   ser una lista. */
+.melu-block { counter-reset: melu-ol 0; }
+.melu-block[data-type="numbered_list"] { counter-reset: none; }
+/* El incremento va donde va el reinicio: en un mismo elemento se procesa después, y es lo que
+   hace que un ítem que arranca en cinco muestre cinco. */
+.melu-block[data-type="numbered_list"] > .melu-item > .melu-ordinal { counter-increment: melu-ol; }
+.melu-block[data-type="numbered_list"] > .melu-item > .melu-ordinal::before { content: counter(melu-ol) "."; }
+/* Una lista anidada empieza de nuevo en uno, y no sigue la numeración de la de afuera. */
+.melu-children { counter-reset: melu-ol 0; }
+
+.melu-checkbox {
+  flex: 0 0 auto;
+  margin: calc(var(--melu-pad) + 0.28em) 4px 0 3px;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--melu-accent);
+  cursor: pointer;
+}
+
+.melu-done { color: var(--melu-ink-faint); text-decoration: line-through; }
+
+/* Dos ítems seguidos van más juntos que dos párrafos: se leen como una sola lista. */
+.melu-block[data-type$="_list"] + .melu-block[data-type$="_list"] > .melu-item,
+.melu-block[data-type="todo"] + .melu-block[data-type="todo"] > .melu-item { margin-top: -2px; }
+
+/* -------------------------------------------------------------------------- desplegable */
+
+.melu-twisty {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: calc(var(--melu-text) * var(--melu-line));
+  margin-top: var(--melu-pad);
+  border: 0;
+  background: none;
+  color: var(--melu-ink-soft);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease;
+}
+
+.melu-twisty:hover { background: var(--melu-hover); }
+.melu-toggle[data-open="true"] .melu-twisty { transform: rotate(90deg); }
+
+.melu-toggle-body { margin-left: 22px; }
+
+.melu-toggle-empty {
+  margin-left: 24px;
+  padding: 4px 6px;
+  color: var(--melu-ink-faint);
+  font-size: 0.875em;
+}
+
+/* -------------------------------------------------------------------------- cita, destacado */
+
+.melu-quote {
+  margin: 2px 0;
+  padding-left: 14px;
+  border-left: 3px solid var(--melu-ink);
+  font-size: 1.05em;
+}
+
+.melu-callout {
+  display: flex;
+  gap: 10px;
+  margin: 6px 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--melu-wash-yellow);
+}
+
+.melu-callout[data-tone] { background: var(--melu-wash-yellow); }
+.melu-callout[data-tone="gray"] { background: var(--melu-wash-gray); }
+.melu-callout[data-tone="brown"] { background: var(--melu-wash-brown); }
+.melu-callout[data-tone="orange"] { background: var(--melu-wash-orange); }
+.melu-callout[data-tone="green"] { background: var(--melu-wash-green); }
+.melu-callout[data-tone="blue"] { background: var(--melu-wash-blue); }
+.melu-callout[data-tone="purple"] { background: var(--melu-wash-purple); }
+.melu-callout[data-tone="pink"] { background: var(--melu-wash-pink); }
+.melu-callout[data-tone="red"] { background: var(--melu-wash-red); }
+.melu-callout[data-tone="default"] { background: var(--melu-wash-gray); }
+
+.melu-callout-emoji { font-size: 1.1em; line-height: 1.45; user-select: none; }
+.melu-callout-body { flex: 1 1 auto; min-width: 0; }
+.melu-callout-body > .melu-text { padding-inline: 0; }
+
+.melu-divider {
+  border: 0;
+  border-top: 1px solid var(--melu-edge);
+  margin: 14px 6px;
+}
+
+/* -------------------------------------------------------------------------- código */
+
+.melu-code-block {
+  margin: 8px 0;
+  border: 1px solid var(--melu-edge);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--melu-wash-gray);
+}
+
+.melu-code-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px 5px 12px;
+  border-bottom: 1px solid var(--melu-edge);
+  background: var(--melu-paper);
+}
+
+.melu-code-lang { font-size: 0.75em; color: var(--melu-ink-soft); text-transform: uppercase; letter-spacing: 0.06em; }
+
+pre.melu-code {
+  margin: 0;
+  padding: 12px 14px;
+  background: none;
+  color: var(--melu-ink);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 0.86em;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+  border-radius: 0;
+}
+
+pre.melu-code.melu-wrap { white-space: pre-wrap; overflow-x: visible; }
+
+/* -------------------------------------------------------------------------- medios */
+
+.melu-figure {
+  position: relative;
+  margin: 8px 0;
+  max-width: 100%;
+}
+
+.melu-figure img,
+.melu-figure video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+.melu-rounded { border-radius: 8px; }
+
+.melu-frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 8px;
+  background: var(--melu-wash-gray);
+}
+
+.melu-caption {
+  margin-top: 6px;
+  color: var(--melu-ink-soft);
+  font-size: 0.85em;
+  text-align: center;
+}
+
+.melu-media-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
+  padding: 14px;
+  border: 1px dashed var(--melu-edge-firm);
+  border-radius: 8px;
+  background: var(--melu-wash-gray);
+  color: var(--melu-ink-soft);
+}
+
+.melu-media-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid var(--melu-edge);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.9em;
+  background: var(--melu-paper);
+  color: var(--melu-ink);
+}
+
+.melu-media-input:focus-visible { outline: 2px solid var(--melu-accent); outline-offset: 1px; }
+
+/* Las manijas de redimensionar: se ven al pasar por encima, como en Notion. */
+.melu-resize { position: absolute; inset: 0; pointer-events: none; }
+
+.melu-resize > button {
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 44px;
+  max-height: 60%;
+  transform: translateY(-50%);
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  background: rgba(27, 38, 36, 0.55);
+  opacity: 0;
+  cursor: ew-resize;
+  pointer-events: auto;
+  transition: opacity 120ms ease;
+}
+
+.melu-grip-left { left: 5px; }
+.melu-grip-right { right: 5px; }
+
+.melu-figure:hover .melu-resize > button,
+.melu-block[data-picked] .melu-resize > button { opacity: 1; }
+
+.melu-audio {
+  margin: 8px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--melu-edge);
+  border-radius: 8px;
+}
+
+.melu-audio-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--melu-ink-soft); }
+.melu-audio-title { font-size: 0.9em; font-weight: 500; color: var(--melu-ink); }
+.melu-audio audio { width: 100%; }
+.melu-transcript { margin-top: 8px; font-size: 0.875em; color: var(--melu-ink-soft); }
+.melu-transcript summary { cursor: pointer; }
+
+.melu-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--melu-edge);
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+  transition: background 120ms ease;
+}
+
+.melu-file:hover { background: var(--melu-hover); }
+.melu-file-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.melu-file-size { color: var(--melu-ink-faint); font-size: 0.85em; }
+
+.melu-bookmark {
+  display: flex;
+  gap: 14px;
+  margin: 8px 0;
+  border: 1px solid var(--melu-edge);
+  border-radius: 8px;
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  transition: background 120ms ease;
+}
+
+.melu-bookmark:hover { background: var(--melu-hover); }
+.melu-bookmark-text { flex: 1 1 auto; min-width: 0; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.melu-bookmark-title { font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.melu-bookmark-desc { color: var(--melu-ink-soft); font-size: 0.85em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.melu-bookmark-site { display: flex; align-items: center; gap: 6px; color: var(--melu-ink-faint); font-size: 0.78em; }
+.melu-bookmark-thumb { width: 33%; max-width: 180px; object-fit: cover; }
+.melu-bookmark[data-loading="true"] { opacity: 0.6; }
+
+/* -------------------------------------------------------------------------- tabla */
+
+.melu-table-wrap { position: relative; margin: 8px 0; }
+
+/* Grilla y no `display: table`: los envoltorios `.melu-block` cortan la cadena fila-celda y la
+   tabla se desarma en una columna. Con `display: contents` salen del layout. */
+.melu-table {
+  display: grid;
+  grid-template-columns: repeat(var(--melu-cols, 3), minmax(96px, 1fr));
+  border: 1px solid var(--melu-edge);
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+.melu-table .melu-children,
+.melu-table .melu-block[data-type="table_row"],
+.melu-table .melu-row,
+.melu-table .melu-block[data-type="table_cell"] {
+  display: contents;
+}
+
+.melu-cell {
+  border-right: 1px solid var(--melu-edge);
+  border-bottom: 1px solid var(--melu-edge);
+  min-width: 0;
+}
+
+/* El borde de afuera ya lo pone el marco: la última columna y la última fila no lo repiten. */
+.melu-table .melu-block[data-type="table_row"]:last-child .melu-cell { border-bottom: 0; }
+.melu-table .melu-block[data-type="table_cell"]:last-child .melu-cell { border-right: 0; }
+
+.melu-cell > .melu-text { padding: 7px 9px; min-height: 0; }
+
+.melu-table[data-header="true"] .melu-block[data-type="table_row"]:first-child .melu-cell {
+  background: var(--melu-wash-gray);
+  font-weight: 550;
+}
+
+.melu-table-controls {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.melu-table-wrap:hover .melu-table-controls,
+.melu-table-wrap:focus-within .melu-table-controls { opacity: 1; }
+
+/* -------------------------------------------------------------------------- columnas */
+
+.melu-columns {
+  display: flex;
+  align-items: flex-start;
+  margin: 6px 0;
+}
+
+.melu-column { flex: 1 1 0; min-width: 0; }
+
+/* Lo prometido: en pantalla angosta las columnas se apilan solas. */
+@container (max-width: 640px) {
+  .melu-columns { flex-direction: column; }
+  .melu-column { width: 100%; }
+}
+
+@media (max-width: 640px) {
+  .melu-columns { flex-direction: column; }
+  .melu-column { width: 100%; }
+}
+
+/* -------------------------------------------------------------------------- índice, reloj, fórmula */
+
+.melu-toc {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin: 6px 0;
+  padding: 8px 6px;
+  border-left: 2px solid var(--melu-edge);
+}
+
+.melu-toc-empty { color: var(--melu-ink-faint); font-size: 0.9em; }
+
+.melu-toc-item {
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: var(--melu-ink-soft);
+  font: inherit;
+  font-size: 0.94em;
+  cursor: pointer;
+}
+
+.melu-toc-item:hover { background: var(--melu-hover); color: var(--melu-ink); }
+.melu-toc-item[data-level="2"] { padding-left: 22px; }
+.melu-toc-item[data-level="3"] { padding-left: 38px; }
+
+.melu-timer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+  padding: 10px 14px;
+  border: 1px solid var(--melu-edge);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.melu-timer-face {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.melu-timer-time { font-variant-numeric: tabular-nums; font-size: 1.35em; font-weight: 600; }
+.melu-timer-label { color: var(--melu-ink-soft); font-size: 0.9em; flex: 1 1 auto; }
+.melu-timer[data-done="true"] { border-color: var(--melu-danger); }
+.melu-timer[data-done="true"] .melu-timer-time { color: var(--melu-danger); }
+
+.melu-timer-bar {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3px;
+  background: var(--melu-accent);
+  width: var(--melu-progress, 100%);
+  transition: width 1s linear;
+}
+
+.melu-math { margin: 8px 0; text-align: center; }
+.melu-math[data-align="left"] { text-align: left; }
+
+.melu-math-view {
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.melu-math-view:hover { background: var(--melu-hover); }
+
+.melu-math-input {
+  width: 100%;
+  border: 1px solid var(--melu-edge);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.9em;
+  background: var(--melu-paper);
+  color: var(--melu-ink);
+}
+
+/* -------------------------------------------------------------------------- preguntas */
+
+.melu-ask {
+  margin: 10px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--melu-edge);
+  border-left: 3px solid var(--melu-accent);
+  border-radius: 8px;
+  background: var(--melu-paper);
+}
+
+.melu-ask-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  color: var(--melu-accent);
+}
+
+.melu-ask-label { font-size: 0.74em; font-weight: 650; text-transform: uppercase; letter-spacing: 0.07em; }
+
+.melu-ask-points {
+  margin-left: auto;
+  color: var(--melu-ink-faint);
+  font-size: 0.74em;
+  font-weight: 550;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.melu-ask-prompt { padding-inline: 0; font-weight: 500; }
+
+.melu-options { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
+
+.melu-option { display: flex; align-items: center; gap: 7px; }
+
+.melu-option-mark {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--melu-edge-firm);
+  border-radius: 50%;
+  background: var(--melu-paper);
+  color: transparent;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.melu-option[data-right="true"] .melu-option-mark {
+  border-color: var(--melu-accent);
+  background: var(--melu-accent);
+  color: #fff;
+}
+
+.melu-radio { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+.melu-option-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 0.95em;
+  background: var(--melu-wash-gray);
+  color: var(--melu-ink);
+}
+
+.melu-option-text:focus-visible { outline: none; border-color: var(--melu-accent); background: var(--melu-paper); }
+.melu-option-drop { opacity: 0; }
+.melu-option:hover .melu-option-drop { opacity: 1; }
+
+.melu-pair { display: flex; align-items: center; gap: 7px; color: var(--melu-ink-faint); }
+
+.melu-fields { display: flex; flex-wrap: wrap; gap: 10px 14px; margin-top: 10px; }
+.melu-fields.melu-stack { flex-direction: column; align-items: stretch; }
+
+.melu-field { display: flex; flex-direction: column; gap: 3px; font-size: 0.8em; color: var(--melu-ink-soft); }
+.melu-field-label { font-size: 0.8em; color: var(--melu-ink-soft); }
+
+.melu-field input {
+  width: 100%;
+  min-width: 70px;
+  border: 1px solid var(--melu-edge);
+  border-radius: 6px;
+  padding: 5px 7px;
+  font: inherit;
+  font-size: 1.1em;
+  background: var(--melu-paper);
+  color: var(--melu-ink);
+}
+
+.melu-field input:focus-visible { outline: none; border-color: var(--melu-accent); }
+
+.melu-pills { display: flex; gap: 4px; }
+
+.melu-pill {
+  border: 1px solid var(--melu-edge);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font: inherit;
+  font-size: 1.05em;
+  background: var(--melu-paper);
+  color: var(--melu-ink-soft);
+  cursor: pointer;
+}
+
+.melu-pill[aria-pressed="true"] { border-color: var(--melu-accent); background: var(--melu-accent-wash); color: var(--melu-accent); }
+
+.melu-blanks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+.melu-blank-chip {
+  border-radius: 999px;
+  padding: 2px 9px;
+  background: var(--melu-accent-wash);
+  color: var(--melu-accent);
+  font-size: 0.8em;
+  font-weight: 550;
+}
+
+.melu-hint { color: var(--melu-ink-faint); font-size: 0.85em; }
+
+/* -------------------------------------------------------------------------- lo desconocido */
+
+.melu-unknown {
+  margin: 6px 0;
+  padding: 8px 10px;
+  border: 1px dashed var(--melu-edge-firm);
+  border-radius: 8px;
+}
+
+.melu-unknown-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 2px;
+  color: var(--melu-ink-faint);
+  font-size: 0.74em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* -------------------------------------------------------------------------- el asa */
+
+/* La ubica JS en coordenadas de la superficie: sin `transform`, que era lo que la desalineaba. El
+   `padding-right` es el puente para que el puntero llegue al más sin salirse del asa. */
+.melu-handle {
+  position: absolute;
+  display: flex;
+  gap: 1px;
+  padding-right: 6px;
+  z-index: 5;
+}
+
+.melu-handle-btn {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 26px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: var(--melu-ink-faint);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.melu-handle-btn:hover { background: var(--melu-hover); color: var(--melu-ink-soft); }
+.melu-grip { cursor: grab; }
+body.melu-dragging, body.melu-dragging * { cursor: grabbing !important; user-select: none !important; }
+
+.melu-tail { height: 30vh; min-height: 120px; cursor: text; }
+
+/* -------------------------------------------------------------------------- lo que flota */
+
+.melu-pop {
+  position: fixed;
+  z-index: 60;
+  min-width: 180px;
+  max-width: min(360px, calc(100vw - 24px));
+  overflow: auto;
+  border: 1px solid var(--melu-edge);
+  border-radius: 10px;
+  background: var(--melu-pop);
+  box-shadow: var(--melu-shadow);
+  font-size: 14px;
+  color: var(--melu-ink);
+  animation: melu-in 110ms ease-out;
+}
+
+@keyframes melu-in {
+  from { opacity: 0; transform: translateY(-3px) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .melu-pop { animation: none; }
+  * { transition-duration: 0.01ms !important; }
+}
+
+.melu-menu { padding: 5px; display: flex; flex-direction: column; }
+.melu-menu-scroll { max-height: 320px; overflow-y: auto; }
+.melu-menu-group { display: flex; flex-direction: column; }
+
+.melu-menu-title {
+  padding: 6px 9px 3px;
+  color: var(--melu-ink-faint);
+  font-size: 0.72em;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.melu-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.melu-menu-item:hover,
+.melu-menu-item[data-active] { background: var(--melu-hover); }
+.melu-menu-item[data-danger] { color: var(--melu-danger); }
+
+.melu-menu-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--melu-edge);
+  border-radius: 5px;
+  color: var(--melu-ink-soft);
+}
+
+.melu-menu-text { display: flex; flex-direction: column; min-width: 0; }
+.melu-menu-name { font-weight: 500; }
+.melu-menu-hint { color: var(--melu-ink-faint); font-size: 0.82em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.melu-menu-key { margin-left: auto; color: var(--melu-ink-faint); font-size: 0.78em; }
+.melu-menu-more { margin-left: auto; color: var(--melu-ink-faint); }
+.melu-menu-line { height: 1px; margin: 4px 6px; background: var(--melu-edge); }
+.melu-menu-empty { padding: 12px 11px; color: var(--melu-ink-soft); }
+
+/* -------------------------------------------------------------------------- barra de formato */
+
+.melu-bar {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 4px;
+  min-width: 0;
+}
+
+.melu-bar-btn {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  font: inherit;
+  font-size: 0.9em;
+  color: var(--melu-ink-soft);
+  cursor: pointer;
+}
+
+.melu-bar-btn:hover { background: var(--melu-hover); color: var(--melu-ink); }
+.melu-bar-btn[data-active] { color: var(--melu-accent); background: var(--melu-accent-wash); }
+.melu-bar-turn { display: flex; gap: 4px; white-space: nowrap; }
+.melu-bar-sep { width: 1px; height: 18px; margin: 0 3px; background: var(--melu-edge); }
+.melu-rot { transform: rotate(90deg); }
+
+.melu-swatches { padding: 6px; }
+.melu-swatch-row { display: flex; flex-wrap: wrap; gap: 4px; padding: 2px 3px 8px; }
+
+.melu-swatch {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--melu-edge);
+  border-radius: 5px;
+  background: var(--melu-paper);
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.melu-swatch[data-tone="default"] { color: var(--melu-tone-default); }
+.melu-swatch[data-tone="gray"] { color: var(--melu-tone-gray); }
+.melu-swatch[data-tone="brown"] { color: var(--melu-tone-brown); }
+.melu-swatch[data-tone="orange"] { color: var(--melu-tone-orange); }
+.melu-swatch[data-tone="yellow"] { color: var(--melu-tone-yellow); }
+.melu-swatch[data-tone="green"] { color: var(--melu-tone-green); }
+.melu-swatch[data-tone="blue"] { color: var(--melu-tone-blue); }
+.melu-swatch[data-tone="purple"] { color: var(--melu-tone-purple); }
+.melu-swatch[data-tone="pink"] { color: var(--melu-tone-pink); }
+.melu-swatch[data-tone="red"] { color: var(--melu-tone-red); }
+
+.melu-swatch-bg[data-tone="default"] { background: var(--melu-wash-default); }
+.melu-swatch-bg[data-tone="gray"] { background: var(--melu-wash-gray); }
+.melu-swatch-bg[data-tone="brown"] { background: var(--melu-wash-brown); }
+.melu-swatch-bg[data-tone="orange"] { background: var(--melu-wash-orange); }
+.melu-swatch-bg[data-tone="yellow"] { background: var(--melu-wash-yellow); }
+.melu-swatch-bg[data-tone="green"] { background: var(--melu-wash-green); }
+.melu-swatch-bg[data-tone="blue"] { background: var(--melu-wash-blue); }
+.melu-swatch-bg[data-tone="purple"] { background: var(--melu-wash-purple); }
+.melu-swatch-bg[data-tone="pink"] { background: var(--melu-wash-pink); }
+.melu-swatch-bg[data-tone="red"] { background: var(--melu-wash-red); }
+
+.melu-link-form { display: flex; gap: 5px; padding: 6px; }
+
+.melu-link-input {
+  flex: 1 1 auto;
+  min-width: 150px;
+  border: 1px solid var(--melu-edge);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+  background: var(--melu-paper);
+  color: var(--melu-ink);
+}
+
+.melu-link-input:focus-visible { outline: none; border-color: var(--melu-accent); }
+
+/* -------------------------------------------------------------------------- el arrastre */
+
+.melu-drop-line {
+  position: absolute;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--melu-accent);
+  pointer-events: none;
+  z-index: 40;
+}
+
+.melu-drop-line::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--melu-accent);
+}
+
+.melu-drop-inside {
+  position: absolute;
+  border: 2px solid var(--melu-accent);
+  border-radius: 6px;
+  background: var(--melu-accent-wash);
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 40;
+}
+
+/* -------------------------------------------------------------------------- la caja de herramientas */
+
+.melu-toolbox {
+  /* Fija a la ventana y no a la columna: la columna mide 720px y la caja quedaría encima del
+     texto, que es justo lo que no tiene que tapar. */
+  position: fixed;
+  z-index: 50;
+  width: 236px;
+  border: 1px solid var(--melu-edge);
+  border-radius: 12px;
+  background: var(--melu-pop);
+  box-shadow: var(--melu-shadow);
+  font-size: 13px;
+  user-select: none;
+}
+
+.melu-toolbox-bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 8px 7px 10px;
+  border-bottom: 1px solid var(--melu-edge);
+  cursor: grab;
+}
+
+.melu-toolbox[data-open="false"] .melu-toolbox-bar { border-bottom: 0; }
+.melu-toolbox-move { color: var(--melu-ink-faint); }
+.melu-toolbox-title { flex: 1 1 auto; font-weight: 600; }
+.melu-toolbox-body { max-height: min(70vh, 520px); overflow-y: auto; overflow-x: hidden; padding: 6px; }
+
+.melu-toolbox-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 2px 8px;
+  padding: 5px 8px;
+  border: 1px solid var(--melu-edge);
+  border-radius: 7px;
+  color: var(--melu-ink-faint);
+}
+
+.melu-toolbox-search input { flex: 1 1 auto; min-width: 0; border: 0; background: none; font: inherit; color: var(--melu-ink); outline: none; }
+.melu-toolbox-group { margin-bottom: 4px; }
+.melu-toolbox-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+
+.melu-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 8px;
+  border: 1px solid var(--melu-edge);
+  border-radius: 8px;
+  background: var(--melu-paper);
+  font: inherit;
+  font-size: 0.92em;
+  color: var(--melu-ink);
+  text-align: left;
+  cursor: grab;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.melu-tool:hover { border-color: var(--melu-accent); background: var(--melu-accent-wash); }
+.melu-tool > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.melu-tool[data-dragging] { opacity: 0.4; }
+.melu-tool svg { color: var(--melu-ink-soft); }
+
+.melu-toolbox-foot { margin: 10px 4px 2px; color: var(--melu-ink-faint); font-size: 0.85em; line-height: 1.4; }
+.melu-toolbox-foot kbd {
+  border: 1px solid var(--melu-edge);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 0 4px;
+  font-family: inherit;
+  font-size: 0.9em;
+}
+
+.melu-tool-ghost {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: var(--bg-inverted, #1b2624);
+  color: #fff;
+  font-size: 12.5px;
+  font-weight: 550;
+  pointer-events: none;
+  box-shadow: 0 6px 18px -6px rgba(0, 0, 0, 0.4);
+}
+
+/* -------------------------------------------------------------------------- misc */
+
+.melu-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  border-radius: 5px;
+  padding: 3px 7px;
+  background: none;
+  font: inherit;
+  font-size: 0.82em;
+  color: var(--melu-ink-soft);
+  cursor: pointer;
+}
+
+.melu-ghost:hover { background: var(--melu-hover); color: var(--melu-ink); }
+
+.melu-debug {
+  margin: 2px 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 11px;
+  color: var(--melu-ink-faint);
+  white-space: pre-wrap;
+}
+
+.melu-surface[data-read-only] .melu-text { caret-color: transparent; }
+
+/* En una pantalla angosta la columna usa todo el ancho y el asa se mete adentro. */
+@media (max-width: 820px) {
+  .melu-surface { --melu-rail: 14px; padding-inline: 14px; }
+  .melu-children { margin-left: 18px; }
+}
+
+/* Sin mouse no hay hover y el asa no se puede alcanzar: el menú "/" y los atajos hacen lo mismo. */
+@media (hover: none) {
+  .melu-handle { display: none; }
+}
+
+@media print {
+  .melu-handle,
+  .melu-toolbox,
+  .melu-pop,
+  .melu-tail,
+  .melu-resize,
+  .melu-table-controls,
+  .melu-code-bar { display: none !important; }
+  .melu-surface { max-width: none; }
+}
