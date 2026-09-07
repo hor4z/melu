@@ -133,7 +133,7 @@ export function Filter({
         className={cn(
           'inline-flex max-w-full items-center rounded-md border text-sm font-medium transition-colors',
           HEIGHT[size],
-          picked.length ? 'border-ink bg-surface text-ink' : 'border-dashed border-line-strong text-ink-muted hover:border-ink',
+          picked.length ? 'border-ink bg-surface text-ink' : 'border-line text-ink-muted hover:border-ink',
           className,
         )}
       >
@@ -170,9 +170,12 @@ export function Filter({
         )}
       </span>
 
-      <PopoverContent className="w-64 p-0" onKeyDown={moveBy}>
+      {/* El panel no scrollea: es un marco. La búsqueda queda arriba, el pie abajo y lo que
+          corre es la lista, que con `flex-auto` y `min-h-0` se achica hasta lo que haya de alto
+          en vez de empujar. Con los dos scrolls quedaban dos barras, una al lado de la otra. */}
+      <PopoverContent className="flex w-64 flex-col overflow-y-hidden p-0" onKeyDown={moveBy}>
         {withBox && (
-          <div className="border-b border-line p-2">
+          <div className="shrink-0 border-b border-line p-2">
             <Input
               size="sm" value={query} onChange={(e) => setQuery(e.target.value)} clearable onClear={() => setQuery('')}
               placeholder={`Buscar en ${label.toLowerCase()}`} aria-label={`Buscar en ${label.toLowerCase()}`}
@@ -180,7 +183,7 @@ export function Filter({
             />
           </div>
         )}
-        <div role="listbox" aria-multiselectable={multiple} aria-label={label} aria-busy={loading} className="max-h-72 overflow-y-auto p-1.5">
+        <div role="listbox" aria-multiselectable={multiple} aria-label={label} aria-busy={loading} className="max-h-72 min-h-0 flex-auto overflow-y-auto p-1.5">
           {loading && visible.length === 0
             ? <div className="grid place-items-center py-6"><Spinner /></div>
             : visible.length === 0
@@ -208,7 +211,7 @@ export function Filter({
               })}
         </div>
         {chosen.length > 0 && (
-          <div className="border-t border-line p-1.5">
+          <div className="shrink-0 border-t border-line p-1.5">
             <button
               type="button" onClick={() => setChosen([])}
               className={`w-full rounded-lg px-2.5 py-2 text-sm text-ink-muted transition-colors hover:bg-hover hover:text-ink ${focusRing}`}
@@ -289,7 +292,7 @@ export function FilterSet({ filters, value, defaultValue = {}, onValueChange, la
             <button
               ref={addRef} type="button" aria-label={label}
               className={cn(
-                `inline-flex items-center gap-2 rounded-md border border-dashed border-line-strong px-2.5 text-sm font-medium text-ink-muted transition-colors hover:border-ink hover:text-ink ${focusRing}`,
+                `inline-flex items-center gap-2 rounded-md border border-line px-2.5 text-sm font-medium text-ink-muted transition-colors hover:border-ink hover:text-ink ${focusRing}`,
                 HEIGHT[size],
               )}
             >

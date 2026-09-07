@@ -186,7 +186,7 @@ export const PREVIEWS: Record<string, () => React.ReactNode> = {
         <span className="h-4 w-px bg-line" />
         <span className="grid h-full place-items-center px-1.5 text-ink-subtle"><Icon icon={X} size="sm" /></span>
       </span>
-      <span className="inline-flex h-8 items-center gap-2 rounded-md border border-dashed border-line-strong px-2.5 text-sm font-medium text-ink-muted">
+      <span className="inline-flex h-8 items-center gap-2 rounded-md border border-line px-2.5 text-sm font-medium text-ink-muted">
         <Icon icon={ListFilter} size="sm" />
         Filtrar
       </span>
