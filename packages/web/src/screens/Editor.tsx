@@ -70,7 +70,10 @@ function EditorLoaded({ initial }: { initial: Activity }) {
       <div className="flex flex-col gap-5">
         <div className="flex items-center justify-between">
           <Link to="/activities" className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> Actividades</Link>
-          <div className="flex items-center gap-3"><Text size="xs" variant="muted">{{ saved: 'Guardado', editing: 'Editando…', saving: 'Guardando…' }[status]} · {totalBlocks} bloques</Text><Button size="sm" variant="ghost" startIcon={<Icon icon={preview ? EyeOff : Eye} />} onClick={() => setPreview((v) => !v)}>{preview ? 'Editar' : 'Ver como aprendiz'}</Button></div>
+          <div className="flex items-center gap-3"><Text size="xs" variant="muted" className="flex items-center gap-x-3">
+            <span>{{ saved: 'Guardado', editing: 'Editando…', saving: 'Guardando…' }[status]}</span>
+            <span className="text-ink-subtle">{totalBlocks} bloques</span>
+          </Text><Button size="sm" variant="ghost" startIcon={<Icon icon={preview ? EyeOff : Eye} />} onClick={() => setPreview((v) => !v)}>{preview ? 'Editar' : 'Ver como aprendiz'}</Button></div>
         </div>
 
         <Card className="overflow-hidden">
@@ -155,7 +158,7 @@ function EditorLoaded({ initial }: { initial: Activity }) {
         </Card>
         <Card padding="sm" className="text-sm text-ink-muted">
           <Eyebrow>Atajos</Eyebrow>
-          <ul className="mt-2 space-y-1"><li><Kbd>/</Kbd> tipo de bloque</li><li><Kbd>#</Kbd> título · <Kbd>-</Kbd> lista · <Kbd>&gt;</Kbd> destacado</li><li><Kbd>Enter</Kbd> nuevo bloque · <Kbd>⌘Z</Kbd> deshacer</li><li>Arrastrá el ⋮⋮ para reordenar. Pegar varias líneas crea varios bloques.</li></ul>
+          <ul className="mt-2 space-y-1"><li><Kbd>/</Kbd> tipo de bloque</li><li className="flex flex-wrap gap-x-4"><span><Kbd>#</Kbd> título</span><span><Kbd>-</Kbd> lista</span><span><Kbd>&gt;</Kbd> destacado</span></li><li className="flex flex-wrap gap-x-4"><span><Kbd>Enter</Kbd> nuevo bloque</span><span><Kbd>⌘Z</Kbd> deshacer</span></li><li>Arrastrá el ⋮⋮ para reordenar. Pegar varias líneas crea varios bloques.</li></ul>
           {lensName && <p className="mt-3">Lente: <span className="font-medium text-ink">{lensName}</span>.</p>}
         </Card>
       </aside>
@@ -251,7 +254,7 @@ function BlockEditor({ b, idx, focused, isFirst, isLast, onChange, onEnter, onRe
       </div>
       <Popover open={menu !== null} onOpenChange={(o) => !o && setMenu(null)} placement="bottom-start" role="menu">
       <div className={`relative min-w-0 flex-1 ${frameCls}`}>
-        {t.semantic && <div className="mb-1 flex items-center justify-between"><Eyebrow className="text-brand-text">{t.name}{b.type === 'evidence' && ` · ${EVIDENCE_MEDIA[b.media ?? 'photo']}`}</Eyebrow><span className="flex gap-0.5 opacity-0 group-hover:opacity-100">
+        {t.semantic && <div className="mb-1 flex items-center justify-between"><Eyebrow className="text-brand-text">{t.name}{b.type === 'evidence' && <span className="ml-2 font-normal text-ink-subtle">{EVIDENCE_MEDIA[b.media ?? 'photo']}</span>}</Eyebrow><span className="flex gap-0.5 opacity-0 group-hover:opacity-100">
             <IconButton size="sm" variant="ghost" label="Subir" onClick={() => onMove(-1)} disabled={isFirst} icon={<Icon icon={ArrowUp} size="xs" />} />
             <IconButton size="sm" variant="ghost" label="Bajar" onClick={() => onMove(1)} disabled={isLast} icon={<Icon icon={ArrowDown} size="xs" />} />
             <IconButton size="sm" variant="ghost" label="Borrar" onClick={onRemove} className="hover:text-danger" icon={<Icon icon={X} size="xs" />} />

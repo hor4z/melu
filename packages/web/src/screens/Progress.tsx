@@ -25,7 +25,7 @@ export function Progress() {
         <StatTile label="Aciertos" value={p.accuracy >= 0 ? Math.round(p.accuracy * 100) : '-'} unit={p.accuracy >= 0 ? '%' : undefined} hint="en los chequeos" tint="bg-lilac" icon={<Icon icon={Target} size="lg" />} />
       </section>
       {Object.keys(p.experiences).length > 0 && (
-        <Card padding="lg"><Eyebrow>Qué tipo de cosas hiciste</Eyebrow><div className="mt-3 flex flex-wrap gap-2">{Object.entries(p.experiences).map(([k, n]) => <Chip key={k}>{EXPERIENCES[k] ?? k} · {n}</Chip>)}</div></Card>
+        <Card padding="lg"><Eyebrow>Qué tipo de cosas hiciste</Eyebrow><div className="mt-3 flex flex-wrap gap-2">{Object.entries(p.experiences).map(([k, n]) => <Chip key={k}>{EXPERIENCES[k] ?? k} <span className="ml-0.5 font-bold tabular-nums">{n}</span></Chip>)}</div></Card>
       )}
       <Card padding="lg">
         <Eyebrow>Misiones</Eyebrow>
@@ -33,7 +33,11 @@ export function Progress() {
           <ul className="mt-3 divide-y divide-line">
             {p.missions.map((m) => (
               <li key={m.submissionId} className="flex flex-wrap items-center gap-3 py-3">
-                <div className="min-w-0 flex-1"><div className="font-medium">{m.title}</div><Text size="xs" variant="muted">{m.group}{m.minutes ? ` · ${m.minutes} min` : ''}{m.accuracy >= 0 ? ` · ${Math.round(m.accuracy * 100)}% aciertos` : ''}</Text></div>
+                <div className="min-w-0 flex-1"><div className="font-medium">{m.title}</div><Text size="xs" variant="muted" className="flex flex-wrap items-center gap-x-3">
+                  <span>{m.group}</span>
+                  {m.minutes > 0 && <span className="text-ink-subtle">{m.minutes} min</span>}
+                  {m.accuracy >= 0 && <span className="text-ink-subtle">{Math.round(m.accuracy * 100)}% aciertos</span>}
+                </Text></div>
                 <Chip size="sm" color={m.status === 'graded' ? 'success' : m.status === 'submitted' ? 'default' : 'warning'}>{m.status === 'graded' ? 'Con devolución' : m.status === 'submitted' ? 'Entregada' : 'En curso'}</Chip>
                 <Button size="sm" variant="ghost" onClick={() => nav(`/mission/${m.assignmentId}`)}>Abrir</Button>
               </li>

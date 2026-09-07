@@ -71,7 +71,7 @@ export function Profile({ me }: { me: Me }) {
                   <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-lilac"><Icon icon={School} size="lg" /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium">{e.name}</span>
-                    <span className="block text-xs text-ink-subtle">{rolesOf(e.id).map((r) => ROLES[r] ?? r).join(' · ') || SPACE_KINDS[e.kind] || e.kind}</span>
+                    <span className="block text-xs text-ink-subtle">{rolesOf(e.id).map((r) => ROLES[r] ?? r).join(', ') || SPACE_KINDS[e.kind] || e.kind}</span>
                   </span>
                 </li>
               ))}

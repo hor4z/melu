@@ -35,7 +35,11 @@ export function Library() {
               <Card key={a.id} asChild interactive>
                 <button type="button" onClick={() => nav(`/activities/${a.id}`)} className="text-left">
                   <CardMedia><Cover title={a.title} className="h-28 w-full" size={72} /></CardMedia>
-                  <CardContent className="flex flex-col gap-2 p-4"><span className="font-semibold">{a.title}</span><CompositionChips c={a.composition} compact /><Text size="xs" variant="muted">{a.document.phases.length} fases · {a.document.phases.reduce((n, f) => n + f.blocks.length, 0)} bloques · editada {new Date(a.updatedAt).toLocaleDateString('es-AR')}</Text></CardContent>
+                  <CardContent className="flex flex-col gap-2 p-4"><span className="font-semibold">{a.title}</span><CompositionChips c={a.composition} compact /><Text size="xs" variant="muted" className="flex flex-wrap items-center gap-x-3">
+                    <span>{a.document.phases.length} fases</span>
+                    <span>{a.document.phases.reduce((n, f) => n + f.blocks.length, 0)} bloques</span>
+                    <span className="text-ink-subtle">editada {new Date(a.updatedAt).toLocaleDateString('es-AR')}</span>
+                  </Text></CardContent>
                 </button>
               </Card>
             ))}

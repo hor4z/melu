@@ -1,13 +1,12 @@
-// La mesa de trabajo: qué llegó y qué falta corregir.
+// La mesa de trabajo: qué falta corregir y qué falta que llegue.
 //
 // Lo que hay que leer despacio (quién se traba, qué les cuesta, cómo aprenden) se mudó a "Cómo
-// vienen". Acá quedó solo lo que se mira varias veces por día, y los cuatro números de arriba son
-// cuentas de cosas que pasaron y no promedios: "5 sin corregir" se entiende sin referencia, "34.6
-// min" no.
+// vienen". Acá quedó solo lo que se mira varias veces por día, y los números de arriba son cuentas
+// de cosas que pasaron y no promedios: "5 sin corregir" se entiende sin referencia, "34.6 min" no.
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight, Check, CheckCheck, Hourglass, Inbox, Plus, Users } from 'lucide-react'
-import { Avatar, Button, Card, Chip, DoodleBulb, Eyebrow, Heading, Icon, Text } from '@melu/ui'
+import { ArrowRight, Check, Clock, Hourglass, Inbox, Plus, Users } from 'lucide-react'
+import { Avatar, Button, Card, DoodleBulb, Eyebrow, Heading, Icon, Progress, Text } from '@melu/ui'
 import { StatTile } from '../blocks/Product'
 import { api, type Dashboard } from '../lib/api'
 import { useSpaceId } from '../lib/space'
@@ -19,9 +18,13 @@ export function Home() {
   const q = useQuery({ queryKey: ['dashboard', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?space=${spaceId}`) })
   const p = q.data
   if (!p) return null
-  const recent = p.recentSubmissions ?? []
-  const entregadas = p.toReview + p.graded
-  const faltan = Math.max(0, p.assigned - entregadas)
+  // La lista la arma la api: son las que esperan devolución y nada más. Filtrarla acá sobre una
+  // ventana mezclada dejaba la tarjeta vacía justo después de corregir varias seguidas.
+  const esperando = p.awaitingReview ?? []
+  // La cuenta de entregas y la de asignadas salen de dos lados distintos (filas de entregas y
+  // miembros del grupo), así que se recorta: sacar a alguien de un grupo después de que entregó
+  // daría "13/12".
+  const llegaron = Math.min(p.toReview + p.graded, p.assigned)
   const steps: [string, string, string, string][] = [
     ['group', 'Creá un grupo', 'Un aula, un taller, tres alumnos: gente que aprende junta.', '/groups'],
     ['invite', 'Sumá a los chicos', 'Escribí sus emails. Entran con Google y el grupo ya los espera.', '/groups'],
@@ -42,7 +45,7 @@ export function Home() {
       {firstTime && (
         <Card padding="lg" className="grid gap-6 lg:grid-cols-[1fr_auto]">
           <div>
-            <Eyebrow>Primeros pasos · {facts} de {steps.length}</Eyebrow>
+            <Eyebrow>Primeros pasos, {facts} de {steps.length}</Eyebrow>
             <Heading level={2} size="lg" className="mt-1">Así funciona melu, en cinco pasos</Heading>
             <ol className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
               {steps.map(([k, t, d, to], i) => { const ok = p.checklist[k]; return (
@@ -58,42 +61,64 @@ export function Home() {
         </Card>
       )}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Lo corregido se fue de acá: era lo único de estos números que no pedía nada. Un panel
+          donde todo lo que se ve espera algo se puede leer de un vistazo. */}
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatTile label="Para mirar" value={p.toReview} hint="esperando tu devolución" tint="bg-yellow" icon={<Icon icon={Inbox} size="lg" />} />
         <StatTile label="Sin terminar" value={p.unfinished} hint="las abrieron y no entregaron" tint="bg-blue" icon={<Icon icon={Hourglass} size="lg" />} />
-        <StatTile label="Corregidas" value={p.graded} hint="ya tienen tu devolución" tint="bg-lilac" icon={<Icon icon={CheckCheck} size="lg" />} />
-        <StatTile label="Aprendices" value={p.learners} hint={`${p.groups} ${p.groups === 1 ? 'grupo' : 'grupos'} · ${p.spaces} ${p.spaces === 1 ? 'espacio' : 'espacios'}`} tint="bg-teal" icon={<Icon icon={Users} size="lg" />} />
+        <StatTile label="Aprendices" value={p.learners} hint={`${p.groups} ${p.groups === 1 ? 'grupo' : 'grupos'} en ${p.spaces} ${p.spaces === 1 ? 'espacio' : 'espacios'}`} tint="bg-teal" icon={<Icon icon={Users} size="lg" />} />
       </section>
 
 
-      {recent.length > 0 && (
-        <Card padding="lg">
-          <div className="flex flex-wrap items-end justify-between gap-3">
+      {/* La tarjeta está siempre: con la barra y el "Ver todas" adentro, esconderla cuando no
+          queda nada para corregir se llevaba también la única forma de ir a las entregas. */}
+      <Card padding="lg">
+          {/* `items-start`: con la barra abajo del título, alinear al pie mandaba el "Ver todas"
+              al medio de la tarjeta. Va arriba a la derecha, que es donde se lo busca. */}
+          <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <Eyebrow>Entregas</Eyebrow>
-              <Heading level={2} size="lg" className="mt-1">
-                {entregadas} de {p.assigned} {p.assigned === 1 ? 'misión entregada' : 'misiones entregadas'}
-              </Heading>
-              {/* Lo que falta es el dato que el docente busca acá, y con la resta hecha: si tiene
-                  que restar dos números para saber a cuántos chicos esperar, no lo hace. */}
-              <Text size="sm" variant="muted">
-                {faltan > 0 ? `Faltan ${faltan}.` : 'Están todas.'} {p.toReview > 0 ? `${p.toReview} esperan tu devolución.` : 'Ninguna espera devolución.'}
-              </Text>
+              {/* El título dice qué es la lista, y los números están en un solo lugar: la barra.
+                  Repartidos entre el título, la bajada y el dibujo, había que juntarlos con la
+                  cabeza para entender una sola cosa. */}
+              <Heading level={2} size="lg" className="mt-1">Lo que espera tu devolución</Heading>
+              {p.assigned > 0 && (
+                <Progress
+                  className="mt-3 max-w-xs" value={llegaron} max={p.assigned} showValue
+                  label={llegaron >= p.assigned ? 'Completadas, todas' : 'Completadas'}
+                />
+              )}
             </div>
             <Button variant="ghost" size="sm" onClick={() => nav('/submissions')} endIcon={<Icon icon={ArrowRight} size="sm" />}>Ver todas</Button>
           </div>
+          {/* Sin chip de estado: si todas las filas esperan lo mismo, el chip lo repite en cada
+              una y compite con el botón, que es lo único que hay que tocar. */}
+          {esperando.length === 0
+            ? <Text variant="muted" className="mt-4">Nada espera tu devolución.</Text>
+            : (
           <ul className="mt-4 divide-y divide-line">
-            {recent.map((e) => (
+            {esperando.map((e) => (
               <li key={e.submissionId} className="flex flex-wrap items-center gap-4 py-3">
                 <Avatar name={e.learner ?? '?'} size="sm" />
-                <div className="min-w-0 flex-1"><div className="font-medium">{e.learner} <span className="text-ink-muted">· {e.title}</span></div><Text size="xs" variant="muted">{e.group} · {ago(e.when)} · {e.minutes ? `${e.minutes} min` : 'sin tiempo'}{e.accuracy >= 0 && ` · ${Math.round(e.accuracy * 100)}% aciertos`}</Text></div>
-                <Chip size="sm" color={e.status === 'graded' ? 'success' : 'warning'}>{e.status === 'graded' ? 'Corregida' : 'Para mirar'}</Chip>
-                <Button size="sm" variant={e.status === 'graded' ? 'ghost' : 'primary'} onClick={() => nav(`/review/${e.assignmentId}`)}>{e.status === 'graded' ? 'Ver' : 'Corregir'}</Button>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                    <span className="font-medium">{e.learner}</span>
+                    <span className="text-ink-muted">{e.title}</span>
+                  </div>
+                  {/* Separado por aire, un ícono y un tono, no por puntuación: el nombre de un
+                      grupo ya trae un "·" adentro ("4° A · Matemática"), así que un "·" entre
+                      campos se confunde con el que es parte del nombre. */}
+                  <Text size="xs" variant="muted" className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
+                    <span className="inline-flex items-center gap-1"><Icon icon={Users} size="xs" />{e.group}</span>
+                    <span className="inline-flex items-center gap-1 text-ink-subtle"><Icon icon={Clock} size="xs" />{ago(e.when)}</span>
+                  </Text>
+                </div>
+                <Button size="sm" onClick={() => nav(`/review/${e.assignmentId}`)}>Corregir</Button>
               </li>
             ))}
           </ul>
-        </Card>
-      )}
+            )}
+      </Card>
     </div>
   )
 }

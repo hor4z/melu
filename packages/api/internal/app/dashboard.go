@@ -54,7 +54,11 @@ type Dashboard struct {
 	Signals           []Signal            `json:"signals"`
 	ByKind            []ByKind            `json:"byKind"`
 	Checklist         map[string]bool     `json:"checklist"`
-	RecentSubmissions []SubmissionSummary `json:"recentSubmissions"`
+	// Las que esperan una devolución, de las más nuevas a las más viejas. No son "las últimas
+	// que llegaron": corregir una le toca el `updated_at`, así que en una tanda de correcciones
+	// las recién corregidas empujaban a las pendientes fuera de la ventana y el panel se quedaba
+	// sin nada que mostrar justo cuando más había para hacer.
+	AwaitingReview []SubmissionSummary `json:"awaitingReview"`
 }
 
 type SubmissionSummary struct {
@@ -109,7 +113,7 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 	if spaceID != "" {
 		spaces = filterSpaces(spaces, spaceID)
 	}
-	out := &Dashboard{Spaces: len(spaces), Groups: len(groups), Signals: []Signal{}, ByKind: []ByKind{}, RecentSubmissions: []SubmissionSummary{}}
+	out := &Dashboard{Spaces: len(spaces), Groups: len(groups), Signals: []Signal{}, ByKind: []ByKind{}, AwaitingReview: []SubmissionSummary{}}
 	out.Assigned, _ = s.Dashboard.Assigned(ctx, p.ID, spaceID)
 	for _, g := range groups {
 		out.Learners += g.Learners
@@ -161,12 +165,12 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 			}
 		}
 		byLearner[h.LearnerID] = append(byLearner[h.LearnerID], h)
-		if h.Status != "in_progress" && len(out.RecentSubmissions) < 8 {
+		if h.Status == "submitted" && len(out.AwaitingReview) < 8 {
 			cu := h.UpdatedAt
 			if h.SubmittedAt != nil {
 				cu = *h.SubmittedAt
 			}
-			out.RecentSubmissions = append(out.RecentSubmissions, SubmissionSummary{SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Learner: h.Learner, Title: h.Title, Group: h.Group, Status: h.Status, Minutes: min, Accuracy: ac, When: cu})
+			out.AwaitingReview = append(out.AwaitingReview, SubmissionSummary{SubmissionID: h.SubmissionID, AssignmentID: h.AssignmentID, Learner: h.Learner, Title: h.Title, Group: h.Group, Status: h.Status, Minutes: min, Accuracy: ac, When: cu})
 		}
 	}
 	// El promedio del grupo no se publica: nadie lo muestra. Se calcula porque es la referencia

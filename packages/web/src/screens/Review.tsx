@@ -32,7 +32,10 @@ export function Review() {
   return (
     <div className="flex flex-col gap-6">
       <Link to={`/groups/${a.groupId}`} className="flex items-center gap-1 text-sm text-ink-muted hover:text-ink"><Icon icon={ChevronLeft} size="sm" /> {a.groupName}</Link>
-      <header className="border-b border-line pb-4"><Eyebrow>Corregir</Eyebrow><Heading level={1} size="xl" className="mt-1">{a.title}</Heading><Text variant="muted">{lists.length} de {a.submissionsTotal} entregaron · {lists.filter((e) => e.status === 'graded').length} corregidas</Text></header>
+      <header className="border-b border-line pb-4"><Eyebrow>Corregir</Eyebrow><Heading level={1} size="xl" className="mt-1">{a.title}</Heading><Text variant="muted" className="flex flex-wrap items-center gap-x-4">
+        <span>{lists.length} de {a.submissionsTotal} entregaron</span>
+        <span className="text-ink-subtle">{lists.filter((e) => e.status === 'graded').length} corregidas</span>
+      </Text></header>
 
       {lists.length === 0 && <Empty title="Nadie entregó todavía" text="Cuando alguien entregue, aparece acá." />}
 
@@ -55,7 +58,7 @@ export function Review() {
                 <div key={b.id} className="flex flex-col gap-2 rounded-xl border border-line bg-surface p-4">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <Eyebrow className="text-brand-text">{b.phase}</Eyebrow>
-                    {p && p.ok !== null && <Chip size="sm" color={p.ok ? 'success' : 'danger'}>{p.ok ? 'Bien' : 'Se trabó'}{p.attempts > 1 && ` · ${p.attempts} intentos`}{p.ms ? ` · ${duration(p.ms)}` : ''}</Chip>}
+                    {p && p.ok !== null && <Chip size="sm" color={p.ok ? 'success' : 'danger'}>{p.ok ? 'Bien' : 'Se trabó'}{p.attempts > 1 && <span className="ml-1.5 opacity-70">{p.attempts} intentos</span>}{p.ms ? <span className="ml-1.5 opacity-70">{duration(p.ms)}</span> : ''}</Chip>}
                   </div>
                   {b.type !== 'fill_in' && <p className="font-medium">{b.text}</p>}
                   <InteractiveBlock b={b} value={current.answers?.[b.id]} onChange={() => {}} status="review" reveal />

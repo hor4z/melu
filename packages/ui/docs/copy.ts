@@ -144,7 +144,10 @@ export const COPY: Record<string, string> = {
   DataListText: 'La segunda línea: de qué se trata la ficha.',
   DataListMeta:
     'La letra chica, en pedazos: las columnas de la tabla que en el celular pasan a ser una sola '
-    + 'línea. Pone el punto entre una y otra, así nadie escribe separadores a mano y terminan todos distintos.',
+    + 'línea. Separados por aire y no por un punto: un nombre puede traer su propio punto adentro '
+    + '("4° A · Matemática") y entonces el separador y el contenido se ven igual, y la línea se lee '
+    + 'como una sola tira. El espacio dice lo mismo y nunca choca con lo que está separando. A '
+    + 'quien escucha le llega una coma que nadie ve: el aire no separa para quien no mira.',
   DataListActions: 'Las acciones, en la esquina de cierre de la ficha.',
   DataListSkeleton:
     'La lista mientras las fichas viajan. La misma forma que van a tener, así no salta nada '

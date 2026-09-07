@@ -58,16 +58,22 @@ export function DataListText({ className, ...props }: ComponentPropsWithoutRef<'
 }
 
 /**
- * The small print, in bits: the columns of the table that on a phone become one line. It puts
- * the dot between them, so nobody writes separators by hand and they all end up different.
+ * The small print, in bits: the columns of the table that on a phone become one line.
+ *
+ * Separated by air and not by a dot. A name can carry its own dot inside ("4° A · Matemática"),
+ * and then the separator and the content look the same and the line reads as one long string.
+ * Space says the same thing and never collides with what it is separating. What a screen reader
+ * gets is a comma that nobody sees: air is not a separator for someone who is listening.
  */
 export function DataListMeta({ className, children, ...props }: ComponentPropsWithoutRef<'div'>) {
   const bits = Children.toArray(children)
   return (
-    <div className={cn('col-start-2 mt-1 flex flex-wrap items-center gap-x-1.5 text-xs text-ink-subtle', className)} {...props}>
+    <div className={cn('col-start-2 mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-ink-subtle', className)} {...props}>
       {bits.map((bit, i) => (
         <Fragment key={i}>
-          {i > 0 && <span aria-hidden="true">·</span>}
+          {/* La coma no se ve: el aire alcanza para el ojo, pero un lector de pantalla lee los
+              hijos pegados ("4° Ahace 2 h") y copiar la línea da lo mismo. */}
+          {i > 0 && <span className="sr-only">, </span>}
           {bit}
         </Fragment>
       ))}
