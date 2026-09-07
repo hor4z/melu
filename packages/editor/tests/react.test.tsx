@@ -16,7 +16,7 @@ import userEvent from '@testing-library/user-event'
 import { useRef } from 'react'
 import { BlockEditor } from '../src/BlockEditor.tsx'
 import { Surface } from '../src/react/Surface.tsx'
-import { useNewEditor } from '../src/react/hooks.ts'
+import { useEditorState, useHistoryState, useIsMarkActive, useNewEditor } from '../src/react/hooks.ts'
 import { defaultRenderers, type Renderer, type Renderers } from '../src/react/renderers.tsx'
 import { activityKit } from '../src/plugins/index.ts'
 import { fromMarkdown, plain, type BlockJSON, type Editor } from '../src/core/index.ts'
@@ -120,6 +120,24 @@ describe('lo que se dibuja', () => {
     const tabla = screen.getByRole('table')
     expect(tabla.style.getPropertyValue('--melu-cols')).toBe('3')
     expect(screen.getAllByRole('cell')).toHaveLength(6)
+  })
+
+  it('la numeración de una lista la cuenta el CSS, no el JS', () => {
+    mount('1. uno\n2. dos\n3. tres')
+    // Sin número en el DOM: contarlo en JS dejaba el número viejo cuando el ítem de arriba
+    // cambiaba de tipo, porque este ítem no se volvía a dibujar.
+    const marcas = [...document.querySelectorAll('.melu-ordinal')]
+    expect(marcas).toHaveLength(3)
+    expect(marcas.every((m) => m.textContent === '')).toBe(true)
+  })
+
+  it('un ítem que arranca en otro número lleva el reinicio en su envoltorio', () => {
+    mount('5. arranca en cinco\n6. sigue')
+    const bloques = [...document.querySelectorAll<HTMLElement>('[data-melu-block][data-type="numbered_list"]')]
+    // En el envoltorio y no adentro: el alcance de un contador CSS llega a los hermanos que
+    // siguen, así que puesto adentro el resto de la tira volvía a empezar en uno.
+    expect(bloques[0]!.style.counterReset).toBe('melu-ol 4')
+    expect(bloques[1]!.style.counterReset).toBe('')
   })
 
   it('un tipo que nadie sabe dibujar no rompe la página: se muestra con su nombre', () => {
@@ -416,6 +434,28 @@ describe('la barra de formato', () => {
     expect(editor.selection).toMatchObject({ anchor: { offset: 0 }, head: { offset: 5 } })
   })
 
+  it('Mod+K abre el panel del link, que es el atajo que el botón anuncia', async () => {
+    const user = userEvent.setup()
+    const { editor } = mount('Medir el patio')
+    caretTo(editor, 0, 0, 5)
+    await waitFor(() => expect(screen.getByRole('toolbar')).toBeInTheDocument())
+    await user.keyboard('{Control>}k{/Control}')
+    await waitFor(() => expect(screen.getByRole('dialog', { name: 'Link' })).toBeInTheDocument())
+  })
+
+  it('el panel del link pone el link sobre lo seleccionado', async () => {
+    const user = userEvent.setup()
+    const { editor } = mount('Medir el patio')
+    const id = editor.doc.blocks[editor.doc.root]!.children[0]!
+    caretTo(editor, 0, 0, 5)
+    await waitFor(() => expect(screen.getByRole('toolbar')).toBeInTheDocument())
+    await user.keyboard('{Control>}k{/Control}')
+    const campo = await screen.findByPlaceholderText('https://')
+    // Sin esquema: alguien que escribe "educabot.com" quiere un link, no una ruta relativa.
+    await user.type(campo, 'educabot.com{Enter}')
+    expect(editor.block(id)!.text![0]!.marks).toEqual([{ type: 'link', value: 'https://educabot.com' }])
+  })
+
   it('dice en qué tipo de bloque está el caret', async () => {
     const { editor } = mount('- una cinta')
     caretTo(editor, 0, 0, 3)
@@ -459,6 +499,18 @@ describe('la caja de herramientas', () => {
     await user.click(screen.getByRole('button', { name: /Separador/ }))
     const tipos = editor.doc.blocks[editor.doc.root]!.children.map((id) => editor.block(id)!.type)
     expect(tipos).toContain('divider')
+  })
+
+  it('un click inserta una sola vez, no dos', async () => {
+    const user = userEvent.setup()
+    const { editor } = mount('', { toolbox: true })
+    const antes = editor.doc.blocks[editor.doc.root]!.children.length
+    // El `pointerup` del arrastre y el `click` del botón corrían los dos: cancelar el
+    // `pointerdown` no cancela el `click`.
+    await user.click(screen.getByRole('button', { name: /Separador/ }))
+    const tipos = editor.doc.blocks[editor.doc.root]!.children.map((id) => editor.block(id)!.type)
+    expect(tipos.filter((t) => t === 'divider')).toHaveLength(1)
+    expect(editor.doc.blocks[editor.doc.root]!.children).toHaveLength(antes + 1)
   })
 
   it('la búsqueda filtra', async () => {
@@ -780,5 +832,79 @@ describe('la caja de un bloque de medios', () => {
     await user.type(cajaDe('imagen'), '/tabla')
     expect(screen.queryByRole('listbox')).toBeNull()
     expect(editor.doc.blocks[editor.doc.root]!.children).toHaveLength(antes)
+  })
+})
+
+/**
+ * Los hooks que un marco propio usa.
+ *
+ * Son la forma documentada de armar una barra propia: van adentro de la superficie, como hijos,
+ * porque necesitan el editor del contexto. Estaban exportados y sin correr nunca, que es la mitad
+ * de estar escritos.
+ */
+describe('los hooks para un marco propio', () => {
+  function MiBarra() {
+    const { canUndo, canRedo } = useHistoryState()
+    const negrita = useIsMarkActive('bold')
+    const state = useEditorState()
+    const cuantos = Object.keys(state.doc.blocks).length - 1
+    return (
+      <div>
+        <button disabled={!canUndo}>Deshacer</button>
+        <button disabled={!canRedo}>Rehacer</button>
+        <span data-testid="negrita">{negrita ? 'sí' : 'no'}</span>
+        <span data-testid="cuantos">{cuantos}</span>
+      </div>
+    )
+  }
+
+  const montar = () => {
+    let editor!: Editor
+    render(
+      <BlockEditor
+        value={json('Medir el patio')}
+        toolbox={false}
+        onReady={(e) => {
+          editor = e
+        }}
+      >
+        <MiBarra />
+      </BlockEditor>,
+    )
+    return editor
+  }
+
+  it('useHistoryState sabe si hay algo que deshacer, y se actualiza', () => {
+    const editor = montar()
+    expect(screen.getByRole('button', { name: 'Deshacer' })).toBeDisabled()
+    caretTo(editor, 0, 5)
+    act(() => {
+      editor.run('insertText', { text: '!' })
+    })
+    expect(screen.getByRole('button', { name: 'Deshacer' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Rehacer' })).toBeDisabled()
+    act(() => {
+      editor.undo()
+    })
+    expect(screen.getByRole('button', { name: 'Rehacer' })).toBeEnabled()
+  })
+
+  it('useIsMarkActive dice si lo seleccionado ya lleva la marca', () => {
+    const editor = montar()
+    expect(screen.getByTestId('negrita')).toHaveTextContent('no')
+    caretTo(editor, 0, 0, 5)
+    act(() => {
+      editor.run('toggleMark', { type: 'bold' })
+    })
+    expect(screen.getByTestId('negrita')).toHaveTextContent('sí')
+  })
+
+  it('useEditorState ve el documento entero y se entera de un bloque nuevo', () => {
+    const editor = montar()
+    expect(screen.getByTestId('cuantos')).toHaveTextContent('1')
+    act(() => {
+      editor.run('insertBlock', { type: 'divider', at: 'end' })
+    })
+    expect(screen.getByTestId('cuantos')).toHaveTextContent('2')
   })
 })

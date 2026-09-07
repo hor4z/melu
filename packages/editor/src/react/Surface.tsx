@@ -28,7 +28,7 @@ import { isBlocks, isText } from '../core/selection.ts'
 import { plain } from '../core/text.ts'
 import { clipboardFor, MELU_MIME } from '../plugins/paste.ts'
 import { EditorProvider, useBlock, useChildren, useEditor, useIsSelected } from './hooks.ts'
-import { defaultRenderers, Unknown, type Renderers } from './renderers.tsx'
+import { defaultRenderers, Unknown, wrapperStyle, type Renderers } from './renderers.tsx'
 import { BLOCK_ATTR, blockIdOf, readSelection } from './dom.ts'
 import { isRealMove, measure, targetAt, type DropTarget } from './dnd.ts'
 
@@ -71,6 +71,7 @@ const BlockView = memo(function BlockView({
       data-active={active || undefined}
       data-picked={picked || undefined}
       data-standalone={spec?.standalone || undefined}
+      style={wrapperStyle(block)}
       {...{ [BLOCK_ATTR]: id }}
     >
       <Render id={id} block={block} readOnly={readOnly}>
@@ -138,6 +139,8 @@ export function Surface({
   const merged = useMemo(() => ({ ...defaultRenderers, ...renderers }), [renderers])
   const [drop, setDrop] = useState<DropTarget | null>(null)
   const dragging = useRef<{ id: BlockId; placed: ReturnType<typeof measure> } | null>(null)
+  /** El último destino calculado, para el `pointerup` que se registró una sola vez. */
+  const latestDrop = useRef<DropTarget | null>(null)
   /** Desde dónde arrancó un arrastre de selección, para saber cuándo pasa a ser de bloques. */
   const anchorBlock = useRef<BlockId | null>(null)
 
@@ -297,6 +300,9 @@ export function Surface({
       if (!container || readOnly) return
       e.preventDefault()
       dragging.current = { id, placed: measure(container, editor.doc) }
+      // Se limpia al empezar: un arrastre que cruza el umbral y se suelta sin un solo movimiento
+      // más usaba el destino del arrastre anterior y mandaba el bloque ahí.
+      latestDrop.current = null
       editor.run('selectBlock', { id })
       document.body.classList.add('melu-dragging')
 
@@ -311,12 +317,17 @@ export function Surface({
           ev.clientY,
           (parent, child) => editor.state.schema.accepts(parent, child),
         )
+        // El ref se escribe acá, donde se calcula, y no durante el render: `pointerup` se registra
+        // una sola vez y necesita el último destino, pero escribir un ref mientras se dibuja es un
+        // efecto en medio del render y React tiene todo el derecho de dibujar dos veces.
+        latestDrop.current = target
         setDrop(target)
       }
       const up = () => {
         const state = dragging.current
         const target = latestDrop.current
         dragging.current = null
+        latestDrop.current = null
         setDrop(null)
         document.body.classList.remove('melu-dragging')
         window.removeEventListener('pointermove', move)
@@ -331,9 +342,10 @@ export function Surface({
     [editor, readOnly],
   )
 
-  // El listener de `pointerup` se registra una vez y necesita el último destino calculado.
-  const latestDrop = useRef<DropTarget | null>(null)
-  latestDrop.current = drop
+  const contexto = useMemo<DragContextValue>(
+    () => ({ startDrag, surface: () => ref.current, ...(onOpenBlockMenu ? { onOpenBlockMenu } : {}) }),
+    [startDrag, onOpenBlockMenu],
+  )
 
   const surface = (
     <div
@@ -353,7 +365,7 @@ export function Surface({
     >
       <Page renderers={merged} readOnly={readOnly} />
       {drop ? <DropIndicator target={drop} surface={ref.current} /> : null}
-      <DragContext.Provider value={{ startDrag, onOpenBlockMenu }}>{children}</DragContext.Provider>
+      <DragContext.Provider value={contexto}>{children}</DragContext.Provider>
       {!readOnly ? <Tail /> : null}
     </div>
   )
@@ -405,10 +417,16 @@ function DropIndicator({ target, surface }: { target: DropTarget; surface: HTMLE
 /** Lo que el asa necesita para arrastrar, sin pasarlo por props por toda la página. */
 export type DragContextValue = {
   startDrag: (id: BlockId, e: React.PointerEvent) => void
+  /**
+   * La superficie de este editor. Va por el contexto y no se busca en el documento: con dos
+   * editores montados, `querySelector` devuelve la del primero y el asa del segundo mide y busca
+   * en la página equivocada, así que nunca aparece.
+   */
+  surface: () => HTMLElement | null
   onOpenBlockMenu?: (id: BlockId, at: { x: number; y: number }) => void
 }
 
-export const DragContext = createContext<DragContextValue>({ startDrag: () => {} })
+export const DragContext = createContext<DragContextValue>({ startDrag: () => {}, surface: () => null })
 
 export const useDragHandle = () => useContext(DragContext)
 

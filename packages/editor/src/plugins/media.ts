@@ -217,7 +217,13 @@ export const PROVIDERS: Provider[] = [
     name: 'Google Maps',
     match: (url) =>
       /(^|\.)google\.[a-z.]+$/.test(url.hostname) && url.pathname.startsWith('/maps')
-        ? { src: url.href.includes('/embed') ? url.href : `${url.href}&output=embed`, height: 420, kind: 'embed' }
+        ? {
+            // `&` solo si ya hay query: sin esto, una dirección sin parámetros quedaba con el
+            // `&output=embed` pegado al final del path y no era embebible.
+            src: url.href.includes('/embed') ? url.href : `${url.href}${url.search ? '&' : '?'}output=embed`,
+            height: 420,
+            kind: 'embed',
+          }
         : undefined,
   },
   {
@@ -228,6 +234,22 @@ export const PROVIDERS: Provider[] = [
         : undefined,
   },
 ]
+
+/**
+ * El nombre del archivo de una dirección, legible.
+ *
+ * `decodeURIComponent` tira una excepción con un `%` suelto (`/100%.mp3` es una dirección
+ * perfectamente válida), y acá no es un error del motor: es el nombre que se muestra. Sin la
+ * guarda, pegar esa dirección rompía la sesión.
+ */
+function nombreDeArchivo(url: URL): string {
+  const crudo = url.pathname.split('/').pop() ?? ''
+  try {
+    return decodeURIComponent(crudo)
+  } catch {
+    return crudo
+  }
+}
 
 const EXT = {
   image: /\.(png|jpe?g|gif|webp|avif|svg)(\?|#|$)/i,
@@ -250,7 +272,7 @@ export function classify(raw: string): { type: string; props: Record<string, unk
 
   if (EXT.image.test(url.pathname)) return { type: 'image', props: { src: url.href } }
   if (EXT.video.test(url.pathname)) return { type: 'video', props: { src: url.href } }
-  if (EXT.audio.test(url.pathname)) return { type: 'audio', props: { src: url.href, title: decodeURIComponent(url.pathname.split('/').pop() ?? '') } }
+  if (EXT.audio.test(url.pathname)) return { type: 'audio', props: { src: url.href, title: nombreDeArchivo(url) } }
 
   for (const p of PROVIDERS) {
     const hit = p.match(url)

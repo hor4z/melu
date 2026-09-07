@@ -246,13 +246,6 @@ export function activeMarks(rt: RichText, from: number, to: number): Mark[] {
   return (first.marks ?? []).filter((m) => rangeHasMark(rt, a, b, m.type, m.value))
 }
 
-/** Every distinct mark of a text, which is what a serialiser and a sanity check walk. */
-export const allMarks = (rt: RichText): Mark[] => {
-  const seen: Mark[] = []
-  for (const sp of rt) for (const m of sp.marks ?? []) if (!seen.some((s) => sameMark(s, m))) seen.push(m)
-  return seen
-}
-
 /** Word boundaries around `offset`, for double click and for ctrl+backspace. */
 export function wordAt(rt: RichText, offset: number): { from: number; to: number } {
   const text = plain(rt)

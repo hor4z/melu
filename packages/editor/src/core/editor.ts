@@ -79,9 +79,9 @@ const BUILT_IN: Record<string, Command<never>> = {
   selectBlockRange: core.selectBlockRange as Command<never>,
   selectEnclosingBlock: core.selectEnclosingBlock as Command<never>,
   selectAll: core.selectAll as Command<never>,
+  selectAllStep: core.selectAllStep as Command<never>,
   focusBlock: core.focusBlock as Command<never>,
   focusEnd: core.focusEnd as Command<never>,
-  moveCaret: core.moveCaret as Command<never>,
   caretBackward: core.caretBackward as Command<never>,
   caretForward: core.caretForward as Command<never>,
   replaceContent: core.replaceContent as Command<never>,
@@ -227,7 +227,9 @@ export class Editor {
 
   /** Runs an ad hoc command. The door for the view layer, which has geometry the core lacks. */
   exec(fn: (ctx: CommandCtx) => boolean, meta?: Record<string, unknown>): boolean {
-    if (this.readOnly && meta?.readOnly !== true) return false
+    // `allowReadOnly` es para lo que no es una edición: mover el caret tiene que seguir andando
+    // en un documento que solo se lee, porque leer es moverse.
+    if (this.readOnly && meta?.allowReadOnly !== true) return false
     const tr = new Transaction(this.state)
     if (meta) for (const [k, v] of Object.entries(meta)) tr.setMeta(k, v)
     let did: boolean
@@ -460,7 +462,7 @@ export class Editor {
     this.exec((ctx) => {
       ctx.tr.select(selection)
       return true
-    }, { history: false, readOnly: true })
+    }, { history: false, allowReadOnly: true })
   }
 
   destroy(): void {

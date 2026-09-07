@@ -227,8 +227,8 @@ no se pierde el texto.
 
 ## Los tests
 
-418, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y no
-"splitBlock con texto vacío". Once archivos:
+439, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y no
+"splitBlock con texto vacío". Doce archivos:
 
 ```
 text          el modelo de texto: cortar, pegar, marcar, qué formato hereda lo que se escribe
@@ -242,7 +242,9 @@ rules         lo que se escribe sin abrir un menú, y lo que el normalizador arr
 serialize     JSON, markdown y HTML, de ida y de vuelta
 paste         el orden de los formatos, que pegar prosa en el medio de una oración no la corte, y
               qué ofrece el menú al pegar una dirección
-agent         el manifiesto, el esquema y que un lote sea atómico
+agent         el manifiesto, el esquema, que un lote sea atómico, y que en solo lectura tampoco
+              escriba
+media         las direcciones que rompían: un % suelto, un mapa sin parámetros
 perf          que una tecla toque un bloque con 5 y con 2000, contando y no cronometrando
 react         la costura con el DOM, cuántos componentes se repintan por tecla, el asa y el menú
               de pegado, de punta a punta

@@ -422,6 +422,38 @@ describe('cambiar el tipo', () => {
   })
 })
 
+describe('Mod+A', () => {
+  it('primero selecciona el texto del bloque', () => {
+    const e = editorWith('Medir el patio', 'y contar')
+    caretAt(e, 0, 5)
+    expect(press(e, 'Mod-a')).toBe(true)
+    expect(where(e)).toBe('0:0-0:14')
+  })
+
+  it('y de nuevo, toda la página', () => {
+    const e = editorWith('Medir el patio', 'y contar')
+    caretAt(e, 0, 5)
+    press(e, 'Mod-a')
+    press(e, 'Mod-a')
+    expect(where(e)).toBe('bloques 0,1')
+  })
+
+  it('en un bloque vacío pasa derecho a toda la página', () => {
+    // A mano: el markdown descarta una línea vacía, así que no sirve para armar este caso.
+    const e = makeEditor([{ type: 'paragraph', text: [] }, { type: 'paragraph', text: [{ text: 'algo' }] }])
+    caretAt(e, 0, 0)
+    press(e, 'Mod-a')
+    expect(e.selection?.kind).toBe('blocks')
+  })
+
+  it('con bloques ya seleccionados no cambia nada', () => {
+    const e = editorWith('uno', 'dos')
+    selectBlocks(e, 0)
+    press(e, 'Mod-a')
+    expect(where(e)).toBe('bloques 0,1')
+  })
+})
+
 describe('el documento nunca queda sin dónde escribir', () => {
   it('un editor sin contenido arranca con un párrafo', () => {
     const e = makeEditor()

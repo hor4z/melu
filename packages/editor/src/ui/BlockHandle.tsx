@@ -41,7 +41,7 @@ type Spot = { id: BlockId; top: number; left: number }
 export function BlockHandle() {
   const editor = useEditor()
   const selection = useSelection()
-  const { startDrag } = useDragHandle()
+  const { startDrag, surface: surfaceOf } = useDragHandle()
   const [hover, setHover] = useState<Spot | null>(null)
   const [menu, setMenu] = useState<{ id: BlockId; anchor: Anchor } | null>(null)
   const gripRef = useRef<HTMLButtonElement>(null)
@@ -68,7 +68,7 @@ export function BlockHandle() {
   )
 
   useEffect(() => {
-    const surface = document.querySelector<HTMLElement>('[data-melu-surface]')
+    const surface = surfaceOf()
     if (!surface) return
 
     const onMove = (e: PointerEvent) => {
@@ -93,7 +93,7 @@ export function BlockHandle() {
       surface.removeEventListener('pointermove', onMove)
       surface.removeEventListener('pointerleave', onLeave)
     }
-  }, [editor, spotFor])
+  }, [editor, spotFor, surfaceOf])
 
   /**
    * Sin el puntero encima, el asa acompaña al caret. Es lo que hace que esté a mano mientras
@@ -101,14 +101,13 @@ export function BlockHandle() {
    */
   useEffect(() => {
     if (pinned.current || editor.readOnly) return
-    const surface = document.querySelector<HTMLElement>('[data-melu-surface]')
-    if (!surface) return
-    if (!surface.contains(document.activeElement)) return
+    const surface = surfaceOf()
+    if (!surface?.contains(document.activeElement)) return
     const id = activeBlock(selection)
     if (!id) return
     const spot = spotFor(surface, id)
     setHover((now) => (now && now.id === spot?.id ? now : spot))
-  }, [selection, editor, spotFor])
+  }, [selection, editor, spotFor, surfaceOf])
 
   const openMenu = useCallback(() => {
     if (!hover) return
@@ -134,7 +133,7 @@ export function BlockHandle() {
           className="melu-handle-btn"
           title="Insertar un bloque abajo"
           aria-label="Insertar un bloque abajo"
-          onClick={() => insertBelow(editor, hover.id)}
+          onClick={() => insertBelow(editor, hover.id, surfaceOf)}
         >
           <Icon name="plus" size={16} />
         </button>
@@ -241,7 +240,7 @@ function blockUnder(surface: HTMLElement, editor: ReturnType<typeof useEditor>, 
  * quien pasa el mouse por un bloque y aprieta el más sin haber escrito nada antes se queda con un
  * bloque vacío, sin caret y sin menú.
  */
-function insertBelow(editor: ReturnType<typeof useEditor>, id: BlockId): void {
+function insertBelow(editor: ReturnType<typeof useEditor>, id: BlockId, surfaceOf: () => HTMLElement | null): void {
   const block = editor.block(id)
   const vacio = block && editor.state.schema.isTextual(block.type) && plain(block.text) === ''
   if (vacio) editor.run('focusBlock', { id, at: 'end' })
@@ -252,7 +251,7 @@ function insertBelow(editor: ReturnType<typeof useEditor>, id: BlockId): void {
   // dónde está el caret, así que el foco tiene que estar puesto antes de escribir la barra.
   requestAnimationFrame(() => {
     const target = activeBlock(editor.selection)
-    const surface = document.querySelector<HTMLElement>('[data-melu-surface]')
+    const surface = surfaceOf()
     if (target && surface) focusBlockElement(surface, target)
     if (editor.selection?.kind === 'text') editor.run('insertText', { text: '/' })
   })

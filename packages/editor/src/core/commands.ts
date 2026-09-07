@@ -162,6 +162,27 @@ export const selectAll: Command = ({ tr }) => {
   return true
 }
 
+/**
+ * Lo que hace Mod+A: primero todo el texto de este bloque, y recién después toda la página.
+ *
+ * Es lo que hace Notion, y la razón es que seleccionar todo de una es casi siempre demasiado.
+ * Alguien que está escribiendo un párrafo y aprieta Mod+A quiere ese párrafo; si de verdad quería
+ * la actividad entera, lo aprieta otra vez. No necesita recordar nada: el segundo paso se reconoce
+ * porque el texto del bloque ya está entero seleccionado.
+ */
+export const selectAllStep: Command = (ctx) => {
+  const { tr, state } = ctx
+  const sel = state.selection
+  if (!isText(sel) || sel.anchor.block !== sel.head.block) return selectAll(ctx, undefined)
+  const { block } = sel.head
+  const total = textLength(tr.doc, block)
+  const from = Math.min(sel.anchor.offset, sel.head.offset)
+  const to = Math.max(sel.anchor.offset, sel.head.offset)
+  if (total === 0 || (from === 0 && to === total)) return selectAll(ctx, undefined)
+  tr.select({ kind: 'text', anchor: { block, offset: 0 }, head: { block, offset: total } })
+  return true
+}
+
 // ---------------------------------------------------------------------------- text
 
 /** Removes what is selected, across as many blocks as it spans, and collapses the caret. */
@@ -769,24 +790,6 @@ export const outdent: Command<{ id?: BlockId }> = (ctx, { id } = {}) => {
 
 // ---------------------------------------------------------------------------- navigation
 
-/**
- * Arrow up and down at the edge of a block. The core only knows the order of the blocks; which
- * column the caret should land on is geometry, so the view passes the offset it measured.
- */
-export const moveCaret: Command<{ dir: 'up' | 'down'; offset?: number }> = (ctx, { dir, offset }) => {
-  const { tr, state } = ctx
-  const from = activeBlock(state.selection)
-  if (!from) return false
-  const order = flatten(tr.doc).filter((id) => isTextual(ctx, id))
-  const i = order.indexOf(from)
-  if (i === -1) return false
-  const next = dir === 'up' ? order[i - 1] : order[i + 1]
-  if (!next) return false
-  const total = textLength(tr.doc, next)
-  tr.select(caret(next, offset === undefined ? (dir === 'up' ? total : 0) : Math.min(offset, total)))
-  return true
-}
-
 /** Left arrow at offset 0, which should walk into the block above and not stall. */
 export const caretBackward: Command = (ctx) => {
   const { tr, state } = ctx
@@ -805,7 +808,10 @@ export const caretForward: Command = (ctx) => {
   const { block, offset } = state.selection.head
   if (offset < textLength(tr.doc, block)) return false
   const order = flatten(tr.doc).filter((id) => isTextual(ctx, id))
-  const next = order[order.indexOf(block) + 1]
+  const i = order.indexOf(block)
+  // Sin esto, un bloque que no es textual daba -1 y el caret se iba al primero del documento.
+  if (i === -1) return false
+  const next = order[i + 1]
   if (!next) return false
   tr.select(caret(next, 0))
   return true

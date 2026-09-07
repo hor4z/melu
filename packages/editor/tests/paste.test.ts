@@ -139,6 +139,19 @@ describe('markdown pegado', () => {
     expect(looksLikeMarkdown('Una sola línea sin nada')).toBe(false)
   })
 
+  it('varios bloques pegados en el medio de una oración van entre las dos mitades', () => {
+    const e = editorWith('Antes y después')
+    caretAt(e, 0, 6)
+    e.handlePaste({ 'text/plain': '# Uno\n\n## Dos' })
+    // Y no después de la cola, que es donde queda el caret al partir el bloque.
+    expect(sketch(e)).toEqual([
+      'paragraph: Antes ',
+      'heading_1: Uno',
+      'heading_2: Dos',
+      'paragraph: y después',
+    ])
+  })
+
   it('una tabla pegada llega con sus celdas', () => {
     const e = editorWith('')
     caretAt(e, 0, 0)
@@ -282,6 +295,20 @@ describe('una dirección pegada', () => {
     expect(sketch(e)).toEqual(['paragraph: ver la página'])
     const conLink = e.block(at(e, 0))!.text!.find((sp) => sp.marks?.some((m) => m.type === 'link'))
     expect(conLink).toMatchObject({ text: 'la página' })
+  })
+
+  it('sobre una selección que cruza dos bloques linkea lo elegido y no un pedazo cualquiera', () => {
+    const e = editorWith('primero uno', 'segundo dos')
+    selectRange(e, [0, 8], [1, 7])
+    pegar(e, 'https://educabot.com')
+    // El bug: mezclaba el offset de un bloque con el del otro, linkeaba un rango arbitrario del
+    // segundo y la dirección no entraba a ningún lado.
+    const primero = e.block(at(e, 0))!.text!
+    const segundo = e.block(at(e, 1))!.text!
+    const linkEn = (t: typeof primero) => t.filter((sp) => sp.marks?.some((m) => m.type === 'link')).map((sp) => sp.text).join('')
+    expect(linkEn(primero)).toBe('uno')
+    expect(linkEn(segundo)).toBe('segundo')
+    expect(sketch(e)).toEqual(['paragraph: primero uno', 'paragraph: segundo dos'])
   })
 
   it('en el medio de una oración no la corta: queda la oración con el link adentro', () => {

@@ -11,12 +11,12 @@
  * anybody resizing anything twice. The stylesheet does the rest.
  */
 
-import { memo, useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import type { Block, BlockId, Props } from '../core/doc.ts'
 import { childrenOf } from '../core/doc.ts'
 import type { RichText as RichTextValue } from '../core/text.ts'
 import { plain } from '../core/text.ts'
-import { useBlock, useEditor, useIsSelected } from './hooks.ts'
+import { useEditor } from './hooks.ts'
 import { BlockText } from './BlockText.tsx'
 import { Icon, hasIcon, type IconName } from './icons.tsx'
 
@@ -104,19 +104,6 @@ const Heading1 = textual('h1', 'melu-h1')
 const Heading2 = textual('h2', 'melu-h2')
 const Heading3 = textual('h3', 'melu-h3')
 
-/** El número no se guarda: se cuenta entre los hermanos numerados, como se lee. */
-function useOrdinal(id: BlockId): number {
-  const editor = useEditor()
-  const parent = editor.block(id)?.parent ?? editor.doc.root
-  const siblings = childrenOf(editor.doc, parent)
-  const i = siblings.indexOf(id)
-  let first = i
-  while (first > 0 && editor.block(siblings[first - 1]!)?.type === 'numbered_list') first--
-  const startProp = editor.block(siblings[first]!)?.props?.start
-  const base = typeof startProp === 'number' ? startProp : 1
-  return base + (i - first)
-}
-
 const Bulleted: Renderer = function Bulleted({ id, block, readOnly, children }) {
   return (
     <div className="melu-item">
@@ -131,13 +118,22 @@ const Bulleted: Renderer = function Bulleted({ id, block, readOnly, children }) 
   )
 }
 
+/**
+ * The number is not stored and it is not computed here either: the stylesheet counts it.
+ *
+ * It used to be counted in JS, and it went stale. A numbered item re-renders when its own block
+ * changes, and its number depends on its siblings: turning the item above into a paragraph left
+ * this one still saying "2." because nothing told it to look again. Subscribing each item to all
+ * of its previous siblings would fix it and cost a subscription per item per sibling.
+ *
+ * A CSS counter has none of that. Any block resets it and a numbered one increments it, so a run
+ * numbers itself and the browser recomputes on its own. An item that starts at something other
+ * than one carries the offset inline, which works because only the first of a run ever has it.
+ */
 const Numbered: Renderer = function Numbered({ id, block, readOnly, children }) {
-  const n = useOrdinal(id)
   return (
     <div className="melu-item">
-      <span className="melu-ordinal" aria-hidden="true" data-melu-skip="true">
-        {n}.
-      </span>
+      <span className="melu-ordinal" aria-hidden="true" data-melu-skip="true" />
       <div className="melu-item-body">
         <BlockText id={id} value={block.text} className="melu-paragraph" style={styleOf(block.props)} readOnly={readOnly} />
         {children}
@@ -340,7 +336,7 @@ const Image: Renderer = function Image({ id, block, readOnly }) {
   )
 }
 
-const Video: Renderer = function Video({ id, block }) {
+const Video: Renderer = function Video({ id, block, readOnly }) {
   const src = str(block.props, 'src')
   if (!src) return <Placeholder id={id} icon="video" label="Video" />
   const framed = /youtube|vimeo|player\./.test(src)
@@ -366,7 +362,7 @@ const Video: Renderer = function Video({ id, block }) {
         />
       )}
       <Caption value={rich(block.props, 'caption')} />
-      <ResizeHandles id={id} />
+      {!readOnly ? <ResizeHandles id={id} /> : null}
     </figure>
   )
 }
@@ -439,7 +435,7 @@ const Bookmark: Renderer = function Bookmark({ id, block }) {
   )
 }
 
-const Embed: Renderer = function Embed({ id, block }) {
+const Embed: Renderer = function Embed({ id, block, readOnly }) {
   const src = str(block.props, 'src')
   if (!src) return <Placeholder id={id} icon="embed" label="Incrustado" />
   return (
@@ -453,7 +449,7 @@ const Embed: Renderer = function Embed({ id, block }) {
         loading="lazy"
       />
       <Caption value={rich(block.props, 'caption')} />
-      <ResizeHandles id={id} />
+      {!readOnly ? <ResizeHandles id={id} /> : null}
     </figure>
   )
 }
@@ -744,17 +740,37 @@ function OptionList({ id, block, multi }: { id: BlockId; block: Block; multi: bo
   )
 }
 
-/** Un campo numérico de props, con su etiqueta. */
+/**
+ * Un campo numérico de props, con su etiqueta.
+ *
+ * Mientras se escribe, lo que manda es lo tecleado y no el número guardado. Con el input atado
+ * directo a las props no se podía escribir ningún decimal: al teclear "0." el valor se guardaba
+ * como 0, las props cambiaban de objeto aunque no de valor, el componente se volvía a dibujar y
+ * React reescribía el campo en "0", comiéndose el punto. Justo en `tolerance` y en `answer`, que
+ * son los que el manifiesto ejemplifica con 0,5.
+ */
 function NumField({ id, block, name, label, step }: { id: BlockId; block: Block; name: string; label: string; step?: number }) {
   const editor = useEditor()
+  const guardado = num(block.props, name, 0)
+  const [tecleado, setTecleado] = useState<string | null>(null)
+
   return (
     <label className="melu-field">
       <span>{label}</span>
       <input
         type="number"
         step={step ?? 'any'}
-        value={num(block.props, name, 0)}
-        onChange={(e) => editor.run('setBlockProps', { id, props: { [name]: Number(e.target.value) } })}
+        value={tecleado ?? String(guardado)}
+        onChange={(e) => {
+          setTecleado(e.target.value)
+          const n = Number(e.target.value)
+          // Un valor a medio escribir ("0." o "-") no se guarda, pero tampoco se pierde: queda en
+          // el campo hasta que sea un número.
+          if (e.target.value !== '' && Number.isFinite(n)) {
+            editor.run('setBlockProps', { id, props: { [name]: n } })
+          }
+        }}
+        onBlur={() => setTecleado(null)}
       />
     </label>
   )
@@ -1009,6 +1025,23 @@ function PairField({ id, block }: { id: BlockId; block: Block }) {
 
 // ---------------------------------------------------------------------------- registry
 
+/**
+ * El estilo que necesita el envoltorio de un bloque, no su contenido.
+ *
+ * Hoy es una sola cosa: un ítem numerado que arranca en otro número lleva el reinicio del contador
+ * acá y no adentro. El alcance de un contador CSS llega al elemento, a sus descendientes y a los
+ * hermanos que le siguen, así que puesto adentro del ítem el reinicio le servía solo a él y el
+ * resto de la tira volvía a empezar en uno.
+ *
+ * Vive en esta capa porque es la que sabe de tipos: el envoltorio lo dibuja la superficie, que
+ * pregunta y no decide.
+ */
+export function wrapperStyle(block: Block): CSSProperties | undefined {
+  if (block.type !== 'numbered_list') return undefined
+  const start = num(block.props, 'start', 1)
+  return start > 1 ? { counterReset: `melu-ol ${start - 1}` } : undefined
+}
+
 export const defaultRenderers: Renderers = {
   paragraph: Paragraph,
   heading_1: Heading1,
@@ -1058,16 +1091,3 @@ export const Unknown: Renderer = function Unknown({ id, block, readOnly, childre
     </div>
   )
 }
-
-/** Las props de un bloque, tal como quedaron: útil para la vista de depuración del taller. */
-export const BlockDebug = memo(function BlockDebug({ id }: { id: BlockId }) {
-  const block = useBlock(id)
-  const { active, picked } = useIsSelected(id)
-  if (!block) return null
-  return (
-    <pre className="melu-debug">
-      {block.type} {active ? '·caret' : ''} {picked ? '·elegido' : ''}
-      {block.props ? `\n${JSON.stringify(block.props)}` : ''}
-    </pre>
-  )
-})

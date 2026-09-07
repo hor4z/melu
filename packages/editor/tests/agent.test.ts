@@ -247,6 +247,30 @@ describe('escribir bloques armados', () => {
   })
 })
 
+describe('en solo lectura el agente tampoco escribe', () => {
+  it('un lote se rechaza, y lo dice', () => {
+    const e = makeFullEditor(undefined, { readOnly: true })
+    const antes = toJSON(e.doc)
+    const report = apply(e, [{ do: 'insertBlock', args: { type: 'heading_1', text: [{ text: 'Título' }] } }])
+    expect(report.ok).toBe(false)
+    expect(report.error).toContain('solo lectura')
+    expect(toJSON(e.doc)).toEqual(antes)
+  })
+
+  it('markdown tampoco', () => {
+    const e = makeFullEditor(undefined, { readOnly: true })
+    expect(authorMarkdown(e, '# Puesto por la máquina').ok).toBe(false)
+  })
+
+  it('y cuando deja de ser solo lectura, escribe', () => {
+    const e = makeFullEditor(undefined, { readOnly: true })
+    expect(authorMarkdown(e, '# Uno').ok).toBe(false)
+    e.readOnly = false
+    expect(authorMarkdown(e, '# Uno').ok).toBe(true)
+    expect(sketch(e)).toContain('heading_1: Uno')
+  })
+})
+
 describe('el agente y una persona comparten el mismo motor', () => {
   it('lo que hace el agente se deshace con el mismo deshacer', () => {
     const e = makeFullEditor()

@@ -101,17 +101,26 @@ export function Toolbox({ initial = { top: 16, right: 16 }, extras, title = 'Blo
   const startDragTool = useCallback(
     (spec: BlockSpec) => (e: React.PointerEvent) => {
       e.preventDefault()
-      setDragging(spec)
+      const desde = { x: e.clientX, y: e.clientY }
+      // Un click no es un arrastre. Sin esta distinción el `pointerup` insertaba (soltar sobre el
+      // propio panel cae adentro de la superficie) y después el `click` del botón insertaba otra
+      // vez, porque cancelar el `pointerdown` no cancela el `click`.
+      let arrastro = false
       const ghost = document.createElement('div')
       ghost.className = 'melu-tool-ghost'
       ghost.textContent = spec.name
-      document.body.append(ghost)
       const place = (ev: PointerEvent | React.PointerEvent) => {
         ghost.style.transform = `translate(${ev.clientX + 12}px, ${ev.clientY + 8}px)`
       }
       place(e)
       let over: string | null = null
       const move = (ev: PointerEvent) => {
+        if (!arrastro) {
+          if (Math.abs(ev.clientX - desde.x) + Math.abs(ev.clientY - desde.y) < 4) return
+          arrastro = true
+          setDragging(spec)
+          document.body.append(ghost)
+        }
         place(ev)
         const el = elementAtPoint(ev.clientX, ev.clientY)
         const id = el ? blockIdOf(el) : null
@@ -130,10 +139,13 @@ export function Toolbox({ initial = { top: 16, right: 16 }, extras, title = 'Blo
         ghost.remove()
         document.querySelectorAll('[data-melu-drop-hint]').forEach((n) => n.removeAttribute('data-melu-drop-hint'))
         setDragging(null)
+        // Si no se movió, fue un click y lo atiende `onClick`: insertar acá también sería insertar
+        // dos veces.
+        if (!arrastro) return
         const el = elementAtPoint(ev.clientX, ev.clientY)
         // Soltar fuera de la página no inserta nada: cancelar un arrastre tiene que ser posible.
-        // Sin geometría tampoco: un click ya inserta, y no hay que adivinar dónde cayó.
-        if (!el?.closest('[data-melu-surface]')) return
+        // Soltar sobre el propio panel tampoco, aunque el panel esté adentro de la superficie.
+        if (!el?.closest('[data-melu-surface]') || el.closest('.melu-toolbox')) return
         insert(spec, blockIdOf(el) ?? undefined)
       }
       window.addEventListener('pointermove', move)

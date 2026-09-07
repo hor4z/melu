@@ -8,13 +8,13 @@
  * notification is exact and React has nothing to look for.
  */
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 import type { Block, BlockId } from '../core/doc.ts'
 import type { Editor, EditorOptions } from '../core/editor.ts'
 import { Editor as EditorClass } from '../core/editor.ts'
 import type { EditorState } from '../core/state.ts'
 import type { Selection } from '../core/selection.ts'
-import { activeBlock, isBlocks, isText } from '../core/selection.ts'
+import { activeBlock, isBlocks } from '../core/selection.ts'
 import { marksInSelection } from '../core/commands.ts'
 import type { Mark, MarkType } from '../core/text.ts'
 
@@ -28,8 +28,6 @@ export function useEditor(): Editor {
   if (!editor) throw new Error('falta el <BlockEditor> alrededor: no hay editor en el contexto')
   return editor
 }
-
-export const useEditorOrNull = (): Editor | null => useContext(Ctx)
 
 /** Creates an editor that lives as long as the component. */
 export function useNewEditor(options: EditorOptions): Editor {
@@ -139,6 +137,10 @@ export function useHistoryState(): { canUndo: boolean; canRedo: boolean } {
 /**
  * Calls back after every change to the document, debounced. What autosave hangs from: the editor
  * has no opinion about where a document is stored, so the platform gets told and decides.
+ *
+ * On the way out it fires whatever was pending instead of cancelling it. That is the whole
+ * difference between an autosave and a lost paragraph: someone types a sentence and navigates
+ * away within the debounce window, and dropping the timer would drop the sentence with it.
  */
 export function useOnChange(fn: (state: EditorState) => void, delay = 700): void {
   const editor = useEditor()
@@ -146,44 +148,23 @@ export function useOnChange(fn: (state: EditorState) => void, delay = 700): void
   latest.current = fn
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | undefined
+    let pending = false
+    const flush = () => {
+      if (timer) clearTimeout(timer)
+      timer = undefined
+      if (!pending) return
+      pending = false
+      latest.current(editor.state)
+    }
     const stop = editor.subscribe((change) => {
       if (!change.docChanged) return
+      pending = true
       if (timer) clearTimeout(timer)
-      timer = setTimeout(() => latest.current(editor.state), delay)
+      timer = setTimeout(flush, delay)
     })
     return () => {
-      if (timer) clearTimeout(timer)
       stop()
+      flush()
     }
   }, [editor, delay])
 }
-
-/** The current text selection as a range inside one block, for the format bar. */
-export function useTextRange(): { block: BlockId; from: number; to: number } | null {
-  const selection = useSelection()
-  return useMemo(() => {
-    if (!isText(selection)) return null
-    if (selection.anchor.block !== selection.head.block) return null
-    const from = Math.min(selection.anchor.offset, selection.head.offset)
-    const to = Math.max(selection.anchor.offset, selection.head.offset)
-    return { block: selection.head.block, from, to }
-  }, [selection])
-}
-
-/** A piece of view state that belongs to the editor rather than to a component, keyed by name. */
-export function useViewState<T>(key: string, initial: T): [T, (value: T) => void] {
-  const editor = useEditor()
-  const store = viewStores.get(editor) ?? new Map<string, unknown>()
-  if (!viewStores.has(editor)) viewStores.set(editor, store)
-  const [value, setValue] = useState<T>(() => (store.has(key) ? (store.get(key) as T) : initial))
-  const set = useCallback(
-    (next: T) => {
-      store.set(key, next)
-      setValue(next)
-    },
-    [store, key],
-  )
-  return [value, set]
-}
-
-const viewStores = new WeakMap<Editor, Map<string, unknown>>()

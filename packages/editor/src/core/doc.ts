@@ -65,13 +65,6 @@ export const emptyDoc = (): Doc => ({
 export const getBlock = (doc: Doc, id: BlockId | null | undefined): Block | undefined =>
   id == null ? undefined : doc.blocks[id]
 
-/** Like `getBlock` but for the places where a missing block is a bug, not a state. */
-export function mustGet(doc: Doc, id: BlockId): Block {
-  const b = doc.blocks[id]
-  if (!b) throw new Error(`bloque inexistente: ${id}`)
-  return b
-}
-
 export const has = (doc: Doc, id: BlockId) => Object.hasOwn(doc.blocks, id)
 
 export const childrenOf = (doc: Doc, id: BlockId): BlockId[] => doc.blocks[id]?.children ?? []
@@ -120,7 +113,13 @@ export function isAncestor(doc: Doc, ancestor: BlockId, of: BlockId): boolean {
  */
 export function flatten(doc: Doc, from: BlockId = doc.root): BlockId[] {
   const out: BlockId[] = []
+  // La guarda no es paranoia: `validate` recorre con esto para poder contar qué está mal, y un
+  // documento con un ciclo es exactamente el que llega de la base, de un pegado o de un agente.
+  // Sin ella, la función que tenía que reportar el problema reventaba el stack.
+  const seen = new Set<BlockId>()
   const walk = (id: BlockId) => {
+    if (seen.has(id)) return
+    seen.add(id)
     for (const child of childrenOf(doc, id)) {
       out.push(child)
       walk(child)
@@ -131,12 +130,14 @@ export function flatten(doc: Doc, from: BlockId = doc.root): BlockId[] {
 }
 
 /** Same walk, but yielding as it goes: for counting or searching without building the array. */
-export function* walk(doc: Doc, from: BlockId = doc.root): Generator<Block> {
+export function* walk(doc: Doc, from: BlockId = doc.root, seen: Set<BlockId> = new Set()): Generator<Block> {
+  if (seen.has(from)) return
+  seen.add(from)
   for (const child of childrenOf(doc, from)) {
     const b = doc.blocks[child]
     if (!b) continue
     yield b
-    yield* walk(doc, child)
+    yield* walk(doc, child, seen)
   }
 }
 
@@ -202,7 +203,7 @@ export const textLength = (doc: Doc, id: BlockId): number => textLen(doc.blocks[
  * snapshot and a render a reference comparison. The way out, if a document ever gets big, is a map
  * with structural sharing: split the blocks across a fixed number of buckets and copy the one
  * bucket a write touches. It is not much code, and it touches every `doc.blocks` access in the
- * package, so it is the next step and not this one. `tests/perf.bench.ts` pins the numbers.
+ * package, so it is the next step and not this one. `tests/perf.test.ts` pins the numbers.
  */
 export const setBlock = (doc: Doc, block: Block): Doc => ({
   ...doc,

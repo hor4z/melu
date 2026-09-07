@@ -194,6 +194,27 @@
 
 .melu-bullet { font-size: 1.1em; line-height: calc(var(--melu-text) * var(--melu-line) / 1.1); }
 
+/*
+ * La numeración de una lista, contada por el navegador.
+ *
+ * Cualquier bloque reinicia el contador y uno numerado lo incrementa, así que una tira de ítems
+ * se numera sola y una tira nueva vuelve a empezar en uno. Recalcularlo es del navegador: contarlo
+ * en JS obligaba a que cada ítem se enterara de los cambios de todos sus hermanos de arriba, y sin
+ * eso el número quedaba viejo cuando el de arriba dejaba de ser una lista.
+ */
+.melu-block { counter-reset: melu-ol 0; }
+.melu-block[data-type="numbered_list"] { counter-reset: none; }
+/*
+ * El incremento va en la misma marca que lleva el reinicio, y no en el bloque. En un solo elemento
+ * el reinicio se procesa antes que el incremento, que es lo que hace que un ítem que arranca en
+ * cinco reinicie en cuatro y quede en cinco. Con el incremento en el bloque, el reinicio llegaba
+ * después y el ítem mostraba cuatro.
+ */
+.melu-block[data-type="numbered_list"] > .melu-item > .melu-ordinal { counter-increment: melu-ol; }
+.melu-block[data-type="numbered_list"] > .melu-item > .melu-ordinal::before { content: counter(melu-ol) "."; }
+/* Una lista anidada empieza de nuevo en uno, y no sigue la numeración de la de afuera. */
+.melu-children { counter-reset: melu-ol 0; }
+
 .melu-checkbox {
   flex: 0 0 auto;
   margin: calc(var(--melu-pad) + 0.28em) 4px 0 3px;

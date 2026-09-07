@@ -184,33 +184,6 @@ export function readSelection(container: HTMLElement): DomRange | null {
   return { block: id, from: Math.min(anchor, head), to: Math.max(anchor, head), backwards: head < anchor }
 }
 
-/** Puts the caret where the model says it is. */
-export function writeSelection(container: HTMLElement, block: string, from: number, to = from): boolean {
-  const root = textRootOf(container, block)
-  if (!root) return false
-  const sel = document.getSelection()
-  if (!sel) return false
-  const a = domFromOffset(root, from)
-  const b = from === to ? a : domFromOffset(root, to)
-  try {
-    const range = document.createRange()
-    range.setStart(a.node, a.offset)
-    range.setEnd(b.node, b.offset)
-    sel.removeAllRanges()
-    sel.addRange(range)
-    return true
-  } catch {
-    // Un offset que ya no existe porque el bloque cambió abajo del caret: no vale tirar la app.
-    return false
-  }
-}
-
-/** Whether the caret is already where the model wants it, so writing it again is avoidable. */
-export function selectionMatches(container: HTMLElement, block: string, from: number, to: number): boolean {
-  const now = readSelection(container)
-  return Boolean(now && now.block === block && now.from === Math.min(from, to) && now.to === Math.max(from, to))
-}
-
 /** Moves focus into a block without scrolling the page around. */
 export function focusBlockElement(container: HTMLElement, block: string): void {
   const root = textRootOf(container, block)
@@ -267,37 +240,6 @@ export function caretRect(): DOMRect | null {
     // Un caret colapsado al principio de un renglón mide cero: se pregunta por el nodo.
     const el = range.startContainer instanceof Element ? range.startContainer : range.startContainer.parentElement
     return el?.getBoundingClientRect() ?? rect
-  } catch {
-    return null
-  }
-}
-
-/** Whether an offset sits on the first or last visual line, which is what the arrows need. */
-export function lineEdges(root: HTMLElement, offset: number): { first: boolean; last: boolean } {
-  const total = root.textContent?.length ?? 0
-  if (total === 0) return { first: true, last: true }
-  const here = rectAt(root, offset)
-  if (!here) return { first: true, last: true }
-  const start = rectAt(root, 0)
-  const end = rectAt(root, total)
-  const near = (a: number, b: number) => Math.abs(a - b) < 2
-  return {
-    first: !start || near(here.top, start.top),
-    last: !end || near(here.bottom, end.bottom),
-  }
-}
-
-function rectAt(root: HTMLElement, offset: number): DOMRect | null {
-  const at = domFromOffset(root, offset)
-  try {
-    const range = document.createRange()
-    if (typeof range.getBoundingClientRect !== 'function') return null
-    range.setStart(at.node, at.offset)
-    range.setEnd(at.node, at.offset)
-    const rect = range.getBoundingClientRect()
-    if (rect.height) return rect
-    const el = at.node instanceof Element ? at.node : at.node.parentElement
-    return el?.getBoundingClientRect() ?? null
   } catch {
     return null
   }

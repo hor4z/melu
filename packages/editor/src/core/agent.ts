@@ -159,6 +159,9 @@ export type AgentReport = {
 export function apply(editor: Editor, ops: readonly AgentOp[], opts: { label?: string } = {}): AgentReport {
   const results: AgentReport['results'] = []
   if (ops.length === 0) return { ok: false, results, error: 'no vino ninguna operación' }
+  // Esta es la única puerta que no pasa por `exec`, así que el permiso se pregunta acá: si no, un
+  // agente podía escribir en un documento que una persona no puede tocar.
+  if (editor.readOnly) return { ok: false, results, error: 'el documento está en solo lectura' }
 
   const tr = new Transaction(editor.state)
   tr.setMeta('agent', opts.label ?? true)

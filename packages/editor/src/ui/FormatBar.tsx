@@ -56,6 +56,24 @@ export function FormatBar() {
 
   const close = useCallback(() => setPanel('none'), [])
 
+  /**
+   * Mod+K abre el panel del link.
+   *
+   * El botón anunciaba el atajo y el atajo no existía, que es peor que no anunciarlo. Va acá y no
+   * en el keymap del motor porque lo que abre es un panel de esta barra, y el motor no sabe qué
+   * paneles hay: los comandos con nombre son para lo que cambia el documento.
+   */
+  useEffect(() => {
+    if (!visible) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== 'k' || !(e.metaKey || e.ctrlKey) || e.altKey) return
+      e.preventDefault()
+      setPanel((p) => (p === 'link' ? 'none' : 'link'))
+    }
+    document.addEventListener('keydown', onKey, true)
+    return () => document.removeEventListener('keydown', onKey, true)
+  }, [visible])
+
   if (!visible || !anchor) return null
 
   const active = (type: MarkType) => marks.some((m) => m.type === type)

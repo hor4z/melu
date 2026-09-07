@@ -235,6 +235,7 @@ export const textKeys: KeyBinding[] = [
   { key: 'Tab', run: 'indent', label: 'Anidar' },
   { key: 'Shift-Tab', run: 'outdent', label: 'Sacar un nivel' },
   { key: 'Escape', run: 'selectEnclosingBlock', label: 'Seleccionar el bloque' },
+  { key: 'Mod-a', run: 'selectAllStep', label: 'Seleccionar el bloque, y de nuevo toda la página' },
 
   mark('Mod-b', 'bold', 'Negrita'),
   mark('Mod-i', 'italic', 'Cursiva'),

@@ -11,7 +11,7 @@
  */
 
 import type { PasteHandler, Plugin } from '../core/plugins.ts'
-import { appendBlocks, insertBlock, insertRichText, insertText, splitBlock, type Command } from '../core/commands.ts'
+import { appendBlocks, insertBlock, insertRichText, insertText, setLink, splitBlock, type Command } from '../core/commands.ts'
 import { getBlock, type BlockId, type BlockInit, type Doc } from '../core/doc.ts'
 import { isEmpty, plain, setMark } from '../core/text.ts'
 import { fromHtml, fromJSON, fromMarkdown, toHtml, toMarkdown, type BlockJSON } from '../core/serialize.ts'
@@ -52,12 +52,16 @@ function insertBlocks(ctx: Parameters<Command>[0], blocks: readonly BlockInit[])
 
   if (!block) return appendBlocks(ctx, { blocks: [...blocks], focus: true })
 
-  // Si el bloque de destino tiene texto y el caret no está al final, se parte para no perder la cola.
+  // Si el bloque de destino tiene texto y el caret no está al final, se parte para no perder la
+  // cola.
   const total = plain(block.text).length
   const offset = isText(sel) ? sel.head.offset : total
   if (!isEmpty(block.text) && offset < total) splitBlock(ctx, undefined)
 
-  let target = isText(ctx.state.selection) ? ctx.state.selection.head.block : at
+  // El destino es el bloque donde estaba el caret, que después de partir es la cabeza. Preguntarle
+  // a la selección dónde está no sirve: partir deja el caret en la cola, así que lo pegado
+  // terminaba abajo de la cola en lugar de entre las dos mitades.
+  let target = at
   let did = false
   for (const b of blocks) {
     if (!insertBlock(ctx, { ...b, target, at: 'after', focus: true })) continue
@@ -162,12 +166,15 @@ const url: PasteHandler = {
     const block = getBlock(ctx.tr.doc, sel.head.block)
     if (!block || !ctx.state.schema.allowsMark(block.type, 'link')) return false
 
+    // Con algo seleccionado lo resuelve el comando del core, que sabe de rangos que cruzan
+    // bloques. La cuenta a mano de acá mezclaba el offset de un bloque con el de otro: linkeaba un
+    // pedazo cualquiera del segundo y no pegaba nada.
     if (sel.anchor.block !== sel.head.block || sel.anchor.offset !== sel.head.offset) {
-      return runSetLink(ctx, href)
+      return setLink(ctx, { href })
     }
 
     const at = sel.head.offset
-    if (!runSetLink(ctx, href, true)) return false
+    if (!writeLinkedUrl(ctx, href)) return false
     const guess = classify(href)
     const pasted: PastedUrl = {
       url: href,
@@ -181,17 +188,21 @@ const url: PasteHandler = {
   },
 }
 
-/** Puts a link over the selection, or over the address it just wrote. */
-function runSetLink(ctx: Parameters<Command>[0], href: string, write = false): boolean {
-  if (write && !insertText(ctx, { text: href })) return false
+/**
+ * Escribe la dirección en el caret y la deja linkeada.
+ *
+ * Solo para el caret colapsado, que es cuando los dos extremos están en el mismo bloque: los
+ * offsets de acá son de un bloque, y usarlos con una selección que cruza dos era el bug.
+ */
+function writeLinkedUrl(ctx: Parameters<Command>[0], href: string): boolean {
+  if (!insertText(ctx, { text: href })) return false
   const sel = ctx.state.selection
   if (!isText(sel)) return false
   const block = getBlock(ctx.tr.doc, sel.head.block)
   if (!block) return false
-  const caretAt = sel.head.offset
-  const from = write ? caretAt - href.length : Math.min(sel.anchor.offset, caretAt)
-  const to = write ? caretAt : Math.max(sel.anchor.offset, caretAt)
-  if (from >= to) return false
+  const to = sel.head.offset
+  const from = to - href.length
+  if (from < 0) return false
   ctx.tr.setText(sel.head.block, setMark(block.text ?? [], from, to, { type: 'link', value: href }))
   return true
 }
