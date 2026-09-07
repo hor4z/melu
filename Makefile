@@ -1,4 +1,4 @@
-.PHONY: dev api web ui test build db
+.PHONY: dev api web ui editor test build db
 
 db:        ## levanta postgres (docker)
 	docker start melu-db 2>/dev/null || docker run -d --name melu-db -e POSTGRES_USER=melu -e POSTGRES_PASSWORD=melu -e POSTGRES_DB=melu -p 5434:5432 -v melu-pgdata:/var/lib/postgresql/data postgres:16-alpine
@@ -12,8 +12,12 @@ web:       ## front con hot reload, en :5173 (proxy /api → :8787)
 ui:        ## el sitio del design system, en :5174
 	cd packages/ui && npm run dev
 
-test:      ## los tests del kit
+editor:    ## el taller del motor de bloques, en :5175
+	cd packages/editor && npm run dev
+
+test:      ## los tests del kit y del motor de bloques
 	npm test -w @melu/ui
+	npm test -w @melu/editor
 
 build:     ## un solo binario con el front embebido
 	cd packages/web && npm run build

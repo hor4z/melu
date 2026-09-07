@@ -1,0 +1,93 @@
+/* El cascarón del taller. Deliberadamente sobrio: lo que se mira es el editor, no esto. */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #f6f8f7;
+  color: #1b2624;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.taller { display: flex; flex-direction: column; height: 100vh; }
+
+.taller-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #dce5e3;
+  background: #fff;
+}
+
+.taller-sub { color: #93a19e; font-size: 13px; }
+.taller-acciones { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+
+.taller-acciones button,
+.taller-tabs button,
+.taller-correr {
+  border: 1px solid #dce5e3;
+  border-radius: 7px;
+  padding: 5px 10px;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  color: #5c6b68;
+  cursor: pointer;
+}
+
+.taller-acciones button:hover,
+.taller-tabs button:hover { border-color: #10756e; color: #10756e; }
+.taller-acciones button[data-on="true"],
+.taller-tabs button[data-on="true"] { border-color: #10756e; background: #e6f2f1; color: #10756e; }
+
+.taller-cuerpo { flex: 1 1 auto; display: flex; min-height: 0; }
+
+.taller-pagina {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 24px 8px;
+  background: #fff;
+  /* Un contenedor con nombre: es lo que deja que las columnas se apilen por el ancho de la
+     columna y no por el de la ventana. */
+  container-type: inline-size;
+}
+
+.taller-panel {
+  flex: 0 0 400px;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #dce5e3;
+  background: #fbfcfc;
+  min-width: 0;
+}
+
+.taller-tabs { display: flex; gap: 5px; padding: 8px; border-bottom: 1px solid #dce5e3; }
+.taller-salida { flex: 1 1 auto; overflow: auto; padding: 10px 12px; }
+
+.taller-salida pre {
+  margin: 0 0 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #5c6b68;
+}
+
+.taller-salida h3 {
+  margin: 4px 0 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #93a19e;
+}
+
+.taller-nota { color: #93a19e; font-size: 12px; line-height: 1.5; }
+.taller-correr { margin-bottom: 10px; }
+
+@media (max-width: 1100px) {
+  .taller-cuerpo { flex-direction: column; }
+  .taller-panel { flex: 0 0 40vh; border-left: 0; border-top: 1px solid #dce5e3; }
+}
