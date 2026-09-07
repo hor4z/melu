@@ -42,6 +42,7 @@ export { Tooltip, TooltipTrigger, TooltipContent } from './tooltip'
 export { Popover, PopoverAnchor, PopoverTrigger, PopoverContent, PopoverClose } from './popover'
 export { Portal } from './portal'
 export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs'
+export { Breadcrumb, BreadcrumbItem, BreadcrumbPage, type BreadcrumbProps, type BreadcrumbItemProps } from './breadcrumb'
 export {
   Sidebar, SidebarHeader, SidebarNav, SidebarLabel, SidebarItem, SidebarToggle,
   type SidebarProps, type SidebarItemProps,

@@ -331,6 +331,24 @@ export const REGISTRY: Entry[] = [
     whenNot: ['Si el contenido de cada pestaña merece su URL, son rutas.'],
   },
   {
+    slug: 'breadcrumb',
+    title: 'Breadcrumb',
+    group: 'Navegación',
+    summary: 'Dónde estás y la salida: el camino de una pantalla profunda.',
+    exports: ['Breadcrumb', 'BreadcrumbItem', 'BreadcrumbPage'],
+    demos: [
+      { id: 'basic', title: 'El camino y la vuelta', note: 'Los separadores los pone el componente: escritos a mano, tarde o temprano falta uno o sobra el del final. En el celular no hay camino, hay una vuelta al padre con la flecha que lo dice.' },
+    ],
+    when: [
+      'Una pantalla que se abre desde otra y no está en el panel: corregir, editar, el detalle de algo.',
+      'La URL tiene padres que existen como pantalla: si se puede subir un nivel, se puede mostrar.',
+    ],
+    whenNot: [
+      'Un destino del panel: ya está marcado ahí, y una miga de un solo paso no dice nada.',
+      'Para volver de una pantalla que se abrió encima de otra (un modal, el editor a pantalla completa): eso es cerrar, no subir.',
+    ],
+  },
+  {
     slug: 'sidebar',
     title: 'Sidebar',
     group: 'Navegación',
