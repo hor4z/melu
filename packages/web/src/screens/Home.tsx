@@ -1,9 +1,8 @@
-// La mesa de trabajo: qué llegó y qué falta corregir.
+// La mesa de trabajo: qué falta corregir y qué falta que llegue.
 //
 // Lo que hay que leer despacio (quién se traba, qué les cuesta, cómo aprenden) se mudó a "Cómo
-// vienen". Acá quedó solo lo que se mira varias veces por día, y los cuatro números de arriba son
-// cuentas de cosas que pasaron y no promedios: "5 sin corregir" se entiende sin referencia, "34.6
-// min" no.
+// vienen". Acá quedó solo lo que se mira varias veces por día, y los números de arriba son cuentas
+// de cosas que pasaron y no promedios: "5 sin corregir" se entiende sin referencia, "34.6 min" no.
 import { Link, useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import { ArrowRight, Check, Clock, Hourglass, Inbox, Plus, Users } from 'lucide-react'
@@ -19,10 +18,13 @@ export function Home() {
   const q = useQuery({ queryKey: ['dashboard', spaceId], queryFn: () => api.get<Dashboard>(`/api/dashboard?space=${spaceId}`) })
   const p = q.data
   if (!p) return null
-  // Solo lo que espera una devolución. Lo ya corregido no es urgente; lo que abrieron y no
-  // entregaron tampoco espera nada del docente, y eso se mira en "Cómo vienen".
-  const esperando = (p.recentSubmissions ?? []).filter((e) => e.status === 'submitted')
-  const llegaron = p.toReview + p.graded
+  // La lista la arma la api: son las que esperan devolución y nada más. Filtrarla acá sobre una
+  // ventana mezclada dejaba la tarjeta vacía justo después de corregir varias seguidas.
+  const esperando = p.awaitingReview ?? []
+  // La cuenta de entregas y la de asignadas salen de dos lados distintos (filas de entregas y
+  // miembros del grupo), así que se recorta: sacar a alguien de un grupo después de que entregó
+  // daría "13/12".
+  const llegaron = Math.min(p.toReview + p.graded, p.assigned)
   const steps: [string, string, string, string][] = [
     ['group', 'Creá un grupo', 'Un aula, un taller, tres alumnos: gente que aprende junta.', '/groups'],
     ['invite', 'Sumá a los chicos', 'Escribí sus emails. Entran con Google y el grupo ya los espera.', '/groups'],
@@ -59,8 +61,8 @@ export function Home() {
         </Card>
       )}
 
-      {/* Lo corregido se fue de acá: es lo único de los cuatro números que no pedía nada. Un
-          panel donde todo lo que se ve espera algo se puede leer de un vistazo. */}
+      {/* Lo corregido se fue de acá: era lo único de estos números que no pedía nada. Un panel
+          donde todo lo que se ve espera algo se puede leer de un vistazo. */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatTile label="Para mirar" value={p.toReview} hint="esperando tu devolución" tint="bg-yellow" icon={<Icon icon={Inbox} size="lg" />} />
         <StatTile label="Sin terminar" value={p.unfinished} hint="las abrieron y no entregaron" tint="bg-blue" icon={<Icon icon={Hourglass} size="lg" />} />
@@ -68,8 +70,9 @@ export function Home() {
       </section>
 
 
-      {esperando.length > 0 && (
-        <Card padding="lg">
+      {/* La tarjeta está siempre: con la barra y el "Ver todas" adentro, esconderla cuando no
+          queda nada para corregir se llevaba también la única forma de ir a las entregas. */}
+      <Card padding="lg">
           {/* `items-start`: con la barra abajo del título, alinear al pie mandaba el "Ver todas"
               al medio de la tarjeta. Va arriba a la derecha, que es donde se lo busca. */}
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -82,7 +85,7 @@ export function Home() {
               {p.assigned > 0 && (
                 <Progress
                   className="mt-3 max-w-xs" value={llegaron} max={p.assigned} showValue
-                  label={llegaron === p.assigned ? 'Completadas, todas' : 'Completadas'}
+                  label={llegaron >= p.assigned ? 'Completadas, todas' : 'Completadas'}
                 />
               )}
             </div>
@@ -90,6 +93,9 @@ export function Home() {
           </div>
           {/* Sin chip de estado: si todas las filas esperan lo mismo, el chip lo repite en cada
               una y compite con el botón, que es lo único que hay que tocar. */}
+          {esperando.length === 0
+            ? <Text variant="muted" className="mt-4">Nada espera tu devolución.</Text>
+            : (
           <ul className="mt-4 divide-y divide-line">
             {esperando.map((e) => (
               <li key={e.submissionId} className="flex flex-wrap items-center gap-4 py-3">
@@ -111,8 +117,8 @@ export function Home() {
               </li>
             ))}
           </ul>
-        </Card>
-      )}
+            )}
+      </Card>
     </div>
   )
 }

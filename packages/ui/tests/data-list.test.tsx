@@ -29,11 +29,13 @@ describe('DataList', () => {
     expect(abrir).toHaveBeenCalledOnce()
   })
 
-  test('`DataListMeta` separa con aire y no mete ningún carácter entre los pedazos', () => {
+  test('`DataListMeta` separa con aire a la vista, y con una coma que no se ve para quien escucha', () => {
     render(<DataList><DataListItem><DataListMeta><span>4° A</span><span>hace 2 h</span></DataListMeta></DataListItem></DataList>)
     const meta = screen.getByText('hace 2 h').parentElement as HTMLElement
-    expect(meta.textContent).toBe('4° Ahace 2 h')
     expect(meta.className).toContain('gap-x-')
+    expect(meta.textContent).toBe('4° A, hace 2 h')
+    // Lo que separa está escondido: a la vista no hay ningún carácter entre un pedazo y el otro.
+    expect(meta.querySelector('.sr-only')?.textContent).toBe(', ')
   })
 
   test('el esqueleto tiene la forma de las fichas y el lector no lo lee', () => {
