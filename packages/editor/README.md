@@ -164,6 +164,21 @@ siendo editable.
 | una dirección + espacio | Link, o el bloque de medios que corresponda |
 | `/` | El menú de bloques |
 
+Al costado de cada bloque están el más y el agarre, a la altura de su primer renglón. Aparecen al
+pasar el puntero y también acompañan al caret, así que están a mano mientras alguien escribe. Viven
+en un canal reservado adentro de la superficie (`--melu-rail`), y no afuera: pintarlos afuera anda
+hasta que un ancestro tiene scroll, y ahí desaparecen. El bloque que señalan se decide por la
+posición del puntero y no por lo que hay debajo, que es lo que evita que se borren justo cuando uno
+va a clickearlos.
+
+**Pegar un link no adivina.** Adivinar está mal en las dos direcciones: pegarlo sobre una oración no
+puede meter un iframe en el medio de la frase, y pegarlo en un renglón vacío tampoco puede decidir
+solo que lo que alguien quería era un reproductor. Así que el pegado hace lo menos destructivo (el
+texto con su link) y un menú al lado ofrece el resto: el video, la tarjeta con miniatura, o dejarlo
+como link. Seguir escribiendo lo cierra. Lo que se ofrece sale del reconocedor de `media.ts`, así
+que una dirección de YouTube con lista y radio adentro igual ofrece el video con la dirección que
+se puede incrustar.
+
 Los atajos: `Mod+B/I/U/E`, `Mod+Shift+S` tachado, `Mod+Shift+H` resaltar, `Mod+Shift+C` limpiar,
 `Mod+Alt+0..9` convertir el bloque, `Tab`/`Shift+Tab` anidar, `Mod+D` duplicar,
 `Mod+Shift+↑/↓` mover, `Escape` seleccionar el bloque, `Mod+Z`/`Mod+Shift+Z` deshacer y rehacer.
@@ -212,7 +227,7 @@ no se pierde el texto.
 
 ## Los tests
 
-394, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y no
+418, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y no
 "splitBlock con texto vacío". Once archivos:
 
 ```
@@ -225,10 +240,12 @@ history       deshacer, y que escribir una palabra sea un solo deshacer
 schema        el registro, la búsqueda del menú, la validación de props
 rules         lo que se escribe sin abrir un menú, y lo que el normalizador arregla solo
 serialize     JSON, markdown y HTML, de ida y de vuelta
-paste         el orden de los formatos, y que pegar prosa en el medio de una oración no la corte
+paste         el orden de los formatos, que pegar prosa en el medio de una oración no la corte, y
+              qué ofrece el menú al pegar una dirección
 agent         el manifiesto, el esquema y que un lote sea atómico
 perf          que una tecla toque un bloque con 5 y con 2000, contando y no cronometrando
-react         la costura con el DOM, y cuántos componentes se repintan por tecla
+react         la costura con el DOM, cuántos componentes se repintan por tecla, el asa y el menú
+              de pegado, de punta a punta
 ```
 
 Lo que depende de geometría (dónde se ubica un menú, en qué renglón está el caret, el arrastre) no
