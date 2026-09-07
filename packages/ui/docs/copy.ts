@@ -85,6 +85,22 @@ export const COPY: Record<string, string> = {
     + 'quede recortado por un `overflow: hidden` o tapado por el `z-index` de un padre. También deja '
     + 'las guardas de foco para que el tabulador no se escape del flotante.',
 
+  // Navegación
+  Sidebar:
+    'El riel del costado, en partes. Replegado son íconos; desplegado, íconos con su nombre. No '
+    + 'se acuerda solo: quien lo usa guarda el estado, porque dónde se guarda (la url, una '
+    + 'preferencia, en ningún lado) es una decisión de la app y no del riel. El ancho se anima y '
+    + 'el contenido no: un nombre que aparece en el medio de un deslizamiento se lee como una '
+    + 'falla, así que entra entero.',
+  SidebarHeader: 'Lo que va arriba: el logo, el nombre del lugar. Centrado mientras está replegado.',
+  SidebarLabel: 'El rótulo de un tramo del menú. Replegado sigue para quien escucha y deja de ocupar lugar.',
+  SidebarItem:
+    'Un destino. El activo se pinta a partir de `aria-current="page"`, que un enlace de router ya '
+    + 'pone: así el riel no necesita saber en qué router está viviendo.',
+  'SidebarItem.label': 'El nombre. Replegado queda como nombre accesible y vuelve como tooltip.',
+  'SidebarItem.asChild': 'Le presta los estilos a un enlace de router, que es lo que esto es casi siempre.',
+  SidebarToggle: 'Repliega y despliega. Dice cuál de las dos cosas va a hacer, y a quién.',
+
   // Estado y datos
   EmptyState: 'El vacío con una explicación: siempre decir qué falta y qué se puede hacer.',
   Sparkline: 'Una línea de tendencia mínima, sin librería.',

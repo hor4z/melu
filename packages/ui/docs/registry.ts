@@ -331,6 +331,24 @@ export const REGISTRY: Entry[] = [
     whenNot: ['Si el contenido de cada pestaña merece su URL, son rutas.'],
   },
   {
+    slug: 'sidebar',
+    title: 'Sidebar',
+    group: 'Navegación',
+    summary: 'El riel de la izquierda, en partes: replegado son íconos, desplegado son íconos con nombre.',
+    exports: ['Sidebar', 'SidebarHeader', 'SidebarNav', 'SidebarLabel', 'SidebarItem', 'SidebarToggle'],
+    demos: [
+      { id: 'basic', title: 'Replegar y desplegar', note: 'El destino activo se pinta con `aria-current="page"`, que un enlace de router ya pone: el riel no necesita saber en qué router vive.' },
+    ],
+    when: [
+      'La navegación principal de una app con varias secciones que se visitan todo el tiempo.',
+      'Hay poco ancho y se lo quiere devolver a la pantalla: replegado ocupa 64 px.',
+    ],
+    whenNot: [
+      'Dos o tres secciones se leen mejor en `Tabs`: un riel entero para tres cosas es de más.',
+      'No se acuerda del estado por su cuenta: eso lo guarda quien lo usa, porque dónde se guarda es una decisión de la app.',
+    ],
+  },
+  {
     slug: 'feedback',
     title: 'Alert y compañía',
     group: 'Estado',
