@@ -184,15 +184,20 @@ func (r *Repos) CreateGroup(ctx context.Context, g domain.Group, guideID string)
 	if _, err := tx.Exec(ctx, `insert into memberships(person_id, space_id, group_id, role) values($1,$2,$3,'guide')`, guideID, g.SpaceID, g.ID); err != nil {
 		return nil, err
 	}
+	// Recién creado no hay nadie adentro, pero la lista viaja vacía y no nula: el front dibuja
+	// caras con esto y `null` lo haría explotar.
+	g.Names = []string{}
 	return &g, tx.Commit(ctx)
 }
 
 const groupCols = `g.id, g.space_id, g.name, g.tags,
-  (select count(*) from memberships a where a.group_id=g.id and a.role='learner')`
+  (select count(*) from memberships a where a.group_id=g.id and a.role='learner'),
+  (select coalesce(array_agg(p.name order by p.name), '{}') from memberships a
+     join people p on p.id = a.person_id where a.group_id=g.id and a.role='learner')`
 
 func scanGroup(row pgx.CollectableRow) (domain.Group, error) {
 	var g domain.Group
-	return g, row.Scan(&g.ID, &g.SpaceID, &g.Name, &g.Tags, &g.Learners)
+	return g, row.Scan(&g.ID, &g.SpaceID, &g.Name, &g.Tags, &g.Learners, &g.Names)
 }
 
 func (r *Repos) OfGuide(ctx context.Context, personID, spaceID string) ([]domain.Group, error) {

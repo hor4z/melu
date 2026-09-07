@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
-import { Button, Card, CardContent, CardMedia, cn, Field, Heading, Icon, Input, Text } from '@melu/ui'
+import { AvatarGroup, Button, Card, CardContent, CardMedia, cn, Field, Heading, Icon, Input, Text } from '@melu/ui'
 import { api, type Group } from '../lib/api'
 import { useSpace } from '../lib/space'
 import { Modal, Empty } from '../blocks/Modal'
@@ -27,7 +27,10 @@ export function Groups() {
         {groups.data?.map((g, i) => (
           <Card key={g.id} asChild interactive>
             <Link to={`/groups/${g.id}`}>
+              {/* La franja de color estaba vacía. Las caras de quiénes están dicen de un vistazo
+                  lo que el número de abajo dice contando. */}
               <CardMedia className={cn('h-24 items-end justify-start p-3', TINTS[i % TINTS.length])}>
+                {g.names.length > 0 && <AvatarGroup names={g.names} max={5} />}
               </CardMedia>
               <CardContent className="p-4">
                 <div className="font-semibold">{g.name}</div>

@@ -121,7 +121,9 @@ export const COPY: Record<string, string> = {
     + 'entregas", que dice lo mismo tres veces.',
   PaginationPrev:
     'Van de a dos y están siempre, apagados en las puntas: un par que aparece y desaparece le '
-    + 'corre el otro botón debajo del dedo a quien iba a tocarlo.',
+    + 'corre el otro botón debajo del dedo a quien iba a tocarlo. Son `ghost` y no van con marco: '
+    + 'la fila ya tiene su línea arriba y la tarjeta alrededor, y un tercer recuadro ahí adentro '
+    + 'es uno de más.',
   PaginationNext: 'Su `disabled` es el `more` que contesta la api: mientras haya más, hay un siguiente.',
   DataList:
     'Las mismas filas de una `Table`, una abajo de la otra, para cuando no hay ancho. Una tabla en '

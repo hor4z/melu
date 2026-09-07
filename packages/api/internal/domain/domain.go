@@ -65,6 +65,8 @@ type Group struct {
 	Name     string          `json:"name"`
 	Tags     json.RawMessage `json:"tags"`
 	Learners int             `json:"learners"`
+	// Who is in it. The card shows their faces: a number says how many, and a face says who.
+	Names []string `json:"names"`
 }
 
 type Membership struct {

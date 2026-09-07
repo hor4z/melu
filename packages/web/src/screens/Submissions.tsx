@@ -6,7 +6,7 @@ import {
   DataList, DataListActions, DataListHead, DataListItem, DataListMedia, DataListMeta, DataListText, DataListTitle,
   Pagination, PaginationNext, PaginationPrev, PaginationStatus,
   Table, TableBody, TableCell, TableEmpty, TableHead, TableHeader, TableRow,
-  BREAKPOINTS, facets, useDevice, useMediaQuery,
+  facets, useDevice,
 } from '@melu/ui'
 import { CircleDot, School, User } from 'lucide-react'
 import { Empty } from '../blocks/Modal'
@@ -21,7 +21,7 @@ const ESTADOS = {
 } as const
 
 type Estado = keyof typeof ESTADOS
-type Por = 'learner' | 'when' | 'minutes' | 'accuracy'
+type Por = 'learner' | 'when'
 
 // El orden de entrada, y el que se recupera cuando no hay cabecera que explique otro.
 const ULTIMO = { por: 'when' as Por, dir: 'desc' as const }
@@ -38,10 +38,6 @@ export function Submissions() {
   // que se recorre para abajo como todo lo demás.
   const device = useDevice()
   const conTabla = device === 'desktop'
-  // Las columnas de relleno entran recién en la pantalla ancha. Se pregunta acá y no con una
-  // clase de Tailwind porque el orden depende de esto: una columna que no está no puede quedar
-  // ordenando la tabla.
-  const conRelleno = useMediaQuery(`(min-width: ${BREAKPOINTS.xl}px)`)
   const q = useQuery({ queryKey: ['submissions', spaceId], queryFn: () => api.get<SubmissionSummary[]>(`/api/submissions?space=${spaceId}`) })
 
   const [texto, setTexto] = useState('')
@@ -100,19 +96,13 @@ export function Submissions() {
     // filtra y no está en la barra es una tabla vacía sin nada que explique por qué.
   ].filter((f) => f.options.length > 1 || filtros[f.name] !== undefined)
 
-  // El orden se lee de una cabecera: donde esa cabecera no está, no hay orden raro que explicar
-  // y la lista va como promete el título, con lo último arriba. Se guarda igual, así que volver
-  // a agrandar la ventana lo devuelve.
-  const escondida = !conRelleno && (orden.por === 'minutes' || orden.por === 'accuracy')
-  const orden_ = !conTabla || escondida ? ULTIMO : orden
+  // El orden se lee de una cabecera: en el celular no hay cabecera, así que la lista va como
+  // promete el título, con lo último arriba. Se guarda igual, así que volver a la tabla lo devuelve.
+  const orden_ = conTabla ? orden : ULTIMO
 
-  const valor = (e: SubmissionSummary) =>
-    orden_.por === 'learner' ? (e.learner ?? '') : orden_.por === 'when' ? e.when : orden_.por === 'minutes' ? e.minutes : e.accuracy
-  const lista = todas.filter((e) => pasa(e)).sort((a, b) => {
-    const x = valor(a)
-    const y = valor(b)
-    return (orden_.dir === 'asc' ? 1 : -1) * (typeof x === 'string' ? x.localeCompare(y as string, 'es') : x - (y as number))
-  })
+  const valor = (e: SubmissionSummary) => (orden_.por === 'learner' ? (e.learner ?? '') : e.when)
+  const lista = todas.filter((e) => pasa(e))
+    .sort((a, b) => (orden_.dir === 'asc' ? 1 : -1) * valor(a).localeCompare(valor(b), 'es'))
 
   // `trim`, como filtra `pasa`: un espacio solo no filtra nada y no tiene que decir que sí.
   // Lo que se ve es un tramo de lo que quedó filtrado. El día que el back entregue de a pedazos,
@@ -189,8 +179,6 @@ export function Submissions() {
                         <DataListMeta>
                           <span>{e.group}</span>
                           <span>{ago(e.when)}</span>
-                          {e.minutes > 0 && <span>{e.minutes} min</span>}
-                          {e.accuracy >= 0 && <span>{Math.round(e.accuracy * 100)}% aciertos</span>}
                         </DataListMeta>
                         <DataListActions>{accion(e)}</DataListActions>
                       </DataListItem>
@@ -205,17 +193,15 @@ export function Submissions() {
                 <TableRow>
                   <TableHead sort={sentido('learner')} onSort={() => ordenarPor('learner')}>Aprendiz</TableHead>
                   <TableHead>Actividad</TableHead>
-                  {conRelleno && <TableHead>Grupo</TableHead>}
+                  <TableHead>Grupo</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead sort={sentido('when')} onSort={() => ordenarPor('when')}>Cuándo</TableHead>
-                  {conRelleno && <TableHead align="end" sort={sentido('minutes')} onSort={() => ordenarPor('minutes')}>Tiempo</TableHead>}
-                  {conRelleno && <TableHead align="end" sort={sentido('accuracy')} onSort={() => ordenarPor('accuracy')}>Aciertos</TableHead>}
                   <TableHead align="end"><span className="sr-only">Acciones</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {lista.length === 0
-                  ? <TableEmpty colSpan={conRelleno ? 8 : 5}>{vacio}</TableEmpty>
+                  ? <TableEmpty colSpan={6}>{vacio}</TableEmpty>
                   : alaVista.map((e) => {
                     const st = ESTADOS[e.status]
                     return (
@@ -227,11 +213,9 @@ export function Submissions() {
                           </span>
                         </TableCell>
                         <TableCell><span className="block max-w-64 truncate">{e.title}</span></TableCell>
-                        {conRelleno && <TableCell className="text-ink-muted">{e.group}</TableCell>}
+                        <TableCell className="text-ink-muted">{e.group}</TableCell>
                         <TableCell><Chip size="sm" color={st.color}>{st.label}</Chip></TableCell>
                         <TableCell className="whitespace-nowrap text-ink-muted">{ago(e.when)}</TableCell>
-                        {conRelleno && <TableCell numeric>{e.minutes ? `${e.minutes} min` : '—'}</TableCell>}
-                        {conRelleno && <TableCell numeric>{e.accuracy >= 0 ? `${Math.round(e.accuracy * 100)}%` : '—'}</TableCell>}
                         <TableCell align="end">{accion(e)}</TableCell>
                       </TableRow>
                     )

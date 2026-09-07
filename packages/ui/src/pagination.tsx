@@ -61,11 +61,14 @@ export interface PaginationNavProps extends Omit<ComponentPropsWithoutRef<'butto
 /**
  * The two of them travel together and are always there, greyed out at the ends: a pair that
  * appears and disappears moves the other one under the finger that was going for it.
+ *
+ * They are `ghost` and not outlined: the row already has its line above and the card around it,
+ * so a third frame in there is one too many.
  */
 export function PaginationPrev({ loading, className, children = 'Anterior', ...props }: PaginationNavProps) {
   return (
     <Button
-      type="button" variant="secondary" size="sm" loading={loading}
+      type="button" variant="ghost" size="sm" loading={loading}
       startIcon={<Icon icon={ChevronLeft} size="sm" />} className={cn('ml-auto', className)} {...props}
     >
       {children}
@@ -77,7 +80,7 @@ export function PaginationPrev({ loading, className, children = 'Anterior', ...p
 export function PaginationNext({ loading, className, children = 'Siguiente', ...props }: PaginationNavProps) {
   return (
     <Button
-      type="button" variant="secondary" size="sm" loading={loading}
+      type="button" variant="ghost" size="sm" loading={loading}
       endIcon={<Icon icon={ChevronRight} size="sm" />} className={className} {...props}
     >
       {children}
