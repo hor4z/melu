@@ -47,6 +47,8 @@ export type EditorOptions = {
 const BUILT_IN: Record<string, Command<never>> = {
   insertText: core.insertText as Command<never>,
   insertRichText: core.insertRichText as Command<never>,
+  insertContent: core.insertContent as Command<never>,
+  moveSelection: core.moveSelection as Command<never>,
   insertSoftBreak: core.insertSoftBreak as Command<never>,
   deleteSelection: core.deleteSelection as Command<never>,
   deleteBackward: core.deleteBackward as Command<never>,

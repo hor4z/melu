@@ -7,8 +7,8 @@ puerta para que un agente escriba por la misma que usa un click.
 
 ```sh
 make editor      # el taller, en :5175
-npm test -w @melu/editor          # 892 en jsdom, en un segundo
-npm run test:e2e -w @melu/editor  # 94 en un navegador de verdad
+npm test -w @melu/editor          # 906 en jsdom, en un segundo
+npm run test:e2e -w @melu/editor  # 100 en un navegador de verdad
 ```
 
 Por qué está armado así, cómo agregar un bloque y qué falta para integrarlo:
@@ -78,7 +78,9 @@ columnas se apilan solas en pantalla angosta.
 Los atajos: `Mod+B/I/U/E`, `Mod+Shift+S` tachado, `Mod+Shift+H` resaltar, `Mod+Shift+C` limpiar,
 `Mod+Alt+0..9` convertir el bloque, `Tab`/`Shift+Tab` anidar, `Mod+D` duplicar,
 `Mod+Shift+↑/↓` mover, `Escape` seleccionar el bloque, `Mod+Z`/`Mod+Shift+Z` deshacer y rehacer.
-Seleccionar cruza bloques, con el mouse, con `Shift+↑/↓` y con `Shift+click`, como en Notion.
+Seleccionar cruza bloques, con el mouse, con `Shift+↑/↓` y con `Shift+click`, como en Notion. Y lo
+elegido se puede arrastrar a otro lado: un pedazo de texto con el puntero, un bloque entero por su
+asa.
 La lista completa sale de `editor.keyBindings`, así que un panel de ayuda no se escribe a mano.
 
 ## Guardar y cargar

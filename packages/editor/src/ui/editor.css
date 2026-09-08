@@ -781,7 +781,11 @@ pre.melu-code.melu-wrap { white-space: pre-wrap; overflow-x: visible; }
   position: absolute;
   display: flex;
   gap: 1px;
-  padding-right: 6px;
+  /* Los dos botones son 24 y hay 1 de separación: el relleno completa el canal de 52 y ni un pixel
+     más. Con 6 la caja del asa terminaba tres pixeles adentro del texto, y ahí el puntero dejaba de
+     estar sobre un bloque: un click a la primera letra podía írsele al asa, y soltar un texto
+     arrastrado en el principio de un renglón no encontraba destino. */
+  padding-right: 3px;
   z-index: 5;
 }
 
@@ -1125,6 +1129,21 @@ body.melu-dragging, body.melu-dragging * { cursor: grabbing !important; user-sel
 /* Con bloques enteros elegidos, la selección del navegador se queda donde estaba y no se pinta: lo
    elegido son los bloques, y dos selecciones dibujadas a la vez no se entienden. Es lo que hace
    Notion, que tiene la misma regla sobre sus propios bloques. */
+/* Dónde va a caer el texto que se está arrastrando: un caret grueso, del color del acento, para
+   que no se confunda con el del navegador. */
+.melu-drop-caret {
+  position: absolute;
+  width: 2px;
+  background: var(--melu-accent);
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 40;
+}
+
+/* Arrastrando texto: el cursor lo dice, y la selección se sigue viendo (por eso no va
+   `user-select: none`, que es lo que lleva el arrastre de bloques). */
+body.melu-dragging-text, body.melu-dragging-text * { cursor: grabbing !important; }
+
 .melu-surface[data-picking] .melu-text { caret-color: transparent; }
 .melu-surface[data-picking] ::selection { background: transparent; }
 

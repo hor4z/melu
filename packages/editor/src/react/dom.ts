@@ -300,6 +300,51 @@ export function pointAt(container: HTMLElement, x: number, y: number): DomPoint 
   return { block: id, offset: offsetAtPoint(root, x, y) ?? 0 }
 }
 
+/**
+ * La caja de un caret puesto en esas coordenadas, para dibujar dónde va a caer algo.
+ *
+ * Es la del navegador y no una cuenta nuestra: el caret entre dos letras de un renglón partido lo
+ * sabe él, y dibujar la línea en otro lado sería mentir sobre dónde se va a soltar.
+ */
+export function caretRectAtPoint(x: number, y: number): { top: number; left: number; height: number } | null {
+  type WithCaret = Document & {
+    caretPositionFromPoint?: (x: number, y: number) => { offsetNode: Node; offset: number } | null
+    caretRangeFromPoint?: (x: number, y: number) => Range | null
+  }
+  const d = document as WithCaret
+  let range: Range | null = null
+  if (d.caretPositionFromPoint) {
+    const pos = d.caretPositionFromPoint(x, y)
+    if (pos) {
+      range = document.createRange()
+      try {
+        range.setStart(pos.offsetNode, pos.offset)
+      } catch {
+        range = null
+      }
+    }
+  }
+  range ??= d.caretRangeFromPoint?.(x, y) ?? null
+  if (!range) return null
+  range.collapse(true)
+  const rect = range.getBoundingClientRect()
+  if (rect.height === 0 && rect.top === 0) return null
+  return { top: rect.top, left: rect.left, height: rect.height || 18 }
+}
+
+/** Si un punto de la pantalla cae adentro de lo que el navegador tiene elegido. */
+export function insideDomSelection(x: number, y: number): boolean {
+  const sel = document.getSelection()
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return false
+  // Rectángulo por renglón: una selección de tres renglones no es una caja, y con la caja entera
+  // el hueco del final del último renglón contaría como adentro.
+  for (const rect of sel.getRangeAt(0).getClientRects()) {
+    if (rect.width === 0 || rect.height === 0) continue
+    if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) return true
+  }
+  return false
+}
+
 /** Qué hay bajo un punto. Null sin geometría, así un arrastre no queda colgado a mitad de camino. */
 export const elementAtPoint = (x: number, y: number): Element | null =>
   typeof document.elementFromPoint === 'function' ? document.elementFromPoint(x, y) : null

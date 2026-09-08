@@ -29,6 +29,8 @@ import {
   blockIdOf,
   offsetAtPoint,
   offsetOfCaret,
+  caretRectAtPoint,
+  insideDomSelection,
   nearestTextRoot,
   placeRange,
   pointAt,
@@ -143,6 +145,8 @@ export function Surface({
   const dragging = useRef<{ id: BlockId; placed: ReturnType<typeof measure>; origin: DOMRect } | null>(null)
   /** El último destino calculado, para el `pointerup` que se registró una sola vez. */
   const latestDrop = useRef<DropTarget | null>(null)
+  /** Dónde va a caer el texto que se está arrastrando, en coordenadas de la ventana. */
+  const [caretDeSoltar, setCaretDeSoltar] = useState<{ top: number; left: number; height: number } | null>(null)
   /**
    * Dónde estaba el caret del navegador cuando se pasó a elegir bloques enteros.
    *
@@ -236,6 +240,83 @@ export function Surface({
     })
   }, [editor])
 
+  /**
+   * Arrastra lo que está elegido hasta donde se suelte.
+   *
+   * Escrito con eventos de puntero y no con el arrastre nativo, igual que el de los bloques: el
+   * nativo se lleva el gesto, edita por su cuenta y no se puede cancelar a mitad de camino. El
+   * umbral de cuatro píxeles es lo que separa un click de un arrastre; sin él, cualquier click
+   * adentro de una selección quedaría esperando un movimiento que no viene.
+   */
+  const arrastrarTexto = useCallback(
+    (container: HTMLElement, x: number, y: number) => {
+      const origen = editor.selection
+      if (!isText(origen)) return
+      let activo = false
+      let destino: { block: string; offset: number } | null = null
+      /** Dónde dibujar la línea, que es la del navegador y no una cuenta nuestra. */
+      let marca: { top: number; left: number; height: number } | null = null
+
+      const soltar = (aplicar: boolean, ev?: PointerEvent) => {
+        window.removeEventListener('pointermove', move)
+        window.removeEventListener('pointerup', up)
+        window.removeEventListener('pointercancel', cancelar)
+        window.removeEventListener('keydown', porTecla, true)
+        document.body.classList.remove('melu-dragging-text')
+        setCaretDeSoltar(null)
+        if (!activo) {
+          // No se movió: fue un click adentro de lo elegido, y el caret va ahí.
+          const punto = ev ? pointAt(container, ev.clientX, ev.clientY) : null
+          if (punto) {
+            editor.setSelection({ kind: 'text', anchor: punto, head: punto })
+            placeRange(container, punto, punto)
+          }
+          return
+        }
+        if (aplicar && destino) editor.run('moveSelection', { to: destino })
+      }
+
+      const move = (ev: PointerEvent) => {
+        if (!activo) {
+          if (Math.hypot(ev.clientX - x, ev.clientY - y) < 4) return
+          activo = true
+          document.body.classList.add('melu-dragging-text')
+        }
+        const punto = pointAt(container, ev.clientX, ev.clientY)
+        const caja = container.getBoundingClientRect()
+        const adentro =
+          ev.clientX >= caja.left && ev.clientX <= caja.right && ev.clientY >= caja.top && ev.clientY <= caja.bottom
+        /**
+         * Un punto que no cae sobre ningún bloque pero sigue adentro de la hoja (el canal del asa,
+         * el hueco entre dos bloques) no cancela nada: vale el último destino que valía, y la línea
+         * se queda donde estaba. Salir de la hoja sí cancela, que es como se abandona un arrastre.
+         */
+        if (punto) {
+          destino = punto
+          marca = caretRectAtPoint(ev.clientX, ev.clientY) ?? marca
+        } else if (!adentro) {
+          destino = null
+          marca = null
+        }
+        setCaretDeSoltar(marca)
+      }
+      const up = (ev: PointerEvent) => soltar(true, ev)
+      const cancelar = () => soltar(false)
+      /** Escape a mitad de camino deja todo como estaba, que es lo que uno espera de un arrastre. */
+      const porTecla = (ev: KeyboardEvent) => {
+        if (ev.key !== 'Escape') return
+        ev.preventDefault()
+        soltar(false)
+      }
+
+      window.addEventListener('pointermove', move)
+      window.addEventListener('pointerup', up)
+      window.addEventListener('pointercancel', cancelar)
+      window.addEventListener('keydown', porTecla, true)
+    },
+    [editor],
+  )
+
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       const container = ref.current
@@ -255,6 +336,34 @@ export function Surface({
           return
         }
       }
+      /**
+       * Apretar adentro de lo elegido puede ser el principio de un arrastre de ese texto.
+       *
+       * No se decide acá: se espera a ver si el puntero se mueve. Si no se mueve fue un click, y el
+       * caret va donde se apretó, que es lo que hace cualquier editor. Si se mueve, lo elegido se
+       * va a otro lado.
+       *
+       * El arrastre nativo del navegador haría este gesto solo y haría mal la parte que importa:
+       * mueve nodos de un bloque a otro por atrás del modelo. Está cancelado (`onDragStart`), y en
+       * su lugar va esto, que termina en un comando.
+       */
+      if (
+        !readOnly &&
+        e.button === 0 &&
+        !e.shiftKey &&
+        container &&
+        !fromWidget(e.target) &&
+        isText(editor.selection) &&
+        !isCollapsed(editor.selection) &&
+        insideDomSelection(e.clientX, e.clientY)
+      ) {
+        // Cancelarlo es lo que deja la selección quieta: sin esto el navegador la colapsa en el
+        // mousedown y para cuando se mueve el puntero ya no hay nada que arrastrar.
+        e.preventDefault()
+        arrastrarTexto(container, e.clientX, e.clientY)
+        return
+      }
+
       // Un click en el hueco de abajo de la página deja el caret en el último bloque, que es lo
       // que espera cualquiera que quiera seguir escribiendo.
       if (!blockIdOf(e.target as Node) && e.target === ref.current) editor.run('focusEnd')
@@ -657,6 +766,17 @@ export function Surface({
     >
       <Page renderers={merged} readOnly={readOnly} />
       {drop ? <DropIndicator target={drop} surface={ref.current} origin={dragging.current?.origin ?? null} /> : null}
+      {caretDeSoltar && ref.current ? (
+        <div
+          className="melu-drop-caret"
+          {...SKIP}
+          style={{
+            top: caretDeSoltar.top - ref.current.getBoundingClientRect().top,
+            left: caretDeSoltar.left - ref.current.getBoundingClientRect().left,
+            height: caretDeSoltar.height,
+          }}
+        />
+      ) : null}
       <DragContext.Provider value={contexto}>{children}</DragContext.Provider>
       {!readOnly ? <Tail /> : null}
     </div>

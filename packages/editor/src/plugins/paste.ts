@@ -3,9 +3,9 @@
 // markdown, texto. Adentro de un bloque de código todo es texto, y eso va primero.
 
 import type { PasteHandler, Plugin } from '../core/plugins.ts'
-import { appendBlocks, insertBlock, insertRichText, insertText, setLink, splitBlock, type Command } from '../core/commands.ts'
+import { insertContent, insertText, setLink, type Command } from '../core/commands.ts'
 import { getBlock, type BlockId, type BlockInit, type Doc } from '../core/doc.ts'
-import { isEmpty, plain, setMark } from '../core/text.ts'
+import { setMark } from '../core/text.ts'
 import { fromHtml, fromJSON, fromMarkdown, toHtml, toMarkdown, type BlockJSON } from '../core/serialize.ts'
 import { classify } from './media.ts'
 import { isText } from '../core/selection.ts'
@@ -22,41 +22,6 @@ function inRawText(ctx: Parameters<Command>[0]): boolean {
   return ctx.state.schema.spec(b?.type ?? '')?.marks === false
 }
 
-/** Los mete en el caret: un párrafo vacío se reemplaza, y pegar en el medio no corta la oración. */
-function insertBlocks(ctx: Parameters<Command>[0], blocks: readonly BlockInit[]): boolean {
-  if (blocks.length === 0) return false
-  const sel = ctx.state.selection
-  const at = isText(sel) ? sel.head.block : undefined
-  const block = at ? getBlock(ctx.tr.doc, at) : undefined
-
-  // Un solo párrafo es texto y no un bloque nuevo. Por `insertRichText`: lo que viene del
-  // portapapeles trae formato, y aplanarlo sería perder lo que se copió.
-  const only = blocks.length === 1 ? blocks[0] : undefined
-  if (only && only.type === 'paragraph' && !only.children?.length && block && ctx.state.schema.isTextual(block.type)) {
-    const rich = only.text ?? []
-    if (plain(rich) !== '') return insertRichText(ctx, { text: rich })
-  }
-
-  if (!block) return appendBlocks(ctx, { blocks: [...blocks], focus: true })
-
-  // Si el bloque de destino tiene texto y el caret no está al final, se parte para no perder la
-  // cola.
-  const total = plain(block.text).length
-  const offset = isText(sel) ? sel.head.offset : total
-  if (!isEmpty(block.text) && offset < total) splitBlock(ctx, undefined)
-
-  // El destino es la cabeza, y no lo que diga la selección: partir deja el caret en la cola, así
-  // que lo pegado terminaba abajo de la cola en lugar de entre las dos mitades.
-  let target = at
-  let did = false
-  for (const b of blocks) {
-    if (!insertBlock(ctx, { ...b, target, at: 'after', focus: true })) continue
-    const now = ctx.state.selection
-    target = now?.kind === 'text' ? now.head.block : now?.kind === 'blocks' ? now.anchor : target
-    did = true
-  }
-  return did
-}
 
 const rawText: PasteHandler = {
   name: 'raw-text',
@@ -74,7 +39,7 @@ const ourOwn: PasteHandler = {
       const parsed = JSON.parse(data) as BlockJSON[]
       if (!Array.isArray(parsed)) return false
       // Sin ids: pegar dos veces no puede traer dos bloques con el mismo nombre.
-      return insertBlocks(ctx, fromJSON(parsed).map(stripIds))
+      return insertContent(ctx, { blocks: fromJSON(parsed).map(stripIds) })
     } catch {
       return false
     }
@@ -93,7 +58,7 @@ const html: PasteHandler = {
   run: ({ ctx, data }) => {
     // Lo que copia un navegador viene envuelto en comentarios y hojas de estilo enteras.
     if (/^\s*<meta/i.test(data) && !/<(p|div|h[1-6]|ul|ol|table|img)\b/i.test(data)) return false
-    return insertBlocks(ctx, fromHtml(data))
+    return insertContent(ctx, { blocks: fromHtml(data) })
   },
 }
 
@@ -103,7 +68,7 @@ const markdown: PasteHandler = {
   types: ['text/markdown', 'text/plain'],
   run: ({ ctx, data, type }) => {
     if (type === 'text/plain' && !looksLikeMarkdown(data)) return false
-    return insertBlocks(ctx, fromMarkdown(data))
+    return insertContent(ctx, { blocks: fromMarkdown(data) })
   },
 }
 
@@ -225,7 +190,7 @@ const plainText: PasteHandler = {
     if (parts.length === 1) return insertText(ctx, { text })
     const kept = parts.filter((p) => p.trim() !== '')
     if (kept.length === 0) return false
-    return insertBlocks(ctx, kept.map((p) => ({ type: 'paragraph', text: [{ text: p }] })))
+    return insertContent(ctx, { blocks: kept.map((p) => ({ type: 'paragraph', text: [{ text: p }] })) })
   },
 }
 

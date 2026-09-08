@@ -3,7 +3,7 @@
 // la barra puede preguntar antes de dibujar un botón, y un agente entra por la misma puerta.
 // Nada acá toca el DOM: es todo el comportamiento del editor y corre sin navegador.
 
-import type { BlockId, BlockInit, Props } from './doc.ts'
+import type { BlockId, BlockInit, Doc, Props } from './doc.ts'
 import {
   childrenOf,
   copySubtree,
@@ -38,7 +38,7 @@ import {
   clearMark as clearTextMark,
   wordAt,
 } from './text.ts'
-import type { Point, Selection } from './selection.ts'
+import type { Point, Selection, TextSelection } from './selection.ts'
 import { activeBlock, blockSel, caret, isBlocks, isCollapsed, isText, ordered, rangeIn, selectedBlocks } from './selection.ts'
 import type { EditorState } from './state.ts'
 import type { Transaction } from './transaction.ts'
@@ -307,6 +307,132 @@ export const insertRichText: Command<{ text: RichText }> = (ctx, { text }) => {
   ctx.tr.setText(block, concat(sliceText(current, 0, offset), text, sliceText(current, offset, total)))
   ctx.tr.select(caret(block, offset + textLen(text)))
   return true
+}
+
+/**
+ * Contenido en el caret: un párrafo vacío se reemplaza, y meterlo en el medio no corta la oración.
+ *
+ * Lo usan los dos gestos que traen bloques de otro lado: pegar y arrastrar un pedazo de texto. Vivía
+ * adentro del plugin de pegado, y el arrastre necesitaba exactamente lo mismo.
+ */
+export const insertContent: Command<{ blocks: BlockInit[] }> = (ctx, { blocks }) => {
+  if (blocks.length === 0) return false
+  const sel = ctx.state.selection
+  const at = isText(sel) ? sel.head.block : undefined
+  const block = at ? getBlock(ctx.tr.doc, at) : undefined
+
+  // Un solo párrafo es texto y no un bloque nuevo. Por `insertRichText`: lo que viene de afuera
+  // trae formato, y aplanarlo sería perder lo que se copió.
+  const only = blocks.length === 1 ? blocks[0] : undefined
+  if (only && only.type === 'paragraph' && !only.children?.length && block && ctx.state.schema.isTextual(block.type)) {
+    const rich = only.text ?? []
+    if (plain(rich) !== '') return insertRichText(ctx, { text: rich })
+  }
+
+  if (!block) return appendBlocks(ctx, { blocks: [...blocks], focus: true })
+
+  // Si el bloque de destino tiene texto y el caret no está al final, se parte para no perder la cola.
+  const total = plain(block.text).length
+  const offset = isText(sel) ? sel.head.offset : total
+  if (!isEmpty(block.text) && offset < total) splitBlock(ctx, undefined)
+
+  // El destino es la cabeza, y no lo que diga la selección: partir deja el caret en la cola, así
+  // que lo insertado terminaba abajo de la cola en lugar de entre las dos mitades.
+  let target = at
+  let did = false
+  for (const b of blocks) {
+    if (!insertBlock(ctx, { ...b, target, at: 'after', focus: true })) continue
+    const now = ctx.state.selection
+    target = now?.kind === 'text' ? now.head.block : now?.kind === 'blocks' ? now.anchor : target
+    did = true
+  }
+  return did
+}
+
+/** Si un punto cae adentro de lo elegido, que es donde soltar no quiere decir nada. */
+function insideSelection(doc: Doc, sel: TextSelection, at: Point): boolean {
+  const { from, to } = ordered(doc, sel)
+  if (from.block === to.block) {
+    return at.block === from.block && at.offset > from.offset && at.offset < to.offset
+  }
+  const touched = selectedBlocks(doc, sel)
+  if (!touched.includes(at.block)) return false
+  if (at.block === from.block) return at.offset > from.offset
+  if (at.block === to.block) return at.offset < to.offset
+  return true
+}
+
+/** Lo elegido, como bloques sueltos: la cola del primero, los del medio enteros, la cabeza del último. */
+function selectionAsBlocks(ctx: CommandCtx, sel: TextSelection): BlockInit[] {
+  const { tr } = ctx
+  const { from, to } = ordered(tr.doc, sel)
+  const out: BlockInit[] = []
+  for (const id of selectedBlocks(tr.doc, sel)) {
+    const block = getBlock(tr.doc, id)
+    if (!block) continue
+    const text = textOf(ctx, id)
+    const total = textLen(text)
+    const desde = id === from.block ? from.offset : 0
+    const hasta = id === to.block ? to.offset : total
+    const pedazo = isTextual(ctx, id) ? sliceText(text, desde, hasta) : []
+    // Un bloque sin texto (una imagen, un separador) va entero: es lo único que se puede llevar
+    // de él. Uno con texto va con el pedazo que se eligió, y con su tipo: mover media lista sigue
+    // siendo una lista.
+    if (!isTextual(ctx, id)) out.push({ type: block.type, ...(block.props ? { props: { ...block.props } } : {}) })
+    else if (textLen(pedazo) > 0) out.push({ type: block.type, text: pedazo, ...(block.props ? { props: { ...block.props } } : {}) })
+  }
+  return out
+}
+
+/**
+ * Mueve lo elegido a otro lugar: arrastrar un pedazo de texto y soltarlo.
+ *
+ * El navegador sabe hacer este gesto solo, y hace mal la parte que importa: mueve nodos de un
+ * bloque a otro por atrás de React y del modelo, y deja el documento roto sin aviso. Así que el
+ * gesto se cancela arriba y el movimiento se hace acá, en una sola transacción, con un solo
+ * deshacer.
+ *
+ * Sacar y poner en ese orden, y no al revés, porque poner primero corre los offsets de lo que
+ * queda por sacar. El único destino que hay que corregir es el que estaba después de lo que se
+ * sacó, en el mismo bloque.
+ *
+ * De un rango que cruza bloques se lleva el pedazo de cada uno, aplanado: la sangría de una lista
+ * a medio elegir no sobrevive, y es honesto: lo que se arrastró fue un rango de texto, no una
+ * estructura. Soltarlo adentro de lo mismo que se arrastra no hace nada.
+ */
+export const moveSelection: Command<{ to: Point }> = (ctx, { to }) => {
+  const { tr, state } = ctx
+  const sel = state.selection
+  if (!isText(sel) || isCollapsed(sel)) return false
+  if (!has(tr.doc, to.block) || !isTextual(ctx, to.block)) return false
+  if (insideSelection(tr.doc, sel, to)) return false
+
+  const { from, to: end } = ordered(tr.doc, sel)
+
+  if (from.block === end.block) {
+    const pedazo = sliceText(textOf(ctx, from.block), from.offset, end.offset)
+    if (textLen(pedazo) === 0) return false
+    const destino =
+      to.block === from.block && to.offset >= end.offset
+        ? caret(to.block, to.offset - (end.offset - from.offset))
+        : caret(to.block, to.offset)
+    if (!deleteSelection(ctx, undefined)) return false
+    tr.select(destino)
+    if (!insertRichText(ctx, { text: pedazo })) return false
+    // Queda elegido lo que se movió: se ve qué cayó y dónde, y se puede volver a arrastrar sin
+    // tener que elegirlo de nuevo.
+    tr.select({ kind: 'text', anchor: destino.head, head: caret(destino.head.block, destino.head.offset + textLen(pedazo)).head })
+    return true
+  }
+
+  // Cruzando bloques, el destino tiene que estar afuera de lo elegido: los que se van se llevan
+  // sus offsets con ellos, y el del primero cambia al pegarse con la cola del último.
+  if (selectedBlocks(tr.doc, sel).includes(to.block)) return false
+  const bloques = selectionAsBlocks(ctx, sel)
+  if (bloques.length === 0) return false
+  if (!deleteSelection(ctx, undefined)) return false
+  tr.select(caret(to.block, to.offset))
+  return insertContent(ctx, { blocks: bloques })
 }
 
 /** Shift+Enter: a line break inside the same block, which stays one block. */
