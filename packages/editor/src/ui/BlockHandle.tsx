@@ -71,13 +71,24 @@ export function BlockHandle() {
     const surface = surfaceOf()
     if (!surface) return
 
+    /** El último bloque señalado y su banda vertical, para no medir la página en cada pixel. */
+    let ultimo: { id: BlockId; top: number; bottom: number } | null = null
+
     const onMove = (e: PointerEvent) => {
       if (pinned.current || editor.readOnly) return
+      // Mientras el puntero siga adentro de la banda del bloque anterior, la respuesta es la misma
+      // y no hace falta preguntarla: medir todos los bloques era un layout entero por movimiento
+      // del mouse, y en una página larga se nota.
+      if (ultimo && e.clientY >= ultimo.top && e.clientY <= ultimo.bottom && editor.block(ultimo.id)) return
       const id = blockUnder(surface, editor, e.clientY)
+      ultimo = null
       if (!id) {
         setHover(null)
         return
       }
+      const el = surface.querySelector<HTMLElement>(`[${BLOCK_ATTR}="${cssId(id)}"]`)
+      const caja = el?.getBoundingClientRect()
+      if (caja) ultimo = { id, top: caja.top, bottom: caja.bottom }
       const spot = spotFor(surface, id)
       // Solo se escribe si cambió: si no, cada movimiento del mouse es un render.
       setHover((now) => (now && now.id === spot?.id && now.top === spot.top && now.left === spot.left ? now : spot))
@@ -272,6 +283,28 @@ export function BlockMenu({ id, anchor, onClose }: { id: BlockId; anchor: Anchor
     onClose()
   }
 
+  /**
+   * Convertir en tabla o en columnas no es cambiar el tipo: es traer el armado entero.
+   *
+   * `setBlockType` dejaba una tabla con cero filas, y el normalizador la barría en la misma
+   * transacción. O sea que convertir un párrafo en tabla, desde acá, lo borraba.
+   */
+  const convertir = (type: string) => {
+    if (type === 'table' || type === 'columns') {
+      editor.exec((ctx) => {
+        const cmd = editor.commandOf(type === 'table' ? 'insertTable' : 'insertColumns')
+        if (!cmd) return false
+        // Sobre un bloque vacío `insertBlock` reemplaza en el lugar, así que primero se vacía.
+        ctx.tr.setText(id, [])
+        ctx.tr.select({ kind: 'text', anchor: { block: id, offset: 0 }, head: { block: id, offset: 0 } })
+        return cmd(ctx, (type === 'table' ? { rows: 3, cols: 3 } : { count: 2 }) as never)
+      })
+      onClose()
+      return
+    }
+    run('setBlockType', { type, id })
+  }
+
   const canIndent = Boolean(previousSibling(editor, id))
 
   return (
@@ -316,7 +349,7 @@ export function BlockMenu({ id, anchor, onClose }: { id: BlockId; anchor: Anchor
                   type="button"
                   className="melu-menu-item"
                   data-active={spec.type === block.type || undefined}
-                  onClick={() => run('setBlockType', { type: spec.type, id })}
+                  onClick={() => convertir(spec.type)}
                 >
                   <span className="melu-menu-icon">
                     <Icon name={hasIcon(spec.icon) ? spec.icon : 'text'} size={16} />

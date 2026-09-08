@@ -258,6 +258,15 @@ export function Surface({
         e.preventDefault()
         return
       }
+      // Deshacer desde el menú del navegador llega por acá y no por `keydown`. Sin atenderlo, el
+      // navegador deshacía el DOM por atrás de React y del modelo, que es la forma más rápida de
+      // dejar la pantalla diciendo una cosa y el documento otra.
+      if (type === 'historyUndo' || type === 'historyRedo') {
+        e.preventDefault()
+        if (type === 'historyUndo') editor.undo()
+        else editor.redo()
+        return
+      }
       const sel = editor.selection
       if (isText(sel) && !spansBlocks(sel)) {
         // Borrar parado en el borde de un bloque junta dos bloques, y eso lo hace el keymap desde

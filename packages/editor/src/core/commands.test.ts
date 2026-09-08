@@ -453,6 +453,19 @@ describe('mover bloques', () => {
     expect(sketch(e)).toEqual(['paragraph: Xundo'])
   })
 
+  it('duplicar varios deja las copias juntas y en orden, y no intercaladas', () => {
+    const e = editorWith('uno', 'dos', 'tres')
+    selectBlocks(e, 0, 1)
+    press(e, 'Mod-d')
+    expect(sketch(e)).toEqual([
+      'paragraph: uno',
+      'paragraph: dos',
+      'paragraph: uno',
+      'paragraph: dos',
+      'paragraph: tres',
+    ])
+  })
+
   it('Delete y Backspace en la misma junta dejan el mismo documento', () => {
     // Un bloque que recibe y puede tener hijos, y otro que los trae: es el caso donde los dos
     // borrados se portaban distinto. Se arma a mano porque markdown no sabe anidar bajo un párrafo.

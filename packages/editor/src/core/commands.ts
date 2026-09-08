@@ -710,11 +710,16 @@ export const duplicateBlock: Command<{ id?: BlockId }> = (ctx, { id } = {}) => {
   const { tr, state } = ctx
   const targets = id ? [id] : selectedBlocks(tr.doc, state.selection)
   if (targets.length === 0) return false
+  // Las copias van todas después de la última, y en orden. Insertando cada una al lado de su
+  // original quedaban intercaladas (uno, uno, dos, dos), que no es duplicar una selección: es
+  // duplicar cada bloque por separado.
   const made: BlockId[] = []
+  let after = targets[targets.length - 1]!
   for (const target of targets) {
     const copy = copySubtree(tr.doc, target)
     if (!copy) continue
-    made.push(tr.insertAfter(target, copy))
+    after = tr.insertAfter(after, copy)
+    made.push(after)
   }
   if (made.length === 0) return false
   const last = made[made.length - 1]!

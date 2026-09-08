@@ -271,6 +271,21 @@ describe('la selección cruza bloques', () => {
     expect(editor.selection).toEqual(antes)
   })
 
+  it('deshacer desde el menú del navegador lo hace el motor, y no el DOM por atrás', () => {
+    const { editor } = mount('uno')
+    caretTo(editor, 0, 3)
+    act(() => {
+      editor.run('insertText', { text: ' y algo' })
+    })
+    const evento = new Event('beforeinput', { bubbles: true, cancelable: true }) as InputEvent
+    Object.defineProperty(evento, 'inputType', { value: 'historyUndo' })
+    act(() => {
+      blocks()[0]!.dispatchEvent(evento)
+    })
+    expect(evento.defaultPrevented).toBe(true)
+    expect(textos(editor)).toEqual(['uno'])
+  })
+
   it('Mod+Shift+arriba sube el bloque, con el caret adentro del texto', async () => {
     const user = userEvent.setup()
     const { editor } = mount('- uno\n- dos')

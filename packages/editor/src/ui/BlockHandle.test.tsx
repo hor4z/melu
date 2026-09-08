@@ -209,6 +209,28 @@ describe('el asa', () => {
     expect(where(editor)).toBe('bloques 0')
   })
 
+  it('convertir en tabla trae la tabla, en lugar de borrar el bloque', () => {
+    const { editor } = mount('uno\n\ndos')
+    const { surface } = layout()
+    señalar(surface, 300, 10)
+    act(() => {
+      const grip = screen.getByRole('button', { name: 'Opciones del bloque' })
+      grip.getBoundingClientRect = () => rect(0, 0, 24, 26)
+      grip.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true, clientX: 0, clientY: 0 }))
+      window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }))
+    })
+    act(() => {
+      screen.getByText('Convertir en').click()
+    })
+    act(() => {
+      screen.getByRole('button', { name: /^Tabla/ }).click()
+    })
+    // `setBlockType` dejaba una tabla sin filas y el normalizador la barría en la misma
+    // transacción: el bloque desaparecía.
+    expect(sketch(editor).filter((l) => l.startsWith('table_cell')).length + sketch(editor).filter((l) => l.includes('table_cell')).length).toBeGreaterThan(0)
+    expect(sketch(editor)[0]).toContain('table')
+  })
+
   it('el agarre abre el menú del bloque', () => {
     mount('uno\n\ndos')
     const { surface } = layout()

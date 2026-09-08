@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { act, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { caretTo, mount } from '../test/view.tsx'
+import { selectBlocks } from '../test/engine.ts'
 
 describe('la barra de formato', () => {
   it('aparece cuando hay algo seleccionado y no antes', async () => {
@@ -81,5 +82,18 @@ describe('la barra de formato', () => {
     const { editor } = mount('- una cinta')
     caretTo(editor, 0, 0, 3)
     await waitFor(() => expect(screen.getByRole('button', { name: /Lista/ })).toBeInTheDocument())
+  })
+
+  it('con tipos mezclados el botón dice "Varios", en lugar de mentir sobre lo que va a convertir', async () => {
+    const { editor } = mount('# Título\n\nun párrafo')
+    for (const el of document.querySelectorAll<HTMLElement>('[data-melu-block]')) {
+      el.getBoundingClientRect = () => ({ x: 52, y: 0, left: 52, top: 0, width: 720, height: 40, right: 772, bottom: 40, toJSON: () => ({}) }) as DOMRect
+    }
+    act(() => {
+      selectBlocks(editor, 0, 1)
+    })
+    // El botón convierte todo lo elegido, así que con un título y un párrafo adentro no hay un
+    // tipo que mostrar.
+    await waitFor(() => expect(screen.getByText('Varios')).toBeInTheDocument())
   })
 })
