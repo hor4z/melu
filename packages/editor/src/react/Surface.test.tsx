@@ -233,6 +233,20 @@ describe('la selección cruza bloques', () => {
     expect(editor.selection).toMatchObject({ kind: 'blocks' })
   })
 
+  it('el navegador no puede arrancar su propio arrastre adentro del editor', () => {
+    mount('- uno\n- dos')
+    const evento = new Event('dragstart', { bubbles: true, cancelable: true })
+    document.querySelector('[data-melu-surface]')!.dispatchEvent(evento)
+    // Soltar lo cancelamos igual, así que dejarlo empezar sólo sirve para que se coma los eventos
+    // de puntero del arrastre propio y lo deje colgado.
+    expect(evento.defaultPrevented).toBe(true)
+  })
+
+  it('lo que no es texto se declara no arrastrable: adentro de un editable Chrome lo arrastra solo', () => {
+    mount('- uno\n- dos')
+    expect(document.querySelector('.melu-bullet')).toHaveAttribute('draggable', 'false')
+  })
+
   it('Mod+Shift+arriba sube el bloque, con el caret adentro del texto', async () => {
     const user = userEvent.setup()
     const { editor } = mount('- uno\n- dos')

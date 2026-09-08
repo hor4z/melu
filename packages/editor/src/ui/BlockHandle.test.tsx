@@ -130,6 +130,42 @@ describe('el asa', () => {
     expect(surface.contains(document.activeElement)).toBe(true)
   })
 
+  it('apretar el agarre cancela el arrastre del navegador, que si no se lleva el gesto', () => {
+    mount('uno\n\ndos')
+    const { surface } = layout()
+    señalar(surface, 300, 10)
+    const grip = screen.getByRole('button', { name: 'Opciones del bloque' })
+    grip.getBoundingClientRect = () => rect(0, 0, 24, 26)
+    const apreton = new PointerEvent('pointerdown', { button: 0, bubbles: true, cancelable: true, clientX: 0, clientY: 0 })
+    act(() => {
+      grip.dispatchEvent(apreton)
+      window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }))
+    })
+    // Cancelarlo tiene que pasar mientras el evento se despacha. Antes se hacía después, desde un
+    // `pointermove`, y para entonces ya no cancelaba nada.
+    expect(apreton.defaultPrevented).toBe(true)
+  })
+
+  it('un arrastre que el sistema se lleva no deja la página pegada', () => {
+    mount('uno\n\ndos\n\ntres')
+    const { surface } = layout()
+    señalar(surface, 300, 10)
+    const grip = screen.getByRole('button', { name: 'Opciones del bloque' })
+    grip.getBoundingClientRect = () => rect(0, 0, 24, 26)
+    act(() => {
+      grip.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true, cancelable: true, clientX: 0, clientY: 0 }))
+      // Se mueve lo suficiente como para que sea un arrastre y no un click.
+      window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: 60, clientY: 60 }))
+    })
+    expect(document.body.classList.contains('melu-dragging')).toBe(true)
+    act(() => {
+      // Y el sistema se queda el puntero: no llega ningún `pointerup`.
+      window.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true }))
+    })
+    // Sin esto quedaba el cursor de agarre y `user-select: none` en toda la página, hasta recargar.
+    expect(document.body.classList.contains('melu-dragging')).toBe(false)
+  })
+
   it('el agarre abre el menú del bloque', () => {
     mount('uno\n\ndos')
     const { surface } = layout()

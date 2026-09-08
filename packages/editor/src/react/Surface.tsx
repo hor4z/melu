@@ -523,7 +523,7 @@ export function Surface({
         latestDrop.current = target
         setDrop(target)
       }
-      const up = () => {
+      const soltar = (aplicar: boolean) => {
         const state = dragging.current
         const target = latestDrop.current
         dragging.current = null
@@ -532,12 +532,21 @@ export function Surface({
         document.body.classList.remove('melu-dragging')
         window.removeEventListener('pointermove', move)
         window.removeEventListener('pointerup', up)
-        if (state && target && isRealMove(editor.doc, state.id, target)) {
+        window.removeEventListener('pointercancel', cancelar)
+        if (aplicar && state && target && isRealMove(editor.doc, state.id, target)) {
           editor.run('moveBlock', { id: state.id, parent: target.parent, index: target.index })
         }
       }
+      const up = () => soltar(true)
+      /**
+       * El puntero se puede perder sin soltarse: el sistema se queda el gesto, o el navegador
+       * arranca un arrastre propio. Sin atender esto quedaba `melu-dragging` pegado en el body, con
+       * el cursor de agarre y `user-select: none` en toda la página, hasta recargar.
+       */
+      const cancelar = () => soltar(false)
       window.addEventListener('pointermove', move)
       window.addEventListener('pointerup', up)
+      window.addEventListener('pointercancel', cancelar)
     },
     [editor, readOnly],
   )
@@ -559,6 +568,9 @@ export function Surface({
       contentEditable={!readOnly}
       suppressContentEditableWarning
       onPointerDown={onPointerDown}
+      // El arrastre nativo del navegador no tiene final feliz acá: soltar lo cancelamos igual
+      // (`insertFromDrop`), y mientras tanto se come los eventos de puntero del arrastre propio.
+      onDragStart={(e) => e.preventDefault()}
       onCopy={onCopy}
       onCut={onCut}
       onPaste={onPaste}
