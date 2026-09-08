@@ -220,8 +220,9 @@ export function Surface({
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      // Lo que el navegador haga con el caret de acá en más sí lo pidió alguien.
-      delPuntero.current = true
+      // Lo que el navegador haga con el caret de acá en más sí lo pidió alguien. Apretar un asa,
+      // un menú o un control no cuenta: eso no es pedir que se mueva el caret.
+      delPuntero.current = !fromWidget(e.target)
       // Un click en el hueco de abajo de la página deja el caret en el último bloque, que es lo
       // que espera cualquiera que quiera seguir escribiendo.
       if (!blockIdOf(e.target as Node) && e.target === ref.current) editor.run('focusEnd')

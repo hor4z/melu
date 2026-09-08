@@ -218,6 +218,21 @@ describe('la selección cruza bloques', () => {
     expect(editor.selection).toMatchObject({ kind: 'text' })
   })
 
+  it('apretar un asa o un menú no cuenta como pedir el caret: la selección de bloques aguanta', () => {
+    const { editor } = mount('- uno\n- dos')
+    act(() => {
+      editor.run('selectBlock', { id: hijos(editor)[1]! })
+    })
+    const asa = document.createElement('div')
+    asa.setAttribute('data-melu-skip', 'true')
+    document.querySelector('[data-melu-surface]')!.append(asa)
+    fireEvent.pointerDown(asa, { buttons: 1 })
+    act(() => {
+      document.dispatchEvent(new Event('selectionchange'))
+    })
+    expect(editor.selection).toMatchObject({ kind: 'blocks' })
+  })
+
   it('Mod+Shift+arriba sube el bloque, con el caret adentro del texto', async () => {
     const user = userEvent.setup()
     const { editor } = mount('- uno\n- dos')
