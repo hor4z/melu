@@ -27,7 +27,7 @@ export default defineConfig({
   expect: { timeout: 4_000 },
 
   use: {
-    baseURL: 'http://localhost:5175',
+    baseURL: 'http://localhost:5176',
     trace: 'on-first-retry',
     video: 'off',
     screenshot: 'off',
@@ -35,10 +35,18 @@ export default defineConfig({
 
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 
+  /**
+   * Su propio servidor, en su propio puerto, y siempre nuevo.
+   *
+   * Reusar el que uno tiene abierto para mirar el taller parece más rápido y sale caro: un servidor
+   * de desarrollo que estuvo horas arriba puede quedarse con un módulo viejo en su caché, y
+   * entonces los tests fallan por algo que en el código ya está arreglado. Perseguir eso una vez
+   * cuesta más que el segundo que tarda levantar uno limpio.
+   */
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5175',
-    reuseExistingServer: !process.env.CI,
+    command: 'npm run dev -- --port 5176 --strictPort',
+    url: 'http://localhost:5176',
+    reuseExistingServer: false,
     timeout: 60_000,
   },
 })

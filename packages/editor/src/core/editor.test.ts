@@ -17,6 +17,7 @@
 import { describe, expect, it } from 'vitest'
 import { Editor, type BlockInit } from './index.ts'
 import { activityKit, basics } from '../plugins/index.ts'
+import { doc, makeEditor, sketch } from '../test/engine.ts'
 
 const parrafos = (n: number): BlockInit[] =>
   Array.from({ length: n }, (_, i) => ({ type: 'paragraph', text: [{ text: `El paso número ${i}` }] }))
@@ -167,5 +168,35 @@ describe('un techo de reloj, para que una regresión de otro orden se note', () 
     const editor = new Editor({ plugins: activityKit(), blocks: parrafos(2000) })
     expect(Object.keys(editor.doc.blocks)).toHaveLength(2001)
     expect(performance.now() - t0).toBeLessThan(2000)
+  })
+})
+
+describe('lo que llega de afuera', () => {
+  it('un documento roto se acomoda al abrirlo, y no cuando alguien lo toca', () => {
+    // Un armado de una sola columna es lo que devuelve la base cuando alguien borró la otra. Antes
+    // se dibujaba roto hasta la primera edición, y un documento se dibuja apenas se abre.
+    const e = makeEditor([
+      {
+        type: 'columns',
+        children: [{ type: 'column', children: [{ type: 'paragraph', text: [{ text: 'adentro' }] }] }],
+      },
+    ])
+    expect(sketch(e)).toEqual(['paragraph: adentro'])
+  })
+
+  it('y acomodarlo no gasta un deshacer: nadie hizo nada todavía', () => {
+    const e = makeEditor([
+      {
+        type: 'columns',
+        children: [{ type: 'column', children: [{ type: 'paragraph', text: [{ text: 'adentro' }] }] }],
+      },
+    ])
+    expect(e.history.size.past).toBe(0)
+  })
+
+  it('un documento sano no se toca al abrirlo', () => {
+    const e = makeEditor(doc('# Título', 'un párrafo'))
+    expect(sketch(e)).toEqual(['heading_1: Título', 'paragraph: un párrafo'])
+    expect(e.history.size.past).toBe(0)
   })
 })

@@ -158,8 +158,27 @@ export class Editor {
     // Un documento vacío no se puede escribir: siempre hay dónde poner el caret.
     if (this.state.doc.blocks[this.state.doc.root]!.children.length === 0) {
       this.exec((ctx) => core.insertBlock(ctx, { type: this.firstTextualType(), at: 'end' }), { history: false })
-      this.history.clear()
     }
+
+    this.normalizeAll()
+    this.history.clear()
+  }
+
+  /**
+   * Corre los normalizadores sobre el documento entero, una vez.
+   *
+   * Corrían sólo sobre lo que cambiaba en una transacción, así que un documento que venía roto de
+   * la base (un armado de una sola columna, una fila más corta que las otras, una columna vacía) se
+   * quedaba roto hasta que alguien lo tocara. Y un documento se dibuja apenas se abre, así que ahí
+   * es exactamente donde se ve.
+   */
+  private normalizeAll(): void {
+    if (this.normalizers.length === 0) return
+    const tr = new Transaction(this.state)
+    tr.setMeta('history', false)
+    for (const id of Object.keys(this.state.doc.blocks)) tr.touched.add(id)
+    this.normalize(tr)
+    if (tr.steps.length > 0) this.dispatch(tr)
   }
 
   private firstTextualType(): string {
