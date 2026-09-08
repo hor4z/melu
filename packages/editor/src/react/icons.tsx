@@ -9,7 +9,8 @@ export type IconName =
   | 'toc' | 'timer' | 'math' | 'choice' | 'multi' | 'number' | 'fillIn' | 'order' | 'match' | 'question'
   | 'evidence' | 'selfReport' | 'game' | 'figure'
   | 'grip' | 'plus' | 'trash' | 'copy' | 'bold' | 'italic' | 'underline' | 'strike' | 'palette'
-  | 'search' | 'undo' | 'redo' | 'close' | 'drag' | 'more' | 'indent' | 'outdent' | 'arrowUp' | 'arrowDown'
+  | 'search' | 'undo' | 'redo' | 'close' | 'reset' | 'drag' | 'more' | 'indent' | 'outdent'
+  | 'arrowUp' | 'arrowDown'
 
 /** Each icon is its path data, so the component below is the only markup in the file. */
 const PATHS: Record<IconName, string> = {
@@ -60,6 +61,8 @@ const PATHS: Record<IconName, string> = {
   undo: 'M4 10h9a5 5 0 0 1 0 10H8M4 10l4-4M4 10l4 4',
   redo: 'M20 10h-9a5 5 0 0 0 0 10h5M20 10l-4-4M20 10l-4 4',
   close: 'M6 6l12 12M18 6L6 18',
+  /** Una flecha que vuelve al principio: reiniciar no es cerrar, y con una cruz se leía cerrar. */
+  reset: 'M20 12a8 8 0 1 1-2.4-5.7M20 4v4h-4',
   drag: 'M12 3v18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12h18M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3',
   more: 'M6 12h.01M12 12h.01M18 12h.01',
   indent: 'M4 6h16M10 12h10M10 18h10M4 11l3 3-3 3',
