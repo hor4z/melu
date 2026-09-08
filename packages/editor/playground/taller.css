@@ -1,93 +1,498 @@
-/* El cascarón del taller. Deliberadamente sobrio: lo que se mira es el editor, no esto. */
+/* El cascarón del taller: la parte que no es el editor.
+   Lo que se mira es el editor, así que esto es sobrio. Pero no pobre: un taller donde no se puede
+   juzgar cómo se siente algo no sirve para juzgar cómo se siente algo. */
+
+/* Los tokens de melu, que es de lo que `editor.css` ya cuelga con `var(--text, …)`. El taller hace
+   de plataforma: montado acá adentro el editor se ve con el theme de verdad y no con sus respaldos,
+   que es exactamente lo que se quiere mirar. Ruta relativa y sólo desde el taller, que no se
+   publica: el package sigue sin depender de nada. */
+@import "../../ui/src/tokens/index.css";
+
+:root {
+  /* ------- superficies ------- */
+  --taller-canvas: var(--surface-muted, #f1f4f3);
+  --taller-card: var(--surface, #fff);
+  --taller-line: var(--border, #dce5e3);
+  --taller-ink: var(--text, #1b2624);
+  --taller-ink-soft: var(--text-muted, #5c6b68);
+  --taller-ink-faint: var(--text-subtle, #93a19e);
+  --taller-accent: var(--brand, #10756e);
+  --taller-wash: var(--accent-subtle, #e6f2f1);
+  --taller-hover: var(--surface-hover, rgba(34, 47, 45, 0.04));
+  --taller-solid: var(--solid, #1b2624);
+  --taller-solid-ink: var(--solid-foreground, #fff);
+
+  /* ------- el marco ------- */
+  --taller-izq: 264px;
+  --taller-der: 300px;
+  --taller-aire: 12px;
+  --taller-bar: 44px;
+  --taller-btn: 32px;
+  --taller-fila: 32px;
+  --taller-badge: 36px;
+
+  /* ------- radios: uno por rol, ninguno repetido ------- */
+  --taller-r-card: 16px;
+  --taller-r-pop: 14px;
+  --taller-r-pill: 10px;
+  --taller-r-btn: 9px;
+  --taller-r-fila: 8px;
+  --taller-r-muestra: 6px;
+
+  /* ------- sombras: difusas y de poca opacidad ------- */
+  --taller-sombra-panel: 0 12px 32px -8px rgba(27, 38, 36, 0.16), 0 2px 8px -2px rgba(27, 38, 36, 0.06);
+  --taller-sombra-flota: 0 4px 14px -3px rgba(27, 38, 36, 0.12), 0 1px 3px rgba(27, 38, 36, 0.05);
+  --taller-sombra-adentro: inset 0 0 0 1px rgba(27, 38, 36, 0.05), 0 1px 2px rgba(27, 38, 36, 0.06);
+
+  /* ------- tipografía del cromo: chica, y gris para lo secundario ------- */
+  --taller-texto: 13px;
+  --taller-texto-sm: 12px;
+  --taller-texto-xs: 11px;
+  --taller-rotulo: 11px;
+}
 
 * { box-sizing: border-box; }
+html, body, #root { height: 100%; }
 
 body {
   margin: 0;
-  background: #f6f8f7;
-  color: #1b2624;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--taller-canvas);
+  color: var(--taller-ink);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  font-size: var(--taller-texto);
+  line-height: 1.45;
 }
 
-.taller { display: flex; flex-direction: column; height: 100vh; }
+.taller { position: relative; height: 100%; }
 
-.taller-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  border-bottom: 1px solid #dce5e3;
-  background: #fff;
-}
-
-.taller-sub { color: #93a19e; font-size: 13px; }
-.taller-acciones { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
-
-.taller-acciones button,
-.taller-tabs button,
-.taller-correr {
-  border: 1px solid #dce5e3;
-  border-radius: 7px;
-  padding: 5px 10px;
-  background: #fff;
-  font: inherit;
-  font-size: 13px;
-  color: #5c6b68;
-  cursor: pointer;
-}
-
-.taller-acciones button:hover,
-.taller-tabs button:hover { border-color: #10756e; color: #10756e; }
-.taller-acciones button[data-on="true"],
-.taller-tabs button[data-on="true"] { border-color: #10756e; background: #e6f2f1; color: #10756e; }
-
-.taller-cuerpo { flex: 1 1 auto; display: flex; min-height: 0; }
-
-.taller-pagina {
-  flex: 1 1 auto;
-  min-width: 0;
+/* El lienzo mide la ventana entera y reserva el lugar de los paneles con padding, en vez de ser una
+   columna de una grilla de tres. No es capricho: `container-type` lo vuelve el bloque contenedor de
+   todo `position: fixed` de adentro, y los flotantes del editor (el menú "/", la caja, el fantasma
+   del arrastre) son fixed. Como columna, todos aparecerían corridos el ancho del panel izquierdo. */
+.taller-lienzo {
+  position: absolute;
+  inset: 0;
   overflow-y: auto;
-  padding: 24px 8px;
-  background: #fff;
-  /* Un contenedor con nombre: es lo que deja que las columnas se apilen por el ancho de la
-     columna y no por el de la ventana. */
+  padding-block: 76px 120px;
+  padding-inline: calc(var(--taller-izq) + var(--taller-aire) * 2) calc(var(--taller-der) + var(--taller-aire) * 2);
+  /* Un contenedor con nombre, que ahora mide el hueco entre los paneles: es lo que deja que las
+     columnas se apilen por el ancho de la columna y no por el de la ventana. */
   container-type: inline-size;
 }
 
+.taller-hoja {
+  max-width: 824px;
+  margin-inline: auto;
+  padding-block: 28px;
+  background: var(--taller-card);
+  border: 1px solid var(--taller-line);
+  border-radius: 20px;
+  box-shadow: var(--taller-sombra-flota);
+  /* Sin `overflow: hidden`: recortaría el canal del asa y lo que flota. */
+}
+
+/* -------------------------------------------------------------------------- paneles */
+
 .taller-panel {
-  flex: 0 0 400px;
+  position: fixed;
+  top: var(--taller-aire);
+  bottom: var(--taller-aire);
+  z-index: 30;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid #dce5e3;
-  background: #fbfcfc;
-  min-width: 0;
+  background: var(--taller-card);
+  border: 1px solid var(--taller-line);
+  border-radius: var(--taller-r-card);
+  box-shadow: var(--taller-sombra-panel);
+  overflow: hidden;
 }
 
-.taller-tabs { display: flex; gap: 5px; padding: 8px; border-bottom: 1px solid #dce5e3; }
-.taller-salida { flex: 1 1 auto; overflow: auto; padding: 10px 12px; }
+.taller-panel[data-lado="izq"] { left: var(--taller-aire); width: var(--taller-izq); }
+.taller-panel[data-lado="der"] { right: var(--taller-aire); width: var(--taller-der); }
 
-.taller-salida pre {
-  margin: 0 0 14px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11.5px;
+.taller-panel-cabeza {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 10px;
+  border-bottom: 1px solid var(--taller-line);
+}
+
+.taller-panel-titulo { font-weight: 600; }
+.taller-panel-cuenta { margin-left: auto; color: var(--taller-ink-faint); font-size: var(--taller-texto-xs); }
+.taller-panel-cuerpo { flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; padding: 6px; }
+.taller-panel-pie { border-top: 1px solid var(--taller-line); padding: 8px; }
+
+.taller-vacio {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--taller-ink-faint);
+  font-size: var(--taller-texto-sm);
+  line-height: 1.6;
+}
+
+/* -------------------------------------------------------------------------- el árbol */
+
+.taller-fila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: var(--taller-fila);
+  padding: 0 6px 0 8px;
+  border: 0;
+  border-radius: var(--taller-r-fila);
+  background: none;
+  font: inherit;
+  color: var(--taller-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.taller-fila:hover { background: var(--taller-hover); }
+.taller-fila[data-activa="true"] { background: var(--taller-wash); color: var(--taller-accent); }
+.taller-fila svg { flex: 0 0 auto; color: var(--taller-ink-faint); }
+.taller-fila[data-activa="true"] svg { color: currentColor; }
+
+.taller-fila-texto { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.taller-fila-texto[data-sin-texto="true"] { color: var(--taller-ink-faint); font-style: italic; }
+
+.taller-fila-acciones { display: flex; gap: 1px; opacity: 0; }
+.taller-fila:hover .taller-fila-acciones,
+.taller-fila:focus-within .taller-fila-acciones { opacity: 1; }
+
+.taller-mini {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--taller-ink-faint);
+  cursor: pointer;
+}
+
+.taller-mini:hover { background: var(--taller-hover); color: var(--taller-ink); }
+.taller-mini[data-peligro="true"]:hover { color: var(--danger, #c2453c); }
+
+.taller-buscador {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--taller-line);
+  border-radius: var(--taller-r-pill);
+  background: var(--taller-canvas);
+  color: var(--taller-ink-faint);
+}
+
+.taller-buscador input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--taller-texto-sm);
+  color: var(--taller-ink);
+  outline: none;
+}
+
+.taller-tecla {
+  padding: 1px 5px;
+  border: 1px solid var(--taller-line);
+  border-radius: 5px;
+  font-size: 10px;
+  color: var(--taller-ink-faint);
+}
+
+/* -------------------------------------------------------------------------- la barra de arriba */
+
+.taller-bar-hueco {
+  position: fixed;
+  top: var(--taller-aire);
+  left: calc(var(--taller-izq) + var(--taller-aire) * 2);
+  right: calc(var(--taller-der) + var(--taller-aire) * 2);
+  z-index: 30;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.taller-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: var(--taller-bar);
+  padding: 6px;
+  border: 1px solid var(--taller-line);
+  border-radius: var(--taller-r-pop);
+  background: var(--taller-card);
+  box-shadow: var(--taller-sombra-flota);
+  pointer-events: auto;
+}
+
+.taller-boton {
+  display: grid;
+  place-items: center;
+  width: var(--taller-btn);
+  height: var(--taller-btn);
+  border: 0;
+  border-radius: var(--taller-r-btn);
+  background: none;
+  color: var(--taller-ink-soft);
+  cursor: pointer;
+}
+
+.taller-boton:hover:not(:disabled) { background: var(--taller-hover); color: var(--taller-ink); }
+.taller-boton:disabled { color: var(--taller-ink-faint); opacity: 0.45; cursor: default; }
+.taller-boton[data-on="true"] { background: var(--taller-wash); color: var(--taller-accent); }
+
+.taller-sep { width: 1px; height: 20px; margin: 0 5px; background: var(--taller-line); }
+
+.taller-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--taller-line);
+  border-radius: var(--taller-r-pill);
+  background: none;
+  font: inherit;
+  font-size: var(--taller-texto-sm);
+  color: var(--taller-ink-soft);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.taller-pill:hover { border-color: var(--taller-ink-faint); color: var(--taller-ink); }
+.taller-pill[data-on="true"] { border-color: var(--taller-accent); background: var(--taller-wash); color: var(--taller-accent); }
+.taller-pill svg { color: var(--taller-ink-faint); }
+.taller-pill[data-on="true"] svg { color: currentColor; }
+
+.taller-punto { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.45; }
+.taller-pill[data-on="true"] .taller-punto { opacity: 1; }
+
+.taller-solido {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: var(--taller-r-pill);
+  background: var(--taller-solid);
+  color: var(--taller-solid-ink);
+  font: inherit;
+  font-size: var(--taller-texto-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.taller-solido:hover { opacity: 0.9; }
+
+/* -------------------------------------------------------------------------- el más de abajo */
+
+.taller-mas {
+  position: fixed;
+  z-index: 30;
+  bottom: 20px;
+  left: calc(var(--taller-izq) + var(--taller-aire) * 2 + 4px);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: var(--taller-r-pop);
+  background: var(--taller-solid);
+  color: var(--taller-solid-ink);
+  box-shadow: var(--taller-sombra-flota);
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.taller-mas:hover { transform: translateY(-1px); box-shadow: var(--taller-sombra-panel); }
+
+/* -------------------------------------------------------------------------- el inspector */
+
+.taller-segmentado {
+  display: flex;
+  gap: 2px;
+  width: 100%;
+  padding: 2px;
+  border-radius: var(--taller-r-pill);
+  background: var(--taller-canvas);
+}
+
+.taller-segmentado button {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 26px;
+  border: 0;
+  border-radius: var(--taller-r-fila);
+  background: none;
+  font: inherit;
+  font-size: var(--taller-texto-sm);
+  font-weight: 550;
+  color: var(--taller-ink-soft);
+  cursor: pointer;
+}
+
+.taller-segmentado button[data-on="true"] {
+  background: var(--taller-card);
+  color: var(--taller-ink);
+  box-shadow: var(--taller-sombra-adentro);
+}
+
+.taller-cabecera { display: flex; gap: 10px; padding: 12px; align-items: flex-start; }
+
+.taller-insignia {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: var(--taller-badge);
+  height: var(--taller-badge);
+  border-radius: 50%;
+  background: var(--taller-wash);
+  color: var(--taller-accent);
+}
+
+.taller-insignia[data-grupo="Medios"] { background: var(--tint-blue, #eaf1f9); color: var(--info, #3a6ea8); }
+.taller-insignia[data-grupo="Estructura"] { background: var(--tint-orange, #fdf0e6); color: #c1703a; }
+.taller-insignia[data-grupo="Preguntas"] { background: var(--tint-lilac, #f2eefa); color: #7255a8; }
+
+.taller-cabecera-nombre { font-weight: 600; }
+.taller-cabecera-hint { color: var(--taller-ink-soft); font-size: var(--taller-texto-sm); line-height: 1.5; }
+.taller-cabecera-id {
+  margin-top: 3px;
+  color: var(--taller-ink-faint);
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: var(--taller-texto-xs);
+}
+
+.taller-rotulo {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  margin-top: 4px;
+  padding: 0 12px;
+  color: var(--taller-ink-faint);
+  font-size: var(--taller-rotulo);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.taller-campo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 3px 12px;
+}
+
+.taller-campo[data-apilado="true"] { flex-direction: column; align-items: stretch; gap: 4px; padding-bottom: 6px; }
+.taller-campo[data-apilado="true"] .taller-campo-nombre { flex: none; }
+
+.taller-campo-nombre {
+  flex: 0 0 40%;
+  color: var(--taller-ink-soft);
+  font-size: var(--taller-texto-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.taller-campo-control { flex: 1 1 auto; display: flex; align-items: center; gap: 6px; min-width: 0; }
+
+.taller-input {
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  padding: 0 8px;
+  border: 1px solid var(--taller-line);
+  border-radius: var(--taller-r-fila);
+  background: var(--taller-card);
+  font: inherit;
+  font-size: var(--taller-texto-sm);
+  color: var(--taller-ink);
+  outline: none;
+}
+
+.taller-input:focus { border-color: var(--taller-accent); }
+.taller-input[data-numero="true"] { flex: 0 0 64px; width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
+.taller-input[data-mal="true"] { border-color: var(--danger, #c2453c); }
+
+textarea.taller-input {
+  height: auto;
+  min-height: 52px;
+  padding: 6px 8px;
+  resize: vertical;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: var(--taller-texto-xs);
   line-height: 1.5;
+}
+
+.taller-slider { flex: 1 1 auto; min-width: 0; accent-color: var(--taller-accent); }
+
+.taller-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--taller-line);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.taller-switch[data-on="true"] { background: var(--taller-accent); }
+
+.taller-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 120ms ease;
+}
+
+.taller-switch[data-on="true"]::after { transform: translateX(14px); }
+
+.taller-muestras { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; flex: 1 1 auto; }
+
+.taller-muestra {
+  height: 24px;
+  border: 1px solid var(--taller-line);
+  border-radius: var(--taller-r-muestra);
+  cursor: pointer;
+}
+
+.taller-muestra[data-on="true"] { box-shadow: 0 0 0 2px var(--taller-accent); }
+
+.taller-codigo {
+  margin: 0;
+  padding: 10px 12px;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: var(--taller-texto-xs);
+  line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
-  color: #5c6b68;
+  color: var(--taller-ink-soft);
 }
 
-.taller-salida h3 {
-  margin: 4px 0 6px;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: #93a19e;
-}
+/* -------------------------------------------------------------------------- angosto */
 
-.taller-nota { color: #93a19e; font-size: 12px; line-height: 1.5; }
-.taller-correr { margin-bottom: 10px; }
-
-@media (max-width: 1100px) {
-  .taller-cuerpo { flex-direction: column; }
-  .taller-panel { flex: 0 0 40vh; border-left: 0; border-top: 1px solid #dce5e3; }
+/* Sin lugar para los paneles, se van: el editor es lo que tiene que seguir estando. */
+@media (max-width: 1180px) {
+  .taller-panel,
+  .taller-mas { display: none; }
+  .taller-lienzo { padding-inline: 0; }
+  .taller-bar-hueco { left: 0; right: 0; }
 }
