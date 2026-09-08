@@ -8,7 +8,7 @@ puerta para que un agente escriba por la misma que usa un click.
 ```sh
 make editor      # el taller, en :5175
 npm test -w @melu/editor          # 914 en jsdom, en un segundo
-npm run test:e2e -w @melu/editor  # 110 en un navegador de verdad
+npm run test:e2e -w @melu/editor  # 109 en un navegador de verdad
 ```
 
 Por qué está armado así, cómo agregar un bloque y qué falta para integrarlo:
@@ -97,11 +97,13 @@ fromHtml(html)            // pegar de cualquier página
 ## El taller
 
 `make editor` levanta `:5175` con una actividad de verdad adentro: una guía escribiendo "El patio en
-números", con los cuatro grupos de bloques y varias preguntas. A la izquierda el árbol del
-documento, que es `outline(editor)` dibujado y sirve para ver el caret moviéndose por la estructura;
-al centro la hoja con una barra flotante (deshacer, ancho de columna, solo lectura, y el botón que
-hace escribir a un agente por la misma puerta que un click); a la derecha las props del bloque
-elegido, generadas del manifiesto, que es la forma de ejercitar `coerceProps` a mano.
+números", con los cuatro grupos de bloques y varias preguntas. La página es blanca de punta a punta,
+como una de Notion, y la columna se puede poner a la izquierda, al centro o a la derecha del canvas.
+Arriba, dos grupos flotantes separados: las acciones (deshacer, rehacer, y el botón que hace escribir
+a un agente por la misma puerta que un click) y cómo se está mirando (solo lectura, el ancho y el
+lado de la columna, la caja de bloques). A la derecha, las props del bloque elegido, generadas del
+manifiesto, que es la forma de ejercitar `coerceProps` a mano y la única superficie del motor que no
+tenía entrada manual.
 
 La consola sigue siendo la puerta corta, y además es la que llaman los tests del navegador: `melu`
 es el editor (`melu.undo()`, `melu.doc`, `melu.run(...)`) y `taller` trae el mismo vocabulario que

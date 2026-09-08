@@ -3,8 +3,12 @@
  *
  * No es una demo de vitrina, y tampoco es el editor a pantalla pelada: un editor de bloques se
  * juzga por cómo se siente, y para eso hay que verlo en algo que se parezca a donde va a vivir. Así
- * que hay un documento de verdad, el árbol a la izquierda para ver la estructura mientras se
- * escribe, y las props a la derecha, que son la única parte del motor sin entrada manual.
+ * que hay un documento de verdad, la hoja al centro con lo que se aprieta seguido, y las props a la
+ * derecha, que son la única parte del motor sin entrada manual.
+ *
+ * La estructura del documento se miraba en un panel a la izquierda, y se fue: a quien escribe una
+ * actividad no le dice nada, y para mirarla mientras se prueba está la consola, que es la misma
+ * puerta que usan los tests (`taller.outline()`, `taller.sketch()`).
  *
  * Los paneles viven **afuera** del editor y reciben el motor por prop. Meterlos como `children`
  * los pondría adentro de la región editable, que es lo último que uno quiere.
@@ -12,14 +16,13 @@
 
 import { StrictMode, useCallback, useRef, useState, useSyncExternalStore } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BlockEditor, authorMarkdown, focusSurface, fromMarkdown, type BlockId, type Editor } from '../src/index.ts'
+import { BlockEditor, authorMarkdown, focusSurface, fromMarkdown, type Editor } from '../src/index.ts'
 import '../src/ui/editor.css'
 import './taller.css'
 import { ACTIVIDAD, DEL_AGENTE } from './document.ts'
 import { montarConsola } from './console.ts'
-import { Outline } from './Outline.tsx'
 import { Inspector } from './Inspector.tsx'
-import { TopBar } from './TopBar.tsx'
+import { TopBar, type Lado } from './TopBar.tsx'
 import { AddMenu } from './AddMenu.tsx'
 
 /** Sube en cada transacción. Es lo que hace que los paneles sigan al documento con un solo hilo. */
@@ -35,6 +38,7 @@ function Taller() {
   const [readOnly, setReadOnly] = useState(false)
   const [nonce, setNonce] = useState(0)
   const [columna, setColumna] = useState(720)
+  const [lado, setLado] = useState<Lado>('centro')
   const [caja, setCaja] = useState(false)
   const [contenido, setContenido] = useState(() => ACTIVIDAD)
 
@@ -93,17 +97,6 @@ function Taller() {
     [agente, reiniciar, cargar],
   )
 
-  const irA = useCallback((id: BlockId) => {
-    const editor = editorRef.current
-    if (!editor) return
-    const bloque = editor.block(id)
-    if (!bloque) return
-    // Un bloque sin texto no tiene dónde poner el caret: se elige entero, que es lo que el motor
-    // ya distingue con `isTextual`.
-    if (editor.state.schema.isTextual(bloque.type)) editor.run('focusBlock', { id, at: 'end' })
-    else editor.run('selectBlock', { id })
-    document.querySelector(`[data-melu-block="${CSS.escape(id)}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
-  }, [])
 
   // El editor lee `value` una sola vez, al montar: para cambiar de documento se cambia la `key`.
   void listo
@@ -111,7 +104,7 @@ function Taller() {
   return (
     <div className="taller">
       <main className="taller-lienzo">
-        <div className="taller-hoja" style={{ ['--melu-column' as string]: `${columna}px` }}>
+        <div className="taller-hoja" data-lado={lado} style={{ ['--melu-column' as string]: `${columna}px` }}>
           <BlockEditor
             key={nonce}
             value={contenido}
@@ -123,13 +116,13 @@ function Taller() {
         </div>
       </main>
 
-      <Outline editor={editor} version={version} onIr={irA} />
-
       <TopBar
         editor={editor}
         version={version}
         columna={columna}
         onColumna={setColumna}
+        lado={lado}
+        onLado={setLado}
         readOnly={readOnly}
         onReadOnly={setReadOnly}
         onAgente={() => agente()}

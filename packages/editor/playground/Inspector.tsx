@@ -6,23 +6,22 @@
  * más existían sólo como datos. El schema ya los publica con su tipo, su rango y sus opciones, así
  * que este panel no inventa nada: dibuja lo que el spec declara.
  *
- * Y la pestaña Documento es lo que antes se pedía por consola, puesto donde se mira.
+ * Tenía una pestaña con la forma del documento, el markdown y el JSON, y se fue: a quien escribe
+ * una actividad no le sirve, y para mirarla mientras se prueba está la consola, que es la misma
+ * puerta que usan los tests (`taller.outline()`, `taller.sketch()`, `melu.doc`).
  */
 
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
   Icon,
   activeBlock,
   hasIcon,
-  readMarkdown,
-  toJSON,
   type BlockId,
   type Editor,
   type PropSpec,
   type Props,
   type RichText,
 } from '../src/index.ts'
-import { outline } from '../src/test/vocabulary.ts'
 import { BoolField, JsonField, NumField, OptionsField, StringField, TextField, ToneField } from './fields.tsx'
 
 /**
@@ -140,52 +139,18 @@ function DelBloque({ editor, id }: { editor: Editor; id: BlockId }) {
   )
 }
 
-function DelDocumento({ editor }: { editor: Editor }) {
-  const [cual, setCual] = useState<'arbol' | 'markdown' | 'json'>('arbol')
-  const texto =
-    cual === 'arbol'
-      ? outline(editor).join('\n')
-      : cual === 'markdown'
-        ? readMarkdown(editor)
-        : JSON.stringify(toJSON(editor.doc), null, 1)
-
-  return (
-    <>
-      <div style={{ padding: '10px 12px 4px' }}>
-        <div className="taller-segmentado">
-          {(['arbol', 'markdown', 'json'] as const).map((c) => (
-            <button key={c} type="button" data-on={cual === c} onClick={() => setCual(c)}>
-              {{ arbol: 'Forma', markdown: 'Markdown', json: 'JSON' }[c]}
-            </button>
-          ))}
-        </div>
-      </div>
-      <pre className="taller-codigo">{texto}</pre>
-    </>
-  )
-}
-
 export function Inspector({ editor, version }: { editor: Editor | null; version: number }) {
-  const [panel, setPanel] = useState<'bloque' | 'documento'>('bloque')
   const elegido = useMemo(() => (editor ? activeBlock(editor.selection) : null), [editor, version])
 
   return (
     <aside className="taller-panel" data-lado="der" aria-label="Las propiedades del bloque">
       <div className="taller-panel-cabeza">
-        <div className="taller-segmentado">
-          {(['bloque', 'documento'] as const).map((p) => (
-            <button key={p} type="button" data-on={panel === p} onClick={() => setPanel(p)}>
-              {p === 'bloque' ? 'Bloque' : 'Documento'}
-            </button>
-          ))}
-        </div>
+        <span className="taller-panel-titulo">El bloque</span>
       </div>
 
       <div className="taller-panel-cuerpo">
         {!editor ? (
           <p className="taller-vacio">Todavía no hay editor.</p>
-        ) : panel === 'documento' ? (
-          <DelDocumento editor={editor} />
         ) : elegido && editor.block(elegido) ? (
           <DelBloque editor={editor} id={elegido} />
         ) : (
