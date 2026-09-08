@@ -161,7 +161,7 @@ lectura `apply` no escribe.
 
 ## Los tests
 
-513, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
+522 en jsdom y 72 en un navegador, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
 no "splitBlock con texto vacío". Cada archivo vive al lado del que prueba, y `src/test/` tiene el
 andamio que comparten (un motor armado, una vista montada).
 
@@ -195,9 +195,20 @@ ui/PasteMenu      qué se ofrece al pegar una dirección
 
 Lo que depende de geometría entra en jsdom más de lo que parece, y conviene decirlo porque acá
 decía lo contrario: `targetAt`, `nextParentFor`, `isRealMove` y `place` reciben rectángulos como
-datos, así que se escriben a mano y se prueban sin navegador. Lo que de verdad no entra es lo que
-jsdom inventa: en qué renglón visual cayó el caret, una composición con tecla muerta, y el
-portapapeles del sistema. Eso se prueba en el taller.
+datos, así que se escriben a mano y se prueban sin navegador.
+
+**Y hay una segunda capa, en un navegador de verdad** (`e2e/`, con Playwright, `make e2e`). La regla
+para decidir dónde va un caso es una sola: jsdom inventa tres cosas, y sólo esas tres se prueban
+allá. La **geometría** (todo mide cero), la **composición** (no hay tecla muerta, ni IME, ni
+dictado) y el **portapapeles** (no hay `DataTransfer` de verdad). Todo lo demás va en jsdom, que
+corre en un segundo.
+
+Los tests del navegador corren contra el taller y **afirman contra el modelo y no contra el HTML**:
+el taller cuelga de `window.taller` el mismo vocabulario que usan los tests rápidos (`sketch`,
+`where`, `textAt`), así que un test de allá se lee igual que uno de acá. Es la ventaja que Lexical
+no tiene, y por eso ellos escriben `assertHTML`, que se rompe con cada refactor de los renderizadores
+sin que nada esté mal. Ni un `waitForTimeout`: `editor.version` sube en cada transacción y eso es una
+condición.
 
 ## Integrarlo en la plataforma
 

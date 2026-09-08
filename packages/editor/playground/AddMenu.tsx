@@ -18,7 +18,7 @@ const ESPECIALES: Record<string, { command: string; args: Record<string, number>
   columns: { command: 'insertColumns', args: { count: 2 } },
 }
 
-export function AddMenu({ editor }: { editor: Editor | null }) {
+export function AddMenu({ editor, onListo }: { editor: Editor | null; onListo: () => void }) {
   const [en, setEn] = useState<{ x: number; y: number } | null>(null)
 
   const insertar = (spec: BlockSpec) => {
@@ -27,6 +27,9 @@ export function AddMenu({ editor }: { editor: Editor | null }) {
     if (especial) editor.run(especial.command, especial.args)
     else editor.run('insertBlock', { type: spec.type })
     setEn(null)
+    // El teclado vuelve al editor: recién se insertó algo y lo primero que uno quiere es escribirlo
+    // o deshacerlo.
+    onListo()
   }
 
   return (

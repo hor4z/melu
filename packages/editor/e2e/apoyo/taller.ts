@@ -83,7 +83,17 @@ export async function clickEn(page: Page, n: number, cerca: 'inicio' | 'fin' = '
   const r = await el.boundingBox()
   if (!r) throw new Error(`el bloque ${n} no está dibujado`)
   await page.mouse.click(cerca === 'inicio' ? r.x + 2 : r.x + r.width - 2, r.y + r.height / 2)
-  await page.waitForFunction((i) => window.taller.where().startsWith(`${i}:`), n)
+  // Se espera el caret del navegador adentro de ese bloque, y no que el modelo diga "bloque n":
+  // "0:" matchea cualquier offset, así que si el caret ya estaba en ese bloque la condición se
+  // cumplía sola y el test seguía antes de que el click hiciera nada.
+  await page.waitForFunction(
+    (i) => {
+      const foco = document.getSelection()?.focusNode
+      const el = document.querySelectorAll('[data-melu-text]')[i]
+      return Boolean(foco && el && (el === foco || el.contains(foco))) && window.taller.where().startsWith(`${i}:`)
+    },
+    n,
+  )
 }
 
 // ---------------------------------------------------------------------------- gestos
@@ -123,8 +133,10 @@ export async function arrastrarAsa(page: Page, desde: number, hasta: number, san
   const destino = await caja(page, hasta).boundingBox()
   if (!origen || !destino) throw new Error('los bloques no están dibujados')
 
-  // El asa aparece al pasar el puntero por el bloque, y vive en el canal de la izquierda.
-  await page.mouse.move(origen.x + 40, origen.y + origen.height / 2)
+  // El asa aparece al pasar el puntero por el bloque, y vive en el canal de la izquierda. Cerca
+  // del borde de arriba y no en el medio: la caja de un bloque con hijos abarca a los hijos, y su
+  // centro cae sobre uno de ellos, así que el asa terminaba señalando al hijo.
+  await page.mouse.move(origen.x + 40, origen.y + 10)
   const grip = page.locator('.melu-grip')
   await grip.waitFor({ state: 'visible' })
   const g = await grip.boundingBox()
@@ -133,6 +145,7 @@ export async function arrastrarAsa(page: Page, desde: number, hasta: number, san
   await page.mouse.move(g.x + g.width / 2, g.y + g.height / 2)
   await page.mouse.down()
   const x = destino.x + 10 + sangria * 28
+  // El borde de abajo del destino, que es lo que el motor lee como "después de este".
   const y = destino.y + destino.height - 4
   const pasos = 8
   for (let i = 1; i <= pasos; i++) {

@@ -54,6 +54,49 @@ jobs:
       - name: Build del front
         run: npm run build -w @melu/web
 
+  navegador:
+    name: El motor en un navegador
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # El navegador se cachea por versión de Playwright: bajarlo son 150 MB y unos minutos.
+      - name: Versión de Playwright
+        id: pw
+        run: echo "v=$(node -p "require('@playwright/test/package.json').version")" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v4
+        id: navegador
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.v }}
+
+      - run: npx playwright install --with-deps chromium
+        if: steps.navegador.outputs.cache-hit != 'true'
+
+      - run: npx playwright install-deps chromium
+        if: steps.navegador.outputs.cache-hit == 'true'
+
+      # Levanta el taller solo, y prueba contra él lo que jsdom no puede: la geometría, la
+      # composición y el portapapeles.
+      - name: Tests del motor en el navegador
+        run: npm run test:e2e -w @melu/editor
+
+      # El reporte sólo cuando falló, que es lo único que se mira.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: reporte-del-navegador
+          path: packages/editor/playwright-report/
+          retention-days: 7
+
   api:
     name: API
     runs-on: ubuntu-latest
