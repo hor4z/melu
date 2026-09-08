@@ -150,6 +150,14 @@ export type Provider = {
   name: string
   /** Recognises the url and returns what to put in the iframe, or nothing. */
   match: (url: URL) => { src: string; height?: number; kind?: 'video' | 'embed' } | undefined
+  /**
+   * La miniatura, si se puede deducir de la dirección y sin preguntarle a nadie.
+   *
+   * Es la única forma que este package tiene de mostrar una: no sale a la red, así que el resto de
+   * los datos de una tarjeta (el título, la descripción) los tiene que llenar la plataforma. Donde
+   * la miniatura es una dirección armable, como en YouTube, no hace falta esperar a nadie.
+   */
+  thumb?: (url: URL) => string | undefined
 }
 
 const id = (url: URL, ...keys: string[]) => {
@@ -171,6 +179,10 @@ export const PROVIDERS: Provider[] = [
       const t = url.searchParams.get('t') ?? url.searchParams.get('start')
       const start = t ? `?start=${parseInt(t, 10) || 0}` : ''
       return { src: `https://www.youtube-nocookie.com/embed/${video}${start}`, kind: 'video' }
+    },
+    thumb: (url) => {
+      const video = url.hostname.endsWith('youtu.be') ? url.pathname.slice(1) : id(url, 'v')
+      return video ? `https://img.youtube.com/vi/${video}/hqdefault.jpg` : undefined
     },
   },
   {
@@ -260,7 +272,33 @@ export function classify(raw: string): { type: string; props: Record<string, unk
     return { type: 'embed', props: { src: hit.src, provider: p.name, ...(hit.height ? { height: hit.height } : {}) } }
   }
 
-  return { type: 'bookmark', props: { url: url.href, site: url.hostname.replace(/^www\./, ''), loading: true } }
+  return { type: 'bookmark', props: bookmarkProps(url) }
+}
+
+/**
+ * Los datos de una tarjeta que se pueden sacar de la dirección misma.
+ *
+ * `loading` queda prendido sólo mientras falte algo que traiga la plataforma. Si ya tenemos la
+ * miniatura, la tarjeta está tan completa como este package la puede dejar, y decir que sigue
+ * cargando sería mentir para siempre.
+ */
+export function bookmarkProps(raw: string | URL): Record<string, unknown> {
+  let url: URL
+  try {
+    url = typeof raw === 'string' ? new URL(raw) : raw
+  } catch {
+    return { url: String(raw), loading: false }
+  }
+  // Sólo se le pregunta al proveedor que además reconoce la dirección: sin esa guarda, el
+  // reconocedor de YouTube le sacaba un id al último pedazo de cualquier ruta y devolvía la
+  // miniatura de un video que no existe.
+  const image = PROVIDERS.reduce<string | undefined>((hit, p) => hit ?? (p.match(url) ? p.thumb?.(url) : undefined), undefined)
+  return {
+    url: url.href,
+    site: url.hostname.replace(/^www\./, ''),
+    ...(image ? { image } : {}),
+    loading: !image,
+  }
 }
 
 // ---------------------------------------------------------------------------- commands

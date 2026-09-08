@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { PASTED_URL, type PastedUrl } from '../plugins/paste.ts'
+import { bookmarkProps } from '../plugins/media.ts'
 import { concat, len as textLen, slice as sliceText } from '../core/text.ts'
 import { getBlock } from '../core/doc.ts'
 import { insertBlock } from '../core/commands.ts'
@@ -128,22 +129,20 @@ function choicesFor(pasted: PastedUrl): Choice[] {
       })
     }
   }
+  // La etiqueta dice lo que la tarjeta va a mostrar y no lo que uno quisiera que mostrara: sin
+  // miniatura que deducir, prometerla es prometer algo que no llega hasta que la plataforma
+  // busque los datos del sitio.
+  const props = bookmarkProps(pasted.url)
+  const conMiniatura = typeof props.image === 'string'
   out.push({
     key: 'bookmark',
-    label: 'Tarjeta con miniatura',
-    hint: 'El título y la imagen del sitio',
+    label: conMiniatura ? 'Tarjeta con miniatura' : 'Tarjeta con el link',
+    hint: conMiniatura ? 'La imagen y el sitio' : 'El sitio, y el título cuando se pueda buscar',
     icon: 'link',
     type: 'bookmark',
-    props: { url: pasted.url, site: siteOf(pasted.url), loading: true },
+    props,
   })
   out.push({ key: 'keep', label: 'Dejarlo como link', icon: 'text' })
   return out
 }
 
-const siteOf = (url: string) => {
-  try {
-    return new URL(url).hostname.replace(/^www\./, '')
-  } catch {
-    return ''
-  }
-}
