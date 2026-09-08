@@ -134,7 +134,7 @@ test.describe('la barra de arriba', () => {
     await abrir(page, 'uno')
     const ancho = async () => (await page.locator('[data-melu-surface]').boundingBox())!.width
     const antes = await ancho()
-    await page.getByRole('button', { name: /720 px/ }).click()
+    await page.getByRole('button', { name: /Ancho de la columna/ }).click()
     await page.getByRole('menuitem', { name: '560 px' }).click()
     await expect.poll(ancho).toBeLessThan(antes)
   })
@@ -143,7 +143,7 @@ test.describe('la barra de arriba', () => {
     await abrir(page, 'uno')
     const izquierda = async () => Math.round((await page.locator('.taller-hoja').boundingBox())!.x)
     const elegir = async (nombre: string) => {
-      await page.getByRole('button', { name: /A la |Al / }).click()
+      await page.getByRole('button', { name: /Lado de la columna/ }).click()
       await page.getByRole('menuitem', { name: nombre }).click()
       await page.waitForTimeout(60)
       return izquierda()
@@ -154,6 +154,16 @@ test.describe('la barra de arriba', () => {
     const alaDerecha = await elegir('A la derecha')
     expect(alaIzquierda).toBeLessThan(alCentro)
     expect(alCentro).toBeLessThan(alaDerecha)
+  })
+
+  test('los dos menús dicen qué cambian, y no sólo en qué están', async ({ page }) => {
+    await abrir(page, 'uno')
+    // Leído en voz alta, "720 px" es un botón llamado 720 px: el nombre tiene que decir qué hace.
+    const ancho = page.getByRole('button', { name: /Ancho de la columna/ })
+    await expect(ancho).toHaveAttribute('aria-expanded', 'false')
+    await ancho.click()
+    await expect(page.getByRole('button', { name: /Ancho de la columna/ })).toHaveAttribute('aria-expanded', 'true')
+    await expect(page.getByRole('menu', { name: 'Ancho de la columna' })).toBeVisible()
   })
 
   test('las acciones y el menú son dos grupos separados', async ({ page }) => {

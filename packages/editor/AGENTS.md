@@ -283,10 +283,10 @@ corre en un segundo.
 documento de mil bloques costaba 143 milisegundos y desde los doscientos ya se sentía. No era el
 motor (dibuja lo que cambió y nada más: 10 ms con quinientos bloques), era un panel del taller
 rearmándose entero en cada tecla. Ese panel después se fue por otra razón (a quien escribe una
-actividad no le decía nada), pero la medición y el criterio quedan: se compara el costo por tecla
-con cuarenta bloques contra el mismo con cuatrocientos. El test que lo cuida no mira milisegundos, que dependen de la máquina: compara
-el costo por tecla con cuarenta bloques contra el mismo con cuatrocientos y pide que no se dispare.
-Un umbral en milisegundos habría sido un test que a veces falla.
+actividad no le decía nada), pero la medición y el criterio quedan. El test que lo cuida no mira
+milisegundos, que dependen de la máquina: compara el costo por tecla con cuarenta bloques contra el
+mismo con cuatrocientos y pide que no se dispare. Un umbral en milisegundos habría sido un test que
+a veces falla.
 
 Los tests del navegador corren contra el taller y **afirman contra el modelo y no contra el HTML**:
 el taller cuelga de `window.taller` el mismo vocabulario que usan los tests rápidos (`sketch`,

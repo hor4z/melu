@@ -78,7 +78,7 @@ body {
      que quedó. Ese hueco es "el canvas", y es contra él que la hoja se pone a la izquierda, al
      centro o a la derecha. */
   padding-inline: calc(var(--taller-aire) * 2) calc(var(--taller-der) + var(--taller-aire) * 2);
-  /* Un contenedor con nombre, que ahora mide el hueco entre los paneles: es lo que deja que las
+  /* Un contenedor con nombre, que mide el hueco donde vive la hoja: es lo que deja que las
      columnas se apilen por el ancho de la columna y no por el de la ventana. */
   container-type: inline-size;
 }
@@ -87,9 +87,9 @@ body {
    Notion, para que lo único que se mire sea lo que se escribió. El ancho lo pone la columna del
    editor, no un marco. Sin `overflow: hidden`: recortaría el canal del asa y lo que flota. */
 .taller-hoja {
-  /* Lo que mide la columna más el canal del asa: un ancho fijo no dejaba lugar para moverla de
-     lado, y elegir "a la izquierda" no se notaba. */
-  max-width: calc(var(--melu-column, 720px) + 56px);
+  /* Lo que mide la columna más el canal del asa (los 52px de `RAIL`, en BlockHandle.tsx): un ancho
+     fijo de 824 no dejaba lugar para moverla de lado, y elegir "a la izquierda" no se notaba. */
+  max-width: calc(var(--melu-column, 720px) + 52px);
   padding-block: 28px;
   /* De qué lado del canvas se apoya la columna. Al centro es lo de siempre y sigue siendo el
      default; los otros dos existen porque una columna angosta contra el borde deja lugar al lado
@@ -423,5 +423,6 @@ textarea.taller-input {
   .taller-panel,
   .taller-mas { display: none; }
   .taller-lienzo { padding-inline: 0; }
-  .taller-bar-hueco { left: 0; right: 0; }
+  /* Sin panel a la derecha, los dos grupos se van a los bordes: el aire se lo pone el hueco. */
+  .taller-bar-hueco { left: var(--taller-aire); right: var(--taller-aire); }
 }

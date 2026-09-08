@@ -61,6 +61,7 @@ export function TopBar({
   void version
   const puedeDeshacer = editor?.history.size.past ? editor.history.size.past > 0 : false
   const puedeRehacer = editor?.history.size.future ? editor.history.size.future > 0 : false
+  const nombreDelLado = LADOS.find((l) => l.valor === lado)?.nombre ?? 'Al centro'
 
   /** Abre un menú abajo del botón que lo pidió, o lo cierra si era el mismo. */
   const abrir = (cual: 'ancho' | 'lado') => (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -98,19 +99,34 @@ export function TopBar({
         </button>
       </div>
 
-      <div className="taller-bar" data-lado="der" role="toolbar" aria-label="Cómo se mira el taller">
+      <div className="taller-bar" role="toolbar" aria-label="Cómo se mira el taller">
         <button type="button" className="taller-pill" data-on={readOnly} onClick={() => onReadOnly(!readOnly)}>
           <span className="taller-punto" />
           Solo lectura
         </button>
 
-        <button type="button" className="taller-pill" title="El ancho de la columna" onClick={abrir('ancho')}>
+        {/* El nombre sale del texto del botón, que es el valor: leído en voz alta, "720 px" es un
+            botón llamado 720 px y no un botón para cambiar el ancho. Va con `aria-label`, como el
+            "Convertir en" de la barra de formato. */}
+        <button
+          type="button"
+          className="taller-pill"
+          aria-label={`Ancho de la columna: ${columna} px`}
+          aria-expanded={abierto?.cual === 'ancho'}
+          onClick={abrir('ancho')}
+        >
           {columna} px
           <Icon name="chevron" size={13} style={{ transform: 'rotate(90deg)' }} />
         </button>
 
-        <button type="button" className="taller-pill" title="De qué lado se apoya la columna" onClick={abrir('lado')}>
-          {LADOS.find((l) => l.valor === lado)?.nombre ?? 'Al centro'}
+        <button
+          type="button"
+          className="taller-pill"
+          aria-label={`Lado de la columna: ${nombreDelLado}`}
+          aria-expanded={abierto?.cual === 'lado'}
+          onClick={abrir('lado')}
+        >
+          {nombreDelLado}
           <Icon name="chevron" size={13} style={{ transform: 'rotate(90deg)' }} />
         </button>
 
