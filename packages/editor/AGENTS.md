@@ -161,7 +161,7 @@ lectura `apply` no escribe.
 
 ## Los tests
 
-449, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
+513, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
 no "splitBlock con texto vacío". Cada archivo vive al lado del que prueba, y `src/test/` tiene el
 andamio que comparten (un motor armado, una vista montada).
 
@@ -181,6 +181,7 @@ plugins/layout    tabla y columnas
 plugins/activity  los bloques de pregunta y sus props
 plugins/media     las direcciones que rompían: un % suelto, un mapa sin parámetros
 plugins/paste     el orden de los formatos, y que pegar prosa en el medio de una oración no la corte
+react/dnd         la aritmética del arrastre: el hueco, el nivel, y soltar donde ya estaba
 react/renderers   que cada bloque se dibuje con su rol y sus atributos
 react/BlockText   la costura con el DOM: los runs a mano, el caret, el foco
 react/hooks       las suscripciones, y cuántos componentes se repintan por tecla
@@ -192,8 +193,11 @@ ui/BlockHandle    el asa: qué bloque señala, el más y el menú de mover
 ui/PasteMenu      qué se ofrece al pegar una dirección
 ```
 
-Lo que depende de geometría (dónde se ubica un menú, en qué renglón está el caret, el arrastre) no
-entra en jsdom: eso se prueba en el taller, con el navegador.
+Lo que depende de geometría entra en jsdom más de lo que parece, y conviene decirlo porque acá
+decía lo contrario: `targetAt`, `nextParentFor`, `isRealMove` y `place` reciben rectángulos como
+datos, así que se escriben a mano y se prueban sin navegador. Lo que de verdad no entra es lo que
+jsdom inventa: en qué renglón visual cayó el caret, una composición con tecla muerta, y el
+portapapeles del sistema. Eso se prueba en el taller.
 
 ## Integrarlo en la plataforma
 
