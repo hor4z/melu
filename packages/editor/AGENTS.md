@@ -53,6 +53,11 @@ muerta, el dictado y el teclado del celular. Todo lo que cruce un borde, arme o 
 motor. Es la misma línea que traza Lexical, que tiene 2222 líneas de `LexicalEvents.ts` haciendo
 exactamente esto.
 
+De esa lista hay una que hoy se cancela y todavía no tiene comando: **arrastrar un pedazo de texto
+elegido y soltarlo en otro lado**. Notion lo deja hacer y sería lindo tenerlo; mientras no esté, es
+mejor que no pase nada que dejar al navegador mover nodos de un bloque a otro por atrás del modelo,
+que es lo que hacía y dejaba el documento roto sin aviso.
+
 **El foco es de la superficie, no de cada bloque,** y de ahí sale una consecuencia que sorprende:
 enfocar el elemento de un bloque manda el foco al editable de arriba, así que **las teclas llegan
 todas a `Surface`**. La capa de eventos vive ahí: el keymap, el `input` que lee de vuelta lo que se
