@@ -68,7 +68,7 @@ test.describe('el teclado', () => {
     // Elegir un bloque tiene que durar más que un render: el caret viejo del navegador no lo deshace.
     await expect.poll(() => where(page)).toBe('bloques 1')
     await page.waitForTimeout(150)
-    expect(await where(page)).toBe('bloques 1')
+    await expect.poll(() => where(page)).toBe('bloques 1')
   })
 
   test('con un bloque elegido las flechas lo mueven por la página', async ({ page }) => {
@@ -76,7 +76,7 @@ test.describe('el teclado', () => {
     await clickEn(page, 2)
     await page.keyboard.press('Escape')
     await page.keyboard.press('ArrowUp')
-    expect(await where(page)).toBe('bloques 1')
+    await expect.poll(() => where(page)).toBe('bloques 1')
   })
 
   test('Mod+Shift+arriba mueve el bloque donde está el caret', async ({ page }) => {
@@ -111,7 +111,7 @@ test.describe('el click', () => {
     await abrir(page, 'uno\n\ndos\n\ntres')
     await clickEn(page, 0)
     await page.keyboard.press('Escape')
-    expect(await where(page)).toBe('bloques 0')
+    await expect.poll(() => where(page)).toBe('bloques 0')
     await clickEn(page, 2)
     await expect.poll(() => where(page)).toMatch(/^2:\d+$/)
   })

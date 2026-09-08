@@ -213,6 +213,24 @@ export class Editor {
     return this.commands.get(name)
   }
 
+  /**
+   * Los comandos que sólo mueven la selección, y que por eso corren igual en solo lectura.
+   *
+   * Leer es moverse: un documento que sólo se lee tiene que dejar poner el caret, elegir un bloque
+   * y recorrerlo con el teclado. Lo que no puede es cambiar una letra.
+   */
+  private static readonly SELECTION_ONLY = new Set([
+    'focusBlock',
+    'focusEnd',
+    'selectBlock',
+    'selectBlockRange',
+    'selectAll',
+    'selectAllStep',
+    'selectEnclosingBlock',
+    'caretForward',
+    'caretBackward',
+  ])
+
   /** Runs a registered command by name. Returns whether it did anything. */
   run(name: string, args?: unknown, meta?: Record<string, unknown>): boolean {
     const cmd = this.commands.get(name)
@@ -220,7 +238,10 @@ export class Editor {
       if (this.strict) throw new Error(`no existe el comando ${name}`)
       return false
     }
-    return this.exec((ctx) => cmd(ctx, args as never), meta)
+    return this.exec((ctx) => cmd(ctx, args as never), {
+      ...(Editor.SELECTION_ONLY.has(name) ? { allowReadOnly: true } : {}),
+      ...meta,
+    })
   }
 
   /** Whether a command would do something, without doing it. What a toolbar asks. */

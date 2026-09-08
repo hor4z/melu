@@ -98,11 +98,11 @@ export function FormatBar() {
           className="melu-bar-btn melu-bar-turn"
           onClick={() => setPanel((p) => (p === 'turn' ? 'none' : 'turn'))}
           aria-expanded={panel === 'turn'}
+          // El nombre dice qué hace y en qué está: "Texto" solo, leído en voz alta, es un botón
+          // llamado Texto y no un botón para convertir.
+          aria-label={`Convertir en: ${nombreDelTipo(editor)}`}
         >
-          {(() => {
-            const tipo = currentType(editor)
-            return tipo ? editor.state.schema.specOr(tipo).name : 'Varios'
-          })()}
+          {nombreDelTipo(editor)}
           <Icon name="chevron" size={12} className="melu-rot" />
         </button>
         <span className="melu-bar-sep" />
@@ -295,6 +295,12 @@ const cssId = (id: string) => (typeof CSS !== 'undefined' && CSS.escape ? CSS.es
  * decía "Texto" y el botón convertía cinco títulos. Con tipos mezclados no hay un tipo que mostrar,
  * y decirlo es más honesto que elegir uno.
  */
+/** Cómo se llama lo elegido, o "Varios" cuando hay tipos mezclados. */
+const nombreDelTipo = (editor: ReturnType<typeof useEditor>): string => {
+  const tipo = currentType(editor)
+  return tipo ? editor.state.schema.specOr(tipo).name : 'Varios'
+}
+
 const currentType = (editor: ReturnType<typeof useEditor>): string | undefined => {
   const sel = editor.selection
   if (!sel) return 'paragraph'
