@@ -7,7 +7,7 @@
  */
 
 import { test } from '@playwright/test'
-import { abrir, expect, sketch, typeAt, where } from './apoyo/taller.ts'
+import { abrir, clickEn, expect, sketch, textAt, typeAt, where } from './apoyo/taller.ts'
 
 test.describe('el árbol de la izquierda', () => {
   test('muestra una fila por bloque, y las cuenta', async ({ page }) => {
@@ -118,6 +118,34 @@ test.describe('la barra de arriba', () => {
       const cual = Number(donde.replace('bloques ', ''))
       return typeAt(page, cual)
     }).toBe('video')
+  })
+
+  test('escribir en un documento largo no cuesta el largo del documento', async ({ page }) => {
+    /**
+     * Se compara contra sí mismo, y no contra un número de milisegundos.
+     *
+     * Un umbral en milisegundos depende de la máquina y termina siendo un test que a veces falla.
+     * Lo que no depende de la máquina es la proporción: escribir en un documento diez veces más
+     * largo tiene que costar parecido, no diez veces más. Con las filas del árbol sin memorizar,
+     * cada tecla volvía a dibujar una fila por bloque y la proporción era de diez a uno.
+     */
+    const porTecla = async (cuantos: number) => {
+      await page.evaluate((n) => {
+        const md = Array.from({ length: n }, (_, i) => `Linea numero ${i} con un poco de texto`).join('\n\n')
+        window.taller.cargar(md)
+      }, cuantos)
+      await expect.poll(async () => (await sketch(page)).length).toBe(cuantos)
+      await clickEn(page, 0, 'fin')
+      const t0 = Date.now()
+      await page.keyboard.type('abcdefghijklmnopqrst', { delay: 0 })
+      await expect.poll(() => textAt(page, 0)).toContain('abcdefghijklmnopqrst')
+      return (Date.now() - t0) / 20
+    }
+
+    await abrir(page, 'uno')
+    const corto = await porTecla(40)
+    const largo = await porTecla(400)
+    expect(largo, `${Math.round(corto)} ms con 40 bloques y ${Math.round(largo)} ms con 400`).toBeLessThan(corto * 6)
   })
 
   test('el ancho de columna cambia lo que mide la hoja', async ({ page }) => {
