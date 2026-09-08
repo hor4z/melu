@@ -67,6 +67,13 @@ export type BlockSpec = {
   /** False for a block that cannot be dragged or selected, like a column inside a layout. */
   draggable?: boolean
   selectable?: boolean
+  /**
+   * True for a block that only exists inside its container: una celda, una fila, una columna.
+   *
+   * Suelto en la página no es nada, así que la página no lo acepta. Sin esto, arrastrar una celda
+   * afuera de su tabla dejaba una celda flotando que ningún renderer sabe dibujar.
+   */
+  inner?: boolean
   /** Whether the block is a whole row that cannot share a line, like a divider. */
   standalone?: boolean
 }
@@ -162,7 +169,7 @@ export function defineSchema(specs: readonly BlockSpec[]): Schema {
     isTextual: (type) => (blocks[type]?.content ?? 'text') === 'text',
     isContainer: (type) => Boolean(blocks[type]?.container),
     accepts(parent, child) {
-      if (parent === 'doc') return true
+      if (parent === 'doc') return !blocks[child]?.inner
       const c = blocks[parent]?.container
       if (!c) return false
       if (c === true) return true

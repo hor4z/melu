@@ -41,6 +41,7 @@ export const layoutBlocks: BlockSpec[] = [
   {
     type: ROW_TYPE,
     name: 'Fila',
+    inner: true,
     // Sin grupo: no aparece en el menú, solo existe dentro de una tabla.
     content: 'none',
     container: { only: [CELL_TYPE] },
@@ -50,6 +51,7 @@ export const layoutBlocks: BlockSpec[] = [
   {
     type: CELL_TYPE,
     name: 'Celda',
+    inner: true,
     content: 'text',
     container: false,
     draggable: false,
@@ -84,6 +86,7 @@ export const layoutBlocks: BlockSpec[] = [
   {
     type: 'column',
     name: 'Columna',
+    inner: true,
     content: 'none',
     container: true,
     draggable: false,

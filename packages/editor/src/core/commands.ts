@@ -765,7 +765,9 @@ export const moveBlock: Command<{ id: BlockId; parent: BlockId; index: number }>
   // Un bloque adentro de sí mismo desconectaría su subárbol. El paso también lo rechaza, pero acá
   // es "no aplica" y no un error: quien arrastra sobre un destino imposible no rompió nada.
   if (parent === id || isAncestor(tr.doc, id, parent)) return false
-  if (parent !== tr.doc.root && !state.schema.accepts(getBlock(tr.doc, parent)!.type, getBlock(tr.doc, id)!.type)) return false
+  // La página también dice que no: una celda suelta afuera de su tabla no es nada.
+  const destino = parent === tr.doc.root ? 'doc' : getBlock(tr.doc, parent)!.type
+  if (!state.schema.accepts(destino, getBlock(tr.doc, id)!.type)) return false
   if (parentOf(tr.doc, id) === parent && indexOf(tr.doc, id) === index) return false
   tr.move(id, parent, index)
   return true

@@ -2,7 +2,7 @@
 // paso informa qué bloques tocó, así que una tecla avisa a un suscriptor y repinta un párrafo.
 
 import type { Block, BlockId, BlockInit, Doc } from './doc.ts'
-import { emptyDoc, validate } from './doc.ts'
+import { emptyDoc, indexOf, parentOf, validate } from './doc.ts'
 import type { Schema } from './schema.ts'
 import { defineSchema } from './schema.ts'
 import type { EditorState } from './state.ts'
@@ -83,6 +83,32 @@ const BUILT_IN: Record<string, Command<never>> = {
 const MAX_NORMALIZE_PASSES = 8
 
 /**
+ * Que nadie viva donde no puede.
+ *
+ * El schema declara qué acepta cada contenedor y todos los comandos lo respetan, pero un pegado,
+ * un agente o un documento viejo de la base entran por otro lado. Un párrafo colado adentro de una
+ * fila deja una tabla que no se puede dibujar, y nadie lo estaba mirando.
+ *
+ * Lo colado sale a donde sí puede estar: al lado del contenedor que lo tenía. Si no puede estar en
+ * ningún lado (una celda suelta en la página no es nada), se va.
+ */
+const containment: NonNullable<Plugin['normalize']> = ({ tr, state, touched }) => {
+  for (const id of touched) {
+    const block = tr.doc.blocks[id]
+    if (!block || id === tr.doc.root) continue
+    const parent = parentOf(tr.doc, id)
+    if (parent == null) continue
+    const parentType = parent === tr.doc.root ? 'doc' : tr.doc.blocks[parent]?.type
+    if (parentType === undefined || state.schema.accepts(parentType, block.type)) continue
+    if (parent === tr.doc.root || !state.schema.accepts('doc', block.type)) {
+      tr.remove(id)
+      continue
+    }
+    tr.move(id, parentOf(tr.doc, parent) ?? tr.doc.root, indexOf(tr.doc, parent) + 1)
+  }
+}
+
+/**
  * `state` es un getter a propósito: contesta con la transacción como está, no como empezó. Si no,
  * dos comandos en una transacción actuarían sobre la misma selección inicial.
  */
@@ -142,7 +168,9 @@ export class Editor {
     }
     this.rules = parts.rules
     this.pasteHandlers = parts.paste
-    this.normalizers = parts.normalizers
+    // El primero es del core y no de un plugin: la regla de quién puede vivir adentro de quién la
+    // declara el schema, así que hacerla cumplir no puede depender de que alguien la instale.
+    this.normalizers = [containment, ...parts.normalizers]
     this.filters = parts.filters
     this.view = parts.view
     this.readOnly = opts.readOnly ?? false
