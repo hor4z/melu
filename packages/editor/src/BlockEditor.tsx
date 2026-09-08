@@ -2,7 +2,7 @@
 // así que la plataforma puede tomar la superficie y traer su propio marco. Existe para que el caso
 // común sea una línea.
 
-import { useMemo, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import type { BlockInit } from './core/doc.ts'
 import type { Editor, EditorOptions } from './core/editor.ts'
 import type { Plugin } from './core/plugins.ts'
@@ -66,7 +66,19 @@ export function BlockEditor({
   }, [])
 
   const editor = useNewEditor(options)
-  if (onReady) onReady(editor)
+
+  // En un efecto y una sola vez, no en el cuerpo del render. Acá se llamaba en cada render y dos
+  // veces por commit bajo `StrictMode`, así que un host que sembrara contenido desde `onReady`
+  // ("insertame un video") lo insertaba dos veces. Y avisar hacia afuera mientras React dibuja es
+  // pedirle a otro componente que se actualice en el medio de un render ajeno.
+  const avisado = useRef(false)
+  useEffect(() => {
+    if (avisado.current) return
+    avisado.current = true
+    onReady?.(editor)
+    // A propósito sólo `editor`: un `onReady` nuevo en cada render del padre no es un editor nuevo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor])
 
   return (
     <Surface editor={editor} renderers={renderers} readOnly={readOnly} className={className} {...rest}>
