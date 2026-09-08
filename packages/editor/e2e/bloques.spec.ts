@@ -8,7 +8,7 @@
  */
 
 import { test } from '@playwright/test'
-import { abrir, clickEn, escribir, expect, outline, sketch, typeAt, where } from './apoyo/taller.ts'
+import { abrir, clickEn, escribir, esperarSketch, expect, outline, sketch, typeAt, where } from './apoyo/taller.ts'
 
 /**
  * Deja el caret en un bloque vacío al final, que es donde alguien escribe la barra o una regla.
@@ -157,6 +157,27 @@ test.describe('cada tipo, por el menú, uno solo', () => {
       // Y el documento sigue siendo dibujable: ningún tipo se lleva el párrafo que había.
       expect((await sketch(page))[0], `${type} se llevó el párrafo`).toBe('paragraph: uno')
     }
+  })
+})
+
+test.describe('el desplegable', () => {
+  test('esconde lo que tiene adentro, y clickearlo lo muestra', async ({ page }) => {
+    await abrir(page, 'La pista\n\nla respuesta')
+    await page.evaluate(() => {
+      window.melu.run('setBlockType', { type: 'toggle', id: window.taller.idAt(0) })
+      window.melu.run('moveBlock', { id: window.taller.idAt(1), parent: window.taller.idAt(0), index: 0 })
+    })
+    await esperarSketch(page, ['toggle: La pista', '  paragraph: la respuesta'])
+
+    // Que el hijo esté en el documento y no se vea es la mitad del bloque; sólo se puede afirmar
+    // en un navegador, porque esconderlo es CSS.
+    const hijo = page.locator('[data-melu-text]').nth(1)
+    await expect(hijo).toBeHidden()
+    const twisty = page.getByRole('button', { name: /Abrir|Cerrar/ }).first()
+    await expect(twisty).toHaveAttribute('aria-expanded', 'false')
+    await twisty.click()
+    await expect(hijo).toBeVisible()
+    await expect(page.getByRole('button', { name: /Abrir|Cerrar/ }).first()).toHaveAttribute('aria-expanded', 'true')
   })
 })
 
