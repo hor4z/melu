@@ -4,6 +4,7 @@
 import { describe, expect, it } from 'vitest'
 import { act, screen } from '@testing-library/react'
 import { caretTo, mount } from '../test/view.tsx'
+import { selectBlocks, sketch, where } from '../test/engine.ts'
 
 describe('el asa', () => {
   const rect = (x: number, y: number, w: number, h: number) =>
@@ -164,6 +165,48 @@ describe('el asa', () => {
     })
     // Sin esto quedaba el cursor de agarre y `user-select: none` en toda la página, hasta recargar.
     expect(document.body.classList.contains('melu-dragging')).toBe(false)
+  })
+
+  it('arrastrar el asa de uno de varios elegidos se los lleva a todos', () => {
+    const { editor } = mount('uno\n\ndos\n\ntres\n\ncuatro')
+    const { surface } = layout()
+    act(() => {
+      selectBlocks(editor, 0, 1)
+    })
+    señalar(surface, 300, 10)
+    const grip = screen.getByRole('button', { name: 'Opciones del bloque' })
+    grip.getBoundingClientRect = () => rect(0, 0, 24, 26)
+    act(() => {
+      grip.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true, cancelable: true, clientX: 0, clientY: 0 }))
+      // El primer movimiento decide que es un arrastre y no un click, y recién ahí empieza a
+      // escucharse el destino: hace falta uno más, como en una mano de verdad.
+      window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: 60, clientY: 60 }))
+      // Hasta abajo del cuarto bloque, que ocupa la banda de 120 a 160.
+      window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: 60, clientY: 155 }))
+      window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: 60, clientY: 155 }))
+    })
+    expect(sketch(editor)).toEqual([
+      'paragraph: tres',
+      'paragraph: cuatro',
+      'paragraph: uno',
+      'paragraph: dos',
+    ])
+  })
+
+  it('agarrar un bloque que no estaba elegido lo elige a él solo', () => {
+    const { editor } = mount('uno\n\ndos\n\ntres')
+    const { surface } = layout()
+    act(() => {
+      selectBlocks(editor, 2)
+    })
+    señalar(surface, 300, 10)
+    const grip = screen.getByRole('button', { name: 'Opciones del bloque' })
+    grip.getBoundingClientRect = () => rect(0, 0, 24, 26)
+    act(() => {
+      grip.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true, cancelable: true, clientX: 0, clientY: 0 }))
+      window.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: 60, clientY: 60 }))
+    })
+    expect(where(editor)).toBe('bloques 0')
   })
 
   it('el agarre abre el menú del bloque', () => {

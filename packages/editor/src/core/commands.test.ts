@@ -399,6 +399,36 @@ describe('mover bloques', () => {
     expect(sketch(e)).toEqual(['bulleted_list: uno', '  bulleted_list: b', '  bulleted_list: a'])
   })
 
+  it('varios bloques al mismo lugar llegan juntos y en el orden en que se leían', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro', 'cinco')
+    e.run('moveBlocks', { ids: [at(e, 0), at(e, 1)], parent: e.doc.root, index: 4 })
+    expect(sketch(e)).toEqual([
+      'paragraph: tres',
+      'paragraph: cuatro',
+      'paragraph: uno',
+      'paragraph: dos',
+      'paragraph: cinco',
+    ])
+  })
+
+  it('llevarlos hacia arriba también los deja pegados', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro')
+    e.run('moveBlocks', { ids: [at(e, 2), at(e, 3)], parent: e.doc.root, index: 0 })
+    expect(sketch(e)).toEqual(['paragraph: tres', 'paragraph: cuatro', 'paragraph: uno', 'paragraph: dos'])
+  })
+
+  it('el orden lo pone el documento y no el orden en que se los nombra', () => {
+    const e = editorWith('uno', 'dos', 'tres')
+    e.run('moveBlocks', { ids: [at(e, 1), at(e, 0)], parent: e.doc.root, index: 3 })
+    expect(sketch(e)).toEqual(['paragraph: tres', 'paragraph: uno', 'paragraph: dos'])
+  })
+
+  it('adentro de un contenedor que los acepta entran los que puede, y los que no se quedan', () => {
+    const e = editorWith('- lista', 'suelto', 'otro')
+    e.run('moveBlocks', { ids: [at(e, 1), at(e, 2)], parent: at(e, 0), index: 0 })
+    expect(sketch(e)).toEqual(['bulleted_list: lista', '  paragraph: suelto', '  paragraph: otro'])
+  })
+
   it('moveBlock se niega a meter un bloque adentro de sí mismo', () => {
     const e = editorWith('- uno', '  - dos')
     expect(e.run('moveBlock', { id: at(e, 0), parent: at(e, 1), index: 0 })).toBe(false)

@@ -699,6 +699,32 @@ export const moveBlock: Command<{ id: BlockId; parent: BlockId; index: number }>
 }
 
 /**
+ * Varios bloques al mismo lugar, en el orden en que se leen y quedando pegados.
+ *
+ * No es un `moveBlock` en un `for`: el índice de destino se corre a medida que entran, y los que
+ * venían de más arriba del propio destino lo corren para atrás al salir. Hacer esa cuenta afuera es
+ * la clase de cosa que anda con dos bloques y falla con tres.
+ */
+export const moveBlocks: Command<{ ids: readonly BlockId[]; parent: BlockId; index: number }> = (
+  ctx,
+  { ids, parent, index },
+) => {
+  const { tr } = ctx
+  const order = flatten(tr.doc)
+  const targets = [...ids].filter((id) => has(tr.doc, id)).sort((a, b) => order.indexOf(a) - order.indexOf(b))
+  let at = index
+  let did = false
+  for (const id of targets) {
+    // Sacar un bloque que estaba antes del destino, y bajo el mismo padre, corre el hueco.
+    const salia = parentOf(tr.doc, id) === parent && indexOf(tr.doc, id) < at
+    if (!moveBlock(ctx, { id, parent, index: salia ? at - 1 : at })) continue
+    at = (salia ? at - 1 : at) + 1
+    did = true
+  }
+  return did
+}
+
+/**
  * Los bloques que un movimiento tiene que llevarse, cuando forman un grupo que se puede mover.
  *
  * Un grupo es varios hermanos seguidos. Salteados no quiere decir nada (¿adónde va el hueco?), y de
