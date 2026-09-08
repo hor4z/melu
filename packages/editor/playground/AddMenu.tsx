@@ -12,20 +12,14 @@
 import { useState } from 'react'
 import { Icon, Popover, hasIcon, pointAnchor, type BlockSpec, type Editor } from '../src/index.ts'
 
-/** Dos tipos no se insertan solos: una tabla sin filas y un armado sin columnas no son nada. */
-const ESPECIALES: Record<string, { command: string; args: Record<string, number> }> = {
-  table: { command: 'insertTable', args: { rows: 3, cols: 3 } },
-  columns: { command: 'insertColumns', args: { count: 2 } },
-}
-
 export function AddMenu({ editor, onListo }: { editor: Editor | null; onListo: () => void }) {
   const [en, setEn] = useState<{ x: number; y: number } | null>(null)
 
   const insertar = (spec: BlockSpec) => {
     if (!editor) return
-    const especial = ESPECIALES[spec.type]
-    if (especial) editor.run(especial.command, especial.args)
-    else editor.run('insertBlock', { type: spec.type })
+    // Una tabla necesita filas y un armado necesita columnas: eso lo declara el bloque, así que
+    // insertar es insertar para los treinta y pico de tipos por igual.
+    editor.run('insertBlock', { type: spec.type })
     setEn(null)
     // El teclado vuelve al editor: recién se insertó algo y lo primero que uno quiere es escribirlo
     // o deshacerlo.
