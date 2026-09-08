@@ -161,7 +161,7 @@ lectura `apply` no escribe.
 
 ## Los tests
 
-522 en jsdom y 72 en un navegador, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
+612 en jsdom y 72 en un navegador, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
 no "splitBlock con texto vacío". Cada archivo vive al lado del que prueba, y `src/test/` tiene el
 andamio que comparten (un motor armado, una vista montada).
 
