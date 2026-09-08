@@ -8,7 +8,7 @@ puerta para que un agente escriba por la misma que usa un click.
 ```sh
 make editor      # el taller, en :5175
 npm test -w @melu/editor          # 914 en jsdom, en un segundo
-npm run test:e2e -w @melu/editor  # 108 en un navegador de verdad
+npm run test:e2e -w @melu/editor  # 109 en un navegador de verdad
 ```
 
 Por qué está armado así, cómo agregar un bloque y qué falta para integrarlo:
