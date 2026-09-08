@@ -204,7 +204,10 @@ const addRow: Command<{ id: BlockId; where?: 'before' | 'after' }> = ({ tr }, { 
 }
 
 const addColumn: Command<{ id: BlockId; where?: 'before' | 'after' }> = ({ tr }, { id, where = 'after' }) => {
-  const at = cellAt(tr.doc, id)
+  // Con el id de la tabla, la columna va al final: es lo que pide el botón del pie, que no está
+  // apuntando a ninguna celda en particular.
+  const enLaTabla = getBlock(tr.doc, id)?.type === 'table'
+  const at = enLaTabla ? { table: id, row: 0, col: tableWidth(tr.doc, id) - 1 } : cellAt(tr.doc, id)
   if (!at) return false
   const index = at.col + (where === 'after' ? 1 : 0)
   // oxlint-disable-next-line unicorn/no-useless-spread -- la copia es necesaria: el bucle mueve o borra lo que está recorriendo, y sobre la lista viva se saltearía elementos.

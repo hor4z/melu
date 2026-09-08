@@ -2,7 +2,7 @@
 // El ancla y la cabeza se guardan aparte del orden para que una selección al revés siga al revés.
 
 import type { BlockId, Doc } from './doc.ts'
-import { flatten, has, textLength } from './doc.ts'
+import { flatten, has, parentOf, textLength } from './doc.ts'
 
 export type Point = { block: BlockId; offset: number }
 
@@ -78,6 +78,47 @@ export function rangeIn(doc: Doc, s: Selection, id: BlockId): { from: number; to
   if (to.block === id) return { from: 0, to: clamp(to.offset) }
   const touched = selectedBlocks(doc, s)
   return touched.includes(id) ? { from: 0, to: total } : null
+}
+
+/**
+ * El contenedor de adentro al que pertenece un bloque, si pertenece a alguno.
+ *
+ * "De adentro" es lo que el schema marca con `inner`: una celda, una fila, una columna. Son los que
+ * no existen sueltos, y por eso son bordes que una selección no puede cruzar.
+ */
+function innerOwner(doc: Doc, isInner: (type: string) => boolean, id: BlockId): BlockId | undefined {
+  let at: BlockId | undefined = id
+  while (at) {
+    const block = doc.blocks[at]
+    if (!block) return undefined
+    if (isInner(block.type)) return at
+    at = parentOf(doc, at) ?? undefined
+  }
+  return undefined
+}
+
+/**
+ * Recorta una selección que se sale de una celda o de una columna.
+ *
+ * Un rango con una punta adentro de una celda y la otra afuera es de los pocos que corrompen el
+ * documento: borrarlo junta el texto de dos celdas y se lleva una, y la tabla queda de otra forma.
+ * El navegador lo produce sin pedirlo, con un arrastre del mouse o con Shift+flecha, porque para él
+ * la tabla es una grilla de texto y no una tabla.
+ *
+ * Así que la selección se queda adentro de donde arrancó: la cabeza va al borde del bloque del
+ * ancla, del lado al que se estaba yendo. Notion en cambio elige las celdas enteras y las pinta;
+ * eso es una selección de celdas que todavía no tenemos, y hasta que exista es mejor que la
+ * selección no salga que dejarla borrar media tabla.
+ */
+export function clampToInner(doc: Doc, isInner: (type: string) => boolean, s: TextSelection): TextSelection {
+  if (s.anchor.block === s.head.block) return s
+  const desde = innerOwner(doc, isInner, s.anchor.block)
+  const hasta = innerOwner(doc, isInner, s.head.block)
+  if (desde === hasta) return s
+  const order = flatten(doc)
+  const haciaAdelante = order.indexOf(s.head.block) > order.indexOf(s.anchor.block)
+  const borde = haciaAdelante ? textLength(doc, s.anchor.block) : 0
+  return { kind: 'text', anchor: s.anchor, head: { block: s.anchor.block, offset: borde } }
 }
 
 /** La trae de vuelta a un documento que cambió abajo, para que el caret nunca apunte a nada. */

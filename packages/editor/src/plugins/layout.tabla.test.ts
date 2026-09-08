@@ -113,6 +113,124 @@ describe('agregar', () => {
   })
 })
 
+describe('el pie de la tabla agrega al final', () => {
+  it('una fila pedida con el id de la tabla va abajo de todo, y el caret adentro', () => {
+    const e = tabla()
+    expect(e.run('addRow', { id: laTabla(e) })).toBe(true)
+    expect(filas(e)).toBe(3)
+    // Las dos que estaban se quedaron donde estaban: la nueva es la última.
+    expect(celdas(e).slice(0, 6)).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
+    const sel = e.selection
+    expect(sel?.kind).toBe('text')
+    expect(typeAt(e, ids(e).indexOf((sel as { head: { block: string } }).head.block))).toBe('table_cell')
+  })
+
+  it('una columna pedida con el id de la tabla va a la derecha de todo', () => {
+    const e = tabla()
+    expect(e.run('addColumn', { id: laTabla(e) })).toBe(true)
+    expect(tableWidth(e.doc, laTabla(e))).toBe(4)
+    // Cada fila queda con su celda nueva al final, y no en el medio.
+    expect(celdas(e)).toEqual(['a', 'b', 'c', '', 'd', 'e', 'f', ''])
+  })
+})
+
+describe('una selección no se sale de una celda', () => {
+  /** Pone una selección de texto entre dos posiciones del documento, como la haría el navegador. */
+  const elegir = (e: ReturnType<typeof tabla>, desde: number, hasta: number) =>
+    e.setSelection({
+      kind: 'text',
+      anchor: { block: at(e, desde), offset: 0 },
+      head: { block: at(e, hasta), offset: 1 },
+    })
+
+  it('de una celda a otra se recorta a la primera', () => {
+    const e = tabla()
+    const primera = ids(e).findIndex((id) => e.block(id)?.type === 'table_cell')
+    elegir(e, primera, primera + 1)
+    // El navegador la produce sin que nadie la pida: un arrastre del mouse o Shift+flecha adentro
+    // de una tabla, donde para él no hay tabla sino una grilla de texto.
+    expect(e.selection).toEqual({
+      kind: 'text',
+      anchor: { block: at(e, primera), offset: 0 },
+      head: { block: at(e, primera), offset: 1 },
+    })
+  })
+
+  it('y por eso borrar ya no puede desarmar la tabla', () => {
+    const e = tabla()
+    const primera = ids(e).findIndex((id) => e.block(id)?.type === 'table_cell')
+    elegir(e, primera, primera + 3)
+    e.run('deleteSelection')
+    // Antes juntaba el texto de dos celdas y se llevaba las del medio: una tabla de dos por tres
+    // quedaba de una por una.
+    expect(filas(e)).toBe(2)
+    expect(tableWidth(e.doc, laTabla(e))).toBe(3)
+  })
+
+  it('desde un párrafo de afuera hacia adentro de una celda, también', () => {
+    const e = makeEditor([
+      { type: 'paragraph', text: [{ text: 'antes' }] },
+      { type: 'table', children: [{ type: 'table_row', children: [{ type: 'table_cell', text: [{ text: 'a' }] }] }] },
+    ])
+    const celda = ids(e).findIndex((id) => e.block(id)?.type === 'table_cell')
+    e.setSelection({
+      kind: 'text',
+      anchor: { block: at(e, 0), offset: 2 },
+      head: { block: at(e, celda), offset: 1 },
+    })
+    // La cabeza se queda en el borde del párrafo: la selección llega hasta la tabla y no entra.
+    expect(e.selection).toEqual({
+      kind: 'text',
+      anchor: { block: at(e, 0), offset: 2 },
+      head: { block: at(e, 0), offset: 5 },
+    })
+  })
+
+  it('adentro de una misma celda no se recorta nada', () => {
+    const e = tabla()
+    const primera = ids(e).findIndex((id) => e.block(id)?.type === 'table_cell')
+    e.setSelection({
+      kind: 'text',
+      anchor: { block: at(e, primera), offset: 0 },
+      head: { block: at(e, primera), offset: 1 },
+    })
+    expect(e.selection).toMatchObject({ head: { offset: 1 } })
+  })
+
+  it('entre dos párrafos comunes tampoco: esa selección es la que tiene que cruzar', () => {
+    const e = makeEditor(md('uno', 'dos'))
+    e.setSelection({
+      kind: 'text',
+      anchor: { block: at(e, 0), offset: 1 },
+      head: { block: at(e, 1), offset: 2 },
+    })
+    expect(e.selection).toEqual({
+      kind: 'text',
+      anchor: { block: at(e, 0), offset: 1 },
+      head: { block: at(e, 1), offset: 2 },
+    })
+  })
+
+  it('entre dos columnas de un armado, cada una se queda con lo suyo', () => {
+    const e = makeEditor([
+      {
+        type: 'columns',
+        children: [
+          { type: 'column', children: [{ type: 'paragraph', text: [{ text: 'izq' }] }] },
+          { type: 'column', children: [{ type: 'paragraph', text: [{ text: 'der' }] }] },
+        ],
+      },
+    ])
+    const parrafos = ids(e).map((id, i) => (e.block(id)?.type === 'paragraph' ? i : -1)).filter((i) => i >= 0)
+    e.setSelection({
+      kind: 'text',
+      anchor: { block: at(e, parrafos[0]!), offset: 1 },
+      head: { block: at(e, parrafos[1]!), offset: 2 },
+    })
+    expect(e.selection).toMatchObject({ head: { block: at(e, parrafos[0]!), offset: 3 } })
+  })
+})
+
 describe('sacar', () => {
   it('una fila se va con sus celdas', () => {
     const e = tabla()
