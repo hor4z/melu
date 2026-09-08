@@ -62,6 +62,28 @@ export function textRootOf(container: ParentNode, id: string): HTMLElement | nul
   return own && blockRoot(own) === block ? own : null
 }
 
+/**
+ * La región de texto más cercana a un bloque, hacia arriba.
+ *
+ * Es para que el navegador siempre tenga dónde tener su caret. Un bloque sin texto (una imagen, un
+ * video, un separador) no tiene región propia, y un editable sin selección adentro hace que el
+ * navegador se invente un caret al principio de la página en cuanto alguien le devuelve el foco.
+ */
+export function nearestTextRoot(container: ParentNode, id: string): HTMLElement | null {
+  const own = textRootOf(container, id)
+  if (own) return own
+  const block = container.querySelector(`[${BLOCK_ATTR}="${cssEscape(id)}"]`)
+  const all = [...container.querySelectorAll<HTMLElement>(`[${TEXT_ATTR}]`)]
+  if (!block) return all[0] ?? null
+  let before: HTMLElement | null = null
+  for (const text of all) {
+    // En orden de documento: mientras la región venga antes del bloque, es candidata.
+    if ((block.compareDocumentPosition(text) & Node.DOCUMENT_POSITION_PRECEDING) !== 0) before = text
+    else break
+  }
+  return before ?? all[0] ?? null
+}
+
 /** `CSS.escape` where it exists, and enough of it where it does not (jsdom in a test run). */
 const cssEscape = (s: string) =>
   typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(s) : s.replace(/["\\]/g, '\\$&')
@@ -261,6 +283,21 @@ export function offsetAtPoint(root: HTMLElement, x: number, y: number): number |
     if (range && root.contains(range.startContainer)) return offsetFromDom(root, range.startContainer, range.startOffset)
   }
   return null
+}
+
+/**
+ * Qué punto del documento hay bajo unas coordenadas: qué bloque y qué offset adentro suyo.
+ *
+ * Es lo que hace falta para un Shift+click, que el navegador no puede resolver solo: cada bloque
+ * tiene su propia región editable, y una selección nativa no se extiende de una región a otra.
+ */
+export function pointAt(container: HTMLElement, x: number, y: number): DomPoint | null {
+  const el = elementAtPoint(x, y)
+  const id = blockIdOf(el)
+  if (!id) return null
+  const root = textRootOf(container, id)
+  if (!root) return { block: id, offset: 0 }
+  return { block: id, offset: offsetAtPoint(root, x, y) ?? 0 }
 }
 
 /** Qué hay bajo un punto. Null sin geometría, así un arrastre no queda colgado a mitad de camino. */

@@ -115,7 +115,9 @@ export const activityBlocks: BlockSpec[] = [
     icon: 'match',
     props: {
       ...SHARED,
-      pairs: { kind: 'list', of: { kind: 'json' }, default: [], label: 'Las parejas' },
+      // Dos, como las opciones de una pregunta: una tarjeta de emparejar vacía no muestra nada que
+      // llenar, y hay que descubrir que el botón de abajo es por donde se empieza.
+      pairs: { kind: 'list', of: { kind: 'json' }, default: [{ left: '', right: '' }, { left: '', right: '' }], label: 'Las parejas' },
     },
   },
   {

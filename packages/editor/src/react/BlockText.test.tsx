@@ -6,6 +6,7 @@ import { act, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { plain } from '../core/index.ts'
 import { blocks, caretTo, mount } from '../test/view.tsx'
+import { composing } from './composing.ts'
 
 describe('escribir', () => {
   it('lo que se teclea llega al modelo', async () => {
@@ -68,6 +69,48 @@ describe('escribir', () => {
     await user.click(screen.getByRole('checkbox'))
     const id = editor.doc.blocks[editor.doc.root]!.children[0]!
     expect(editor.block(id)!.props).toMatchObject({ checked: true })
+  })
+})
+
+describe('mientras se compone una letra', () => {
+  // Lo que compone es el navegador, y tocar el DOM en el medio cancela la composición: la letra a
+  // medio armar se pierde. El navegador de verdad lo prueba `e2e/componer.spec.ts`; acá se prueba
+  // la regla sola, que es de quién es el DOM en ese rato.
+  it('el bloque no se repinta, aunque el modelo cambie abajo', () => {
+    const { editor } = mount('uno')
+    const id = editor.doc.blocks[editor.doc.root]!.children[0]!
+    composing.current = true
+    try {
+      act(() => {
+        editor.exec((ctx) => {
+          ctx.tr.setText(id, [{ text: 'otra cosa' }])
+          return true
+        })
+      })
+      expect(blocks()[0]).toHaveTextContent('uno')
+    } finally {
+      composing.current = false
+    }
+  })
+
+  it('y en cuanto termina, el DOM vuelve a decir lo que dice el modelo', () => {
+    const { editor } = mount('uno')
+    const id = editor.doc.blocks[editor.doc.root]!.children[0]!
+    composing.current = true
+    act(() => {
+      editor.exec((ctx) => {
+        ctx.tr.setText(id, [{ text: 'otra cosa' }])
+        return true
+      })
+    })
+    composing.current = false
+    act(() => {
+      editor.exec((ctx) => {
+        ctx.tr.setText(id, [{ text: 'otra cosa!' }])
+        return true
+      })
+    })
+    expect(blocks()[0]).toHaveTextContent('otra cosa!')
   })
 })
 

@@ -86,6 +86,40 @@ test.describe('la barra de arriba', () => {
     await expect.poll(async () => (await sketch(page)).length).toBe(antes)
   })
 
+  test('el más de abajo abre un menú con fondo, y no uno transparente', async ({ page }) => {
+    await abrir(page, 'uno')
+    await page.getByRole('button', { name: 'Agregar un bloque' }).click()
+    const menu = page.locator('.melu-pop')
+    await menu.waitFor({ state: 'visible' })
+    // Los tokens del editor vivían adentro de la superficie, y un menú que el host monta afuera
+    // quedaba sin fondo, sin borde y sin sombra: se leía el documento a través de él. Sólo un
+    // navegador de verdad lo puede ver, porque es la cascada de las variables lo que falla.
+    const estilo = await menu.evaluate((el) => {
+      const cs = getComputedStyle(el)
+      return { fondo: cs.backgroundColor, sombra: cs.boxShadow }
+    })
+    expect(estilo.fondo).not.toBe('rgba(0, 0, 0, 0)')
+    expect(estilo.sombra).not.toBe('none')
+  })
+
+  test('insertar desde el menú del host deja el bloque nuevo elegido, y no el caret al principio', async ({ page }) => {
+    await abrir(page, 'uno\n\ndos')
+    await page.getByRole('button', { name: 'Agregar un bloque' }).click()
+    await page.locator('.melu-pop').waitFor({ state: 'visible' })
+    await page.locator('.melu-pop .melu-menu-item').filter({ hasText: 'Video' }).click()
+    // El menú le devuelve el foco a la superficie, y un editable sin selección adentro hace que el
+    // navegador se invente un caret al principio de la página. Ese caret llegaba tarde y deshacía
+    // la elección: el bloque recién insertado dejaba de estar elegido y el panel mostraba otro.
+    await expect.poll(() => where(page)).toMatch(/^bloques /)
+    // Y el elegido es el video, no otro: es lo que el panel de props muestra.
+    await expect.poll(async () => (await sketch(page)).filter((l) => l.startsWith('video')).length).toBe(1)
+    await expect.poll(async () => {
+      const donde = await where(page)
+      const cual = Number(donde.replace('bloques ', ''))
+      return typeAt(page, cual)
+    }).toBe('video')
+  })
+
   test('el ancho de columna cambia lo que mide la hoja', async ({ page }) => {
     await abrir(page, 'uno')
     const ancho = async () => (await page.locator('[data-melu-surface]').boundingBox())!.width

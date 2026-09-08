@@ -10,6 +10,18 @@
 import { test } from '@playwright/test'
 import { abrir, arrastrarAsa, caja, clickEn, esperarSketch, expect, sketch, where } from './apoyo/taller.ts'
 
+/** Deja el puntero agarrando el asa de un bloque, con el botón apretado. */
+async function tomarElAsa(page: Parameters<typeof caja>[0], n: number) {
+  const origen = (await caja(page, n).boundingBox())!
+  await page.mouse.move(origen.x + 40, origen.y + 10)
+  const grip = page.locator('.melu-grip')
+  await grip.waitFor({ state: 'visible' })
+  const g = (await grip.boundingBox())!
+  await page.mouse.move(g.x + g.width / 2, g.y + g.height / 2)
+  await page.mouse.down()
+  return g
+}
+
 test.describe('el asa', () => {
   test('mueve un bloque abajo de otro', async ({ page }) => {
     await abrir(page, 'uno\n\ndos\n\ntres')
@@ -70,6 +82,69 @@ test.describe('el asa', () => {
     await page.mouse.up()
     expect(await sketch(page)).toEqual(antes)
     expect(await page.evaluate(() => document.body.classList.contains('melu-dragging'))).toBe(false)
+  })
+
+  test('mientras se arrastra se ve dónde va a caer, a la altura del bloque que se está tocando', async ({ page }) => {
+    await abrir(page, 'uno\n\ndos\n\ntres')
+    const g = await tomarElAsa(page, 0)
+    const destino = (await caja(page, 2).boundingBox())!
+    await page.mouse.move(destino.x + 10, destino.y + destino.height - 4, { steps: 6 })
+    const linea = page.locator('.melu-drop-line')
+    await linea.waitFor({ state: 'visible' })
+    const l = (await linea.boundingBox())!
+    // La línea se dibuja donde va a caer, y no en el lugar de donde salió.
+    expect(Math.abs(l.y - (destino.y + destino.height))).toBeLessThan(10)
+    await page.mouse.up()
+    void g
+  })
+
+  test('adentro de un desplegable vacío cae adentro, y no debajo', async ({ page }) => {
+    await abrir(page, '> La pista\n\nuno')
+    // El desplegable vacío es un contenedor abierto: un paso a la derecha sobre él quiere decir
+    // "adentro", y es la única forma de meter un bloque en algo que todavía no tiene nada.
+    await arrastrarAsa(page, 1, 0, 1)
+    await esperarSketch(page, ['quote: La pista', '  paragraph: uno'])
+  })
+
+  test('scrollear en el medio del arrastre no corre el destino', async ({ page }) => {
+    await abrir(page, Array.from({ length: 30 }, (_, i) => `linea ${i}`).join('\n\n'))
+    await tomarElAsa(page, 0)
+    const medio = (await caja(page, 6).boundingBox())!
+    const x = medio.x + 20
+    const y = medio.y + medio.height - 4
+    await page.mouse.move(x, y, { steps: 4 })
+    // Se scrollea con el botón apretado, que es lo que pasa cuando el destino está más abajo de lo
+    // que se ve. Los rects se medían al empezar el arrastre, así que scrollear los corría todos y
+    // la línea quedaba señalando un bloque que ya no estaba ahí.
+    await page.mouse.wheel(0, 400)
+    await page.waitForTimeout(150)
+    await page.mouse.move(x, y + 2, { steps: 2 })
+    const debajo = await page.evaluate(
+      ([px, py]) => document.elementFromPoint(px, py)?.closest('[data-melu-block]')?.textContent?.trim() ?? null,
+      [x, y + 2],
+    )
+    await page.mouse.up()
+    const despues = await sketch(page)
+    const cayo = despues.indexOf('paragraph: linea 0')
+    expect(debajo).not.toBeNull()
+    // Cayó pegado al bloque que estaba debajo del puntero, y no veinte bloques más arriba, que es
+    // donde ese bloque estaba antes de scrollear. De qué lado del borde cayó no importa acá.
+    const vecinos = [despues[cayo - 1] ?? '', despues[cayo + 1] ?? '']
+    expect(vecinos.some((v) => v.includes(String(debajo)))).toBe(true)
+  })
+
+  test('una tabla se arrastra entera, con sus filas', async ({ page }) => {
+    await abrir(page, 'uno\n\n| a | b |\n| --- | --- |\n| c | d |')
+    const antes = await sketch(page)
+    const tabla = antes.findIndex((l) => l.startsWith('table'))
+    expect(tabla).toBeGreaterThan(0)
+    // Se arrastra el párrafo abajo de la tabla, que es la forma de dejar la tabla arriba.
+    await arrastrarAsa(page, 0, tabla)
+    const despues = await sketch(page)
+    expect(despues[0]).toBe('table')
+    // Con sus dos filas y sus cuatro celdas: no se desarmó al moverse.
+    expect(despues.filter((l) => l.includes('table_cell'))).toHaveLength(4)
+    expect(despues.at(-1)).toBe('paragraph: uno')
   })
 
   test('el asa señala el bloque que se está tocando y no el de al lado', async ({ page }) => {

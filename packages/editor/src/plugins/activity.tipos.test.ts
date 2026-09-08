@@ -56,6 +56,13 @@ describe('una pregunta recién insertada', () => {
     expect((propsAt(e, 0).items as unknown[]).length).toBeGreaterThanOrEqual(2)
   })
 
+  it('una de emparejar llega con dos parejas vacías, y no con una tarjeta en blanco', () => {
+    const e = conPregunta('match')
+    const parejas = propsAt(e, 0).pairs as { left?: string; right?: string }[]
+    expect(parejas).toHaveLength(2)
+    expect(parejas.every((p) => p.left === '' && p.right === '')).toBe(true)
+  })
+
   it('las que no se corrigen solas llegan sin puntos', () => {
     // Una pregunta abierta, una evidencia y un autoreporte los mira una persona, no el corrector.
     expect(propsAt(conPregunta('question'), 0).points).toBe(0)

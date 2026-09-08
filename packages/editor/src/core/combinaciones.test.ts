@@ -227,6 +227,41 @@ describe('convertir entre familias', () => {
   })
 })
 
+describe('convertir donde no se puede', () => {
+  it('una celda no se convierte en lista: la fila sólo tiene celdas, y la celda se iba del documento', () => {
+    const e = makeFullEditor(md('| a | b |', '| --- | --- |', '| c | d |'))
+    const celda = ids(e).find((id) => e.block(id)?.type === 'table_cell')!
+    const antes = sketch(e)
+    expect(e.run('setBlockType', { type: 'bulleted_list', id: celda })).toBe(false)
+    expect(sketch(e)).toEqual(antes)
+  })
+
+  it('una columna tampoco se convierte en otra cosa', () => {
+    const e = makeFullEditor([
+      {
+        type: 'columns',
+        children: [
+          { type: 'column', children: [{ type: 'paragraph', text: [{ text: 'izq' }] }] },
+          { type: 'column', children: [{ type: 'paragraph', text: [{ text: 'der' }] }] },
+        ],
+      },
+    ])
+    const columna = ids(e).find((id) => e.block(id)?.type === 'column')!
+    expect(e.run('setBlockType', { type: 'quote', id: columna })).toBe(false)
+  })
+
+  it('pero adentro de una celda el texto se convierte como en cualquier lado', () => {
+    const e = makeFullEditor([
+      { type: 'columns', children: [
+        { type: 'column', children: [{ type: 'paragraph', text: [{ text: 'izq' }] }] },
+        { type: 'column', children: [{ type: 'paragraph', text: [{ text: 'der' }] }] },
+      ] },
+    ])
+    const parrafo = ids(e).find((id) => e.block(id)?.type === 'paragraph')!
+    expect(e.run('setBlockType', { type: 'bulleted_list', id: parrafo })).toBe(true)
+  })
+})
+
 describe('mover bloques compuestos', () => {
   it('bajar una tabla la baja entera, con sus filas', () => {
     const e = makeFullEditor([tabla(), { type: 'paragraph', text: [{ text: 'abajo' }] }])

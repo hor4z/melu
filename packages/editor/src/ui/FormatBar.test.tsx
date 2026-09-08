@@ -6,6 +6,13 @@ import userEvent from '@testing-library/user-event'
 import { caretTo, mount } from '../test/view.tsx'
 import { selectBlocks } from '../test/engine.ts'
 
+/** jsdom mide todo en cero, y sin caja no hay dónde colgar la barra. */
+const conCajas = () => {
+  for (const el of document.querySelectorAll<HTMLElement>('[data-melu-block]')) {
+    el.getBoundingClientRect = () => ({ x: 52, y: 0, left: 52, top: 0, width: 720, height: 40, right: 772, bottom: 40, toJSON: () => ({}) }) as DOMRect
+  }
+}
+
 describe('la barra de formato', () => {
   it('aparece cuando hay algo seleccionado y no antes', async () => {
     const { editor } = mount('Medir el patio')
@@ -76,6 +83,42 @@ describe('la barra de formato', () => {
     // Sin esquema: alguien que escribe "educabot.com" quiere un link, no una ruta relativa.
     await user.type(campo, 'educabot.com{Enter}')
     expect(editor.block(id)!.text![0]!.marks).toEqual([{ type: 'link', value: 'https://educabot.com' }])
+  })
+
+  it('sobre un bloque sin texto no ofrece negrita: apretarla no haría nada', async () => {
+    const { editor } = mount([
+      { type: 'paragraph', text: [{ text: 'antes' }] },
+      { type: 'divider' },
+    ])
+    conCajas()
+    act(() => {
+      selectBlocks(editor, 1)
+    })
+    await waitFor(() => expect(screen.getByRole('toolbar', { name: 'Formato' })).toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: 'Negrita' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Link' })).toBeNull()
+    // Lo que sí se puede hacer sigue estando: convertirlo en otra cosa y pintarle el fondo.
+    expect(screen.getByRole('button', { name: /^Convertir en/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Color' })).toBeInTheDocument()
+  })
+
+  it('y sobre uno con texto las ofrece todas', async () => {
+    const { editor } = mount('Medir el patio')
+    conCajas()
+    act(() => {
+      selectBlocks(editor, 0)
+    })
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Negrita' })).toBeInTheDocument())
+  })
+
+  it('con un bloque de código elegido no ofrece las marcas que el código no acepta', async () => {
+    const { editor } = mount('```python\nx = 1\n```')
+    conCajas()
+    act(() => {
+      selectBlocks(editor, 0)
+    })
+    await waitFor(() => expect(screen.getByRole('toolbar', { name: 'Formato' })).toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: 'Negrita' })).toBeNull()
   })
 
   it('dice en qué tipo de bloque está el caret', async () => {

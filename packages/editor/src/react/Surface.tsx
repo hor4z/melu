@@ -29,7 +29,9 @@ import {
   blockIdOf,
   offsetAtPoint,
   offsetOfCaret,
+  nearestTextRoot,
   placeRange,
+  pointAt,
   readSelection,
   textRoot,
   textRootOf,
@@ -202,7 +204,24 @@ export function Surface({
       // que uno acaba de hacer. Dejándolo quieto no se dispara ni un aviso.
       if (isBlocks(sel)) {
         container.toggleAttribute('data-picking', true)
-        const quieto = readSelection(container)
+        let quieto = readSelection(container)
+        // Salvo que el navegador no tenga nada adentro. Ahí sí hay que darle algo, y en el ancla:
+        // sin selección propia, el navegador se inventa un caret al principio de la página en
+        // cuanto alguien le devuelve el foco (un menú del host que enfoca la superficie después de
+        // insertar), y ese caret llegaba y deshacía lo que se acababa de elegir. No se ve: con
+        // bloques elegidos el caret es transparente.
+        if (!quieto) {
+          const ancla = sel.anchor || sel.ids[0]
+          // La región más cercana y no la del ancla: un video no tiene región propia, y ahí no hay
+          // dónde poner nada. Da igual cuál sea: con bloques elegidos las teclas las atiende el
+          // modelo, así que ese caret no decide nada. Sólo ocupa el lugar.
+          const cerca = ancla ? nearestTextRoot(container, ancla) : null
+          const dueño = cerca ? blockIdOf(cerca) : null
+          if (dueño) {
+            placeRange(container, { block: dueño, offset: 0 }, { block: dueño, offset: 0 })
+            quieto = readSelection(container)
+          }
+        }
         caretCongelado.current = quieto ? JSON.stringify(quieto) : null
         return
       }
@@ -219,6 +238,23 @@ export function Surface({
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
+      const container = ref.current
+      /**
+       * Shift+click con bloques elegidos estira la elección hasta el bloque clickeado.
+       *
+       * Sobre texto no hace falta y no se toca: el navegador estira solo, incluso de un bloque a
+       * otro, y lo hace mejor que cualquier cuenta nuestra sobre coordenadas. Con bloques enteros
+       * elegidos no hay selección nativa que estirar, y sin esto el Shift+click caía como un click
+       * cualquiera: la elección se perdía y había que empezar de nuevo.
+       */
+      if (e.shiftKey && !e.altKey && e.button === 0 && container && isBlocks(editor.selection)) {
+        const hasta = pointAt(container, e.clientX, e.clientY)
+        if (hasta) {
+          e.preventDefault()
+          editor.run('selectBlockRange', { id: hasta.block })
+          return
+        }
+      }
       // Un click en el hueco de abajo de la página deja el caret en el último bloque, que es lo
       // que espera cualquiera que quiera seguir escribiendo.
       if (!blockIdOf(e.target as Node) && e.target === ref.current) editor.run('focusEnd')
