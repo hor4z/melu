@@ -7,7 +7,8 @@ puerta para que un agente escriba por la misma que usa un click.
 
 ```sh
 make editor      # el taller, en :5175
-npm test -w @melu/editor
+npm test -w @melu/editor          # 892 en jsdom, en un segundo
+npm run test:e2e -w @melu/editor  # 91 en un navegador de verdad
 ```
 
 Por qué está armado así, cómo agregar un bloque y qué falta para integrarlo:
@@ -77,7 +78,7 @@ columnas se apilan solas en pantalla angosta.
 Los atajos: `Mod+B/I/U/E`, `Mod+Shift+S` tachado, `Mod+Shift+H` resaltar, `Mod+Shift+C` limpiar,
 `Mod+Alt+0..9` convertir el bloque, `Tab`/`Shift+Tab` anidar, `Mod+D` duplicar,
 `Mod+Shift+↑/↓` mover, `Escape` seleccionar el bloque, `Mod+Z`/`Mod+Shift+Z` deshacer y rehacer.
-Seleccionar cruza bloques, con el mouse y con `Shift+↑/↓`, como en Notion.
+Seleccionar cruza bloques, con el mouse, con `Shift+↑/↓` y con `Shift+click`, como en Notion.
 La lista completa sale de `editor.keyBindings`, así que un panel de ayuda no se escribe a mano.
 
 ## Guardar y cargar
@@ -93,7 +94,16 @@ fromHtml(html)            // pegar de cualquier página
 
 ## El taller
 
-`make editor` levanta `:5175`: el editor a tamaño real y nada más alrededor. Lo demás se pide por
-consola, que es donde ya estaba el motor: `melu` es el editor (`melu.undo()`, `melu.doc`,
-`melu.run(...)`) y `taller` las tres cosas que no son un comando: `taller.soloLectura()`,
-`taller.agente()` y `taller.reiniciar()`.
+`make editor` levanta `:5175` con una actividad de verdad adentro: una guía escribiendo "El patio en
+números", con los cuatro grupos de bloques y varias preguntas. A la izquierda el árbol del
+documento, que es `outline(editor)` dibujado y sirve para ver el caret moviéndose por la estructura;
+al centro la hoja con una barra flotante (deshacer, ancho de columna, solo lectura, y el botón que
+hace escribir a un agente por la misma puerta que un click); a la derecha las props del bloque
+elegido, generadas del manifiesto, que es la forma de ejercitar `coerceProps` a mano.
+
+La consola sigue siendo la puerta corta, y además es la que llaman los tests del navegador: `melu`
+es el editor (`melu.undo()`, `melu.doc`, `melu.run(...)`) y `taller` trae el mismo vocabulario que
+afirma un test de jsdom (`taller.sketch()`, `taller.where()`, `taller.textAt(0)`) más lo que no es
+un comando: `taller.soloLectura()`, `taller.agente()`, `taller.reiniciar()` y `taller.cargar(md)`.
+
+`make e2e` corre la capa del navegador contra ese mismo taller, en su propio servidor.
