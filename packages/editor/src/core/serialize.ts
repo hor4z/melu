@@ -544,6 +544,31 @@ const TAG_BLOCK: Record<string, string> = {
   FIGCAPTION: 'paragraph',
 }
 
+/** Etiquetas cuyo contenido no es contenido: el cuerpo de un script pegado no es un párrafo. */
+const SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'HEAD', 'LINK', 'META', 'TITLE', 'IFRAME', 'OBJECT'])
+
+/** Los esquemas de dirección que abren una página, y no los que ejecutan algo. */
+const SAFE_SCHEME = /^(?:https?|mailto|tel|ftp):/i
+
+/**
+ * Una dirección pegada, o nada si no se puede confiar en ella.
+ *
+ * Un `javascript:` en un `href` es un click que corre código adentro de la app, con la sesión de
+ * quien lee. Los espacios y los saltos de línea se sacan antes de mirar: son el disfraz de siempre.
+ * Lo que no trae esquema es relativo y entra: un link a otra actividad es eso.
+ */
+export function safeUrl(href: string | null | undefined, opts: { allowImageData?: boolean } = {}): string | undefined {
+  if (!href) return undefined
+  const limpio = href.replace(/[\u0000-\u001f\u007f\s]/g, '') // oxlint-disable-line no-control-regex
+  if (limpio === '') return undefined
+  // Una captura pegada del sistema llega como datos, y es una imagen de verdad. `data:text/html`
+  // no: eso es una página con permiso para correr, y por eso sólo pasan las imágenes.
+  if (opts.allowImageData && /^data:image\//i.test(limpio)) return href.trim()
+  if (SAFE_SCHEME.test(limpio)) return href.trim()
+  // Con esquema y no es de los buenos: afuera. Sin esquema es una dirección relativa.
+  return /^[a-z][a-z0-9+.-]*:/i.test(limpio) ? undefined : href.trim()
+}
+
 /** Reads the inline content of an element, carrying the marks its ancestors imply. */
 function inlineFromDom(node: Node, carry: readonly Mark[] = []): RichText {
   if (node.nodeType === 3) {
@@ -552,12 +577,15 @@ function inlineFromDom(node: Node, carry: readonly Mark[] = []): RichText {
   }
   if (node.nodeType !== 1) return []
   const el = node as Element
+  if (SKIP_TAGS.has(el.tagName)) return []
+  // Word manda el bullet como texto y lo marca ignorable en el mismo estilo: hay que hacerle caso.
+  if (/mso-list:\s*Ignore/i.test(el.getAttribute('style') ?? '')) return []
   if (el.tagName === 'BR') return [{ text: '\n' }]
   const marks = [...carry]
   const own = TAG_MARK[el.tagName]
   if (own) marks.push(own)
   if (el.tagName === 'A') {
-    const href = el.getAttribute('href')
+    const href = safeUrl(el.getAttribute('href'))
     if (href) marks.push({ type: 'link', value: href })
   }
   // Los estilos en línea que sí significan algo: es como pegan Google Docs y Word.
@@ -592,7 +620,17 @@ export function fromHtml(html: string, doc?: { parse: (html: string) => Element 
     return kids
   }
 
+  /** El nivel de anidado de cada ítem que vino de Word, para volver a armar la lista después. */
+  const niveles = new Map<BlockInit, number>()
+
   const read = (el: Element): BlockInit[] => {
+    if (SKIP_TAGS.has(el.tagName)) return []
+    const deWord = wordItem(el)
+    if (deWord) {
+      const item: BlockInit = { type: deWord.type, text: inlineFromDom(el) }
+      niveles.set(item, deWord.level)
+      return [item]
+    }
     switch (el.tagName) {
       case 'UL':
       case 'OL': {
@@ -629,19 +667,20 @@ export function fromHtml(html: string, doc?: { parse: (html: string) => Element 
         ]
       }
       case 'IMG': {
-        const src = el.getAttribute('src')
+        const src = safeUrl(el.getAttribute('src'), { allowImageData: true })
         return src ? [{ type: 'image', props: { src, alt: el.getAttribute('alt') ?? '' } }] : []
       }
       case 'FIGURE': {
         const img = el.querySelector('img')
         const caption = el.querySelector('figcaption')
-        if (!img?.getAttribute('src')) return readChildren(el)
+        const fuente = safeUrl(img?.getAttribute('src'), { allowImageData: true })
+        if (!fuente) return readChildren(el)
         return [
           {
             type: 'image',
             props: {
-              src: img.getAttribute('src')!,
-              alt: img.getAttribute('alt') ?? '',
+              src: fuente,
+              alt: img?.getAttribute('alt') ?? '',
               ...(caption ? { caption: inlineFromDom(caption) } : {}),
             },
           },
@@ -682,5 +721,42 @@ export function fromHtml(html: string, doc?: { parse: (html: string) => Element 
     }
   }
 
+  return niveles.size ? nestByLevel(out, niveles) : out
+}
+
+/**
+ * Un párrafo de Word que en realidad es un ítem de lista, o nada.
+ *
+ * Word no manda `<ul>`: manda párrafos con `mso-list` en el estilo, el nivel adentro de ese mismo
+ * estilo, y el bullet como texto en un span que marca ignorable. Pegado tal cual quedaban párrafos
+ * con un puntito adelante, que despues nadie puede sangrar ni numerar.
+ */
+function wordItem(el: Element): { type: string; level: number } | undefined {
+  if (el.tagName !== 'P' && el.tagName !== 'DIV') return undefined
+  const style = el.getAttribute('style') ?? ''
+  if (!/mso-list/i.test(style) && !/MsoListParagraph/i.test(el.getAttribute('class') ?? '')) return undefined
+  const glifo = (el.querySelector('[style*="mso-list"]')?.textContent ?? '').trim()
+  // "1." y "a)" son numeradas; "·" y "o" son viñetas, que es lo que Word usa en los niveles de abajo.
+  const type = /^[0-9]+[.)]|^[ivx]+[.)]|^[a-z][.)]/i.test(glifo) ? 'numbered_list' : 'bulleted_list'
+  return { type, level: Number(/level(\d+)/i.exec(style)?.[1] ?? 1) }
+}
+
+/** Los ítems de Word vienen planos y con el nivel al costado: acá vuelven a ser una lista anidada. */
+function nestByLevel(blocks: readonly BlockInit[], niveles: Map<BlockInit, number>): BlockInit[] {
+  const out: BlockInit[] = []
+  const abiertos: { level: number; block: BlockInit }[] = []
+  for (const b of blocks) {
+    const level = niveles.get(b)
+    if (level === undefined) {
+      abiertos.length = 0
+      out.push(b)
+      continue
+    }
+    while (abiertos.length && abiertos[abiertos.length - 1]!.level >= level) abiertos.pop()
+    const padre = abiertos[abiertos.length - 1]
+    if (padre) (padre.block.children ??= []).push(b)
+    else out.push(b)
+    abiertos.push({ level, block: b })
+  }
   return out
 }

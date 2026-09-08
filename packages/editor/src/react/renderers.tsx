@@ -7,6 +7,7 @@ import type { Block, BlockId, Props } from '../core/doc.ts'
 import { childrenOf } from '../core/doc.ts'
 import type { RichText as RichTextValue } from '../core/text.ts'
 import { plain } from '../core/text.ts'
+import { safeUrl } from '../core/serialize.ts'
 import { useEditor } from './hooks.ts'
 import { BlockText } from './BlockText.tsx'
 import { Icon, hasIcon, type IconName } from './icons.tsx'
@@ -374,7 +375,9 @@ const FileBlock: Renderer = function FileBlock({ id, block }) {
   if (!src) return <Placeholder id={id} icon="file" label="Archivo" />
   const size = num(block.props, 'size', 0)
   return (
-    <a className="melu-file" href={src} download target="_blank" rel="noopener noreferrer">
+    // Sin href si la dirección no es de fiar: el documento puede venir de una API, y una tarjeta que
+    // se ve igual pero no lleva a ningún lado es mejor que un click que corre código.
+    <a className="melu-file" href={safeUrl(src)} download target="_blank" rel="noopener noreferrer">
       <Icon name="file" size={20} />
       <span className="melu-file-name">{str(block.props, 'name') || src.split('/').pop()}</span>
       {size ? <span className="melu-file-size">{humanSize(size)}</span> : null}
@@ -399,7 +402,7 @@ const Bookmark: Renderer = function Bookmark({ id, block }) {
   const loading = bool(block.props, 'loading')
   const image = str(block.props, 'image')
   return (
-    <a className="melu-bookmark" href={url} target="_blank" rel="noopener noreferrer" data-loading={loading}>
+    <a className="melu-bookmark" href={safeUrl(url)} target="_blank" rel="noopener noreferrer" data-loading={loading}>
       <div className="melu-bookmark-text">
         <span className="melu-bookmark-title">{str(block.props, 'title') || url}</span>
         {str(block.props, 'description') ? (

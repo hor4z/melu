@@ -82,6 +82,25 @@ describe('lo que se dibuja', () => {
   })
 })
 
+describe('una dirección que no es de fiar', () => {
+  // El documento puede llegar de una API, y ahí nadie pasó por el pegado ni por la caja de link.
+  it('un marcador que apunta a código se dibuja, pero no lleva a ningún lado', () => {
+    mount([{ type: 'bookmark', props: { url: 'javascript:alert(1)', title: 'Mirá' } }])
+    const link = screen.getByText('Mirá').closest('a')!
+    expect(link).not.toHaveAttribute('href')
+  })
+
+  it('un archivo también', () => {
+    mount([{ type: 'file', props: { src: 'javascript:alert(1)', name: 'planilla.xls' } }])
+    expect(screen.getByText('planilla.xls').closest('a')).not.toHaveAttribute('href')
+  })
+
+  it('y el link de siempre sigue llevando adonde dice', () => {
+    mount([{ type: 'bookmark', props: { url: 'https://educabot.com', title: 'Educabot' } }])
+    expect(screen.getByText('Educabot').closest('a')).toHaveAttribute('href', 'https://educabot.com')
+  })
+})
+
 describe('la caja de un bloque de medios', () => {
   const cajaDe = (nombre: string) => screen.getByLabelText(`Dirección del bloque de ${nombre}`)
 
