@@ -168,20 +168,36 @@ const id = (url: URL, ...keys: string[]) => {
   return url.pathname.split('/').filter(Boolean).pop() ?? ''
 }
 
+/**
+ * El id de un video de YouTube, o nada si esa dirección no es un video.
+ *
+ * Hay cinco formas y todas se comparten: la larga con `?v=`, la corta de compartir, un short (la
+ * que sale de un teléfono), un vivo, y una que ya venía embebida. Lo que no puede pasar es que un
+ * canal (`/@educabot`) pase por video: antes se le sacaba el último pedazo de la ruta a cualquier
+ * cosa, y el embebido quedaba apuntando a un video que no existe.
+ */
+function youtubeId(url: URL): string | undefined {
+  if (!/(^|\.)(youtube\.com|youtube-nocookie\.com|youtu\.be)$/.test(url.hostname)) return undefined
+  const parts = url.pathname.split('/').filter(Boolean)
+  if (/(^|\.)youtu\.be$/.test(url.hostname)) return parts[0]
+  if (parts[0] === 'watch') return url.searchParams.get('v') ?? undefined
+  if (parts.length === 2 && ['shorts', 'embed', 'live', 'v'].includes(parts[0]!)) return parts[1]
+  return undefined
+}
+
 /** Los servicios que vale reconocer. Es data: un plugin la reemplaza sin tocar el package. */
 export const PROVIDERS: Provider[] = [
   {
     name: 'YouTube',
     match: (url) => {
-      if (!/(^|\.)(youtube\.com|youtu\.be)$/.test(url.hostname)) return undefined
-      const video = url.hostname.endsWith('youtu.be') ? url.pathname.slice(1) : id(url, 'v')
+      const video = youtubeId(url)
       if (!video) return undefined
       const t = url.searchParams.get('t') ?? url.searchParams.get('start')
       const start = t ? `?start=${parseInt(t, 10) || 0}` : ''
       return { src: `https://www.youtube-nocookie.com/embed/${video}${start}`, kind: 'video' }
     },
     thumb: (url) => {
-      const video = url.hostname.endsWith('youtu.be') ? url.pathname.slice(1) : id(url, 'v')
+      const video = youtubeId(url)
       return video ? `https://img.youtube.com/vi/${video}/hqdefault.jpg` : undefined
     },
   },

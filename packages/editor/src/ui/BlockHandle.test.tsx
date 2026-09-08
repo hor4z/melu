@@ -227,8 +227,89 @@ describe('el asa', () => {
     })
     // `setBlockType` dejaba una tabla sin filas y el normalizador la barría en la misma
     // transacción: el bloque desaparecía.
-    expect(sketch(editor).filter((l) => l.startsWith('table_cell')).length + sketch(editor).filter((l) => l.includes('table_cell')).length).toBeGreaterThan(0)
-    expect(sketch(editor)[0]).toContain('table')
+    expect(sketch(editor)[0]).toBe('table')
+    // Y lo que estaba escrito se mudó a la primera celda, en lugar de perderse con el párrafo.
+    expect(sketch(editor).find((l) => l.includes('table_cell'))).toContain('uno')
+  })
+
+  /** Abre el menú del asa sobre el bloque que la banda del puntero señala. */
+  const abrirMenu = (surface: HTMLElement, y: number) => {
+    señalar(surface, 300, y)
+    act(() => {
+      const grip = screen.getByRole('button', { name: 'Opciones del bloque' })
+      grip.getBoundingClientRect = () => rect(0, 0, 24, 26)
+      grip.dispatchEvent(new PointerEvent('pointerdown', { button: 0, bubbles: true, clientX: 0, clientY: 0 }))
+      window.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }))
+    })
+  }
+
+  const elegir = (nombre: RegExp | string) =>
+    act(() => {
+      screen.getByRole('menuitem', { name: nombre }).click()
+    })
+
+  it('duplicar deja la copia pegada al original', () => {
+    const { editor } = mount('uno\n\ndos')
+    const { surface } = layout()
+    abrirMenu(surface, 10)
+    elegir(/^Duplicar/)
+    expect(sketch(editor)).toEqual(['paragraph: uno', 'paragraph: uno', 'paragraph: dos'])
+  })
+
+  it('bajar y subir mueven el bloque, y lo dejan donde estaba', () => {
+    const { editor } = mount('uno\n\ndos')
+    const { surface } = layout()
+    abrirMenu(surface, 10)
+    elegir(/^Bajar/)
+    expect(sketch(editor)).toEqual(['paragraph: dos', 'paragraph: uno'])
+    layout()
+    abrirMenu(surface, 50)
+    elegir(/^Subir/)
+    expect(sketch(editor)).toEqual(['paragraph: uno', 'paragraph: dos'])
+  })
+
+  it('borrar se lleva el bloque señalado y no otro', () => {
+    const { editor } = mount('uno\n\ndos')
+    const { surface } = layout()
+    abrirMenu(surface, 50)
+    elegir(/^Borrar/)
+    expect(sketch(editor)).toEqual(['paragraph: uno'])
+  })
+
+  it('anidar no se ofrece sobre el primero, porque no hay abajo de qué meterlo', () => {
+    mount('uno\n\ndos')
+    const { surface } = layout()
+    abrirMenu(surface, 10)
+    expect(screen.queryByRole('menuitem', { name: /^Anidar/ })).toBeNull()
+  })
+
+  it('sobre el segundo sí, y anida', () => {
+    const { editor } = mount('- uno\n- dos')
+    const { surface } = layout()
+    abrirMenu(surface, 50)
+    elegir(/^Anidar/)
+    expect(sketch(editor)).toEqual(['bulleted_list: uno', '  bulleted_list: dos'])
+  })
+
+  it('y desde adentro se puede sacar un nivel, que es lo que no se ofrece afuera', () => {
+    const { editor } = mount('- uno\n  - dos')
+    const { surface } = layout()
+    abrirMenu(surface, 50)
+    elegir(/^Sacar un nivel/)
+    expect(sketch(editor)).toEqual(['bulleted_list: uno', 'bulleted_list: dos'])
+  })
+
+  it('el color de fondo queda en las props del bloque, y no en un estilo suelto', () => {
+    const { editor } = mount('uno\n\ndos')
+    const { surface } = layout()
+    abrirMenu(surface, 10)
+    act(() => {
+      screen.getByText('Color').click()
+    })
+    act(() => {
+      screen.getByRole('button', { name: 'Fondo yellow' }).click()
+    })
+    expect(editor.block(editor.doc.blocks[editor.doc.root]!.children[0]!)!.props).toMatchObject({ bg: 'yellow' })
   })
 
   it('el agarre abre el menú del bloque', () => {

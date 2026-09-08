@@ -99,6 +99,17 @@ texto con su link) y un menú al lado ofrece el resto. Lo que se ofrece sale del
 `media.ts`, así que una dirección de YouTube con lista y radio adentro igual ofrece el video con la
 dirección que se puede incrustar.
 
+**Y lo que llega pegado es dato hostil hasta que se demuestre lo contrario.** El HTML de otra
+página trae etiquetas que no son contenido (el cuerpo de un `<script>` quedaba escrito como un
+párrafo) y direcciones que no abren una página sino que ejecutan algo. Toda dirección que entra por
+un pegado pasa por `safeUrl`: `http`, `https`, `mailto`, `tel` y las relativas entran, y `data:`
+sólo si es una imagen, porque una captura del sistema llega así. Los renderers que arman un `<a>`
+con una prop la sanean otra vez, porque un documento también puede llegar de la API.
+
+Word tiene su propio dialecto y es el que más se va a pegar acá: no manda `<ul>`, manda párrafos con
+`mso-list` en el estilo y el bullet escrito adentro de un span que él mismo marca ignorable. Se
+reconocen y vuelven a ser una lista, con su nivel de anidado.
+
 **El markdown es a propósito con pérdida:** un color no tiene markdown, y la alternativa era
 inventar un dialecto que nadie más puede leer. Un tipo que markdown no conoce se anuncia
 (`**[choice]** ...`) y no se pierde el texto.
@@ -134,6 +145,23 @@ new Editor({ plugins: [...activityKit(), sensores()] })
 Con eso ya aparece en el menú "/", en la caja de herramientas, en el manifiesto del agente, en el
 menú de "convertir en", en el markdown y en el JSON. Nadie tuvo que tocar el core.
 
+**Un tipo que no puede existir vacío declara lo que trae adentro.** Una tabla sin filas y un armado
+de una sola columna no son documentos que un normalizador pueda dejar pasar, así que los barre, y
+quien insertó el bloque se queda sin bloque y sin aviso. `seed()` en el spec lo resuelve para todos
+los que insertan a la vez, incluido el agente:
+
+```ts
+{ type: 'table', container: { only: ['table_row'] }, seed: () => table().children! }
+```
+
+`insertBlock` y `setBlockType` la usan solas, y el caret queda en la primera celda. Los tres menús
+tenían cada uno su lista de excepciones para esto; ya no.
+
+**Y un tipo que sólo vive adentro de otro lo dice con `inner: true`** (una celda, una fila, una
+columna). La página no lo acepta, así que ni un arrastre ni un pegado ni un agente lo pueden dejar
+suelto. Lo colado en un contenedor que no lo acepta lo saca un normalizador del core, que es donde
+vive la regla: el schema la declara, así que hacerla cumplir no puede depender de qué plugins haya.
+
 ## La puerta del agente
 
 No hay una segunda implementación para la máquina. Un agente manda los mismos comandos con nombre
@@ -161,7 +189,7 @@ lectura `apply` no escribe.
 
 ## Los tests
 
-612 en jsdom y 72 en un navegador, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
+885 en jsdom y 73 en un navegador, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
 no "splitBlock con texto vacío". Cada archivo vive al lado del que prueba, y `src/test/` tiene el
 andamio que comparten (un motor armado, una vista montada).
 
@@ -176,12 +204,23 @@ core/serialize    JSON, markdown y HTML, de ida y de vuelta
 core/agent        el manifiesto, el esquema, que un lote sea atómico, y que en solo lectura no
                   escriba
 core/editor       la transacción, los avisos, y que una tecla toque un bloque con 5 y con 2000
+core/selection    hacia dónde va un rango, cuánto abarca de cada bloque, y cómo se lo trae de
+                  vuelta a un documento que cambió abajo
+core/transaction  los ids que acuña, las props que valida al entrar, y el estado a mitad de camino
+core/state        que el estado que se arma se pueda escribir: siempre hay dónde poner el caret
+core/plugins      quién gana cuando dos plugins dicen lo mismo, y cómo se nombra una tecla
+core/combinaciones los tipos mezclados: una tabla en una lista, un rango que pasa por una imagen
 plugins/text      lo que se escribe sin abrir un menú, y lo que el normalizador arregla solo
-plugins/layout    tabla y columnas
+plugins/layout    tabla y columnas, y que convertir en tabla no borre el bloque
 plugins/activity  los bloques de pregunta y sus props
-plugins/media     las direcciones que rompían: un % suelto, un mapa sin parámetros
+plugins/ciclo     el ciclo entero de los treinta y pico de tipos, por tabla: entrar, moverse,
+                  duplicarse, borrarse, deshacerse y volver de JSON idéntico
+plugins/media     las direcciones que rompían, y las cinco formas de una de YouTube
 plugins/paste     el orden de los formatos, y que pegar prosa en el medio de una oración no la corte
+plugins/paste.afuera  lo que manda Word, lo que manda Notion, y el HTML hostil
 react/dnd         la aritmética del arrastre: el hueco, el nivel, y soltar donde ya estaba
+react/dom         el puente con el DOM: contar hasta el caret, leer el texto de vuelta, poner un
+                  rango que cruza bloques
 react/renderers   que cada bloque se dibuje con su rol y sus atributos
 react/BlockText   la costura con el DOM: los runs a mano, el caret, el foco
 react/hooks       las suscripciones, y cuántos componentes se repintan por tecla
