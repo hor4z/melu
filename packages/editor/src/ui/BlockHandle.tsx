@@ -29,7 +29,7 @@ import { plain } from '../core/text.ts'
 import { activeBlock } from '../core/selection.ts'
 import { useEditor, useSelection } from '../react/hooks.ts'
 import { useDragHandle } from '../react/Surface.tsx'
-import { BLOCK_ATTR, focusBlockElement } from '../react/dom.ts'
+import { BLOCK_ATTR, SKIP, focusBlockElement } from '../react/dom.ts'
 import { Icon, hasIcon, type IconName } from '../react/icons.tsx'
 import { Popover } from './Popover.tsx'
 import { rectOf, type Anchor } from './float.ts'
@@ -127,7 +127,7 @@ export function BlockHandle() {
 
   return (
     <>
-      <div className="melu-handle" style={{ top: hover.top, left: hover.left }} data-melu-skip="true">
+      <div className="melu-handle" style={{ top: hover.top, left: hover.left }} {...SKIP}>
         <button
           type="button"
           className="melu-handle-btn"

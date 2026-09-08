@@ -32,15 +32,39 @@ ui/         lo que flota: asa, menú "/", barra de formato, caja de herramientas
 
 ## Las decisiones que importan
 
-**Un `contenteditable` por bloque, no uno para todo.** Es lo que hace Notion y no lo que hacen
-ProseMirror o Lexical. El navegador se queda con lo que pasa adentro de un párrafo (los acentos con
-tecla muerta, el teclado de un celular, el dictado, los métodos de entrada que componen varias
-teclas en una letra) y el motor se queda con todo lo que cruza un borde de bloque. Un error solo
-puede dañar un párrafo, porque es todo lo que el navegador alcanza.
+**Un `contenteditable` por bloque, y uno más envolviendo la página.** Es lo que hace Notion, y está
+medido: su página tiene un editable por bloque y además un `div.whenContentEditable` con todos
+adentro. El de afuera es el que cuenta, porque por spec una región editable es la que tiene un padre
+no editable: un `contenteditable` adentro de otro no abre una región nueva. Así que abajo hay una
+sola región, la superficie, y los de cada bloque quedan para declarar qué es texto y qué no.
 
-Cuesta una cosa y hay que decirla: una selección nativa no puede cruzar dos regiones editables. Así
-que arrastrar sobre varios párrafos no da una selección de texto, da bloques enteros seleccionados.
-Eso es exactamente lo que hace Notion, y resulta que es lo que la gente espera.
+De eso sale lo que hace que se sienta como Notion: **la selección nativa cruza de un bloque a otro**.
+Arrastrar sobre tres párrafos pinta letra por letra, `Shift+↓` sale del bloque sin saltar a otra
+cosa, y la barra de formato aparece sobre un rango que abarca cinco bloques. El modelo ya sabía
+hacerlo (`spansBlocks`, `ordered`, y `deleteSelection` con su rama de "cruza bloques"); lo que no
+sabía era la vista.
+
+**Y el precio, que hay que pagarlo en un solo lugar:** el navegador ahora también puede *editar*
+cruzando, moviendo nodos de un bloque a otro por atrás de React y del modelo. Eso se cancela en
+`beforeinput`, sobre la superficie, y lo hace el motor con comandos. La regla es corta: el navegador
+solo puede tocar el texto de adentro de un bloque, que es de donde salen los acentos con tecla
+muerta, el dictado y el teclado del celular. Todo lo que cruce un borde, arme o rompa un bloque
+(`insertParagraph`, un borrado parado en el borde, arrastrar texto y soltarlo en otro lado) es del
+motor. Es la misma línea que traza Lexical, que tiene 2222 líneas de `LexicalEvents.ts` haciendo
+exactamente esto.
+
+**El foco es de la superficie, no de cada bloque,** y de ahí sale una consecuencia que sorprende:
+enfocar el elemento de un bloque manda el foco al editable de arriba, así que **las teclas llegan
+todas a `Surface`**. La capa de eventos vive ahí: el keymap, el `input` que lee de vuelta lo que se
+escribió, la composición y el `blur`. `BlockText` quedó con lo suyo, que es dibujar los runs a mano y
+poner el caret cuando el rango es de su bloque. Un rango que cruza lo pone la superficie, que ve las
+dos puntas.
+
+**Lo que no es texto se declara.** Adentro de una región editable, una viñeta, un checkbox, un asa o
+un menú son contenido que el navegador cree suyo. Todos llevan `{...SKIP}` (`react/dom.ts`): el
+`data-melu-skip` que ya miraba el motor para no leerlos como texto, más el `contenteditable=false`
+que le dice al navegador que ahí no va el caret. Un control nuevo sin eso deja escribir adentro de
+una viñeta.
 
 **React no maneja los hijos de la región editable.** Dibuja el elemento y sus atributos y ahí para;
 los runs de adentro se ponen a mano. No es preferencia, es obligación: React compara contra el árbol
@@ -137,7 +161,7 @@ lectura `apply` no escribe.
 
 ## Los tests
 
-441, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
+449, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
 no "splitBlock con texto vacío". Cada archivo vive al lado del que prueba, y `src/test/` tiene el
 andamio que comparten (un motor armado, una vista montada).
 

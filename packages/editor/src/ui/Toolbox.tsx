@@ -6,7 +6,7 @@ import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { BlockSpec } from '../core/schema.ts'
 import { useEditor } from '../react/hooks.ts'
 import { Icon, hasIcon } from '../react/icons.tsx'
-import { blockIdOf, elementAtPoint } from '../react/dom.ts'
+import { SKIP, blockIdOf, elementAtPoint } from '../react/dom.ts'
 
 export type ToolboxProps = {
   /** Where it opens, in pixels from the top right of the surface. */
@@ -140,7 +140,7 @@ export function Toolbox({ initial = { top: 16, right: 16 }, extras, title = 'Blo
   const style = pos ? { top: pos.top, left: pos.left, right: 'auto' } : { top: initial.top, right: initial.right }
 
   return (
-    <div ref={ref} className="melu-toolbox" style={style} data-open={open === true} data-melu-skip="true">
+    <div ref={ref} className="melu-toolbox" style={style} data-open={open === true} {...SKIP}>
       <div className="melu-toolbox-bar" onPointerDown={startMove}>
         <Icon name="drag" size={13} className="melu-toolbox-move" />
         <span className="melu-toolbox-title">{title}</span>

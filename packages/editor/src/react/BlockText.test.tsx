@@ -72,14 +72,18 @@ describe('escribir', () => {
 })
 
 describe('el caret', () => {
-  it('el modelo lo manda: apuntar a un bloque le da el foco', () => {
+  it('el modelo lo manda: apuntar a un bloque lleva el caret ahí', () => {
     const { editor } = mount('uno\n\ndos')
     const segundo = editor.doc.blocks[editor.doc.root]!.children[1]!
     act(() => {
       blocks()[0]!.focus()
       editor.run('focusBlock', { id: segundo, at: 'end' })
     })
-    expect(document.activeElement).toBe(blocks()[1])
+    // El foco es de la superficie, que es la región editable: no hay un foco por bloque que
+    // mirar. Lo que se mueve es el caret.
+    const sel = document.getSelection()!
+    expect(blocks()[1]!.contains(sel.focusNode)).toBe(true)
+    expect(sel.focusOffset).toBe(3)
   })
 
   it('sin foco adentro del editor, el modelo no se lo roba', () => {
