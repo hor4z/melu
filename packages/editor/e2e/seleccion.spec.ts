@@ -7,7 +7,7 @@
  */
 
 import { test } from '@playwright/test'
-import { abrir, bloque, clickEn, escribir, expect, seleccionarArrastrando, sketch, where } from './apoyo/taller.ts'
+import { abrir, bloque, caja, clickEn, escribir, expect, seleccionarArrastrando, sketch, where } from './apoyo/taller.ts'
 
 test.describe('arrastrar el mouse', () => {
   test('de un párrafo a otro pinta letra por letra, en lugar de no pintar nada', async ({ page }) => {
@@ -84,6 +84,51 @@ test.describe('el teclado', () => {
     await clickEn(page, 1)
     await page.keyboard.press('ControlOrMeta+Shift+ArrowUp')
     await expect.poll(() => sketch(page)).toEqual(['paragraph: dos', 'paragraph: uno'])
+  })
+})
+
+/** Sostiene Shift mientras se hace algo: `mouse.click` no lleva modificadores. */
+async function conShift(page: Parameters<typeof caja>[0], hacer: () => Promise<void>) {
+  await page.keyboard.down('Shift')
+  await hacer()
+  await page.keyboard.up('Shift')
+}
+
+test.describe('Shift+click', () => {
+  test('estira lo elegido hasta donde se clickea, en el mismo bloque', async ({ page }) => {
+    await abrir(page, 'uno dos tres')
+    await clickEn(page, 0, 'inicio')
+    const b = (await caja(page, 0).boundingBox())!
+    await conShift(page, () => page.mouse.click(b.x + 60, b.y + b.height / 2))
+    await expect.poll(() => where(page)).toMatch(/^0:0-0:\d+$/)
+  })
+
+  test('y también de un bloque a otro, que es como se agarra un pedazo largo', async ({ page }) => {
+    await abrir(page, 'uno dos tres\n\ncuatro cinco seis\n\nsiete ocho nueve')
+    await clickEn(page, 0, 'inicio')
+    const c = (await caja(page, 2).boundingBox())!
+    // Esto lo hace el navegador solo, incluso con una región editable por bloque, y por eso el
+    // editor no lo toca. Está probado igual porque es la clase de cosa que se rompe de costado.
+    await conShift(page, () => page.mouse.click(c.x + 40, c.y + c.height / 2))
+    await expect.poll(() => where(page)).toMatch(/^0:0-2:\d+$/)
+  })
+
+  test('hacia arriba también, y el ancla se queda donde estaba', async ({ page }) => {
+    await abrir(page, 'uno dos tres\n\ncuatro cinco seis')
+    await clickEn(page, 1, 'fin')
+    const a = (await caja(page, 0).boundingBox())!
+    await conShift(page, () => page.mouse.click(a.x + 20, a.y + a.height / 2))
+    await expect.poll(() => where(page)).toMatch(/^1:\d+-0:\d+$/)
+  })
+
+  test('con un bloque elegido, estira la elección hasta el que se clickea', async ({ page }) => {
+    await abrir(page, 'uno\n\ndos\n\ntres')
+    await clickEn(page, 0)
+    await page.keyboard.press('Escape')
+    await expect.poll(() => where(page)).toBe('bloques 0')
+    const c = (await caja(page, 2).boundingBox())!
+    await conShift(page, () => page.mouse.click(c.x + 20, c.y + c.height / 2))
+    await expect.poll(() => where(page)).toBe('bloques 0,1,2')
   })
 })
 

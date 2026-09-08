@@ -99,6 +99,13 @@ texto con su link) y un menú al lado ofrece el resto. Lo que se ofrece sale del
 `media.ts`, así que una dirección de YouTube con lista y radio adentro igual ofrece el video con la
 dirección que se puede incrustar.
 
+**Backspace pegado a un bloque sin texto elige antes de borrar.** Parado al principio de un párrafo
+que viene abajo de una imagen o de un separador, la primera vez se elige ese bloque y la segunda se
+borra. Notion hace otra cosa, medida el 8 de septiembre de 2026 en una página de prueba: se saltea el
+separador y junta el párrafo con el que está más arriba, dejando el separador donde estaba. O sea que
+el texto cruza por encima de algo que no se tocó. Acá se prefirió lo otro: nada se mueve de lugar sin
+que se vea qué está por pasar, y una imagen no desaparece de un teclazo.
+
 **Y lo que llega pegado es dato hostil hasta que se demuestre lo contrario.** El HTML de otra
 página trae etiquetas que no son contenido (el cuerpo de un `<script>` quedaba escrito como un
 párrafo) y direcciones que no abren una página sino que ejecutan algo. Toda dirección que entra por

@@ -31,6 +31,7 @@ import {
   offsetOfCaret,
   nearestTextRoot,
   placeRange,
+  pointAt,
   readSelection,
   textRoot,
   textRootOf,
@@ -237,6 +238,23 @@ export function Surface({
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
+      const container = ref.current
+      /**
+       * Shift+click con bloques elegidos estira la elección hasta el bloque clickeado.
+       *
+       * Sobre texto no hace falta y no se toca: el navegador estira solo, incluso de un bloque a
+       * otro, y lo hace mejor que cualquier cuenta nuestra sobre coordenadas. Con bloques enteros
+       * elegidos no hay selección nativa que estirar, y sin esto el Shift+click caía como un click
+       * cualquiera: la elección se perdía y había que empezar de nuevo.
+       */
+      if (e.shiftKey && !e.altKey && e.button === 0 && container && isBlocks(editor.selection)) {
+        const hasta = pointAt(container, e.clientX, e.clientY)
+        if (hasta) {
+          e.preventDefault()
+          editor.run('selectBlockRange', { id: hasta.block })
+          return
+        }
+      }
       // Un click en el hueco de abajo de la página deja el caret en el último bloque, que es lo
       // que espera cualquiera que quiera seguir escribiendo.
       if (!blockIdOf(e.target as Node) && e.target === ref.current) editor.run('focusEnd')

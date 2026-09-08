@@ -285,6 +285,21 @@ export function offsetAtPoint(root: HTMLElement, x: number, y: number): number |
   return null
 }
 
+/**
+ * Qué punto del documento hay bajo unas coordenadas: qué bloque y qué offset adentro suyo.
+ *
+ * Es lo que hace falta para un Shift+click, que el navegador no puede resolver solo: cada bloque
+ * tiene su propia región editable, y una selección nativa no se extiende de una región a otra.
+ */
+export function pointAt(container: HTMLElement, x: number, y: number): DomPoint | null {
+  const el = elementAtPoint(x, y)
+  const id = blockIdOf(el)
+  if (!id) return null
+  const root = textRootOf(container, id)
+  if (!root) return { block: id, offset: 0 }
+  return { block: id, offset: offsetAtPoint(root, x, y) ?? 0 }
+}
+
 /** Qué hay bajo un punto. Null sin geometría, así un arrastre no queda colgado a mitad de camino. */
 export const elementAtPoint = (x: number, y: number): Element | null =>
   typeof document.elementFromPoint === 'function' ? document.elementFromPoint(x, y) : null
