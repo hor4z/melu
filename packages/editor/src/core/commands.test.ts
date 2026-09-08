@@ -343,6 +343,55 @@ describe('mover bloques', () => {
     expect(press(e, 'Mod-Shift-ArrowUp')).toBe(false)
   })
 
+  it('con cinco bloques elegidos suben los cinco, y no sólo el que tiene el caret', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis')
+    selectBlocks(e, 2, 3, 4)
+    press(e, 'Mod-Shift-ArrowUp')
+    expect(sketch(e)).toEqual([
+      'paragraph: uno',
+      'paragraph: tres',
+      'paragraph: cuatro',
+      'paragraph: cinco',
+      'paragraph: dos',
+      'paragraph: seis',
+    ])
+  })
+
+  it('y bajan los cinco también', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro')
+    selectBlocks(e, 0, 1)
+    press(e, 'Mod-Shift-ArrowDown')
+    expect(sketch(e)).toEqual(['paragraph: tres', 'paragraph: uno', 'paragraph: dos', 'paragraph: cuatro'])
+  })
+
+  it('un rango de texto que cruza tres bloques los mueve a los tres', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro')
+    selectRange(e, [1, 1], [2, 2])
+    press(e, 'Mod-Shift-ArrowDown')
+    expect(sketch(e)).toEqual(['paragraph: uno', 'paragraph: cuatro', 'paragraph: dos', 'paragraph: tres'])
+  })
+
+  it('el grupo se queda elegido después de moverse: mover dos veces mueve lo mismo', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro')
+    selectBlocks(e, 2, 3)
+    press(e, 'Mod-Shift-ArrowUp')
+    press(e, 'Mod-Shift-ArrowUp')
+    expect(sketch(e)).toEqual(['paragraph: tres', 'paragraph: cuatro', 'paragraph: uno', 'paragraph: dos'])
+  })
+
+  it('bloques salteados no se mueven: no hay un lugar donde eso quiera decir algo', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro')
+    selectBlocks(e, 0, 2)
+    expect(press(e, 'Mod-Shift-ArrowDown')).toBe(false)
+    expect(sketch(e)).toEqual(['paragraph: uno', 'paragraph: dos', 'paragraph: tres', 'paragraph: cuatro'])
+  })
+
+  it('el grupo pegado al borde no se mueve, en lugar de moverse a medias', () => {
+    const e = editorWith('uno', 'dos', 'tres')
+    selectBlocks(e, 0, 1)
+    expect(press(e, 'Mod-Shift-ArrowUp')).toBe(false)
+  })
+
   it('mover no cambia la profundidad: sube entre sus hermanos', () => {
     const e = editorWith('- uno', '  - a', '  - b')
     caretAt(e, 2, 0)

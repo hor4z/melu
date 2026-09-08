@@ -698,24 +698,46 @@ export const moveBlock: Command<{ id: BlockId; parent: BlockId; index: number }>
   return true
 }
 
-/** Moves a block up past its previous sibling, keeping its depth. */
-export const moveUp: Command<{ id?: BlockId }> = (ctx, { id } = {}) => {
+/**
+ * Los bloques que un movimiento tiene que llevarse, cuando forman un grupo que se puede mover.
+ *
+ * Un grupo es varios hermanos seguidos. Salteados no quiere decir nada (¿adónde va el hueco?), y de
+ * padres distintos tampoco, así que en esos casos no se mueve nada en lugar de mover cualquier cosa.
+ */
+function movable(ctx: CommandCtx, id?: BlockId): { parent: BlockId; first: BlockId; last: BlockId } | null {
   const { tr, state } = ctx
-  const target = id ?? activeBlock(state.selection)
-  if (!target || !has(tr.doc, target)) return false
-  const before = siblingBefore(tr.doc, target)
+  const targets = id ? [id] : selectedBlocks(tr.doc, state.selection)
+  if (targets.length === 0 || targets.some((t) => !has(tr.doc, t))) return null
+  const parent = parentOf(tr.doc, targets[0]!)
+  if (!parent) return null
+  const siblings = childrenOf(tr.doc, parent)
+  const spots = targets.map((t) => siblings.indexOf(t)).sort((a, b) => a - b)
+  if (spots[0] === -1) return null
+  if (spots[spots.length - 1]! - spots[0]! !== spots.length - 1) return null
+  return { parent, first: siblings[spots[0]!]!, last: siblings[spots[spots.length - 1]!]! }
+}
+
+/**
+ * Sube el grupo por encima del hermano de arriba, sin cambiar de nivel.
+ *
+ * Se hace moviendo al vecino y no al grupo, que además de ser un solo paso es lo que deja la
+ * selección intacta: los bloques elegidos no se tocan, se corre el de al lado.
+ */
+export const moveUp: Command<{ id?: BlockId }> = (ctx, { id } = {}) => {
+  const group = movable(ctx, id)
+  if (!group) return false
+  const before = siblingBefore(ctx.tr.doc, group.first)
   if (!before) return false
-  tr.move(target, parentOf(tr.doc, target)!, indexOf(tr.doc, before))
+  ctx.tr.move(before, group.parent, indexOf(ctx.tr.doc, group.last))
   return true
 }
 
 export const moveDown: Command<{ id?: BlockId }> = (ctx, { id } = {}) => {
-  const { tr, state } = ctx
-  const target = id ?? activeBlock(state.selection)
-  if (!target || !has(tr.doc, target)) return false
-  const after = siblingAfter(tr.doc, target)
+  const group = movable(ctx, id)
+  if (!group) return false
+  const after = siblingAfter(ctx.tr.doc, group.last)
   if (!after) return false
-  tr.move(target, parentOf(tr.doc, target)!, indexOf(tr.doc, after))
+  ctx.tr.move(after, group.parent, indexOf(ctx.tr.doc, group.first))
   return true
 }
 
