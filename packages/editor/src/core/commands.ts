@@ -168,28 +168,37 @@ export const selectAllStep: Command = (ctx) => {
 
 // ---------------------------------------------------------------------------- text
 
+/**
+ * Saca bloques enteros y deja el caret en algo donde se pueda seguir escribiendo.
+ *
+ * Lo usan dos caminos: borrar bloques elegidos, y borrar un rango de texto donde ninguna de las dos
+ * puntas tiene texto donde pegar lo que sobra.
+ */
+function dropBlocks(ctx: CommandCtx, of: readonly BlockId[]): boolean {
+  const { tr } = ctx
+  const ids = of.filter((id) => has(tr.doc, id))
+  if (ids.length === 0) return false
+  const landing = textualBefore(ctx, ids[0]!) ?? siblingAfter(tr.doc, ids[ids.length - 1]!)
+  for (const id of ids) if (has(tr.doc, id)) tr.remove(id)
+  // Un documento sin bloques no se puede escribir: siempre queda uno donde poner el caret.
+  if (childrenOf(tr.doc, tr.doc.root).length === 0) {
+    const fresh = tr.append(tr.doc.root, { type: 'paragraph', text: [] })
+    tr.select(caret(fresh, 0))
+  } else if (landing && has(tr.doc, landing)) {
+    tr.select(caret(landing, textLength(tr.doc, landing)))
+  } else {
+    const first = childrenOf(tr.doc, tr.doc.root)[0]!
+    tr.select(caret(first, 0))
+  }
+  return true
+}
+
 /** Removes what is selected, across as many blocks as it spans, and collapses the caret. */
 export const deleteSelection: Command = (ctx) => {
   const { tr, state } = ctx
   const sel = state.selection
 
-  if (isBlocks(sel)) {
-    const ids = sel.ids.filter((id) => has(tr.doc, id))
-    if (ids.length === 0) return false
-    const landing = textualBefore(ctx, ids[0]!) ?? siblingAfter(tr.doc, ids[ids.length - 1]!)
-    for (const id of ids) if (has(tr.doc, id)) tr.remove(id)
-    // Un documento sin bloques no se puede escribir: siempre queda uno donde poner el caret.
-    if (childrenOf(tr.doc, tr.doc.root).length === 0) {
-      const fresh = tr.append(tr.doc.root, { type: 'paragraph', text: [] })
-      tr.select(caret(fresh, 0))
-    } else if (landing && has(tr.doc, landing)) {
-      tr.select(caret(landing, textLength(tr.doc, landing)))
-    } else {
-      const first = childrenOf(tr.doc, tr.doc.root)[0]!
-      tr.select(caret(first, 0))
-    }
-    return true
-  }
+  if (isBlocks(sel)) return dropBlocks(ctx, sel.ids)
 
   if (!isText(sel) || isCollapsed(sel)) return false
   const { from, to } = ordered(tr.doc, sel)
@@ -206,11 +215,32 @@ export const deleteSelection: Command = (ctx) => {
   const head = isTextual(ctx, from.block) ? sliceText(textOf(ctx, from.block), 0, from.offset) : []
   const tail = isTextual(ctx, to.block) ? sliceText(textOf(ctx, to.block), to.offset, textLen(textOf(ctx, to.block))) : []
 
+  /**
+   * El primero no siempre es el que sobrevive.
+   *
+   * Si no tiene texto (una imagen, un separador, una tabla) no hay dónde pegarle la cola del
+   * último, así que el que queda es el último con su cola y el primero se va con el resto. Antes
+   * la cola se calculaba y no se escribía en ningún lado, y el bloque que la tenía se borraba
+   * igual: arrastrar desde arriba de una imagen hasta el medio de un párrafo y apretar Backspace
+   * se comía el resto del párrafo. Se volvió alcanzable cuando la selección empezó a cruzar
+   * bloques, porque una punta parada sobre una imagen ahora es un punto válido.
+   */
+  if (!isTextual(ctx, from.block)) {
+    if (!isTextual(ctx, to.block)) return dropBlocks(ctx, touchedIds)
+    tr.setText(to.block, tail)
+    for (const id of touchedIds) {
+      if (id === to.block || !has(tr.doc, id)) continue
+      tr.remove(id)
+    }
+    tr.select(caret(to.block, 0))
+    return true
+  }
+
   // Los hijos del último quedan bajo el corte: van adentro del que queda si puede tenerlos, para
   // no perder la sangría, y como hermanos si no.
   const orphans = [...childrenOf(tr.doc, to.block)]
 
-  if (isTextual(ctx, from.block)) tr.setText(from.block, concat(head, tail))
+  tr.setText(from.block, concat(head, tail))
 
   const inside = state.schema.isContainer(getBlock(tr.doc, from.block)?.type ?? '')
   const parent = inside ? from.block : (parentOf(tr.doc, from.block) ?? tr.doc.root)

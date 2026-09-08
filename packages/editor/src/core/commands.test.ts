@@ -3,7 +3,7 @@
 // lo primero que se rompe cuando alguien toca el motor.
 
 import { describe, expect, it } from 'vitest'
-import { at, caretAt, editorWith, ids, makeEditor, press, selectBlocks, selectRange, sketch, textAt, type, typeAt, where } from '../test/engine.ts'
+import { at, caretAt, doc, editorWith, ids, makeEditor, press, selectBlocks, selectRange, sketch, textAt, type, typeAt, where } from '../test/engine.ts'
 import { assertValid } from './doc.ts'
 import { marksInSelection } from './commands.ts'
 import { plain, rangeHasMark } from './text.ts'
@@ -427,6 +427,30 @@ describe('mover bloques', () => {
     const e = editorWith('- lista', 'suelto', 'otro')
     e.run('moveBlocks', { ids: [at(e, 1), at(e, 2)], parent: at(e, 0), index: 0 })
     expect(sketch(e)).toEqual(['bulleted_list: lista', '  paragraph: suelto', '  paragraph: otro'])
+  })
+
+  it('un rango que arranca en una imagen no se come la cola del último bloque', () => {
+    const e = makeEditor(doc('![](https://ejemplo/foto.png)', 'segundo párrafo'))
+    selectRange(e, [0, 0], [1, 8])
+    expect(e.run('deleteSelection')).toBe(true)
+    // La imagen se va y lo que quedaba después del corte se queda: antes se perdía entero.
+    expect(sketch(e)).toEqual(['paragraph: párrafo'])
+    expect(where(e)).toBe('0:0')
+  })
+
+  it('si ninguna de las dos puntas tiene texto se van los dos, y el caret cae en algo escribible', () => {
+    const e = makeEditor(doc('antes', '![](https://ejemplo/foto.png)', '---'))
+    selectRange(e, [1, 0], [2, 0])
+    expect(e.run('deleteSelection')).toBe(true)
+    expect(sketch(e)).toEqual(['paragraph: antes'])
+    expect(where(e)).toBe('0:5')
+  })
+
+  it('escribir sobre un rango que arranca en una imagen escribe, en lugar de perder la tecla', () => {
+    const e = makeEditor(doc('![](https://ejemplo/foto.png)', 'segundo'))
+    selectRange(e, [0, 0], [1, 3])
+    expect(e.run('insertText', { text: 'X' })).toBe(true)
+    expect(sketch(e)).toEqual(['paragraph: Xundo'])
   })
 
   it('moveBlock se niega a meter un bloque adentro de sí mismo', () => {
