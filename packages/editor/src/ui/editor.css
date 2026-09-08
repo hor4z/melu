@@ -28,6 +28,27 @@
   --melu-wash-purple: #f2eefa;
   --melu-wash-pink: #fceef5;
   --melu-wash-red: #fdeeed;
+
+  /* ------- colores, con lo de melu si está y algo propio si no ------- */
+  /* Van en la raíz por la misma razón que los tonos, y por una más concreta: un menú es un
+     flotante, y un flotante puede colgar de donde lo monte el host y no de la superficie. Cuando
+     estos tokens vivían adentro de `.melu-surface`, un menú montado afuera quedaba sin fondo, sin
+     borde y sin sombra: se veía el documento a través de él. Declarados acá los hereda cualquiera,
+     y un host que quiera otro color los sigue pudiendo pisar en la superficie, porque una
+     propiedad declarada en el elemento le gana a la heredada. */
+  --melu-ink: var(--text, #1b2624);
+  --melu-ink-soft: var(--text-muted, #5c6b68);
+  --melu-ink-faint: var(--text-subtle, #93a19e);
+  --melu-paper: var(--surface, #ffffff);
+  --melu-hover: var(--surface-hover, rgba(34, 47, 45, 0.04));
+  --melu-active: var(--surface-active, rgba(34, 47, 45, 0.08));
+  --melu-edge: var(--border, #dce5e3);
+  --melu-edge-firm: var(--border-strong, #c3d2cf);
+  --melu-accent: var(--brand, #10756e);
+  --melu-accent-wash: var(--accent-subtle, #e6f2f1);
+  --melu-danger: var(--danger, #c2453c);
+  --melu-pop: var(--popover, #ffffff);
+  --melu-shadow: var(--shadow-card, 0 1px 2px rgba(34, 47, 45, 0.06), 0 12px 28px -14px rgba(34, 47, 45, 0.24));
 }
 
 .melu-surface {
@@ -46,21 +67,6 @@
   --melu-rail: 52px;
   --melu-size-sm: 14px;
   --melu-size-lg: 20px;
-
-  /* ------- colores, con lo de melu si está y algo propio si no ------- */
-  --melu-ink: var(--text, #1b2624);
-  --melu-ink-soft: var(--text-muted, #5c6b68);
-  --melu-ink-faint: var(--text-subtle, #93a19e);
-  --melu-paper: var(--surface, #ffffff);
-  --melu-hover: var(--surface-hover, rgba(34, 47, 45, 0.04));
-  --melu-active: var(--surface-active, rgba(34, 47, 45, 0.08));
-  --melu-edge: var(--border, #dce5e3);
-  --melu-edge-firm: var(--border-strong, #c3d2cf);
-  --melu-accent: var(--brand, #10756e);
-  --melu-accent-wash: var(--accent-subtle, #e6f2f1);
-  --melu-danger: var(--danger, #c2453c);
-  --melu-pop: var(--popover, #ffffff);
-  --melu-shadow: var(--shadow-card, 0 1px 2px rgba(34, 47, 45, 0.06), 0 12px 28px -14px rgba(34, 47, 45, 0.24));
 
   position: relative;
   /* La columna de texto sigue midiendo lo mismo: el canal se suma, no se resta. */

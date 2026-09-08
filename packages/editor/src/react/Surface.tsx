@@ -29,6 +29,7 @@ import {
   blockIdOf,
   offsetAtPoint,
   offsetOfCaret,
+  nearestTextRoot,
   placeRange,
   readSelection,
   textRoot,
@@ -202,7 +203,24 @@ export function Surface({
       // que uno acaba de hacer. Dejándolo quieto no se dispara ni un aviso.
       if (isBlocks(sel)) {
         container.toggleAttribute('data-picking', true)
-        const quieto = readSelection(container)
+        let quieto = readSelection(container)
+        // Salvo que el navegador no tenga nada adentro. Ahí sí hay que darle algo, y en el ancla:
+        // sin selección propia, el navegador se inventa un caret al principio de la página en
+        // cuanto alguien le devuelve el foco (un menú del host que enfoca la superficie después de
+        // insertar), y ese caret llegaba y deshacía lo que se acababa de elegir. No se ve: con
+        // bloques elegidos el caret es transparente.
+        if (!quieto) {
+          const ancla = sel.anchor || sel.ids[0]
+          // La región más cercana y no la del ancla: un video no tiene región propia, y ahí no hay
+          // dónde poner nada. Da igual cuál sea: con bloques elegidos las teclas las atiende el
+          // modelo, así que ese caret no decide nada. Sólo ocupa el lugar.
+          const cerca = ancla ? nearestTextRoot(container, ancla) : null
+          const dueño = cerca ? blockIdOf(cerca) : null
+          if (dueño) {
+            placeRange(container, { block: dueño, offset: 0 }, { block: dueño, offset: 0 })
+            quieto = readSelection(container)
+          }
+        }
         caretCongelado.current = quieto ? JSON.stringify(quieto) : null
         return
       }

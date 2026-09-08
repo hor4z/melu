@@ -79,6 +79,12 @@ export function FormatBar() {
   if (!visible || !anchor) return null
 
   const active = (type: MarkType) => marks.some((m) => m.type === type)
+  // Un video elegido no tiene texto que poner en negrita. Ofrecer los botones igual es mentir: se
+  // aprietan, no pasa nada, y quien lo probó aprende que la barra a veces no anda.
+  const conTexto = selectedBlocks(editor.doc, selection).some((id) => {
+    const tipo = editor.block(id)?.type
+    return tipo !== undefined && editor.state.schema.isTextual(tipo) && MARKS.some((m) => editor.state.schema.allowsMark(tipo, m.type))
+  })
 
   return (
     <>
@@ -105,8 +111,8 @@ export function FormatBar() {
           {nombreDelTipo(editor)}
           <Icon name="chevron" size={12} className="melu-rot" />
         </button>
-        <span className="melu-bar-sep" />
-        {MARKS.map((m) => (
+        {conTexto ? <span className="melu-bar-sep" /> : null}
+        {(conTexto ? MARKS : []).map((m) => (
           <button
             key={m.type}
             type="button"
@@ -120,16 +126,18 @@ export function FormatBar() {
             <Icon name={m.icon} size={16} />
           </button>
         ))}
-        <button
-          type="button"
-          className="melu-bar-btn"
-          data-active={marks.some((m) => m.type === 'link') || undefined}
-          title="Link · Mod+K"
-          aria-label="Link"
-          onClick={() => setPanel((p) => (p === 'link' ? 'none' : 'link'))}
-        >
-          <Icon name="link" size={16} />
-        </button>
+        {conTexto ? (
+          <button
+            type="button"
+            className="melu-bar-btn"
+            data-active={marks.some((m) => m.type === 'link') || undefined}
+            title="Link · Mod+K"
+            aria-label="Link"
+            onClick={() => setPanel((p) => (p === 'link' ? 'none' : 'link'))}
+          >
+            <Icon name="link" size={16} />
+          </button>
+        ) : null}
         <span className="melu-bar-sep" />
         <button
           type="button"
@@ -141,15 +149,17 @@ export function FormatBar() {
         >
           <Icon name="palette" size={16} />
         </button>
-        <button
-          type="button"
-          className="melu-bar-btn"
-          title="Quitar el formato · Mod+Shift+C"
-          aria-label="Quitar el formato"
-          onClick={() => editor.run('clearFormatting')}
-        >
-          <Icon name="close" size={15} />
-        </button>
+        {conTexto ? (
+          <button
+            type="button"
+            className="melu-bar-btn"
+            title="Quitar el formato · Mod+Shift+C"
+            aria-label="Quitar el formato"
+            onClick={() => editor.run('clearFormatting')}
+          >
+            <Icon name="close" size={15} />
+          </button>
+        ) : null}
       </Popover>
 
       {panel === 'turn' ? (

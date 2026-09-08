@@ -62,6 +62,28 @@ export function textRootOf(container: ParentNode, id: string): HTMLElement | nul
   return own && blockRoot(own) === block ? own : null
 }
 
+/**
+ * La región de texto más cercana a un bloque, hacia arriba.
+ *
+ * Es para que el navegador siempre tenga dónde tener su caret. Un bloque sin texto (una imagen, un
+ * video, un separador) no tiene región propia, y un editable sin selección adentro hace que el
+ * navegador se invente un caret al principio de la página en cuanto alguien le devuelve el foco.
+ */
+export function nearestTextRoot(container: ParentNode, id: string): HTMLElement | null {
+  const own = textRootOf(container, id)
+  if (own) return own
+  const block = container.querySelector(`[${BLOCK_ATTR}="${cssEscape(id)}"]`)
+  const all = [...container.querySelectorAll<HTMLElement>(`[${TEXT_ATTR}]`)]
+  if (!block) return all[0] ?? null
+  let before: HTMLElement | null = null
+  for (const text of all) {
+    // En orden de documento: mientras la región venga antes del bloque, es candidata.
+    if ((block.compareDocumentPosition(text) & Node.DOCUMENT_POSITION_PRECEDING) !== 0) before = text
+    else break
+  }
+  return before ?? all[0] ?? null
+}
+
 /** `CSS.escape` where it exists, and enough of it where it does not (jsdom in a test run). */
 const cssEscape = (s: string) =>
   typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(s) : s.replace(/["\\]/g, '\\$&')
