@@ -58,6 +58,17 @@ test.describe('el menú "/"', () => {
     expect(await sketch(page)).toHaveLength(2)
   })
 
+  test('una tabla elegida por el menú llega armada, y el caret queda en la primera celda', async ({ page }) => {
+    await abrir(page, 'uno')
+    await enBloqueVacio(page)
+    await escribir(page, '/tabla')
+    await page.getByRole('listbox').waitFor({ state: 'visible' })
+    await page.keyboard.press('Enter')
+    await expect.poll(() => cuantos(page, 'table_cell')).toBe(9)
+    // Una tabla recién puesta se empieza a llenar arriba a la izquierda, sin tener que clickear.
+    await expect.poll(() => typeAt(page, 3)).toBe('table_cell')
+  })
+
   test('una barra en el medio de una palabra no lo abre', async ({ page }) => {
     await abrir(page, 'uno')
     await enBloqueVacio(page)

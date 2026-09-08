@@ -12,15 +12,12 @@ import { SKIP, blockIdOf, elementAtPoint } from '../react/dom.ts'
 export type ToolboxProps = {
   /** Where it opens, in pixels from the top right of the surface. */
   initial?: { top: number; right: number }
-  /** Commands to run instead of a plain insert, per type. */
+  /** Un comando propio en lugar de insertar, por tipo. Lo que un bloque necesita adentro ya lo
+   * declara su spec, así que acá sólo van los caprichos de quien monta el editor. */
   extras?: Record<string, { command: string; args?: unknown }>
   title?: string
 }
 
-const SPECIAL: Record<string, { command: string; args?: unknown }> = {
-  table: { command: 'insertTable', args: { rows: 3, cols: 3 } },
-  columns: { command: 'insertColumns', args: { count: 2 } },
-}
 
 export function Toolbox({ initial = { top: 16, right: 16 }, extras, title = 'Bloques' }: ToolboxProps) {
   const editor = useEditor()
@@ -38,7 +35,7 @@ export function Toolbox({ initial = { top: 16, right: 16 }, extras, title = 'Blo
   const [query, setQuery] = useState('')
   const [dragging, setDragging] = useState<BlockSpec | null>(null)
   const ref = useRef<HTMLDivElement>(null)
-  const commands = useMemo(() => ({ ...SPECIAL, ...extras }), [extras])
+  const commands = useMemo(() => ({ ...extras }), [extras])
 
   const groups = useMemo(() => {
     if (query.trim() === '') return editor.state.schema.groups

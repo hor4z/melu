@@ -15,14 +15,9 @@ import { pointAnchor, type Anchor } from './float.ts'
 /** How the menu decides what a block insert should do beyond setting the type. */
 export type SlashExtras = Record<string, { command: string; args?: unknown }>
 
-/** Los bloques que no se insertan solos: una tabla necesita filas, unas columnas necesitan columnas. */
-const SPECIAL: SlashExtras = {
-  table: { command: 'insertTable', args: { rows: 3, cols: 3 } },
-  columns: { command: 'insertColumns', args: { count: 2 } },
-}
-
 export type SlashMenuProps = {
-  /** Extra commands per type, merged over the built-in ones. */
+  /** Un comando propio en lugar de insertar, por tipo. Lo que un bloque necesita adentro ya lo
+   * declara su spec, así que acá sólo van los caprichos de quien monta el editor. */
   extras?: SlashExtras
   /** How many results to show. */
   limit?: number
@@ -36,7 +31,7 @@ export function SlashMenu({ extras, limit = 9 }: SlashMenuProps) {
   const [index, setIndex] = useState(0)
   /** Dónde arrancó la barra, para saber qué parte del texto es la consulta. */
   const started = useRef<{ block: string; offset: number } | null>(null)
-  const commands = useMemo(() => ({ ...SPECIAL, ...extras }), [extras])
+  const commands = useMemo(() => ({ ...extras }), [extras])
 
   const close = useCallback(() => {
     setOpen(false)

@@ -34,6 +34,8 @@ export class Transaction {
   readonly inverse: Step[] = []
   /** Undefined means "no opinion": the resulting state drops whatever was pending. */
   private stored: readonly Mark[] | null | undefined
+  /** Los ids ya entregados en esta transacción, para no entregar dos veces el mismo. */
+  private readonly minted = new Set<BlockId>()
 
   private readonly state: EditorState
 
@@ -187,9 +189,14 @@ export class Transaction {
     const defaults = this.schema.defaults(init.type)
     const props = defaults || init.props ? { ...defaults, ...init.props } : undefined
     const text = init.text ?? (this.schema.isTextual(init.type) ? [] : undefined)
+    // El id pedido se respeta si está libre, y libre incluye lo que se acaba de acuñar en esta
+    // misma transacción: dos hijos con el mismo id todavía no están en el documento, así que
+    // mirarlo a él solo no alcanza y uno pisaba al otro.
+    const id = init.id && !has(this.doc, init.id) && !this.minted.has(init.id) ? init.id : newId()
+    this.minted.add(id)
     return {
       ...init,
-      id: init.id && !has(this.doc, init.id) ? init.id : newId(),
+      id,
       ...(props ? { props: coerceProps(spec, props).props } : {}),
       ...(text !== undefined ? { text: normalize(text) } : {}),
       ...(init.children ? { children: init.children.map((c) => this.withDefaults(c)) } : {}),

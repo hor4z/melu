@@ -2,7 +2,7 @@
 // Las props declaradas validan lo que llega de un pegado o de un agente, y son el manifiesto.
 
 import type { MarkType, RichText } from './text.ts'
-import type { Props } from './doc.ts'
+import type { BlockInit, Props } from './doc.ts'
 
 /** The declared shape of one prop. Small on purpose: props are plain JSON. */
 export type PropSpec =
@@ -55,9 +55,25 @@ export type BlockSpec = {
   /** The declared props, with their defaults. */
   props?: Readonly<Record<string, PropSpec>>
 
+  /**
+   * What a fresh one of these brings inside.
+   *
+   * A table with no rows and a layout with one column are not blocks a normalizer can keep, so a
+   * type that cannot exist empty says here what it needs. Whoever inserts it, a menu or an agent,
+   * gets it right without knowing anything about tables.
+   */
+  seed?: () => BlockInit[]
+
   /** False for a block that cannot be dragged or selected, like a column inside a layout. */
   draggable?: boolean
   selectable?: boolean
+  /**
+   * True for a block that only exists inside its container: una celda, una fila, una columna.
+   *
+   * Suelto en la página no es nada, así que la página no lo acepta. Sin esto, arrastrar una celda
+   * afuera de su tabla dejaba una celda flotando que ningún renderer sabe dibujar.
+   */
+  inner?: boolean
   /** Whether the block is a whole row that cannot share a line, like a divider. */
   standalone?: boolean
 }
@@ -76,6 +92,8 @@ export type Schema = {
   allowsMark(type: string, mark: MarkType): boolean
   /** The props of a fresh block of that type. */
   defaults(type: string): Props | undefined
+  /** The children a fresh block of that type needs, if it needs any. */
+  seed(type: string): BlockInit[] | undefined
   /** Fuzzy search over name, keywords and type, for the slash menu. */
   search(query: string, limit?: number): BlockSpec[]
 }
@@ -151,7 +169,7 @@ export function defineSchema(specs: readonly BlockSpec[]): Schema {
     isTextual: (type) => (blocks[type]?.content ?? 'text') === 'text',
     isContainer: (type) => Boolean(blocks[type]?.container),
     accepts(parent, child) {
-      if (parent === 'doc') return true
+      if (parent === 'doc') return !blocks[child]?.inner
       const c = blocks[parent]?.container
       if (!c) return false
       if (c === true) return true
@@ -168,6 +186,7 @@ export function defineSchema(specs: readonly BlockSpec[]): Schema {
       const d = defaultsCache.get(type)
       return d ? { ...d } : undefined
     },
+    seed: (type) => blocks[type]?.seed?.(),
     search(query, limit = 12) {
       const q = fold(query)
       if (q === '') return order.map((t) => blocks[t]!).filter((s) => s.group).slice(0, limit)

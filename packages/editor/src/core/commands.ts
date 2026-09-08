@@ -38,7 +38,7 @@ import {
   clearMark as clearTextMark,
   wordAt,
 } from './text.ts'
-import type { Point } from './selection.ts'
+import type { Point, Selection } from './selection.ts'
 import { activeBlock, blockSel, caret, isBlocks, isCollapsed, isText, ordered, rangeIn, selectedBlocks } from './selection.ts'
 import type { EditorState } from './state.ts'
 import type { Transaction } from './transaction.ts'
@@ -65,6 +65,16 @@ function textualBefore(ctx: CommandCtx, id: BlockId): BlockId | null {
   let at = prevInOrder(ctx.tr.doc, id)
   while (at && !isTextual(ctx, at)) at = prevInOrder(ctx.tr.doc, at)
   return at
+}
+
+/** The first textual block inside a container, which is where the caret goes after inserting it. */
+function textualInside(ctx: CommandCtx, id: BlockId): BlockId | undefined {
+  for (const child of childrenOf(ctx.tr.doc, id)) {
+    if (isTextual(ctx, child)) return child
+    const deeper = textualInside(ctx, child)
+    if (deeper) return deeper
+  }
+  return undefined
 }
 
 /** Por grafema: sin esto, borrar un emoji de familia son siete teclas y seis emojis roscos. */
@@ -605,6 +615,7 @@ export const setBlockType: Command<{ type: string; id?: BlockId; props?: Props |
   const targets = id ? [id] : selectedBlocks(tr.doc, state.selection)
   if (targets.length === 0) return false
   let did = false
+  let landed: Selection | undefined
   for (const target of targets) {
     const block = getBlock(tr.doc, target)
     if (!block || block.type === type) continue
@@ -612,11 +623,26 @@ export const setBlockType: Command<{ type: string; id?: BlockId; props?: Props |
     const fresh = props === null ? null : { ...state.schema.defaults(type), ...props }
     tr.setType(target, type, fresh && Object.keys(fresh).length ? fresh : null)
     // Un bloque que deja de tener texto lo pierde; uno que empieza a tenerlo, lo estrena vacío.
+    const habia = block.text
     if (!state.schema.isTextual(type) && block.text !== undefined) tr.setText(target, [])
+    // Convertir en tabla dejaba una tabla de cero filas, que el normalizador barre en la misma
+    // transacción: el bloque desaparecía. El tipo declara lo que necesita adentro, y va acá.
+    const seed = state.schema.seed(type)
+    if (seed && childrenOf(tr.doc, target).length === 0) {
+      for (const child of seed) tr.append(target, child)
+      const inside = textualInside(ctx, target)
+      if (inside) {
+        // Lo que estaba escrito se muda adentro en lugar de perderse.
+        if (!isEmpty(habia)) tr.setText(inside, habia!)
+        landed = caret(inside, textLength(tr.doc, inside))
+      }
+    }
     did = true
   }
-  if (did && isText(state.selection)) tr.select(state.selection)
-  return did
+  if (!did) return false
+  if (landed) tr.select(landed)
+  else if (isText(state.selection)) tr.select(state.selection)
+  return true
 }
 
 export const setBlockProps: Command<{ props: Props; id?: BlockId }> = (ctx, { props, id }) => {
@@ -631,6 +657,18 @@ export const setBlockProps: Command<{ props: Props; id?: BlockId }> = (ctx, { pr
   return did
 }
 
+/**
+ * Where the caret goes after inserting a block.
+ *
+ * Adentro si lo hay: una tabla recién puesta se empieza a llenar por su primera celda, no eligiendo
+ * la tabla entera. Un bloque sin texto ni hijos, como un separador, queda elegido.
+ */
+function landing(ctx: CommandCtx, id: BlockId, type: string): Selection {
+  if (ctx.state.schema.isTextual(type)) return caret(id, textLength(ctx.tr.doc, id))
+  const inside = textualInside(ctx, id)
+  return inside ? caret(inside, textLength(ctx.tr.doc, inside)) : blockSel([id], id)
+}
+
 export const insertBlock: Command<{
   type: string
   props?: Props
@@ -643,8 +681,11 @@ export const insertBlock: Command<{
   focus?: boolean
 }> = (ctx, args) => {
   const { tr, state } = ctx
-  const { type, props, text, children, at = 'after', focus = true } = args
+  const { type, props, text, at = 'after', focus = true } = args
   const anchor = args.target ?? activeBlock(state.selection) ?? childrenOf(tr.doc, tr.doc.root).at(-1)
+  // Un tipo que no puede existir vacío declara lo que trae adentro: una tabla sin filas la barre el
+  // normalizador en la misma transacción, y quien la insertó se queda sin bloque y sin aviso.
+  const children = args.children ?? state.schema.seed(type)
   const init: BlockInit = { type, ...(props ? { props } : {}), ...(text ? { text } : {}), ...(children ? { children } : {}) }
 
   let id: BlockId
@@ -665,21 +706,13 @@ export const insertBlock: Command<{
       // Un init con hijos los trae puestos: una tabla es su bloque y sus filas, y reemplazar el
       // párrafo sin ellas dejaba una tabla sin una sola celda.
       for (const child of children ?? []) tr.append(anchor, child)
-      if (focus) {
-        tr.select(
-          state.schema.isTextual(type)
-            ? caret(anchor, textLength(tr.doc, anchor))
-            : blockSel([anchor], anchor),
-        )
-      }
+      if (focus) tr.select(landing(ctx, anchor, type))
       return true
     }
     id = tr.insertAfter(anchor, init)
   }
 
-  if (focus) {
-    tr.select(state.schema.isTextual(type) ? caret(id, textLength(tr.doc, id)) : blockSel([id], id))
-  }
+  if (focus) tr.select(landing(ctx, id, type))
   return true
 }
 
@@ -732,7 +765,9 @@ export const moveBlock: Command<{ id: BlockId; parent: BlockId; index: number }>
   // Un bloque adentro de sí mismo desconectaría su subárbol. El paso también lo rechaza, pero acá
   // es "no aplica" y no un error: quien arrastra sobre un destino imposible no rompió nada.
   if (parent === id || isAncestor(tr.doc, id, parent)) return false
-  if (parent !== tr.doc.root && !state.schema.accepts(getBlock(tr.doc, parent)!.type, getBlock(tr.doc, id)!.type)) return false
+  // La página también dice que no: una celda suelta afuera de su tabla no es nada.
+  const destino = parent === tr.doc.root ? 'doc' : getBlock(tr.doc, parent)!.type
+  if (!state.schema.accepts(destino, getBlock(tr.doc, id)!.type)) return false
   if (parentOf(tr.doc, id) === parent && indexOf(tr.doc, id) === index) return false
   tr.move(id, parent, index)
   return true

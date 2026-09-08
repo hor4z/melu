@@ -15,12 +15,17 @@ export const json = (markdown: string): BlockJSON[] =>
     }
   })
 
-/** Monta el editor y devuelve el motor, que es con lo que se afirma. */
-export function mount(markdown: string, props: Partial<Parameters<typeof BlockEditor>[0]> = {}) {
+/**
+ * Monta el editor y devuelve el motor, que es con lo que se afirma.
+ *
+ * El contenido va en markdown, que es la forma corta; los bloques que el markdown no sabe decir
+ * (un marcador, una imagen con sus props) se pasan armados.
+ */
+export function mount(content: string | BlockJSON[], props: Partial<Parameters<typeof BlockEditor>[0]> = {}) {
   let editor!: Editor
   const view = render(
     <BlockEditor
-      value={json(markdown)}
+      value={typeof content === 'string' ? json(content) : content}
       strict
       toolbox={false}
       aria-label="El contenido"

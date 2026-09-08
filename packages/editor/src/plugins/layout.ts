@@ -29,6 +29,7 @@ export const layoutBlocks: BlockSpec[] = [
     draggable: true,
     selectable: true,
     standalone: true,
+    seed: () => table().children!,
     props: {
       header: { kind: 'boolean', default: true, label: 'Primera fila de encabezado' },
       headerColumn: { kind: 'boolean', default: false, label: 'Primera columna de encabezado' },
@@ -40,6 +41,7 @@ export const layoutBlocks: BlockSpec[] = [
   {
     type: ROW_TYPE,
     name: 'Fila',
+    inner: true,
     // Sin grupo: no aparece en el menú, solo existe dentro de una tabla.
     content: 'none',
     container: { only: [CELL_TYPE] },
@@ -49,6 +51,7 @@ export const layoutBlocks: BlockSpec[] = [
   {
     type: CELL_TYPE,
     name: 'Celda',
+    inner: true,
     content: 'text',
     container: false,
     draggable: false,
@@ -73,6 +76,7 @@ export const layoutBlocks: BlockSpec[] = [
     draggable: true,
     selectable: true,
     standalone: true,
+    seed: () => columns().children!,
     props: {
       /** En pantalla angosta las columnas se apilan; debajo de esto, siempre. */
       stackBelow: { kind: 'number', default: 640, min: 0, max: 1400, label: 'Apilar debajo de (px)' },
@@ -82,6 +86,7 @@ export const layoutBlocks: BlockSpec[] = [
   {
     type: 'column',
     name: 'Columna',
+    inner: true,
     content: 'none',
     container: true,
     draggable: false,
@@ -179,24 +184,13 @@ export function cellAt(doc: Parameters<typeof childrenOf>[0], id: BlockId): { ta
 
 // ---------------------------------------------------------------------------- commands
 
-const insertTable: Command<{ rows?: number; cols?: number }> = (ctx, { rows = 3, cols = 3 } = {}) => {
-  const built = table(Math.max(1, rows), Math.max(1, cols))
-  if (!insertBlock(ctx, { type: 'table', children: built.children, focus: false })) return false
-  // El caret va a la primera celda: una tabla recién puesta se empieza a llenar arriba a la izquierda.
-  const made = [...ctx.tr.touched].find((id) => getBlock(ctx.tr.doc, id)?.type === 'table')
-  const firstCell = made ? childrenOf(ctx.tr.doc, childrenOf(ctx.tr.doc, made)[0] ?? '')[0] : undefined
-  if (firstCell) ctx.tr.select(caret(firstCell, 0))
-  return true
-}
+// El tamaño es lo único que estos comandos agregan sobre `insertBlock`: el armado de las filas y el
+// caret en la primera celda ya salen de la semilla que declara el bloque.
+const insertTable: Command<{ rows?: number; cols?: number }> = (ctx, { rows = 3, cols = 3 } = {}) =>
+  insertBlock(ctx, { type: 'table', children: table(Math.max(1, rows), Math.max(1, cols)).children })
 
-const insertColumns: Command<{ count?: number }> = (ctx, { count = 2 } = {}) => {
-  const built = columns(Math.max(2, Math.min(count, 5)))
-  if (!insertBlock(ctx, { type: 'columns', children: built.children, focus: false })) return false
-  const made = [...ctx.tr.touched].find((id) => getBlock(ctx.tr.doc, id)?.type === 'columns')
-  const firstPara = made ? childrenOf(ctx.tr.doc, childrenOf(ctx.tr.doc, made)[0] ?? '')[0] : undefined
-  if (firstPara) ctx.tr.select(caret(firstPara, 0))
-  return true
-}
+const insertColumns: Command<{ count?: number }> = (ctx, { count = 2 } = {}) =>
+  insertBlock(ctx, { type: 'columns', children: columns(Math.max(2, Math.min(count, 5))).children })
 
 const addRow: Command<{ id: BlockId; where?: 'before' | 'after' }> = ({ tr }, { id, where = 'after' }) => {
   const at = cellAt(tr.doc, id) ?? (getBlock(tr.doc, id)?.type === 'table' ? { table: id, row: -1, col: 0 } : undefined)

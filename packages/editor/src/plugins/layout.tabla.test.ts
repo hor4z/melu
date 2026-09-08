@@ -43,6 +43,44 @@ describe('la forma de una tabla', () => {
   })
 })
 
+describe('convertir un párrafo en tabla', () => {
+  it('no lo borra: la tabla llega con sus filas puestas', () => {
+    const e = makeEditor(md('El patio'))
+    expect(e.run('setBlockType', { type: 'table', id: at(e, 0) })).toBe(true)
+    // Sin filas, el normalizador barría la tabla en la misma transacción y el párrafo se iba con ella.
+    expect(typeAt(e, 0)).toBe('table')
+    expect(tableWidth(e.doc, laTabla(e))).toBeGreaterThan(0)
+  })
+
+  it('lo que estaba escrito se muda a la primera celda, en vez de perderse', () => {
+    const e = makeEditor(md('El patio'))
+    e.run('setBlockType', { type: 'table', id: at(e, 0) })
+    expect(celdas(e)[0]).toBe('El patio')
+  })
+
+  it('el caret queda adentro, listo para llenar la tabla', () => {
+    const e = makeEditor(md('El patio'))
+    e.run('setBlockType', { type: 'table', id: at(e, 0) })
+    const sel = e.selection
+    expect(sel?.kind).toBe('text')
+    expect(typeAt(e, ids(e).indexOf((sel as { head: { block: string } }).head.block))).toBe('table_cell')
+  })
+
+  it('una tabla insertada a secas, como la pediría un agente, es una tabla usable', () => {
+    const e = makeEditor(md('El patio'))
+    expect(e.run('insertBlock', { type: 'table' })).toBe(true)
+    expect(tableWidth(e.doc, laTabla(e))).toBe(3)
+    expect(filas(e)).toBe(3)
+  })
+
+  it('unas columnas insertadas a secas traen sus dos columnas', () => {
+    const e = makeEditor(md('El patio'))
+    e.run('insertBlock', { type: 'columns' })
+    const armado = ids(e).find((id) => e.block(id)?.type === 'columns')!
+    expect(childrenOf(e.doc, armado)).toHaveLength(2)
+  })
+})
+
 describe('agregar', () => {
   it('una fila entra con todas sus celdas', () => {
     const e = tabla()
