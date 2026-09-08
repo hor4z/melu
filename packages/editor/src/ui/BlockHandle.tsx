@@ -308,17 +308,17 @@ export function BlockMenu({ id, anchor, onClose }: { id: BlockId; anchor: Anchor
   const canIndent = Boolean(previousSibling(editor, id))
 
   return (
-    <Popover anchor={anchor} open onClose={onClose} aria-label="Opciones del bloque">
+    <Popover anchor={anchor} open onClose={onClose} role="menu" aria-label="Opciones del bloque">
       {page === 'main' ? (
         <div className="melu-menu">
-          <button type="button" className="melu-menu-item" onClick={() => setPage('turn')}>
+          <button type="button" role="menuitem" className="melu-menu-item" onClick={() => setPage('turn')}>
             <span className="melu-menu-icon">
               <Icon name="text" size={16} />
             </span>
             <span className="melu-menu-name">Convertir en</span>
             <Icon name="chevron" size={13} className="melu-menu-more" />
           </button>
-          <button type="button" className="melu-menu-item" onClick={() => setPage('color')}>
+          <button type="button" role="menuitem" className="melu-menu-item" onClick={() => setPage('color')}>
             <span className="melu-menu-icon">
               <Icon name="palette" size={16} />
             </span>
@@ -348,6 +348,7 @@ export function BlockMenu({ id, anchor, onClose }: { id: BlockId; anchor: Anchor
                   key={spec.type}
                   type="button"
                   className="melu-menu-item"
+                  role="menuitem"
                   data-active={spec.type === block.type || undefined}
                   onClick={() => convertir(spec.type)}
                 >
@@ -412,7 +413,7 @@ function MenuItem({
   onClick: () => void
 }) {
   return (
-    <button type="button" className="melu-menu-item" data-danger={danger || undefined} onClick={onClick}>
+    <button type="button" role="menuitem" className="melu-menu-item" data-danger={danger || undefined} onClick={onClick}>
       <span className="melu-menu-icon">
         <Icon name={icon} size={16} />
       </span>

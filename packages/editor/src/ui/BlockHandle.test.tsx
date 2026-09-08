@@ -223,7 +223,7 @@ describe('el asa', () => {
       screen.getByText('Convertir en').click()
     })
     act(() => {
-      screen.getByRole('button', { name: /^Tabla/ }).click()
+      screen.getByRole('menuitem', { name: /^Tabla/ }).click()
     })
     // `setBlockType` dejaba una tabla sin filas y el normalizador la barría en la misma
     // transacción: el bloque desaparecía.

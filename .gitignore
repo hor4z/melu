@@ -6,3 +6,8 @@ node_modules/
 # el marcador queda para que `go build` funcione sin haber compilado el front
 /packages/api/internal/web/dist/*
 !/packages/api/internal/web/dist/.gitkeep
+
+# Los reportes de la capa de tests del navegador: se miran cuando falla algo y no se versionan.
+playwright-report/
+test-results/
+blob-report/

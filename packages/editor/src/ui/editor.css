@@ -32,7 +32,9 @@
 
 .melu-surface {
   /* ------- medidas ------- */
-  --melu-column: 720px;
+  /* No se declara acá y se lee con respaldo donde se usa: una propiedad declarada en la superficie
+     le gana a la que venga heredada, y entonces un host que quiera otra columna no puede. Es la
+     misma idea que los colores, que son `var(--text, …)`. */
   --melu-text: 16px;
   --melu-line: 1.5;
   --melu-pad: 3px;
@@ -62,7 +64,7 @@
 
   position: relative;
   /* La columna de texto sigue midiendo lo mismo: el canal se suma, no se resta. */
-  max-width: calc(var(--melu-column) + var(--melu-rail));
+  max-width: calc(var(--melu-column, 720px) + var(--melu-rail));
   margin-inline: auto;
   padding-block: 8px 40vh;
   padding-inline-start: var(--melu-rail);
@@ -802,6 +804,10 @@ body.melu-dragging, body.melu-dragging * { cursor: grabbing !important; user-sel
   box-shadow: var(--melu-shadow);
   font-size: 14px;
   color: var(--melu-ink);
+  /* Siempre clickeable, pase lo que pase arriba. Un flotante puede colgar de un contenedor que se
+     declaró transparente al puntero para dejar ver lo de atrás, y entonces el menú se hereda esa
+     transparencia: se ve bien y no se puede apretar. */
+  pointer-events: auto;
   animation: melu-in 110ms ease-out;
 }
 

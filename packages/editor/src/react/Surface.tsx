@@ -198,6 +198,11 @@ export function Surface({
       if (!change.selectionChanged) return
       const sel = editor.selection
       if (isBlocks(sel)) {
+        // Y lo que el puntero haya pedido antes ya no vale: el modelo eligió bloques, así que
+        // cualquier caret que aparezca de acá en más lo puso el navegador. Sin esto, un click que
+        // no movía el caret (porque ya estaba ahí) dejaba la bandera prendida, y el caret que el
+        // navegador pone al enfocar se colaba y deshacía la selección en el acto.
+        delPuntero.current = false
         const dom = document.getSelection()
         if (dom && dom.rangeCount > 0 && container.contains(dom.anchorNode)) dom.removeAllRanges()
         // Y el foco se queda acá. Sacar el rango lo manda al `body`, y desde el `body` las teclas
@@ -408,6 +413,30 @@ export function Surface({
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (e.defaultPrevented || fromWidget(e.target) || composing.current) return
+
+      /**
+       * Antes de mirar nada, preguntarle al navegador dónde está el caret.
+       *
+       * El navegador mueve el caret al despachar la tecla, y avisa después, en otra vuelta del
+       * bucle. Así que una tecla apretada enseguida de otra (una flecha y un Enter, autorepetición,
+       * alguien que escribe rápido) llegaba acá con el modelo todavía diciendo dónde estaba el
+       * caret antes, y el comando partía el bloque en el lugar equivocado. Se sincroniza acá y no
+       * en un efecto porque acá es donde importa: en el instante en que una tecla va a decidir algo.
+       */
+      const container = ref.current
+      const antes = editor.selection
+      if (container && isText(antes) && isCollapsed(antes)) {
+        const ahora = readSelection(container)
+        // Sólo de un caret a otro caret. Un rango del modelo lo puso un comando, y el DOM todavía
+        // puede no haberlo dibujado: pisarlo con lo que el navegador tiene sería deshacer lo que
+        // el motor acaba de decidir. Para mover el caret manda el navegador; para un rango puesto
+        // a propósito, el modelo.
+        const soloElCaret = ahora && samePoint(ahora.anchor, ahora.head)
+        if (soloElCaret && !samePoint(antes.head, ahora.head)) {
+          editor.setSelection({ kind: 'text', anchor: ahora.anchor, head: ahora.head })
+        }
+      }
+
       const mod = e.metaKey || e.ctrlKey
       if (mod && e.key.toLowerCase() === 'z') {
         e.preventDefault()
@@ -451,7 +480,6 @@ export function Surface({
       // Con un caret o un rango de texto. Todo esto vivía en cada bloque, cuando el foco vivía
       // adentro suyo: con la región editable envolviendo la página el foco es de la superficie y
       // las teclas llegan todas acá.
-      const container = ref.current
       if (!container) return
       // Sin selección no hay caret que mover, pero sí atajos que corren igual: `Mod+A`, insertar
       // un bloque, deshacer. Antes se volvía acá y morían todos.

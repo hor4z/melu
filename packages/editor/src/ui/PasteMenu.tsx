@@ -90,6 +90,9 @@ export function PasteMenu() {
             key={choice.key}
             type="button"
             className="melu-menu-item"
+            // Un `role="menu"` cuyos hijos no son `menuitem` está mal armado: un lector de
+            // pantalla anuncia un menú y después no encuentra opciones adentro.
+            role="menuitem"
             onClick={() => (choice.type ? apply(choice) : close())}
           >
             <span className="melu-menu-icon">

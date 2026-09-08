@@ -12,7 +12,7 @@
 
 import { StrictMode, useCallback, useRef, useState, useSyncExternalStore } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BlockEditor, authorMarkdown, type BlockId, type Editor } from '../src/index.ts'
+import { BlockEditor, authorMarkdown, focusSurface, fromMarkdown, type BlockId, type Editor } from '../src/index.ts'
 import '../src/ui/editor.css'
 import './taller.css'
 import { ACTIVIDAD, DEL_AGENTE } from './document.ts'
@@ -46,16 +46,34 @@ function Taller() {
     setNonce((n) => n + 1)
   }, [])
 
+  /** Cambia el documento entero sin recargar. La usa la capa de tests del navegador. */
   const cargar = useCallback((markdown: string) => {
     const editor = editorRef.current
     if (!editor) return
-    editor.run('replaceContent', { text: markdown })
+    editor.run('replaceContent', { blocks: fromMarkdown(markdown) })
+    editor.history.clear()
   }, [])
 
-  const agente = useCallback((markdown = DEL_AGENTE) => {
-    const editor = editorRef.current
-    if (editor) authorMarkdown(editor, markdown)
+  /**
+   * Devuelve el teclado al editor.
+   *
+   * Después de apretar un botón de la barra el foco se queda en el botón, y desde ahí Mod+Z y
+   * cualquier atajo no llegan a ninguna parte. Quien acaba de tocar el documento espera poder
+   * deshacerlo sin volver a clickear adentro.
+   */
+  const volverAlEditor = useCallback(() => {
+    const superficie = document.querySelector<HTMLElement>('[data-melu-surface]')
+    if (superficie) focusSurface(superficie)
   }, [])
+
+  const agente = useCallback(
+    (markdown = DEL_AGENTE) => {
+      const editor = editorRef.current
+      if (editor) authorMarkdown(editor, markdown)
+      volverAlEditor()
+    },
+    [volverAlEditor],
+  )
 
   const onReady = useCallback(
     (nuevo: Editor) => {
@@ -120,7 +138,7 @@ function Taller() {
         onCaja={setCaja}
       />
 
-      <AddMenu editor={editor} />
+      <AddMenu editor={editor} onListo={volverAlEditor} />
 
       <Inspector editor={editor} version={version} />
     </div>
