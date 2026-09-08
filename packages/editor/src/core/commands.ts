@@ -392,10 +392,15 @@ export const deleteForward: Command = (ctx) => {
   tr.setText(block, concat(text, textOf(ctx, after)))
   const parent = parentOf(tr.doc, block) ?? tr.doc.root
   let at = indexOf(tr.doc, block) + 1
+  // La misma regla que el borrado hacia atrás, y por eso está escrita igual: los hijos se quedan
+  // adentro del que recibe si puede tenerlos, y como hermanos si no. Acá iban siempre al padre, así
+  // que borrar la misma junta con Delete y con Backspace dejaba documentos distintos.
   // oxlint-disable-next-line unicorn/no-useless-spread -- la copia es necesaria: el bucle mueve o borra lo que está recorriendo, y sobre la lista viva se saltearía elementos.
   for (const child of [...childrenOf(tr.doc, after)]) {
-    tr.move(child, parent, at)
-    at++
+    const target: BlockId = state.schema.isContainer(getBlock(tr.doc, block)!.type) ? block : parent
+    const index = target === block ? childrenOf(tr.doc, block).length : at
+    tr.move(child, target, index)
+    if (target !== block) at++
   }
   tr.remove(after)
   tr.select(caret(block, offset))
@@ -705,11 +710,16 @@ export const duplicateBlock: Command<{ id?: BlockId }> = (ctx, { id } = {}) => {
   const { tr, state } = ctx
   const targets = id ? [id] : selectedBlocks(tr.doc, state.selection)
   if (targets.length === 0) return false
+  // Las copias van todas después de la última, y en orden. Insertando cada una al lado de su
+  // original quedaban intercaladas (uno, uno, dos, dos), que no es duplicar una selección: es
+  // duplicar cada bloque por separado.
   const made: BlockId[] = []
+  let after = targets[targets.length - 1]!
   for (const target of targets) {
     const copy = copySubtree(tr.doc, target)
     if (!copy) continue
-    made.push(tr.insertAfter(target, copy))
+    after = tr.insertAfter(after, copy)
+    made.push(after)
   }
   if (made.length === 0) return false
   const last = made[made.length - 1]!

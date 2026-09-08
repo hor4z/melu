@@ -230,11 +230,16 @@ export function placeRange(container: HTMLElement, anchor: DomPoint, head: DomPo
   }
 }
 
-/** Moves focus into a block without scrolling the page around. */
-export function focusBlockElement(container: HTMLElement, block: string): void {
-  const root = textRootOf(container, block)
-  if (root) root.focus({ preventScroll: true })
-  else container.querySelector<HTMLElement>(`[${BLOCK_ATTR}="${cssEscape(block)}"]`)?.focus({ preventScroll: true })
+/**
+ * Trae el foco al editor, sin mover la página.
+ *
+ * Es la superficie y no un bloque: la región editable es una sola, así que enfocar el elemento de
+ * un bloque termina enfocándola a ella igual. Dónde queda el caret lo dice el modelo, y de ponerlo
+ * se encarga el bloque cuando se dibuja.
+ */
+export function focusSurface(container: HTMLElement): void {
+  if (container.contains(document.activeElement)) return
+  container.focus({ preventScroll: true })
 }
 
 // ---------------------------------------------------------------------------- geometry

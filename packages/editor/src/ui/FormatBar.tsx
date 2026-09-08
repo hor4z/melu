@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { MarkType } from '../core/text.ts'
-import { isBlocks, isText } from '../core/selection.ts'
+import { isBlocks, isText, selectedBlocks } from '../core/selection.ts'
 import { useActiveMarks, useEditor, useSelection } from '../react/hooks.ts'
 import { useDragHandle } from '../react/Surface.tsx'
 import { BLOCK_ATTR } from '../react/dom.ts'
@@ -99,7 +99,10 @@ export function FormatBar() {
           onClick={() => setPanel((p) => (p === 'turn' ? 'none' : 'turn'))}
           aria-expanded={panel === 'turn'}
         >
-          {editor.state.schema.specOr(currentType(editor)).name}
+          {(() => {
+            const tipo = currentType(editor)
+            return tipo ? editor.state.schema.specOr(tipo).name : 'Varios'
+          })()}
           <Icon name="chevron" size={12} className="melu-rot" />
         </button>
         <span className="melu-bar-sep" />
@@ -285,8 +288,18 @@ function boxOf(surface: HTMLElement | null, ids: readonly string[]): DOMRect | n
 
 const cssId = (id: string) => (typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(id) : id.replace(/["\\]/g, '\\$&'))
 
-const currentType = (editor: ReturnType<typeof useEditor>): string => {
+/**
+ * El tipo que muestra el botón de convertir, o nada si lo elegido tiene varios.
+ *
+ * Miraba sólo una punta, y `setBlockType` cambia todos los bloques que toca la selección: el rótulo
+ * decía "Texto" y el botón convertía cinco títulos. Con tipos mezclados no hay un tipo que mostrar,
+ * y decirlo es más honesto que elegir uno.
+ */
+const currentType = (editor: ReturnType<typeof useEditor>): string | undefined => {
   const sel = editor.selection
-  const id = sel?.kind === 'text' ? sel.head.block : sel?.kind === 'blocks' ? sel.anchor : undefined
-  return id ? (editor.block(id)?.type ?? 'paragraph') : 'paragraph'
+  if (!sel) return 'paragraph'
+  const tocados = selectedBlocks(editor.doc, sel)
+  if (tocados.length === 0) return 'paragraph'
+  const tipos = new Set(tocados.map((id) => editor.block(id)?.type ?? 'paragraph'))
+  return tipos.size === 1 ? [...tipos][0] : undefined
 }

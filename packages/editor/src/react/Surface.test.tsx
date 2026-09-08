@@ -247,6 +247,45 @@ describe('la selección cruza bloques', () => {
     expect(document.querySelector('.melu-bullet')).toHaveAttribute('draggable', 'false')
   })
 
+  it('sin selección los atajos siguen andando: antes morían todos', () => {
+    const { editor } = mount('uno\n\ndos')
+    act(() => {
+      editor.setSelection(null)
+    })
+    const superficie = document.querySelector('[data-melu-surface]')!
+    act(() => {
+      fireEvent.keyDown(superficie, { key: 'a', ctrlKey: true })
+    })
+    expect(editor.selection).not.toBeNull()
+  })
+
+  it('la flecha izquierda sobre un rango lo colapsa, en lugar de saltar al bloque anterior', () => {
+    const { editor } = mount('uno\n\ndos')
+    caretTo(editor, 1, 0, 2)
+    const antes = editor.selection
+    act(() => {
+      fireEvent.keyDown(blocks()[1]!, { key: 'ArrowLeft' })
+    })
+    // El motor no la toca: colapsar un rango es del navegador, y saltar de bloque acá era saltarse
+    // el principio de lo que estaba elegido.
+    expect(editor.selection).toEqual(antes)
+  })
+
+  it('deshacer desde el menú del navegador lo hace el motor, y no el DOM por atrás', () => {
+    const { editor } = mount('uno')
+    caretTo(editor, 0, 3)
+    act(() => {
+      editor.run('insertText', { text: ' y algo' })
+    })
+    const evento = new Event('beforeinput', { bubbles: true, cancelable: true }) as InputEvent
+    Object.defineProperty(evento, 'inputType', { value: 'historyUndo' })
+    act(() => {
+      blocks()[0]!.dispatchEvent(evento)
+    })
+    expect(evento.defaultPrevented).toBe(true)
+    expect(textos(editor)).toEqual(['uno'])
+  })
+
   it('Mod+Shift+arriba sube el bloque, con el caret adentro del texto', async () => {
     const user = userEvent.setup()
     const { editor } = mount('- uno\n- dos')

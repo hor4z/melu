@@ -97,6 +97,11 @@ export function targetAt(
     parent = parentOf(doc, parent) ?? doc.root
   }
 
+  // Si ni siquiera el abuelo lo acepta, no hay destino. Antes se devolvía igual: se dibujaba la
+  // línea, la persona soltaba, y `moveBlock` decía que no en silencio. Mostrar dónde va a caer algo
+  // que no va a caer es peor que no mostrar nada.
+  if (!accepts(doc.blocks[parent]?.type ?? (parent === doc.root ? 'doc' : ''), type) && parent !== doc.root) return null
+
   const siblings = childrenOf(doc, parent)
   const anchorIndex = siblings.indexOf(anchor.id)
   const index =
