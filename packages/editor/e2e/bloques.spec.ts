@@ -115,6 +115,51 @@ test.describe('el más de abajo', () => {
   })
 })
 
+/** Los bloques del primer nivel, que es donde se cuenta si entró uno o dos. */
+const arriba = (page: Parameters<typeof sketch>[0]) =>
+  page.evaluate(() => window.melu.state.doc.blocks[window.melu.state.doc.root]!.children)
+
+test.describe('cada tipo, por el menú, uno solo', () => {
+  /**
+   * Todos los tipos que el menú ofrece, en una sola pasada.
+   *
+   * "Agregué un video y se agregaron dos" fue un bug de un tipo, pero podía ser de cualquiera: la
+   * causa no tenía nada que ver con el video. Así que se prueban todos, y en un solo test porque
+   * abrir el taller treinta y cuatro veces cuesta un minuto y no agrega nada.
+   */
+  test('los treinta y pico entran de a uno, y el documento queda consistente', async ({ page }) => {
+    await abrir(page, 'uno')
+    const tipos = await page.evaluate(() => {
+      const el = document.querySelector('[data-melu-surface]')
+      void el
+      return window.melu.state.schema.groups.flatMap((g) => g.items.map((s) => ({ type: s.type, name: s.name })))
+    })
+    expect(tipos.length).toBeGreaterThan(30)
+
+    for (const { type, name } of tipos) {
+      // Cada uno desde cero, y por la puerta que usa una persona: el menú "/" en un bloque vacío.
+      await page.evaluate(() => window.taller.cargar('uno'))
+      await clickEn(page, 0, 'fin')
+      await page.keyboard.press('Enter')
+      await page.waitForFunction(() => window.taller.where().startsWith('1:'))
+      await escribir(page, `/${name}`)
+      const menu = page.getByRole('listbox')
+      await menu.waitFor({ state: 'visible' })
+      const primero = await page.evaluate(() => document.querySelector('[role=option]')?.textContent ?? '')
+      // El menú tiene que estar ofreciendo el que se buscó: si no, el test estaría probando otro.
+      expect(primero, `buscando ${name}`).toContain(name)
+      await page.keyboard.press('Enter')
+      // El bloque vacío donde se escribió la barra se convierte en el elegido: quedan dos arriba,
+      // nunca tres. Un tercero sería el bloque que se insertó dos veces, o el vacío que quedó
+      // huérfano al costado.
+      await expect.poll(() => typeAt(page, 1), { message: `insertando ${type}` }).toBe(type)
+      expect(await arriba(page), `${type} dejó de más`).toHaveLength(2)
+      // Y el documento sigue siendo dibujable: ningún tipo se lleva el párrafo que había.
+      expect((await sketch(page))[0], `${type} se llevó el párrafo`).toBe('paragraph: uno')
+    }
+  })
+})
+
 test.describe('las reglas de tipeo', () => {
   const casos = [
     { escrito: '# ', tipo: 'heading_1' },
