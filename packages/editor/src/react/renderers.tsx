@@ -10,6 +10,7 @@ import { plain } from '../core/text.ts'
 import { useEditor } from './hooks.ts'
 import { BlockText } from './BlockText.tsx'
 import { Icon, hasIcon, type IconName } from './icons.tsx'
+import { SKIP } from './dom.ts'
 
 export type BlockViewProps = {
   id: BlockId
@@ -98,7 +99,7 @@ const Heading3 = textual('h3', 'melu-h3')
 const Bulleted: Renderer = function Bulleted({ id, block, readOnly, children }) {
   return (
     <div className="melu-item">
-      <span className="melu-bullet" aria-hidden="true" data-melu-skip="true">
+      <span className="melu-bullet" aria-hidden="true" {...SKIP}>
         •
       </span>
       <div className="melu-item-body">
@@ -116,7 +117,7 @@ const Bulleted: Renderer = function Bulleted({ id, block, readOnly, children }) 
 const Numbered: Renderer = function Numbered({ id, block, readOnly, children }) {
   return (
     <div className="melu-item">
-      <span className="melu-ordinal" aria-hidden="true" data-melu-skip="true" />
+      <span className="melu-ordinal" aria-hidden="true" {...SKIP} />
       <div className="melu-item-body">
         <BlockText id={id} value={block.text} className="melu-paragraph" style={styleOf(block.props)} readOnly={readOnly} />
         {children}
@@ -135,7 +136,7 @@ const Todo: Renderer = function Todo({ id, block, readOnly, children }) {
         className="melu-checkbox"
         checked={checked}
         disabled={readOnly}
-        data-melu-skip="true"
+        {...SKIP}
         aria-label={plain(block.text) || 'Por hacer'}
         onChange={() => editor.run('toggleChecked', { id })}
       />
@@ -163,7 +164,7 @@ const Toggle: Renderer = function Toggle({ id, block, readOnly, children }) {
         <button
           type="button"
           className="melu-twisty"
-          data-melu-skip="true"
+          {...SKIP}
           aria-expanded={open}
           aria-label={open ? 'Cerrar' : 'Abrir'}
           onClick={() => editor.run('toggleOpen', { id })}
@@ -193,7 +194,7 @@ const Callout: Renderer = function Callout({ id, block, readOnly, children }) {
   const tone = str(block.props, 'tone', 'yellow')
   return (
     <aside className="melu-callout" data-tone={tone} role="note">
-      <span className="melu-callout-emoji" data-melu-skip="true" aria-hidden="true">
+      <span className="melu-callout-emoji" {...SKIP} aria-hidden="true">
         {str(block.props, 'emoji', '💡')}
       </span>
       <div className="melu-callout-body">
@@ -216,7 +217,7 @@ const Code: Renderer = function Code({ id, block, readOnly }) {
   }, [block.text])
   return (
     <figure className="melu-code-block">
-      <div className="melu-code-bar" data-melu-skip="true">
+      <div className="melu-code-bar" {...SKIP}>
         <span className="melu-code-lang">{language}</span>
         <button type="button" className="melu-ghost" onClick={copy}>
           {copied ? 'Copiado' : 'Copiar'}
@@ -251,7 +252,7 @@ function Placeholder({ id, icon, label }: { id: BlockId; icon: IconName; label: 
   )
 
   return (
-    <div className="melu-media-empty" data-melu-skip="true">
+    <div className="melu-media-empty" {...SKIP}>
       <Icon name={icon} size={20} />
       <span>{label}</span>
       <input
@@ -464,7 +465,7 @@ function ResizeHandles({ id }: { id: BlockId }) {
   )
 
   return (
-    <div ref={ref} className="melu-resize" data-melu-skip="true">
+    <div ref={ref} className="melu-resize" {...SKIP}>
       <button type="button" className="melu-grip-left" aria-label="Angostar" onPointerDown={start('left')} />
       <button type="button" className="melu-grip-right" aria-label="Ensanchar" onPointerDown={start('right')} />
     </div>
@@ -510,7 +511,7 @@ function TableControls({ id }: { id: BlockId }) {
   const editor = useEditor()
   const first = childrenOf(editor.doc, childrenOf(editor.doc, id)[0] ?? '')[0]
   return (
-    <div className="melu-table-controls" data-melu-skip="true">
+    <div className="melu-table-controls" {...SKIP}>
       <button type="button" className="melu-ghost" onClick={() => editor.run('addRow', { id: first ?? id })}>
         <Icon name="plus" size={14} /> Fila
       </button>
@@ -647,7 +648,7 @@ function Ask({ id, block, readOnly, children, icon, label, extra }: BlockViewPro
   const points = num(block.props, 'points', 0)
   return (
     <section className="melu-ask" data-type={block.type}>
-      <header className="melu-ask-head" data-melu-skip="true">
+      <header className="melu-ask-head" {...SKIP}>
         <Icon name={icon} size={15} />
         <span className="melu-ask-label">{label}</span>
         {points ? <span className="melu-ask-points">{points} pt</span> : null}
@@ -676,7 +677,7 @@ function OptionList({ id, block, multi }: { id: BlockId; block: Block; multi: bo
   }
   const isRight = (i: number) => (multi ? correctMulti.includes(i) : correct === i)
   return (
-    <div className="melu-options" data-melu-skip="true">
+    <div className="melu-options" {...SKIP}>
       {options.map((option, i) => (
         <div key={i} className="melu-option" data-right={isRight(i)}>
           <button
@@ -788,7 +789,7 @@ const asks: Renderers = {
       icon="number"
       label="Número"
       extra={
-        <div className="melu-fields" data-melu-skip="true">
+        <div className="melu-fields" {...SKIP}>
           <NumField id={p.id} block={p.block} name="answer" label="Respuesta" />
           <NumField id={p.id} block={p.block} name="tolerance" label="Tolerancia" />
           <TextField id={p.id} block={p.block} name="unit" label="Unidad" placeholder="m" />
@@ -804,7 +805,7 @@ const asks: Renderers = {
         icon="fillIn"
         label="Completar"
         extra={
-          <div className="melu-blanks" data-melu-skip="true">
+          <div className="melu-blanks" {...SKIP}>
             {blanks.length === 0 ? (
               <span className="melu-hint">Poné las respuestas entre llaves dobles: la capital es {'{{París}}'}</span>
             ) : (
@@ -827,7 +828,7 @@ const asks: Renderers = {
       icon="question"
       label="Pregunta abierta"
       extra={
-        <div className="melu-fields" data-melu-skip="true">
+        <div className="melu-fields" {...SKIP}>
           <NumField id={p.id} block={p.block} name="rows" label="Renglones" step={1} />
           <NumField id={p.id} block={p.block} name="minWords" label="Mínimo de palabras" step={1} />
         </div>
@@ -840,7 +841,7 @@ const asks: Renderers = {
       icon="evidence"
       label="Evidencia"
       extra={
-        <div className="melu-fields" data-melu-skip="true">
+        <div className="melu-fields" {...SKIP}>
           <PickField
             id={p.id}
             block={p.block}
@@ -862,7 +863,7 @@ const asks: Renderers = {
       icon="selfReport"
       label="Autoreporte"
       extra={
-        <div className="melu-fields" data-melu-skip="true">
+        <div className="melu-fields" {...SKIP}>
           <TextField id={p.id} block={p.block} name="low" label="Extremo bajo" />
           <TextField id={p.id} block={p.block} name="high" label="Extremo alto" />
           <NumField id={p.id} block={p.block} name="steps" label="Puntos" step={1} />
@@ -876,7 +877,7 @@ const asks: Renderers = {
       icon="game"
       label="Juego"
       extra={
-        <div className="melu-fields" data-melu-skip="true">
+        <div className="melu-fields" {...SKIP}>
           <PickField
             id={p.id}
             block={p.block}
@@ -899,7 +900,7 @@ const asks: Renderers = {
       icon="figure"
       label="Figura"
       extra={
-        <div className="melu-fields" data-melu-skip="true">
+        <div className="melu-fields" {...SKIP}>
           <PickField
             id={p.id}
             block={p.block}
@@ -926,7 +927,7 @@ function ListField({ id, block, name, label }: { id: BlockId; block: Block; name
   const items = Array.isArray(block.props?.[name]) ? (block.props[name] as string[]) : []
   const write = (next: string[]) => editor.run('setBlockProps', { id, props: { [name]: next } })
   return (
-    <div className="melu-fields melu-stack" data-melu-skip="true">
+    <div className="melu-fields melu-stack" {...SKIP}>
       <span className="melu-field-label">{label}</span>
       {items.map((item, i) => (
         <div key={i} className="melu-option">
@@ -960,7 +961,7 @@ function PairField({ id, block }: { id: BlockId; block: Block }) {
   const write = (next: { left: string; right: string }[]) => editor.run('setBlockProps', { id, props: { pairs: next } })
   const normalized = pairs.map((p) => ({ left: p.left ?? '', right: p.right ?? '' }))
   return (
-    <div className="melu-fields melu-stack" data-melu-skip="true">
+    <div className="melu-fields melu-stack" {...SKIP}>
       <span className="melu-field-label">Las parejas</span>
       {normalized.map((pair, i) => (
         <div key={i} className="melu-pair">
@@ -1038,7 +1039,7 @@ export const Unknown: Renderer = function Unknown({ id, block, readOnly, childre
   const spec = editor.state.schema.spec(block.type)
   return (
     <div className="melu-unknown">
-      <span className="melu-unknown-label" data-melu-skip="true">
+      <span className="melu-unknown-label" {...SKIP}>
         {hasIcon(spec?.icon) ? <Icon name={spec.icon} size={13} /> : null}
         {spec?.name ?? block.type}
       </span>

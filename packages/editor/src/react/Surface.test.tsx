@@ -1,14 +1,15 @@
 // La superficie: solo lectura, y usarla con su propio marco alrededor.
 
 import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { useRef } from 'react'
 import { Surface } from './Surface.tsx'
 import { useNewEditor } from './hooks.ts'
 import { type Renderers } from './renderers.tsx'
 import { activityKit } from '../plugins/index.ts'
-import { fromMarkdown, plain } from '../core/index.ts'
-import { blocks, mount } from '../test/view.tsx'
+import { fromMarkdown, plain, type Editor } from '../core/index.ts'
+import { blocks, caretTo, mount } from '../test/view.tsx'
 
 describe('solo lectura', () => {
   it('los bloques no se pueden editar', () => {
@@ -46,5 +47,143 @@ describe('la superficie con su propio marco', () => {
     }
     mount('Un párrafo', { renderers })
     expect(screen.getByTestId('mio')).toHaveTextContent('Un párrafo')
+  })
+})
+
+describe('la selección cruza bloques', () => {
+  const hijos = (editor: Editor) => editor.doc.blocks[editor.doc.root]!.children
+  const textos = (editor: Editor) => hijos(editor).map((id) => plain(editor.block(id)?.text))
+
+  /**
+   * Deja la selección del navegador con cada punta en un bloque distinto: es lo que queda después
+   * de arrastrar de un párrafo a otro, o de apretar Shift+abajo hasta salir del bloque. Puede
+   * porque la región editable es la superficie entera.
+   */
+  const cruzar = (desde: number, offDesde: number, hasta: number, offHasta: number) => {
+    const els = blocks()
+    const nodo = (el: HTMLElement) => el.firstChild?.firstChild ?? el
+    const rango = document.createRange()
+    rango.setStart(nodo(els[desde]!), offDesde)
+    rango.setEnd(nodo(els[hasta]!), offHasta)
+    const sel = document.getSelection()!
+    sel.removeAllRanges()
+    sel.addRange(rango)
+    act(() => {
+      document.dispatchEvent(new Event('selectionchange'))
+    })
+  }
+
+  it('la superficie es la región editable, y no solo cada bloque', () => {
+    mount('- uno\n- dos')
+    expect(document.querySelector('[data-melu-surface]')).toHaveAttribute('contenteditable', 'true')
+  })
+
+  it('un rango con cada punta en un bloque distinto llega al modelo tal cual', () => {
+    const { editor } = mount('- uno\n- dos\n- tres')
+    cruzar(0, 1, 2, 2)
+    const ids = hijos(editor)
+    expect(editor.selection).toMatchObject({
+      kind: 'text',
+      anchor: { block: ids[0], offset: 1 },
+      head: { block: ids[2], offset: 2 },
+    })
+  })
+
+  it('en solo lectura la superficie no es editable', () => {
+    mount('- uno', { readOnly: true })
+    expect(document.querySelector('[data-melu-surface]')).not.toHaveAttribute('contenteditable', 'true')
+  })
+
+  it('borrar un rango que cruza lo hace el motor, no el navegador', () => {
+    const { editor } = mount('- uno\n- dos\n- tres')
+    cruzar(0, 1, 2, 2)
+    const evento = new Event('beforeinput', { bubbles: true, cancelable: true }) as InputEvent
+    Object.defineProperty(evento, 'inputType', { value: 'deleteContentBackward' })
+    act(() => {
+      blocks()[0]!.dispatchEvent(evento)
+    })
+    expect(evento.defaultPrevented).toBe(true)
+    // La cabeza del primero pegada con la cola del último, y el del medio ya no está.
+    expect(textos(editor)).toEqual(['ues'])
+  })
+
+  it('escribir sobre un rango que cruza lo reemplaza', () => {
+    const { editor } = mount('- uno\n- dos')
+    cruzar(0, 1, 1, 2)
+    const evento = new Event('beforeinput', { bubbles: true, cancelable: true }) as InputEvent
+    Object.defineProperty(evento, 'inputType', { value: 'insertText' })
+    Object.defineProperty(evento, 'data', { value: 'X' })
+    act(() => {
+      blocks()[0]!.dispatchEvent(evento)
+    })
+    expect(evento.defaultPrevented).toBe(true)
+    expect(textos(editor)).toEqual(['uXs'])
+  })
+
+  it('adentro de un solo bloque el navegador sigue mandando: no se cancela nada', () => {
+    const { editor } = mount('- uno\n- dos')
+    caretTo(editor, 0, 1)
+    const evento = new Event('beforeinput', { bubbles: true, cancelable: true }) as InputEvent
+    Object.defineProperty(evento, 'inputType', { value: 'insertText' })
+    Object.defineProperty(evento, 'data', { value: 'X' })
+    act(() => {
+      blocks()[0]!.dispatchEvent(evento)
+    })
+    expect(evento.defaultPrevented).toBe(false)
+  })
+
+  it('arrastrar texto y soltarlo en otro bloque no se hace: rompía el bloque donde caía', () => {
+    const { editor } = mount('- uno\n- dos')
+    caretTo(editor, 0, 1)
+    const evento = new Event('beforeinput', { bubbles: true, cancelable: true }) as InputEvent
+    Object.defineProperty(evento, 'inputType', { value: 'insertFromDrop' })
+    act(() => {
+      blocks()[1]!.dispatchEvent(evento)
+    })
+    expect(evento.defaultPrevented).toBe(true)
+    expect(textos(editor)).toEqual(['uno', 'dos'])
+  })
+
+  it('un pegado que ningún handler entendió no entra crudo al DOM', () => {
+    const { editor } = mount('- uno\n- dos')
+    caretTo(editor, 0, 1)
+    // Una imagen del portapapeles: no hay ni html, ni texto, ni lo nuestro. `onPaste` no lo
+    // atiende, y sin cancelar el `beforeinput` el navegador lo inyecta adentro del bloque.
+    const evento = new Event('beforeinput', { bubbles: true, cancelable: true }) as InputEvent
+    Object.defineProperty(evento, 'inputType', { value: 'insertFromPaste' })
+    act(() => {
+      blocks()[0]!.dispatchEvent(evento)
+    })
+    expect(evento.defaultPrevented).toBe(true)
+    expect(textos(editor)).toEqual(['uno', 'dos'])
+  })
+
+  it('lo que se escribe en un control propio no dispara las reglas de tipeo del bloque de al lado', () => {
+    const { editor } = mount('uno\n\ndos')
+    const primero = hijos(editor)[0]!
+    // Un párrafo cuyo texto es literalmente "# ": nadie lo convirtió porque el texto entró por el
+    // modelo y no por el teclado. Queda armado como una trampa para las reglas de tipeo.
+    act(() => {
+      editor.exec((ctx) => {
+        ctx.tr.setText(primero, [{ text: '# ' }])
+        return true
+      })
+    })
+    caretTo(editor, 0, 2)
+    const control = document.createElement('input')
+    control.setAttribute('data-melu-skip', 'true')
+    blocks()[1]!.append(control)
+    act(() => {
+      control.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    expect(editor.block(primero)?.type).toBe('paragraph')
+  })
+
+  it('Mod+Shift+arriba sube el bloque, con el caret adentro del texto', async () => {
+    const user = userEvent.setup()
+    const { editor } = mount('- uno\n- dos')
+    caretTo(editor, 1, 0)
+    await user.keyboard('{Control>}{Shift>}{ArrowUp}{/Shift}{/Control}')
+    expect(textos(editor)).toEqual(['dos', 'uno'])
   })
 })

@@ -1,8 +1,12 @@
 // La traducción entre el DOM y el modelo: todo el riesgo de un editor, en un archivo.
 //
-// Un `contenteditable` por bloque, como Notion y no como ProseMirror o Lexical: el navegador se
-// queda con los acentos y los teclados de celular, y un error solo puede dañar un párrafo. Cuesta
-// que una selección nativa no pueda cruzar dos regiones, así que arrastrar da bloques enteros.
+// Un `contenteditable` por bloque, y además uno envolviendo la página, que es lo que hace Notion.
+// El de afuera es el que manda: por spec, un editable adentro de otro no abre una región nueva, así
+// que abajo hay una sola y la selección nativa cruza de un bloque a otro. Los de adentro siguen
+// sirviendo para enfocar un bloque y para que un widget se declare no editable.
+//
+// El precio es que el navegador también puede *editar* cruzando, y eso no puede pasar: lo que cruce
+// un borde lo cancela `Surface` en `beforeinput` y lo aplica por comandos.
 //
 // Los offsets se leen recorriendo nodos de texto y no confiando en el markup: el navegador pone un
 // nodo donde quiere mientras alguien escribe.
@@ -16,6 +20,19 @@ export const TEXT_ATTR = 'data-melu-text'
 export const BLOCK_ATTR = 'data-melu-block'
 /** Carries the marks of a run, so what the browser types inside it keeps its formatting. */
 export const MARKS_ATTR = 'data-melu-marks'
+
+/**
+ * Lo que es control y no texto: una viñeta, un checkbox, un asa, un menú.
+ *
+ * Hay que decirlo dos veces y por eso está junto. Al motor, para que no lo lea como parte del texto
+ * del bloque. Y al navegador, porque ahora la región editable envuelve la página entera: sin esto
+ * el caret se mete adentro de una viñeta y lo que se escriba ahí no es de nadie.
+ */
+export const SKIP = {
+  'data-melu-skip': 'true',
+  contentEditable: false,
+  suppressContentEditableWarning: true,
+} as const
 
 export const blockRoot = (node: Node | null): HTMLElement | null => {
   const el = node instanceof Element ? node : node?.parentElement
@@ -153,22 +170,57 @@ export const writeMarks = (marks: readonly Mark[] | undefined): string => JSON.s
 
 // ---------------------------------------------------------------------------- selection
 
-export type DomRange = { block: string; from: number; to: number; backwards: boolean }
+export type DomPoint = { block: string; offset: number }
+export type DomRange = { anchor: DomPoint; head: DomPoint }
 
-/** What the browser says is selected, in the model's terms. Null when it is not in a block. */
+/**
+ * Qué dice el navegador que está seleccionado, en los términos del modelo. Los dos extremos por
+ * separado y sin ordenar: una selección hecha para arriba tiene que seguir estando para arriba, y
+ * puede tener cada punta en un bloque distinto.
+ */
 export function readSelection(container: HTMLElement): DomRange | null {
   const sel = document.getSelection()
-  if (!sel || sel.rangeCount === 0 || !sel.anchorNode) return null
-  if (!container.contains(sel.anchorNode)) return null
-  const root = textRoot(sel.anchorNode)
-  const id = blockIdOf(sel.anchorNode)
-  if (!root || !id) return null
-  const anchor = offsetFromDom(root, sel.anchorNode, sel.anchorOffset)
-  // Un extremo en otro bloque no es un rango de texto: el navegador no puede tenerlo, y el que
-  // llama lo convierte en una selección de bloques.
-  const sameBlock = sel.focusNode && textRoot(sel.focusNode) === root
-  const head = sameBlock ? offsetFromDom(root, sel.focusNode!, sel.focusOffset) : anchor
-  return { block: id, from: Math.min(anchor, head), to: Math.max(anchor, head), backwards: head < anchor }
+  if (!sel || sel.rangeCount === 0 || !sel.anchorNode || !sel.focusNode) return null
+  if (!container.contains(sel.anchorNode) || !container.contains(sel.focusNode)) return null
+  const anchor = pointFromDom(sel.anchorNode, sel.anchorOffset)
+  const head = pointFromDom(sel.focusNode, sel.focusOffset)
+  return anchor && head ? { anchor, head } : null
+}
+
+/** Un extremo de la selección del navegador, como bloque y offset. */
+function pointFromDom(node: Node, offset: number): DomPoint | null {
+  const id = blockIdOf(node)
+  if (!id) return null
+  const root = textRoot(node)
+  // Una punta parada sobre un bloque sin texto (una imagen, un separador) no tiene offset: cuenta
+  // como el principio de ese bloque, que es lo que hace que el rango lo incluya.
+  if (!root || blockIdOf(root) !== id) return { block: id, offset: 0 }
+  return { block: id, offset: offsetFromDom(root, node, offset) }
+}
+
+/** El offset del caret adentro de una región, o null si el caret está en otro lado. */
+export function offsetOfCaret(root: HTMLElement): number | null {
+  const sel = document.getSelection()
+  if (!sel || sel.rangeCount === 0 || !sel.focusNode) return null
+  if (!root.contains(sel.focusNode)) return null
+  return offsetFromDom(root, sel.focusNode, sel.focusOffset)
+}
+
+/**
+ * Pone en el DOM un rango que cruza bloques. Ningún bloque puede hacerlo solo, porque cada punta
+ * está en otro: lo hace la superficie, que los ve a los dos.
+ */
+export function placeRange(container: HTMLElement, anchor: DomPoint, head: DomPoint): void {
+  const from = textRootOf(container, anchor.block)
+  const to = textRootOf(container, head.block)
+  if (!from || !to) return
+  const a = domFromOffset(from, anchor.offset)
+  const h = domFromOffset(to, head.offset)
+  try {
+    document.getSelection()?.setBaseAndExtent(a.node, a.offset, h.node, h.offset)
+  } catch {
+    /* el documento cambió abajo del rango: el próximo render lo acomoda */
+  }
 }
 
 /** Moves focus into a block without scrolling the page around. */

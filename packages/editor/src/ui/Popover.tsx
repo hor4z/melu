@@ -4,6 +4,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { place, type Anchor, type Placement } from './float.ts'
+import { SKIP } from '../react/dom.ts'
 
 export type PopoverProps = {
   anchor: Anchor | null
@@ -82,6 +83,7 @@ export function Popover({
       ref={ref}
       className={['melu-pop', className].filter(Boolean).join(' ')}
       role={role}
+      {...SKIP}
       style={{
         top: pos?.top ?? anchor.bottom,
         left: pos?.left ?? anchor.left,

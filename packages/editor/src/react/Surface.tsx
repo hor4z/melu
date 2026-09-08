@@ -14,14 +14,26 @@ import {
   type ReactNode,
 } from 'react'
 import type { BlockId } from '../core/doc.ts'
-import { flatten } from '../core/doc.ts'
+import { flatten, textLength } from '../core/doc.ts'
 import type { Editor } from '../core/editor.ts'
-import { isBlocks, isText } from '../core/selection.ts'
+import { isBlocks, isCollapsed, isText, samePoint, spansBlocks } from '../core/selection.ts'
 import { plain } from '../core/text.ts'
 import { clipboardFor, MELU_MIME } from '../plugins/paste.ts'
+import { composing } from './composing.ts'
+import { syncBlock } from './BlockText.tsx'
 import { EditorProvider, useBlock, useChildren, useEditor, useIsSelected } from './hooks.ts'
 import { defaultRenderers, Unknown, wrapperStyle, type Renderers } from './renderers.tsx'
-import { BLOCK_ATTR, blockIdOf, readSelection } from './dom.ts'
+import {
+  BLOCK_ATTR,
+  SKIP,
+  blockIdOf,
+  offsetAtPoint,
+  offsetOfCaret,
+  placeRange,
+  readSelection,
+  textRoot,
+  textRootOf,
+} from './dom.ts'
 import { isRealMove, measure, targetAt, type DropTarget } from './dnd.ts'
 
 export type SurfaceProps = {
@@ -129,8 +141,6 @@ export function Surface({
   const dragging = useRef<{ id: BlockId; placed: ReturnType<typeof measure> } | null>(null)
   /** El último destino calculado, para el `pointerup` que se registró una sola vez. */
   const latestDrop = useRef<DropTarget | null>(null)
-  /** Desde dónde arrancó un arrastre de selección, para saber cuándo pasa a ser de bloques. */
-  const anchorBlock = useRef<BlockId | null>(null)
 
   useEffect(() => {
     editor.readOnly = readOnly
@@ -138,58 +148,172 @@ export function Surface({
 
   // -------------------------------------------------------------------------- selection
 
-  // El navegador no puede seleccionar cruzando dos regiones editables, así que un arrastre que
-  // sale del bloque donde empezó se vuelve una selección de bloques enteros, como en Notion.
+  /**
+   * La selección del navegador entra al modelo tal cual, con cada punta donde esté, aunque estén
+   * en bloques distintos. Puede porque la región editable es la superficie entera.
+   */
   useEffect(() => {
     const container = ref.current
     if (!container) return
     const onChange = () => {
-      const from = anchorBlock.current
-      const sel = document.getSelection()
-      if (!sel || !sel.focusNode || !container.contains(sel.focusNode)) return
-      const to = blockIdOf(sel.focusNode)
-      if (!to) return
-
-      if (from && to !== from) {
-        editor.run('selectBlockRange', { id: to })
-        return
-      }
       const range = readSelection(container)
       if (!range) return
       const current = editor.selection
       // Si el modelo ya dice esto, no vale volver a decirlo: sería un ciclo con el DOM.
-      if (
-        isText(current) &&
-        current.head.block === range.block &&
-        Math.min(current.anchor.offset, current.head.offset) === range.from &&
-        Math.max(current.anchor.offset, current.head.offset) === range.to
-      ) {
-        return
-      }
-      editor.setSelection({
-        kind: 'text',
-        anchor: { block: range.block, offset: range.backwards ? range.to : range.from },
-        head: { block: range.block, offset: range.backwards ? range.from : range.to },
-      })
+      if (isText(current) && samePoint(current.anchor, range.anchor) && samePoint(current.head, range.head)) return
+      editor.setSelection({ kind: 'text', anchor: range.anchor, head: range.head })
     }
     document.addEventListener('selectionchange', onChange)
     return () => document.removeEventListener('selectionchange', onChange)
   }, [editor])
 
+  /**
+   * Y al revés: un rango del modelo que cruza bloques hay que ponerlo en el DOM. Ningún bloque
+   * puede, porque cada punta está en otro. Va por suscripción y no por render: la página no se
+   * vuelve a dibujar porque se movió el caret.
+   */
+  useEffect(() => {
+    const container = ref.current
+    if (!container) return
+    return editor.subscribe((change) => {
+      if (!change.selectionChanged) return
+      const sel = editor.selection
+      if (!isText(sel) || !spansBlocks(sel)) return
+      // Si el navegador ya lo tiene así (porque lo hizo él), no se lo toca: reescribirlo hace
+      // parpadear la selección y vuelve a avisar.
+      const now = readSelection(container)
+      if (now && samePoint(now.anchor, sel.anchor) && samePoint(now.head, sel.head)) return
+      placeRange(container, sel.anchor, sel.head)
+    })
+  }, [editor])
+
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      const id = blockIdOf(e.target as Node)
-      anchorBlock.current = id
       // Un click en el hueco de abajo de la página deja el caret en el último bloque, que es lo
       // que espera cualquiera que quiera seguir escribiendo.
-      if (!id && e.target === ref.current) editor.run('focusEnd')
+      if (!blockIdOf(e.target as Node) && e.target === ref.current) editor.run('focusEnd')
     },
     [editor],
   )
 
-  const onPointerUp = useCallback(() => {
-    anchorBlock.current = null
-  }, [])
+  // -------------------------------------------------------------------------- input
+
+  /**
+   * El precio del envoltorio editable, y la única cosa que hay que hacer bien acá.
+   *
+   * Con la región editable envolviendo la página el navegador puede editar cruzando bloques, y eso
+   * no puede pasar: movería nodos de un bloque a otro por atrás de React y del modelo. Lo que queda
+   * adentro de un solo bloque sigue siendo suyo, que es de donde salen los acentos con tecla
+   * muerta, el dictado y el teclado del celular. Lo que cruce un borde se cancela y lo hace el
+   * motor, que ya sabe: `deleteSelection`, `insertText` y `splitBlock` empiezan por borrar el rango
+   * aunque abarque diez bloques.
+   */
+  const onBeforeInput = useCallback(
+    (e: InputEvent) => {
+      if (fromWidget(e.target)) return
+      if (readOnly) {
+        e.preventDefault()
+        return
+      }
+      const type = e.inputType
+      // Pegar y arrastrar son del editor y no del navegador: los dos meten contenido ajeno
+      // adentro de un bloque moviendo nodos por atrás de React y del modelo. El pegado lo atiende
+      // `onPaste`, que cancela lo que entiende; si llegó hasta acá es que no lo entendió, y
+      // entonces no pasa nada, que es muchísimo mejor que que entre crudo.
+      if (type === 'insertFromPaste' || type === 'insertFromDrop' || type === 'deleteByDrag') {
+        e.preventDefault()
+        return
+      }
+      const sel = editor.selection
+      if (isText(sel) && !spansBlocks(sel)) {
+        // Borrar parado en el borde de un bloque junta dos bloques, y eso lo hace el keymap desde
+        // `keydown`. Si llegó hasta acá es que el motor dijo que no había nada que hacer: entonces
+        // tampoco lo hace el navegador, que ahora podría porque la región editable es una sola.
+        if (type.startsWith('delete') && isCollapsed(sel)) {
+          const back = type.toLowerCase().includes('backward')
+          const borde = back ? sel.head.offset === 0 : sel.head.offset === textLength(editor.doc, sel.head.block)
+          if (borde) e.preventDefault()
+        }
+        return
+      }
+      e.preventDefault()
+      if (type.startsWith('delete')) {
+        editor.run('deleteSelection')
+        return
+      }
+      if (type === 'insertParagraph') {
+        editor.run('splitBlock')
+        return
+      }
+      if (type === 'insertLineBreak') {
+        editor.run('insertSoftBreak')
+        return
+      }
+      if (e.data) editor.run('insertText', { text: e.data })
+    },
+    [editor, readOnly],
+  )
+
+  // A mano y no por JSX: el `onBeforeInput` de React es un evento sintético suyo, armado de
+  // `keypress` y de composición, y no el `beforeinput` del navegador. El que trae `inputType` y el
+  // que hay que cancelar es este.
+  useEffect(() => {
+    const container = ref.current
+    if (!container) return
+    container.addEventListener('beforeinput', onBeforeInput)
+    return () => container.removeEventListener('beforeinput', onBeforeInput)
+  }, [onBeforeInput])
+
+  /**
+   * Lo que el navegador escribió, de vuelta al modelo. El `input` llega a la región editable, que
+   * ahora es esta: se averigua en qué bloque cayó el caret y se lee ese bloque de vuelta.
+   */
+  useEffect(() => {
+    const container = ref.current
+    if (!container) return
+    const sincronizar = () => {
+      const root = textRoot(document.getSelection()?.focusNode ?? null)
+      const id = root && blockIdOf(root)
+      if (!root || !id) return
+      syncBlock(editor, root, id)
+    }
+    const onInput = (e: Event) => {
+      // Lo que se escribe en un control propio de un bloque (la dirección de un medio, una opción,
+      // la búsqueda de la caja) no es el texto de ningún bloque: leerlo de vuelta sincronizaría
+      // contra el caret del modelo, que está en otro lado.
+      if (composing.current || fromWidget(e.target)) return
+      sincronizar()
+      // Las reglas de tipeo miran el texto ya escrito: "# " se vuelve título recién cuando el
+      // espacio está puesto.
+      editor.applyInputRules()
+    }
+    const onCompositionStart = (e: Event) => {
+      if (fromWidget(e.target)) return
+      composing.current = true
+    }
+    const onCompositionEnd = (e: Event) => {
+      if (fromWidget(e.target)) return
+      composing.current = false
+      sincronizar()
+      editor.applyInputRules()
+    }
+    const onBlur = () => {
+      // Lo que se escriba después de volver es otro cambio, no la continuación del anterior.
+      editor.history.break()
+      sincronizar()
+    }
+    container.addEventListener('input', onInput)
+    container.addEventListener('compositionstart', onCompositionStart)
+    container.addEventListener('compositionend', onCompositionEnd)
+    container.addEventListener('blur', onBlur)
+    return () => {
+      container.removeEventListener('input', onInput)
+      container.removeEventListener('compositionstart', onCompositionStart)
+      container.removeEventListener('compositionend', onCompositionEnd)
+      container.removeEventListener('blur', onBlur)
+      composing.current = false
+    }
+  }, [editor])
 
   // -------------------------------------------------------------------------- clipboard
 
@@ -240,7 +364,7 @@ export function Surface({
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (e.defaultPrevented || fromWidget(e.target)) return
+      if (e.defaultPrevented || fromWidget(e.target) || composing.current) return
       const mod = e.metaKey || e.ctrlKey
       if (mod && e.key.toLowerCase() === 'z') {
         e.preventDefault()
@@ -253,17 +377,23 @@ export function Surface({
         editor.redo()
         return
       }
-      // Con bloques elegidos el foco no está en ningún texto, así que las teclas llegan acá.
-      if (isBlocks(editor.selection)) {
+      const sel = editor.selection
+      // Con bloques elegidos no hay caret en ningún texto.
+      if (isBlocks(sel)) {
         if (e.key === 'Escape') {
-          const id = editor.selection.ids[0]
+          const id = sel.ids[0]
           if (id) editor.run('focusBlock', { id, at: 'end' })
           e.preventDefault()
           return
         }
-        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        // Con un modificador la flecha es un comando (subir el bloque) y no un movimiento por la
+        // página: se la queda el keymap, más abajo.
+        if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !mod && !e.altKey) {
           const order = flatten(editor.doc)
-          const at = order.indexOf(editor.selection.anchor)
+          // La selección crece desde la punta lejos del ancla, no desde el ancla: si no, la
+          // tercera vez que se aprieta sigue midiendo dos bloques.
+          const head = sel.ids[0] === sel.anchor ? sel.ids[sel.ids.length - 1]! : sel.ids[0]!
+          const at = order.indexOf(head)
           const next = order[at + (e.key === 'ArrowDown' ? 1 : -1)]
           if (next) {
             editor.run(e.shiftKey ? 'selectBlockRange' : 'selectBlock', { id: next })
@@ -272,7 +402,59 @@ export function Surface({
           return
         }
         if (editor.handleKey(e)) e.preventDefault()
+        return
       }
+
+      // Con un caret o un rango de texto. Todo esto vivía en cada bloque, cuando el foco vivía
+      // adentro suyo: con la región editable envolviendo la página el foco es de la superficie y
+      // las teclas llegan todas acá.
+      const container = ref.current
+      if (!isText(sel) || !container) return
+      const id = sel.head.block
+      const root = textRootOf(container, id)
+
+      // Borrar dentro del texto lo hace el navegador: sabe de emojis, de acentos y de lo que
+      // eligió el mouse mejor que cualquier cosa que escribamos acá. Parado en el borde no, porque
+      // ahí junta dos bloques, y eso es del motor.
+      if ((e.key === 'Backspace' || e.key === 'Delete') && !mod && !e.altKey) {
+        const at = root ? offsetOfCaret(root) : null
+        const collapsed = document.getSelection()?.isCollapsed ?? true
+        const total = plain(editor.block(id)?.text).length
+        const boundary = e.key === 'Backspace' ? at === 0 : at === total
+        if (!collapsed || !boundary) return
+        if (editor.handleKey(e)) e.preventDefault()
+        return
+      }
+
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        // Con un modificador la flecha ya no mueve el caret: es un comando, y el keymap sabe cuál.
+        if (mod || e.altKey) {
+          if (editor.handleKey(e)) e.preventDefault()
+          return
+        }
+        // Con shift la extiende el navegador, y puede salir del bloque: la región editable es la
+        // superficie entera. Lo que quede elegido lo cuenta `selectionchange`.
+        if (e.shiftKey) return
+        if (crossBlockArrow(editor, container, id, root, e.key === 'ArrowUp')) e.preventDefault()
+        return
+      }
+
+      if (e.key === 'ArrowLeft' && !e.shiftKey) {
+        const at = root ? offsetOfCaret(root) : null
+        if (at === 0 && editor.run('caretBackward')) {
+          e.preventDefault()
+          return
+        }
+      }
+      if (e.key === 'ArrowRight' && !e.shiftKey) {
+        const at = root ? offsetOfCaret(root) : null
+        if (at === plain(editor.block(id)?.text).length && editor.run('caretForward')) {
+          e.preventDefault()
+          return
+        }
+      }
+
+      if (editor.handleKey(e)) e.preventDefault()
     },
     [editor],
   )
@@ -337,8 +519,12 @@ export function Surface({
       className={['melu-surface', className].filter(Boolean).join(' ')}
       data-melu-surface="true"
       data-read-only={readOnly || undefined}
+      // La región editable de verdad es esta, no la de cada bloque: es lo que deja que una
+      // selección nativa cruce de un párrafo a otro. Los editables de adentro quedan igual, para
+      // enfocar un bloque y para que un widget se declare no editable.
+      contentEditable={!readOnly}
+      suppressContentEditableWarning
       onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
       onCopy={onCopy}
       onCut={onCut}
       onPaste={onPaste}
@@ -357,12 +543,50 @@ export function Surface({
   return <EditorProvider value={editor}>{surface}</EditorProvider>
 }
 
+/**
+ * Si una flecha vertical tiene que salir del bloque, y dónde caer. Solo sale del primer o último
+ * renglón, y apunta a la columna donde estaba el caret. Eso es geometría, así que se mide acá.
+ */
+function crossBlockArrow(editor: Editor, surface: HTMLElement, id: BlockId, root: HTMLElement | null, up: boolean): boolean {
+  if (!root) return false
+  const sel = document.getSelection()
+  if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return false
+  const rect = sel.getRangeAt(0).getBoundingClientRect()
+  const bounds = root.getBoundingClientRect()
+  const line = parseFloat(getComputedStyle(root).lineHeight) || 24
+  const from = rect.height ? rect : bounds
+  const leaving = up ? from.top - bounds.top < line * 0.6 : bounds.bottom - from.bottom < line * 0.6
+  if (!leaving) return false
+
+  const target = neighbourTextual(editor, id, up)
+  if (!target) return false
+
+  const targetRoot = textRootOf(surface, target)
+  if (!targetRoot) return editor.run('focusBlock', { id: target, at: up ? 'end' : 'start' })
+
+  // La columna manda: se busca el offset del destino que cae bajo la misma x, en su último
+  // renglón si se sube y en el primero si se baja.
+  const box = targetRoot.getBoundingClientRect()
+  const y = up ? box.bottom - line / 2 : box.top + line / 2
+  const at = offsetAtPoint(targetRoot, from.left || box.left, y)
+  return editor.run('focusBlock', { id: target, at: at ?? (up ? 'end' : 'start') })
+}
+
+/** El bloque con texto anterior o siguiente en el orden de lectura. */
+function neighbourTextual(editor: Editor, id: BlockId, up: boolean): BlockId | null {
+  const order = flatten(editor.doc).filter((b) => editor.state.schema.isTextual(editor.block(b)?.type ?? ''))
+  const i = order.indexOf(id)
+  if (i === -1) return null
+  return (up ? order[i - 1] : order[i + 1]) ?? null
+}
+
 /** El pedazo clickeable del final: una página siempre tiene dónde seguir escribiendo. */
 function Tail() {
   const editor = useEditor()
   return (
     <div
       className="melu-tail"
+      {...SKIP}
       onClick={() => {
         const kids = editor.doc.blocks[editor.doc.root]!.children
         const last = kids[kids.length - 1]
@@ -386,6 +610,7 @@ function DropIndicator({ target, surface }: { target: DropTarget; surface: HTMLE
     return (
       <div
         className="melu-drop-inside"
+        {...SKIP}
         style={{ left: rect.left - box.left, top: rect.top - box.top, width: rect.width, height: rect.height }}
       />
     )
@@ -393,6 +618,7 @@ function DropIndicator({ target, surface }: { target: DropTarget; surface: HTMLE
   return (
     <div
       className="melu-drop-line"
+      {...SKIP}
       style={{ left: target.hint.x - box.left, top: target.hint.y - box.top, width: target.hint.width }}
     />
   )

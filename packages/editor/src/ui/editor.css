@@ -1,6 +1,35 @@
 /* Cada color es un token con respaldo: solo se ve como melu si melu está. Las medidas son las de
    Notion, medidas con regla. */
 
+/* Los diez tonos van en la raíz y no adentro de la superficie: son datos del documento y no del
+   editor, y quien dibuje una leyenda o un selector de color afuera los necesita igual. La
+   superficie los hereda como cualquier descendiente. */
+:root {
+  /* El default es la tinta misma. Escrito con su respaldo y no como `var(--melu-ink)`, porque
+     acá arriba esa variable todavía no existe: la declara la superficie. */
+  --melu-tone-default: var(--text, #1b2624);
+  --melu-tone-gray: #6b7a77;
+  --melu-tone-brown: #8a6a4f;
+  --melu-tone-orange: #c1703a;
+  --melu-tone-yellow: #a8842a;
+  --melu-tone-green: #3f7d55;
+  --melu-tone-blue: #3a6ea8;
+  --melu-tone-purple: #7255a8;
+  --melu-tone-pink: #b04f83;
+  --melu-tone-red: #c2453c;
+
+  --melu-wash-default: transparent;
+  --melu-wash-gray: #f1f3f2;
+  --melu-wash-brown: #f6efe8;
+  --melu-wash-orange: #fdf0e6;
+  --melu-wash-yellow: #fdf6e0;
+  --melu-wash-green: #ebf5ee;
+  --melu-wash-blue: #eaf1f9;
+  --melu-wash-purple: #f2eefa;
+  --melu-wash-pink: #fceef5;
+  --melu-wash-red: #fdeeed;
+}
+
 .melu-surface {
   /* ------- medidas ------- */
   --melu-column: 720px;
@@ -30,29 +59,6 @@
   --melu-danger: var(--danger, #c2453c);
   --melu-pop: var(--popover, #ffffff);
   --melu-shadow: var(--shadow-card, 0 1px 2px rgba(34, 47, 45, 0.06), 0 12px 28px -14px rgba(34, 47, 45, 0.24));
-
-  /* ------- los diez tonos, para texto y para fondo ------- */
-  --melu-tone-default: var(--melu-ink);
-  --melu-tone-gray: #6b7a77;
-  --melu-tone-brown: #8a6a4f;
-  --melu-tone-orange: #c1703a;
-  --melu-tone-yellow: #a8842a;
-  --melu-tone-green: #3f7d55;
-  --melu-tone-blue: #3a6ea8;
-  --melu-tone-purple: #7255a8;
-  --melu-tone-pink: #b04f83;
-  --melu-tone-red: #c2453c;
-
-  --melu-wash-default: transparent;
-  --melu-wash-gray: #f1f3f2;
-  --melu-wash-brown: #f6efe8;
-  --melu-wash-orange: #fdf0e6;
-  --melu-wash-yellow: #fdf6e0;
-  --melu-wash-green: #ebf5ee;
-  --melu-wash-blue: #eaf1f9;
-  --melu-wash-purple: #f2eefa;
-  --melu-wash-pink: #fceef5;
-  --melu-wash-red: #fdeeed;
 
   position: relative;
   /* La columna de texto sigue midiendo lo mismo: el canal se suma, no se resta. */
