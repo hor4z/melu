@@ -224,7 +224,7 @@ lectura `apply` no escribe.
 
 ## Los tests
 
-914 en jsdom y 110 en un navegador, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
+914 en jsdom y 108 en un navegador, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
 no "splitBlock con texto vacío". Cada archivo vive al lado del que prueba, y `src/test/` tiene el
 andamio que comparten (un motor armado, una vista montada).
 
@@ -281,8 +281,10 @@ corre en un segundo.
 
 **Y lo que cuesta escribir también se mide.** Con teclas de verdad, en el navegador: una tecla en un
 documento de mil bloques costaba 143 milisegundos y desde los doscientos ya se sentía. No era el
-motor (dibuja lo que cambió y nada más: 10 ms con quinientos bloques), era el árbol del taller
-rearmándose entero. El test que lo cuida no mira milisegundos, que dependen de la máquina: compara
+motor (dibuja lo que cambió y nada más: 10 ms con quinientos bloques), era un panel del taller
+rearmándose entero en cada tecla. Ese panel después se fue por otra razón (a quien escribe una
+actividad no le decía nada), pero la medición y el criterio quedan: se compara el costo por tecla
+con cuarenta bloques contra el mismo con cuatrocientos. El test que lo cuida no mira milisegundos, que dependen de la máquina: compara
 el costo por tecla con cuarenta bloques contra el mismo con cuatrocientos y pide que no se dispare.
 Un umbral en milisegundos habría sido un test que a veces falla.
 

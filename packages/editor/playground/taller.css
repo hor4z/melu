@@ -23,12 +23,10 @@
   --taller-solid-ink: var(--solid-foreground, #fff);
 
   /* ------- el marco ------- */
-  --taller-izq: 264px;
   --taller-der: 300px;
   --taller-aire: 12px;
   --taller-bar: 44px;
   --taller-btn: 32px;
-  --taller-fila: 32px;
   --taller-badge: 36px;
 
   /* ------- radios: uno por rol, ninguno repetido ------- */
@@ -56,7 +54,9 @@ html, body, #root { height: 100%; }
 
 body {
   margin: 0;
-  background: var(--taller-canvas);
+  /* Blanco de punta a punta, como una página de Notion: la hoja dejó de ser una tarjeta, así que
+     el fondo es el papel. Lo que flota encima (la barra, el panel) se distingue por su borde. */
+  background: var(--taller-card);
   color: var(--taller-ink);
   font-family: var(--font-sans, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
   font-size: var(--taller-texto);
@@ -74,22 +74,31 @@ body {
   inset: 0;
   overflow-y: auto;
   padding-block: 76px 120px;
-  padding-inline: calc(var(--taller-izq) + var(--taller-aire) * 2) calc(var(--taller-der) + var(--taller-aire) * 2);
+  /* A la izquierda un margen y nada más (el panel de ese lado se fue), y a la derecha el ancho del
+     que quedó. Ese hueco es "el canvas", y es contra él que la hoja se pone a la izquierda, al
+     centro o a la derecha. */
+  padding-inline: calc(var(--taller-aire) * 2) calc(var(--taller-der) + var(--taller-aire) * 2);
   /* Un contenedor con nombre, que ahora mide el hueco entre los paneles: es lo que deja que las
      columnas se apilen por el ancho de la columna y no por el de la ventana. */
   container-type: inline-size;
 }
 
+/* La hoja no es una tarjeta: es la página. Sin borde, sin fondo propio y sin sombra, como en
+   Notion, para que lo único que se mire sea lo que se escribió. El ancho lo pone la columna del
+   editor, no un marco. Sin `overflow: hidden`: recortaría el canal del asa y lo que flota. */
 .taller-hoja {
-  max-width: 824px;
-  margin-inline: auto;
+  /* Lo que mide la columna más el canal del asa: un ancho fijo no dejaba lugar para moverla de
+     lado, y elegir "a la izquierda" no se notaba. */
+  max-width: calc(var(--melu-column, 720px) + 56px);
   padding-block: 28px;
-  background: var(--taller-card);
-  border: 1px solid var(--taller-line);
-  border-radius: 20px;
-  box-shadow: var(--taller-sombra-flota);
-  /* Sin `overflow: hidden`: recortaría el canal del asa y lo que flota. */
+  /* De qué lado del canvas se apoya la columna. Al centro es lo de siempre y sigue siendo el
+     default; los otros dos existen porque una columna angosta contra el borde deja lugar al lado
+     para mirar otra cosa, y porque en una pantalla ancha el centro queda lejos de la mano. */
+  margin-inline: auto;
 }
+
+.taller-hoja[data-lado="izquierda"] { margin-inline: 0 auto; }
+.taller-hoja[data-lado="derecha"] { margin-inline: auto 0; }
 
 /* -------------------------------------------------------------------------- paneles */
 
@@ -107,7 +116,6 @@ body {
   overflow: hidden;
 }
 
-.taller-panel[data-lado="izq"] { left: var(--taller-aire); width: var(--taller-izq); }
 .taller-panel[data-lado="der"] { right: var(--taller-aire); width: var(--taller-der); }
 
 .taller-panel-cabeza {
@@ -131,92 +139,21 @@ body {
   line-height: 1.6;
 }
 
-/* -------------------------------------------------------------------------- el árbol */
-
-.taller-fila {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  height: var(--taller-fila);
-  padding: 0 6px 0 8px;
-  border: 0;
-  border-radius: var(--taller-r-fila);
-  background: none;
-  font: inherit;
-  color: var(--taller-ink);
-  text-align: left;
-  cursor: pointer;
-}
-
-.taller-fila:hover { background: var(--taller-hover); }
-.taller-fila[data-activa="true"] { background: var(--taller-wash); color: var(--taller-accent); }
-.taller-fila svg { flex: 0 0 auto; color: var(--taller-ink-faint); }
-.taller-fila[data-activa="true"] svg { color: currentColor; }
-
-.taller-fila-texto { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.taller-fila-texto[data-sin-texto="true"] { color: var(--taller-ink-faint); font-style: italic; }
-
-.taller-fila-acciones { display: flex; gap: 1px; opacity: 0; }
-.taller-fila:hover .taller-fila-acciones,
-.taller-fila:focus-within .taller-fila-acciones { opacity: 1; }
-
-.taller-mini {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border: 0;
-  border-radius: 6px;
-  background: none;
-  color: var(--taller-ink-faint);
-  cursor: pointer;
-}
-
-.taller-mini:hover { background: var(--taller-hover); color: var(--taller-ink); }
-.taller-mini[data-peligro="true"]:hover { color: var(--danger, #c2453c); }
-
-.taller-buscador {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 8px;
-  border: 1px solid var(--taller-line);
-  border-radius: var(--taller-r-pill);
-  background: var(--taller-canvas);
-  color: var(--taller-ink-faint);
-}
-
-.taller-buscador input {
-  flex: 1 1 auto;
-  min-width: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: var(--taller-texto-sm);
-  color: var(--taller-ink);
-  outline: none;
-}
-
-.taller-tecla {
-  padding: 1px 5px;
-  border: 1px solid var(--taller-line);
-  border-radius: 5px;
-  font-size: 10px;
-  color: var(--taller-ink-faint);
-}
-
 /* -------------------------------------------------------------------------- la barra de arriba */
 
+/* Dos grupos, y el hueco los separa: las acciones donde arranca el canvas y el menú contra el
+   panel de la derecha. `pointer-events: none` en el hueco para no tapar la hoja de punta a punta;
+   cada grupo lo vuelve a prender. */
 .taller-bar-hueco {
   position: fixed;
   top: var(--taller-aire);
-  left: calc(var(--taller-izq) + var(--taller-aire) * 2);
+  left: var(--taller-aire);
   right: calc(var(--taller-der) + var(--taller-aire) * 2);
   z-index: 30;
   display: flex;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--taller-aire);
   pointer-events: none;
 }
 
@@ -299,7 +236,9 @@ body {
   position: fixed;
   z-index: 30;
   bottom: 20px;
-  left: calc(var(--taller-izq) + var(--taller-aire) * 2 + 4px);
+  /* En el canal del asa, al borde del canvas: la cuenta vieja lo dejaba adentro de la hoja y
+     tapaba el texto. */
+  left: calc(var(--taller-aire) * 2 + 4px);
   display: grid;
   place-items: center;
   width: 44px;
@@ -476,16 +415,6 @@ textarea.taller-input {
 
 .taller-muestra[data-on="true"] { box-shadow: 0 0 0 2px var(--taller-accent); }
 
-.taller-codigo {
-  margin: 0;
-  padding: 10px 12px;
-  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: var(--taller-texto-xs);
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--taller-ink-soft);
-}
 
 /* -------------------------------------------------------------------------- angosto */
 
