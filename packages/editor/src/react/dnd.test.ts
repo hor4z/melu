@@ -151,6 +151,20 @@ describe('caer adentro de un contenedor', () => {
   })
 })
 
+describe('destinos imposibles', () => {
+  it('si nadie en la cadena acepta el tipo no hay destino, en lugar de una línea que miente', () => {
+    const e = makeEditor(md('| a | b |', '| --- | --- |', '| c | d |'))
+    e.run('insertBlock', { type: 'paragraph', at: 'end' })
+    const tipoDe = (id: string) => e.doc.blocks[id]!.type
+    const profundidades = ids(e).map((id) => (tipoDe(id) === 'table_cell' ? 2 : tipoDe(id) === 'table_row' ? 1 : 0))
+    // Una fila sólo acepta celdas, y la tabla sólo filas: un párrafo no entra en ninguna de las dos.
+    const fila = ids(e).findIndex((id) => tipoDe(id) === 'table_row')
+    const ultimo = ids(e).length - 1
+    const destino = targetAt(e.doc, foto(e, profundidades), at(e, ultimo), 52 + PASO * 3, abajoDe(fila), acepta(e))
+    expect(destino === null || destino.parent === e.doc.root).toBe(true)
+  })
+})
+
 describe('lo que se dibuja', () => {
   it('la línea de un destino "después" va en el borde de abajo del vecino', () => {
     const e = editorWith('uno', 'dos')

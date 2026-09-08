@@ -138,7 +138,7 @@ export function Surface({
   const ref = useRef<HTMLDivElement>(null)
   const merged = useMemo(() => ({ ...defaultRenderers, ...renderers }), [renderers])
   const [drop, setDrop] = useState<DropTarget | null>(null)
-  const dragging = useRef<{ id: BlockId; placed: ReturnType<typeof measure> } | null>(null)
+  const dragging = useRef<{ id: BlockId; placed: ReturnType<typeof measure>; origin: DOMRect } | null>(null)
   /** El último destino calculado, para el `pointerup` que se registró una sola vez. */
   const latestDrop = useRef<DropTarget | null>(null)
   /**
@@ -443,7 +443,13 @@ export function Surface({
       // adentro suyo: con la región editable envolviendo la página el foco es de la superficie y
       // las teclas llegan todas acá.
       const container = ref.current
-      if (!isText(sel) || !container) return
+      if (!container) return
+      // Sin selección no hay caret que mover, pero sí atajos que corren igual: `Mod+A`, insertar
+      // un bloque, deshacer. Antes se volvía acá y morían todos.
+      if (!isText(sel)) {
+        if (editor.handleKey(e)) e.preventDefault()
+        return
+      }
       const id = sel.head.block
       const root = textRootOf(container, id)
 
@@ -473,16 +479,13 @@ export function Surface({
         return
       }
 
-      if (e.key === 'ArrowLeft' && !e.shiftKey) {
+      // Con un rango abierto las flechas horizontales lo colapsan, y eso lo hace el navegador. Sin
+      // esta guarda, una flecha izquierda sobre un rango que empieza en el borde saltaba al bloque
+      // anterior en lugar de dejar el caret donde empezaba lo elegido.
+      if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.shiftKey && isCollapsed(sel)) {
         const at = root ? offsetOfCaret(root) : null
-        if (at === 0 && editor.run('caretBackward')) {
-          e.preventDefault()
-          return
-        }
-      }
-      if (e.key === 'ArrowRight' && !e.shiftKey) {
-        const at = root ? offsetOfCaret(root) : null
-        if (at === plain(editor.block(id)?.text).length && editor.run('caretForward')) {
+        const salida = e.key === 'ArrowLeft' ? at === 0 : at === plain(editor.block(id)?.text).length
+        if (salida && editor.run(e.key === 'ArrowLeft' ? 'caretBackward' : 'caretForward')) {
           e.preventDefault()
           return
         }
@@ -500,7 +503,11 @@ export function Surface({
       const container = ref.current
       if (!container || readOnly) return
       e.preventDefault()
-      dragging.current = { id, placed: measure(container, editor.doc) }
+      // Los rects se miden una vez y son coordenadas de ventana, así que si la página scrollea en
+      // el medio del arrastre quedan todos corridos. En lugar de volver a medir en cada movimiento
+      // (un layout entero por pixel de mouse), se guarda dónde estaba la superficie: la diferencia
+      // contra dónde está ahora es exactamente cuánto se scrolleó, y eso se le suma al puntero.
+      dragging.current = { id, placed: measure(container, editor.doc), origin: container.getBoundingClientRect() }
       // Se limpia al empezar: un arrastre que cruza el umbral y se suelta sin un solo movimiento
       // más usaba el destino del arrastre anterior y mandaba el bloque ahí.
       latestDrop.current = null
@@ -514,12 +521,13 @@ export function Surface({
       const move = (ev: PointerEvent) => {
         const state = dragging.current
         if (!state) return
+        const ahora = container.getBoundingClientRect()
         const target = targetAt(
           editor.doc,
           state.placed,
           state.id,
-          ev.clientX,
-          ev.clientY,
+          ev.clientX + (state.origin.left - ahora.left),
+          ev.clientY + (state.origin.top - ahora.top),
           (parent, child) => editor.state.schema.accepts(parent, child),
         )
         // El ref se escribe donde se calcula y no durante el render: `pointerup` se registra una
@@ -584,7 +592,7 @@ export function Surface({
       {...rest}
     >
       <Page renderers={merged} readOnly={readOnly} />
-      {drop ? <DropIndicator target={drop} surface={ref.current} /> : null}
+      {drop ? <DropIndicator target={drop} surface={ref.current} origin={dragging.current?.origin ?? null} /> : null}
       <DragContext.Provider value={contexto}>{children}</DragContext.Provider>
       {!readOnly ? <Tail /> : null}
     </div>
@@ -660,14 +668,31 @@ function Tail() {
   )
 }
 
-/** La línea o el marco que dice dónde va a caer lo que se está arrastrando. */
-function DropIndicator({ target, surface }: { target: DropTarget; surface: HTMLElement | null }) {
+/**
+ * La línea o el marco que dice dónde va a caer lo que se está arrastrando.
+ *
+ * Se ubica contra dónde estaba la superficie al empezar el arrastre y no contra dónde está ahora:
+ * el destino se calculó con los rects de ese momento, así que mezclarlos con los de ahora deja la
+ * línea corrida justo lo que se haya scrolleado.
+ */
+function DropIndicator({
+  target,
+  surface,
+  origin,
+}: {
+  target: DropTarget
+  surface: HTMLElement | null
+  origin: DOMRect | null
+}) {
   if (!surface) return null
-  const box = surface.getBoundingClientRect()
+  // Dos marcos de referencia, y hay que no mezclarlos. El marco de un contenedor se mide ahora, así
+  // que se resta contra la superficie de ahora. La línea viene de los rects congelados al empezar,
+  // así que se resta contra dónde estaba la superficie entonces.
   if (target.hint.kind === 'inside') {
     const el = surface.querySelector<HTMLElement>(`[${BLOCK_ATTR}="${target.hint.id.replace(/["\\]/g, '\\$&')}"]`)
     const rect = el?.getBoundingClientRect()
     if (!rect) return null
+    const box = surface.getBoundingClientRect()
     return (
       <div
         className="melu-drop-inside"
@@ -676,6 +701,7 @@ function DropIndicator({ target, surface }: { target: DropTarget; surface: HTMLE
       />
     )
   }
+  const box = origin ?? surface.getBoundingClientRect()
   return (
     <div
       className="melu-drop-line"

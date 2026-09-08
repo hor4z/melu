@@ -247,6 +247,30 @@ describe('la selección cruza bloques', () => {
     expect(document.querySelector('.melu-bullet')).toHaveAttribute('draggable', 'false')
   })
 
+  it('sin selección los atajos siguen andando: antes morían todos', () => {
+    const { editor } = mount('uno\n\ndos')
+    act(() => {
+      editor.setSelection(null)
+    })
+    const superficie = document.querySelector('[data-melu-surface]')!
+    act(() => {
+      fireEvent.keyDown(superficie, { key: 'a', ctrlKey: true })
+    })
+    expect(editor.selection).not.toBeNull()
+  })
+
+  it('la flecha izquierda sobre un rango lo colapsa, en lugar de saltar al bloque anterior', () => {
+    const { editor } = mount('uno\n\ndos')
+    caretTo(editor, 1, 0, 2)
+    const antes = editor.selection
+    act(() => {
+      fireEvent.keyDown(blocks()[1]!, { key: 'ArrowLeft' })
+    })
+    // El motor no la toca: colapsar un rango es del navegador, y saltar de bloque acá era saltarse
+    // el principio de lo que estaba elegido.
+    expect(editor.selection).toEqual(antes)
+  })
+
   it('Mod+Shift+arriba sube el bloque, con el caret adentro del texto', async () => {
     const user = userEvent.setup()
     const { editor } = mount('- uno\n- dos')

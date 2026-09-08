@@ -29,7 +29,7 @@ import { plain } from '../core/text.ts'
 import { activeBlock } from '../core/selection.ts'
 import { useEditor, useSelection } from '../react/hooks.ts'
 import { useDragHandle } from '../react/Surface.tsx'
-import { BLOCK_ATTR, SKIP, focusBlockElement } from '../react/dom.ts'
+import { BLOCK_ATTR, SKIP, focusSurface } from '../react/dom.ts'
 import { Icon, hasIcon, type IconName } from '../react/icons.tsx'
 import { Popover } from './Popover.tsx'
 import { rectOf, type Anchor } from './float.ts'
@@ -254,9 +254,8 @@ function insertBelow(editor: ReturnType<typeof useEditor>, id: BlockId, surfaceO
   // cuando React lo dibujó, así que buscarlo antes no encuentra nada; y el menú se ubica midiendo
   // dónde está el caret, así que el foco tiene que estar puesto antes de escribir la barra.
   requestAnimationFrame(() => {
-    const target = activeBlock(editor.selection)
     const surface = surfaceOf()
-    if (target && surface) focusBlockElement(surface, target)
+    if (surface) focusSurface(surface)
     if (editor.selection?.kind === 'text') editor.run('insertText', { text: '/' })
   })
 }

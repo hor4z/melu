@@ -453,6 +453,28 @@ describe('mover bloques', () => {
     expect(sketch(e)).toEqual(['paragraph: Xundo'])
   })
 
+  it('Delete y Backspace en la misma junta dejan el mismo documento', () => {
+    // Un bloque que recibe y puede tener hijos, y otro que los trae: es el caso donde los dos
+    // borrados se portaban distinto. Se arma a mano porque markdown no sabe anidar bajo un párrafo.
+    const armar = () =>
+      makeEditor([
+        { type: 'paragraph', text: [{ text: 'padre' }] },
+        { type: 'paragraph', text: [{ text: 'otro' }], children: [{ type: 'paragraph', text: [{ text: 'hijo' }] }] },
+      ])
+
+    const conDelete = armar()
+    caretAt(conDelete, 0, 5)
+    press(conDelete, 'Delete')
+
+    const conBackspace = armar()
+    caretAt(conBackspace, 1, 0)
+    press(conBackspace, 'Backspace')
+
+    // Antes el de adelante aplanaba los hijos un nivel y el de atrás los dejaba adentro.
+    expect(sketch(conDelete)).toEqual(sketch(conBackspace))
+    expect(sketch(conDelete)).toEqual(['paragraph: padreotro', '  paragraph: hijo'])
+  })
+
   it('moveBlock se niega a meter un bloque adentro de sí mismo', () => {
     const e = editorWith('- uno', '  - dos')
     expect(e.run('moveBlock', { id: at(e, 0), parent: at(e, 1), index: 0 })).toBe(false)

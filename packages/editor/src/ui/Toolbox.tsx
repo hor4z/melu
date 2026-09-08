@@ -4,6 +4,7 @@
 
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { BlockSpec } from '../core/schema.ts'
+import { parentOf } from '../core/doc.ts'
 import { useEditor } from '../react/hooks.ts'
 import { Icon, hasIcon } from '../react/icons.tsx'
 import { SKIP, blockIdOf, elementAtPoint } from '../react/dom.ts'
@@ -65,6 +66,31 @@ export function Toolbox({ initial = { top: 16, right: 16 }, extras, title = 'Blo
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', up)
   }, [])
+
+  /**
+   * Sobre qué bloque cae lo que se soltó.
+   *
+   * `blockIdOf` devuelve el bloque más interno, que sobre una tabla es una celda y sobre un armado
+   * es una columna. Insertar al lado de una celda mete un párrafo como hermano de las celdas de la
+   * fila, que es un documento roto que ningún normalizador arregla. Así que se sube hasta el
+   * primero que puede tener a este tipo como hermano.
+   */
+  const anclaPara = useCallback(
+    (type: string, id: string | null): string | undefined => {
+      if (!id) return undefined
+      let at: string | null = id
+      while (at) {
+        const parent: string | null = parentOf(editor.doc, at)
+        if (!parent) return undefined
+        if (parent === editor.doc.root) return at
+        const spec = editor.block(parent)?.type
+        if (spec && editor.state.schema.accepts(spec, type)) return at
+        at = parent
+      }
+      return undefined
+    },
+    [editor],
+  )
 
   const insert = useCallback(
     (spec: BlockSpec, target?: string) => {
@@ -129,7 +155,7 @@ export function Toolbox({ initial = { top: 16, right: 16 }, extras, title = 'Blo
         // Soltar fuera de la página no inserta nada: cancelar un arrastre tiene que ser posible.
         // Soltar sobre el propio panel tampoco, aunque el panel esté adentro de la superficie.
         if (!el?.closest('[data-melu-surface]') || el.closest('.melu-toolbox')) return
-        insert(spec, blockIdOf(el) ?? undefined)
+        insert(spec, anclaPara(spec.type, blockIdOf(el)))
       }
       window.addEventListener('pointermove', move)
       window.addEventListener('pointerup', up)
