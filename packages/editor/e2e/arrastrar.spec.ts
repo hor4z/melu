@@ -147,6 +147,26 @@ test.describe('el asa', () => {
     expect(despues.at(-1)).toBe('paragraph: uno')
   })
 
+  test('una imagen se angosta arrastrando su manija, y el ancho queda en las props', async ({ page }) => {
+    await abrir(page, 'uno')
+    await page.evaluate(() => {
+      window.melu.run('insertBlock', { type: 'image', props: { src: 'https://placehold.co/600x300', width: 100 } })
+    })
+    const figura = page.locator('.melu-figure').first()
+    await figura.waitFor({ state: 'visible' })
+    const grip = page.getByRole('button', { name: 'Ensanchar' })
+    const g = (await grip.boundingBox())!
+    await page.mouse.move(g.x + g.width / 2, g.y + g.height / 2)
+    await page.mouse.down()
+    // Hacia adentro: el ancho se cuenta desde el centro, así que mover una manija mueve las dos.
+    await page.mouse.move(g.x - 120, g.y + g.height / 2, { steps: 8 })
+    await page.mouse.up()
+    // El ancho es un porcentaje de la columna y no píxeles: la misma actividad entra en un celular
+    // y en un proyector.
+    await expect.poll(() => page.evaluate(() => window.taller.propsAt(1).width)).toBeLessThan(80)
+    await expect.poll(() => page.evaluate(() => window.taller.propsAt(1).width)).toBeGreaterThan(20)
+  })
+
   test('el asa señala el bloque que se está tocando y no el de al lado', async ({ page }) => {
     await abrir(page, 'uno\n\ndos\n\ntres')
     const segundo = await caja(page, 1).boundingBox()

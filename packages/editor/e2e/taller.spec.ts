@@ -148,6 +148,17 @@ test.describe('la barra de arriba', () => {
     expect(largo, `${Math.round(corto)} ms con 40 bloques y ${Math.round(largo)} ms con 400`).toBeLessThan(corto * 6)
   })
 
+  test('en solo lectura, lo que no se puede hacer se ve que no se puede', async ({ page }) => {
+    await abrir(page, 'uno\n\ndos')
+    await page.getByRole('button', { name: /Solo lectura/ }).click()
+    // La caja de bloques no se monta en solo lectura, así que su interruptor tampoco puede quedar
+    // ofreciéndose: un botón que no hace nada es peor que un botón que no está.
+    await expect(page.getByRole('button', { name: /^Caja/ })).toBeDisabled()
+    await expect(page.locator('.melu-handle')).toHaveCount(0)
+    await page.getByRole('button', { name: /Solo lectura/ }).click()
+    await expect(page.getByRole('button', { name: /^Caja/ })).toBeEnabled()
+  })
+
   test('el ancho de columna cambia lo que mide la hoja', async ({ page }) => {
     await abrir(page, 'uno')
     const ancho = async () => (await page.locator('[data-melu-surface]').boundingBox())!.width

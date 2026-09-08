@@ -84,7 +84,14 @@ export function TopBar({
           <Icon name="chevron" size={13} style={{ transform: 'rotate(90deg)' }} />
         </button>
 
-        <button type="button" className="taller-pill" data-on={caja} onClick={() => onCaja(!caja)}>
+        <button
+          type="button"
+          className="taller-pill"
+          data-on={caja}
+          disabled={readOnly}
+          title={readOnly ? 'En solo lectura no hay nada que insertar' : 'La caja de bloques, para arrastrar uno a la hoja'}
+          onClick={() => onCaja(!caja)}
+        >
           <Icon name="grip" size={14} />
           Caja
         </button>
@@ -92,7 +99,7 @@ export function TopBar({
         <span className="taller-sep" />
 
         <button type="button" className="taller-boton" title="Volver a empezar" onClick={onReiniciar}>
-          <Icon name="close" size={17} />
+          <Icon name="reset" size={17} />
         </button>
 
         <button type="button" className="taller-solido" onClick={onAgente}>
