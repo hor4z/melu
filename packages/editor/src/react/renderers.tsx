@@ -4,11 +4,12 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import type { Block, BlockId, Props } from '../core/doc.ts'
-import { childrenOf } from '../core/doc.ts'
+import { childrenOf, parentOf, type Doc } from '../core/doc.ts'
 import type { RichText as RichTextValue } from '../core/text.ts'
 import { plain } from '../core/text.ts'
 import { safeUrl } from '../core/serialize.ts'
-import { useEditor } from './hooks.ts'
+import { activeBlock } from '../core/selection.ts'
+import { useEditor, useSelection } from './hooks.ts'
 import { BlockText } from './BlockText.tsx'
 import { Icon, hasIcon, type IconName } from './icons.tsx'
 import { SKIP } from './dom.ts'
@@ -510,16 +511,63 @@ const TableCell: Renderer = function TableCell({ id, block, readOnly }) {
   )
 }
 
+/** La celda de esta tabla donde está el caret, si el caret está adentro de esta tabla. */
+function cellInside(doc: Doc, table: BlockId, from: BlockId | null): BlockId | undefined {
+  let at = from
+  while (at) {
+    const parent = parentOf(doc, at)
+    if (parent && parentOf(doc, parent) === table) return at
+    at = parent
+  }
+  return undefined
+}
+
+/**
+ * El pie de la tabla: agregar y quitar filas y columnas.
+ *
+ * Agregar va con el id de la tabla y no con una celda: los botones están abajo de todo, así que
+ * agregan al final. Pasándoles la primera celda, que es lo que hacían, la fila nueva caía entre las
+ * dos que ya estaban y la columna nueva entre las dos primeras.
+ *
+ * Quitar necesita saber cuál, y eso lo dice el caret: se quita la fila o la columna donde uno está
+ * escribiendo. Sin caret adentro no hay nada que quitar, y con una sola fila (o una sola columna)
+ * tampoco: los botones se apagan en lugar de no hacer nada, que es lo que hacían los comandos en
+ * silencio. Hasta ahora no había forma de quitar una fila desde el editor.
+ */
 function TableControls({ id }: { id: BlockId }) {
   const editor = useEditor()
-  const first = childrenOf(editor.doc, childrenOf(editor.doc, id)[0] ?? '')[0]
+  const selection = useSelection()
+  const celda = cellInside(editor.doc, id, activeBlock(selection))
   return (
-    <div className="melu-table-controls" {...SKIP}>
-      <button type="button" className="melu-ghost" onClick={() => editor.run('addRow', { id: first ?? id })}>
+    // Con el caret adentro de la tabla los controles se quedan a la vista: `:focus-within` no
+    // alcanza, porque el foco vive en la superficie y no adentro de la tabla, así que aparecían
+    // sólo al pasar el puntero. Y es justo cuando uno está escribiendo en una celda que quiere
+    // agregar o quitar una fila.
+    <div className="melu-table-controls" data-activa={Boolean(celda) || undefined} {...SKIP}>
+      <button type="button" className="melu-ghost" onClick={() => editor.run('addRow', { id })}>
         <Icon name="plus" size={14} /> Fila
       </button>
-      <button type="button" className="melu-ghost" onClick={() => editor.run('addColumn', { id: first ?? id })}>
+      <button type="button" className="melu-ghost" onClick={() => editor.run('addColumn', { id })}>
         <Icon name="plus" size={14} /> Columna
+      </button>
+      <span className="melu-table-controls-sep" />
+      <button
+        type="button"
+        className="melu-ghost"
+        disabled={!celda || !editor.can('removeRow', { id: celda })}
+        title={celda ? 'Quitar la fila donde está el cursor' : 'Poné el cursor en una celda'}
+        onClick={() => celda && editor.run('removeRow', { id: celda })}
+      >
+        <Icon name="trash" size={13} /> Quitar fila
+      </button>
+      <button
+        type="button"
+        className="melu-ghost"
+        disabled={!celda || !editor.can('removeColumn', { id: celda })}
+        title={celda ? 'Quitar la columna donde está el cursor' : 'Poné el cursor en una celda'}
+        onClick={() => celda && editor.run('removeColumn', { id: celda })}
+      >
+        <Icon name="trash" size={13} /> Quitar columna
       </button>
     </div>
   )

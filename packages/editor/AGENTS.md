@@ -112,6 +112,21 @@ texto con su link) y un menú al lado ofrece el resto. Lo que se ofrece sale del
 `media.ts`, así que una dirección de YouTube con lista y radio adentro igual ofrece el video con la
 dirección que se puede incrustar.
 
+**Una selección de texto no se sale de una celda ni de una columna.** Es la única regla nueva que
+hizo falta para que la tabla se comporte: un rango con una punta adentro de una celda y la otra
+afuera es de los pocos que corrompen el documento (borrarlo junta el texto de dos celdas y se lleva
+una), y el navegador lo produce sin que nadie lo pida, con un arrastre o con Shift+flecha, porque
+para él la tabla es una grilla de texto. Se recorta en `Editor.setSelection`, que es por donde pasa
+todo lo que viene del navegador, y la regla la declara el schema con `inner` y no una lista de tipos.
+
+Y con el recorte hizo falta una segunda cosa, que es la que cierra la carrera: **`beforeinput` le
+pregunta al DOM y no al modelo**. El navegador edita *su* selección, y el aviso de que la movió
+puede llegar después de la tecla; mirar el modelo ahí era perder la carrera con Shift+arriba y
+Backspace seguidos. Ahora se lee la selección del DOM, se recorta, y si cambió se le escribe de
+vuelta antes de que el navegador toque nada. Notion en cambio elige las celdas enteras y las pinta:
+eso es una selección de celdas que todavía no tenemos, y hasta que exista es mejor que la selección
+no salga de la celda que dejarla borrar media tabla.
+
 **Backspace pegado a un bloque sin texto elige antes de borrar.** Parado al principio de un párrafo
 que viene abajo de una imagen o de un separador, la primera vez se elige ese bloque y la segunda se
 borra. Notion hace otra cosa, medida el 8 de septiembre de 2026 en una página de prueba: se saltea el
@@ -209,7 +224,7 @@ lectura `apply` no escribe.
 
 ## Los tests
 
-906 en jsdom y 100 en un navegador, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
+914 en jsdom y 110 en un navegador, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
 no "splitBlock con texto vacío". Cada archivo vive al lado del que prueba, y `src/test/` tiene el
 andamio que comparten (un motor armado, una vista montada).
 
@@ -231,7 +246,8 @@ core/state        que el estado que se arma se pueda escribir: siempre hay dónd
 core/plugins      quién gana cuando dos plugins dicen lo mismo, y cómo se nombra una tecla
 core/combinaciones los tipos mezclados: una tabla en una lista, un rango que pasa por una imagen
 plugins/text      lo que se escribe sin abrir un menú, y lo que el normalizador arregla solo
-plugins/layout    tabla y columnas, y que convertir en tabla no borre el bloque
+plugins/layout    tabla y columnas: agregar y quitar filas, el rectángulo, y que la selección no
+                  se salga de una celda
 plugins/activity  los bloques de pregunta y sus props
 plugins/ciclo     el ciclo entero de los treinta y pico de tipos, por tabla: entrar, moverse,
                   duplicarse, borrarse, deshacerse y volver de JSON idéntico

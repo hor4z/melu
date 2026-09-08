@@ -8,7 +8,7 @@ import { defineSchema } from './schema.ts'
 import type { EditorState } from './state.ts'
 import { stateFrom, stateOf } from './state.ts'
 import type { Selection } from './selection.ts'
-import { isText, repair, sameSelection } from './selection.ts'
+import { clampToInner, isText, repair, sameSelection } from './selection.ts'
 import { Transaction } from './transaction.ts'
 import type { Command, CommandCtx } from './commands.ts'
 import * as core from './commands.ts'
@@ -500,6 +500,12 @@ export class Editor {
 
   /** Moves the caret without touching the document, and without an undo entry. */
   setSelection(selection: Selection): void {
+    // Una selección de texto no se sale de una celda ni de una columna. Se recorta acá porque acá
+    // pasa todo lo que viene del navegador, que es quien las produce: un arrastre del mouse o un
+    // Shift+flecha adentro de una tabla, donde para él no hay tabla sino una grilla de texto.
+    if (isText(selection)) {
+      selection = clampToInner(this.state.doc, (type) => this.schema.spec(type)?.inner === true, selection)
+    }
     if (sameSelection(selection, this.state.selection)) return
     this.exec((ctx) => {
       ctx.tr.select(selection)

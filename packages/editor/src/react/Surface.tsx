@@ -178,6 +178,17 @@ export function Surface({
       // Si el modelo ya dice esto, no vale volver a decirlo: sería un ciclo con el DOM.
       if (isText(current) && samePoint(current.anchor, range.anchor) && samePoint(current.head, range.head)) return
       editor.setSelection({ kind: 'text', anchor: range.anchor, head: range.head })
+      /**
+       * Si el modelo corrigió lo que el navegador propuso, el navegador se entera.
+       *
+       * Pasa con las celdas: una selección que se sale de una celda se recorta, y si el DOM se
+       * queda con la que cruzaba, la próxima tecla la atiende él sobre el rango viejo y edita de
+       * una celda a otra por atrás del modelo. El modelo manda, y acá es donde se le avisa.
+       */
+      const puesta = editor.selection
+      if (isText(puesta) && (!samePoint(puesta.anchor, range.anchor) || !samePoint(puesta.head, range.head))) {
+        placeRange(container, puesta.anchor, puesta.head)
+      }
     }
     document.addEventListener('selectionchange', onChange)
     return () => document.removeEventListener('selectionchange', onChange)
@@ -408,6 +419,26 @@ export function Surface({
         else editor.redo()
         return
       }
+      /**
+       * Antes de decidir nada, preguntarle al DOM qué está por editar el navegador.
+       *
+       * El navegador edita **su** selección, y el aviso de que la movió puede llegar después de
+       * esta tecla: mirar sólo el modelo acá era una carrera, y se perdía adentro de una tabla.
+       * Shift+arriba y enseguida Backspace, y el que borraba era él, sobre un rango que cruzaba dos
+       * celdas: se llevaba una celda entera y la tabla quedaba de otra forma.
+       */
+      const container = ref.current
+      const enElDom = container && !composing.current ? readSelection(container) : null
+      if (enElDom && container) {
+        editor.setSelection({ kind: 'text', anchor: enElDom.anchor, head: enElDom.head })
+        const puesta = editor.selection
+        // Y si el modelo la recortó (una selección no se sale de una celda), el DOM se entera antes
+        // de que el navegador edite sobre la vieja.
+        if (isText(puesta) && (!samePoint(puesta.anchor, enElDom.anchor) || !samePoint(puesta.head, enElDom.head))) {
+          placeRange(container, puesta.anchor, puesta.head)
+        }
+      }
+
       const sel = editor.selection
       if (isText(sel) && !spansBlocks(sel)) {
         // Borrar parado en el borde de un bloque junta dos bloques, y eso lo hace el keymap desde

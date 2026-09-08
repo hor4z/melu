@@ -498,11 +498,25 @@ pre.melu-code.melu-wrap { white-space: pre-wrap; overflow-x: visible; }
 .melu-table .melu-block[data-type="table_row"]:last-child .melu-cell { border-bottom: 0; }
 .melu-table .melu-block[data-type="table_cell"]:last-child .melu-cell { border-right: 0; }
 
-.melu-cell > .melu-text { padding: 7px 9px; min-height: 0; }
+/* Una celda vacía mide un renglón igual que sus vecinas con texto. Con `min-height: 0` la fila
+   recién agregada salía de 15px contra los 39 de las otras, aplastada y con el caret invisible. El
+   relleno se suma al mínimo porque la caja lo incluye: sin sumarlo quedaba en 24 y seguía más baja. */
+.melu-cell > .melu-text {
+  --melu-cell-pad: 7px;
+  padding: var(--melu-cell-pad) 9px;
+  min-height: calc(var(--melu-text) * var(--melu-line) + var(--melu-cell-pad) * 2);
+}
 
 .melu-table[data-header="true"] .melu-block[data-type="table_row"]:first-child .melu-cell {
   background: var(--melu-wash-gray);
   font-weight: 550;
+}
+
+.melu-table-controls-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 2px 2px;
+  background: var(--melu-edge);
 }
 
 .melu-table-controls {
@@ -514,7 +528,8 @@ pre.melu-code.melu-wrap { white-space: pre-wrap; overflow-x: visible; }
 }
 
 .melu-table-wrap:hover .melu-table-controls,
-.melu-table-wrap:focus-within .melu-table-controls { opacity: 1; }
+.melu-table-wrap:focus-within .melu-table-controls,
+.melu-table-controls[data-activa] { opacity: 1; }
 
 /* -------------------------------------------------------------------------- columnas */
 
