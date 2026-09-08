@@ -145,6 +145,10 @@ export function BlockHandle() {
           aria-label="Opciones del bloque"
           onPointerDown={(e) => {
             if (e.button !== 0) return
+            // Acá y no en `startDrag`: cancelar la acción por defecto sólo sirve mientras el evento
+            // se está despachando, y `startDrag` se llama después, desde un `pointermove`. Sin
+            // esto el navegador arranca su propio arrastre del elemento y se lleva el gesto.
+            e.preventDefault()
             // Un click abre el menú y un arrastre mueve: se decide por cuánto se movió el puntero.
             const startX = e.clientX
             const startY = e.clientY

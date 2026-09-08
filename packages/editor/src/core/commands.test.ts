@@ -3,7 +3,7 @@
 // lo primero que se rompe cuando alguien toca el motor.
 
 import { describe, expect, it } from 'vitest'
-import { at, caretAt, editorWith, ids, makeEditor, press, selectBlocks, selectRange, sketch, textAt, type, typeAt, where } from '../test/engine.ts'
+import { at, caretAt, doc, editorWith, ids, makeEditor, press, selectBlocks, selectRange, sketch, textAt, type, typeAt, where } from '../test/engine.ts'
 import { assertValid } from './doc.ts'
 import { marksInSelection } from './commands.ts'
 import { plain, rangeHasMark } from './text.ts'
@@ -343,11 +343,114 @@ describe('mover bloques', () => {
     expect(press(e, 'Mod-Shift-ArrowUp')).toBe(false)
   })
 
+  it('con cinco bloques elegidos suben los cinco, y no sólo el que tiene el caret', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis')
+    selectBlocks(e, 2, 3, 4)
+    press(e, 'Mod-Shift-ArrowUp')
+    expect(sketch(e)).toEqual([
+      'paragraph: uno',
+      'paragraph: tres',
+      'paragraph: cuatro',
+      'paragraph: cinco',
+      'paragraph: dos',
+      'paragraph: seis',
+    ])
+  })
+
+  it('y bajan los cinco también', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro')
+    selectBlocks(e, 0, 1)
+    press(e, 'Mod-Shift-ArrowDown')
+    expect(sketch(e)).toEqual(['paragraph: tres', 'paragraph: uno', 'paragraph: dos', 'paragraph: cuatro'])
+  })
+
+  it('un rango de texto que cruza tres bloques los mueve a los tres', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro')
+    selectRange(e, [1, 1], [2, 2])
+    press(e, 'Mod-Shift-ArrowDown')
+    expect(sketch(e)).toEqual(['paragraph: uno', 'paragraph: cuatro', 'paragraph: dos', 'paragraph: tres'])
+  })
+
+  it('el grupo se queda elegido después de moverse: mover dos veces mueve lo mismo', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro')
+    selectBlocks(e, 2, 3)
+    press(e, 'Mod-Shift-ArrowUp')
+    press(e, 'Mod-Shift-ArrowUp')
+    expect(sketch(e)).toEqual(['paragraph: tres', 'paragraph: cuatro', 'paragraph: uno', 'paragraph: dos'])
+  })
+
+  it('bloques salteados no se mueven: no hay un lugar donde eso quiera decir algo', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro')
+    selectBlocks(e, 0, 2)
+    expect(press(e, 'Mod-Shift-ArrowDown')).toBe(false)
+    expect(sketch(e)).toEqual(['paragraph: uno', 'paragraph: dos', 'paragraph: tres', 'paragraph: cuatro'])
+  })
+
+  it('el grupo pegado al borde no se mueve, en lugar de moverse a medias', () => {
+    const e = editorWith('uno', 'dos', 'tres')
+    selectBlocks(e, 0, 1)
+    expect(press(e, 'Mod-Shift-ArrowUp')).toBe(false)
+  })
+
   it('mover no cambia la profundidad: sube entre sus hermanos', () => {
     const e = editorWith('- uno', '  - a', '  - b')
     caretAt(e, 2, 0)
     press(e, 'Mod-Shift-ArrowUp')
     expect(sketch(e)).toEqual(['bulleted_list: uno', '  bulleted_list: b', '  bulleted_list: a'])
+  })
+
+  it('varios bloques al mismo lugar llegan juntos y en el orden en que se leían', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro', 'cinco')
+    e.run('moveBlocks', { ids: [at(e, 0), at(e, 1)], parent: e.doc.root, index: 4 })
+    expect(sketch(e)).toEqual([
+      'paragraph: tres',
+      'paragraph: cuatro',
+      'paragraph: uno',
+      'paragraph: dos',
+      'paragraph: cinco',
+    ])
+  })
+
+  it('llevarlos hacia arriba también los deja pegados', () => {
+    const e = editorWith('uno', 'dos', 'tres', 'cuatro')
+    e.run('moveBlocks', { ids: [at(e, 2), at(e, 3)], parent: e.doc.root, index: 0 })
+    expect(sketch(e)).toEqual(['paragraph: tres', 'paragraph: cuatro', 'paragraph: uno', 'paragraph: dos'])
+  })
+
+  it('el orden lo pone el documento y no el orden en que se los nombra', () => {
+    const e = editorWith('uno', 'dos', 'tres')
+    e.run('moveBlocks', { ids: [at(e, 1), at(e, 0)], parent: e.doc.root, index: 3 })
+    expect(sketch(e)).toEqual(['paragraph: tres', 'paragraph: uno', 'paragraph: dos'])
+  })
+
+  it('adentro de un contenedor que los acepta entran los que puede, y los que no se quedan', () => {
+    const e = editorWith('- lista', 'suelto', 'otro')
+    e.run('moveBlocks', { ids: [at(e, 1), at(e, 2)], parent: at(e, 0), index: 0 })
+    expect(sketch(e)).toEqual(['bulleted_list: lista', '  paragraph: suelto', '  paragraph: otro'])
+  })
+
+  it('un rango que arranca en una imagen no se come la cola del último bloque', () => {
+    const e = makeEditor(doc('![](https://ejemplo/foto.png)', 'segundo párrafo'))
+    selectRange(e, [0, 0], [1, 8])
+    expect(e.run('deleteSelection')).toBe(true)
+    // La imagen se va y lo que quedaba después del corte se queda: antes se perdía entero.
+    expect(sketch(e)).toEqual(['paragraph: párrafo'])
+    expect(where(e)).toBe('0:0')
+  })
+
+  it('si ninguna de las dos puntas tiene texto se van los dos, y el caret cae en algo escribible', () => {
+    const e = makeEditor(doc('antes', '![](https://ejemplo/foto.png)', '---'))
+    selectRange(e, [1, 0], [2, 0])
+    expect(e.run('deleteSelection')).toBe(true)
+    expect(sketch(e)).toEqual(['paragraph: antes'])
+    expect(where(e)).toBe('0:5')
+  })
+
+  it('escribir sobre un rango que arranca en una imagen escribe, en lugar de perder la tecla', () => {
+    const e = makeEditor(doc('![](https://ejemplo/foto.png)', 'segundo'))
+    selectRange(e, [0, 0], [1, 3])
+    expect(e.run('insertText', { text: 'X' })).toBe(true)
+    expect(sketch(e)).toEqual(['paragraph: Xundo'])
   })
 
   it('moveBlock se niega a meter un bloque adentro de sí mismo', () => {

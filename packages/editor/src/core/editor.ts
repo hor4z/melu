@@ -62,6 +62,7 @@ const BUILT_IN: Record<string, Command<never>> = {
   removeBlock: core.removeBlock as Command<never>,
   duplicateBlock: core.duplicateBlock as Command<never>,
   moveBlock: core.moveBlock as Command<never>,
+  moveBlocks: core.moveBlocks as Command<never>,
   moveUp: core.moveUp as Command<never>,
   moveDown: core.moveDown as Command<never>,
   indent: core.indent as Command<never>,

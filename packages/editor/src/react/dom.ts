@@ -32,6 +32,13 @@ export const SKIP = {
   'data-melu-skip': 'true',
   contentEditable: false,
   suppressContentEditableWarning: true,
+  /**
+   * Y no arrastrable, que es la parte que no se ve venir: adentro de una región editable, Chrome
+   * hace arrastrable por defecto todo lo que se declara no editable. Sin esto, apretar el asa y
+   * mover arranca el arrastre nativo del navegador, que se come los eventos de puntero, y el
+   * arrastre del editor queda colgado con el cursor de agarre pegado hasta recargar la página.
+   */
+  draggable: false,
 } as const
 
 export const blockRoot = (node: Node | null): HTMLElement | null => {

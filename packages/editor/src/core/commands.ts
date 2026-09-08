@@ -168,28 +168,37 @@ export const selectAllStep: Command = (ctx) => {
 
 // ---------------------------------------------------------------------------- text
 
+/**
+ * Saca bloques enteros y deja el caret en algo donde se pueda seguir escribiendo.
+ *
+ * Lo usan dos caminos: borrar bloques elegidos, y borrar un rango de texto donde ninguna de las dos
+ * puntas tiene texto donde pegar lo que sobra.
+ */
+function dropBlocks(ctx: CommandCtx, of: readonly BlockId[]): boolean {
+  const { tr } = ctx
+  const ids = of.filter((id) => has(tr.doc, id))
+  if (ids.length === 0) return false
+  const landing = textualBefore(ctx, ids[0]!) ?? siblingAfter(tr.doc, ids[ids.length - 1]!)
+  for (const id of ids) if (has(tr.doc, id)) tr.remove(id)
+  // Un documento sin bloques no se puede escribir: siempre queda uno donde poner el caret.
+  if (childrenOf(tr.doc, tr.doc.root).length === 0) {
+    const fresh = tr.append(tr.doc.root, { type: 'paragraph', text: [] })
+    tr.select(caret(fresh, 0))
+  } else if (landing && has(tr.doc, landing)) {
+    tr.select(caret(landing, textLength(tr.doc, landing)))
+  } else {
+    const first = childrenOf(tr.doc, tr.doc.root)[0]!
+    tr.select(caret(first, 0))
+  }
+  return true
+}
+
 /** Removes what is selected, across as many blocks as it spans, and collapses the caret. */
 export const deleteSelection: Command = (ctx) => {
   const { tr, state } = ctx
   const sel = state.selection
 
-  if (isBlocks(sel)) {
-    const ids = sel.ids.filter((id) => has(tr.doc, id))
-    if (ids.length === 0) return false
-    const landing = textualBefore(ctx, ids[0]!) ?? siblingAfter(tr.doc, ids[ids.length - 1]!)
-    for (const id of ids) if (has(tr.doc, id)) tr.remove(id)
-    // Un documento sin bloques no se puede escribir: siempre queda uno donde poner el caret.
-    if (childrenOf(tr.doc, tr.doc.root).length === 0) {
-      const fresh = tr.append(tr.doc.root, { type: 'paragraph', text: [] })
-      tr.select(caret(fresh, 0))
-    } else if (landing && has(tr.doc, landing)) {
-      tr.select(caret(landing, textLength(tr.doc, landing)))
-    } else {
-      const first = childrenOf(tr.doc, tr.doc.root)[0]!
-      tr.select(caret(first, 0))
-    }
-    return true
-  }
+  if (isBlocks(sel)) return dropBlocks(ctx, sel.ids)
 
   if (!isText(sel) || isCollapsed(sel)) return false
   const { from, to } = ordered(tr.doc, sel)
@@ -206,11 +215,32 @@ export const deleteSelection: Command = (ctx) => {
   const head = isTextual(ctx, from.block) ? sliceText(textOf(ctx, from.block), 0, from.offset) : []
   const tail = isTextual(ctx, to.block) ? sliceText(textOf(ctx, to.block), to.offset, textLen(textOf(ctx, to.block))) : []
 
+  /**
+   * El primero no siempre es el que sobrevive.
+   *
+   * Si no tiene texto (una imagen, un separador, una tabla) no hay dónde pegarle la cola del
+   * último, así que el que queda es el último con su cola y el primero se va con el resto. Antes
+   * la cola se calculaba y no se escribía en ningún lado, y el bloque que la tenía se borraba
+   * igual: arrastrar desde arriba de una imagen hasta el medio de un párrafo y apretar Backspace
+   * se comía el resto del párrafo. Se volvió alcanzable cuando la selección empezó a cruzar
+   * bloques, porque una punta parada sobre una imagen ahora es un punto válido.
+   */
+  if (!isTextual(ctx, from.block)) {
+    if (!isTextual(ctx, to.block)) return dropBlocks(ctx, touchedIds)
+    tr.setText(to.block, tail)
+    for (const id of touchedIds) {
+      if (id === to.block || !has(tr.doc, id)) continue
+      tr.remove(id)
+    }
+    tr.select(caret(to.block, 0))
+    return true
+  }
+
   // Los hijos del último quedan bajo el corte: van adentro del que queda si puede tenerlos, para
   // no perder la sangría, y como hermanos si no.
   const orphans = [...childrenOf(tr.doc, to.block)]
 
-  if (isTextual(ctx, from.block)) tr.setText(from.block, concat(head, tail))
+  tr.setText(from.block, concat(head, tail))
 
   const inside = state.schema.isContainer(getBlock(tr.doc, from.block)?.type ?? '')
   const parent = inside ? from.block : (parentOf(tr.doc, from.block) ?? tr.doc.root)
@@ -698,24 +728,72 @@ export const moveBlock: Command<{ id: BlockId; parent: BlockId; index: number }>
   return true
 }
 
-/** Moves a block up past its previous sibling, keeping its depth. */
-export const moveUp: Command<{ id?: BlockId }> = (ctx, { id } = {}) => {
+/**
+ * Varios bloques al mismo lugar, en el orden en que se leen y quedando pegados.
+ *
+ * No es un `moveBlock` en un `for`: el índice de destino se corre a medida que entran, y los que
+ * venían de más arriba del propio destino lo corren para atrás al salir. Hacer esa cuenta afuera es
+ * la clase de cosa que anda con dos bloques y falla con tres.
+ */
+export const moveBlocks: Command<{ ids: readonly BlockId[]; parent: BlockId; index: number }> = (
+  ctx,
+  { ids, parent, index },
+) => {
+  const { tr } = ctx
+  const order = flatten(tr.doc)
+  const targets = [...ids].filter((id) => has(tr.doc, id)).sort((a, b) => order.indexOf(a) - order.indexOf(b))
+  let at = index
+  let did = false
+  for (const id of targets) {
+    // Sacar un bloque que estaba antes del destino, y bajo el mismo padre, corre el hueco.
+    const salia = parentOf(tr.doc, id) === parent && indexOf(tr.doc, id) < at
+    if (!moveBlock(ctx, { id, parent, index: salia ? at - 1 : at })) continue
+    at = (salia ? at - 1 : at) + 1
+    did = true
+  }
+  return did
+}
+
+/**
+ * Los bloques que un movimiento tiene que llevarse, cuando forman un grupo que se puede mover.
+ *
+ * Un grupo es varios hermanos seguidos. Salteados no quiere decir nada (¿adónde va el hueco?), y de
+ * padres distintos tampoco, así que en esos casos no se mueve nada en lugar de mover cualquier cosa.
+ */
+function movable(ctx: CommandCtx, id?: BlockId): { parent: BlockId; first: BlockId; last: BlockId } | null {
   const { tr, state } = ctx
-  const target = id ?? activeBlock(state.selection)
-  if (!target || !has(tr.doc, target)) return false
-  const before = siblingBefore(tr.doc, target)
+  const targets = id ? [id] : selectedBlocks(tr.doc, state.selection)
+  if (targets.length === 0 || targets.some((t) => !has(tr.doc, t))) return null
+  const parent = parentOf(tr.doc, targets[0]!)
+  if (!parent) return null
+  const siblings = childrenOf(tr.doc, parent)
+  const spots = targets.map((t) => siblings.indexOf(t)).sort((a, b) => a - b)
+  if (spots[0] === -1) return null
+  if (spots[spots.length - 1]! - spots[0]! !== spots.length - 1) return null
+  return { parent, first: siblings[spots[0]!]!, last: siblings[spots[spots.length - 1]!]! }
+}
+
+/**
+ * Sube el grupo por encima del hermano de arriba, sin cambiar de nivel.
+ *
+ * Se hace moviendo al vecino y no al grupo, que además de ser un solo paso es lo que deja la
+ * selección intacta: los bloques elegidos no se tocan, se corre el de al lado.
+ */
+export const moveUp: Command<{ id?: BlockId }> = (ctx, { id } = {}) => {
+  const group = movable(ctx, id)
+  if (!group) return false
+  const before = siblingBefore(ctx.tr.doc, group.first)
   if (!before) return false
-  tr.move(target, parentOf(tr.doc, target)!, indexOf(tr.doc, before))
+  ctx.tr.move(before, group.parent, indexOf(ctx.tr.doc, group.last))
   return true
 }
 
 export const moveDown: Command<{ id?: BlockId }> = (ctx, { id } = {}) => {
-  const { tr, state } = ctx
-  const target = id ?? activeBlock(state.selection)
-  if (!target || !has(tr.doc, target)) return false
-  const after = siblingAfter(tr.doc, target)
+  const group = movable(ctx, id)
+  if (!group) return false
+  const after = siblingAfter(ctx.tr.doc, group.last)
   if (!after) return false
-  tr.move(target, parentOf(tr.doc, target)!, indexOf(tr.doc, after))
+  ctx.tr.move(after, group.parent, indexOf(ctx.tr.doc, group.first))
   return true
 }
 

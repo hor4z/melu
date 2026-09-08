@@ -504,7 +504,11 @@ export function Surface({
       // Se limpia al empezar: un arrastre que cruza el umbral y se suelta sin un solo movimiento
       // más usaba el destino del arrastre anterior y mandaba el bloque ahí.
       latestDrop.current = null
-      editor.run('selectBlock', { id })
+      // Si el bloque agarrado ya era parte de lo elegido, se arrastra todo lo elegido. Pisar la
+      // selección acá era lo que hacía imposible mover varios bloques de una: elegías cinco,
+      // agarrabas el asa de uno, y en ese instante quedaba elegido ese solo.
+      const elegidos = editor.selection
+      if (!isBlocks(elegidos) || !elegidos.ids.includes(id)) editor.run('selectBlock', { id })
       document.body.classList.add('melu-dragging')
 
       const move = (ev: PointerEvent) => {
@@ -523,7 +527,7 @@ export function Surface({
         latestDrop.current = target
         setDrop(target)
       }
-      const up = () => {
+      const soltar = (aplicar: boolean) => {
         const state = dragging.current
         const target = latestDrop.current
         dragging.current = null
@@ -532,12 +536,21 @@ export function Surface({
         document.body.classList.remove('melu-dragging')
         window.removeEventListener('pointermove', move)
         window.removeEventListener('pointerup', up)
-        if (state && target && isRealMove(editor.doc, state.id, target)) {
-          editor.run('moveBlock', { id: state.id, parent: target.parent, index: target.index })
+        window.removeEventListener('pointercancel', cancelar)
+        if (aplicar && state && target && isRealMove(editor.doc, state.id, target)) {
+          editor.run('moveBlocks', { ids: gruposDeArrastre(editor, state.id), parent: target.parent, index: target.index })
         }
       }
+      const up = () => soltar(true)
+      /**
+       * El puntero se puede perder sin soltarse: el sistema se queda el gesto, o el navegador
+       * arranca un arrastre propio. Sin atender esto quedaba `melu-dragging` pegado en el body, con
+       * el cursor de agarre y `user-select: none` en toda la página, hasta recargar.
+       */
+      const cancelar = () => soltar(false)
       window.addEventListener('pointermove', move)
       window.addEventListener('pointerup', up)
+      window.addEventListener('pointercancel', cancelar)
     },
     [editor, readOnly],
   )
@@ -559,6 +572,9 @@ export function Surface({
       contentEditable={!readOnly}
       suppressContentEditableWarning
       onPointerDown={onPointerDown}
+      // El arrastre nativo del navegador no tiene final feliz acá: soltar lo cancelamos igual
+      // (`insertFromDrop`), y mientras tanto se come los eventos de puntero del arrastre propio.
+      onDragStart={(e) => e.preventDefault()}
       onCopy={onCopy}
       onCut={onCut}
       onPaste={onPaste}
@@ -575,6 +591,17 @@ export function Surface({
   )
 
   return <EditorProvider value={editor}>{surface}</EditorProvider>
+}
+
+/**
+ * Qué se arrastra: lo elegido si el bloque agarrado es parte, y si no ese bloque solo.
+ *
+ * Se decide al soltar y no al agarrar porque entre una cosa y la otra pueden haber pasado cosas,
+ * y lo que importa es qué había elegido cuando se soltó.
+ */
+function gruposDeArrastre(editor: Editor, id: BlockId): BlockId[] {
+  const sel = editor.selection
+  return isBlocks(sel) && sel.ids.includes(id) ? [...sel.ids] : [id]
 }
 
 /**
