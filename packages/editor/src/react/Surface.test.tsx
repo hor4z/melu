@@ -1,7 +1,7 @@
 // La superficie: solo lectura, y usarla con su propio marco alrededor.
 
 import { describe, expect, it } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useRef } from 'react'
 import { Surface } from './Surface.tsx'
@@ -177,6 +177,45 @@ describe('la selección cruza bloques', () => {
       control.dispatchEvent(new Event('input', { bubbles: true }))
     })
     expect(editor.block(primero)?.type).toBe('paragraph')
+  })
+
+  it('elegir un bloque entero no lo deshace el caret viejo que el navegador tenía puesto', () => {
+    const { editor } = mount('- uno\n- dos')
+    caretTo(editor, 0, 1)
+    act(() => {
+      editor.run('selectBlock', { id: hijos(editor)[1]! })
+    })
+    // El repintado hace que el navegador avise del caret que le quedó, en el otro bloque. Ese
+    // aviso llega siempre, y no lo pidió nadie: escucharlo hacía que elegir un bloque durara lo
+    // que tarda un render.
+    act(() => {
+      document.dispatchEvent(new Event('selectionchange'))
+    })
+    expect(editor.selection).toMatchObject({ kind: 'blocks', ids: [hijos(editor)[1]] })
+  })
+
+  it('con un bloque elegido el foco se queda en la superficie, que es donde llegan las teclas', () => {
+    const { editor } = mount('- uno\n- dos')
+    caretTo(editor, 0, 1)
+    act(() => {
+      editor.run('selectBlock', { id: hijos(editor)[1]! })
+    })
+    const superficie = document.querySelector('[data-melu-surface]')
+    expect(superficie?.contains(document.activeElement)).toBe(true)
+  })
+
+  it('un click sí la deshace: lo que pide alguien apretando el mouse manda', () => {
+    const { editor } = mount('- uno\n- dos')
+    act(() => {
+      editor.run('selectBlock', { id: hijos(editor)[1]! })
+    })
+    // Un click de verdad: primero el puntero, después el aviso del navegador.
+    fireEvent.pointerDown(blocks()[0]!, { buttons: 1 })
+    caretTo(editor, 0, 2)
+    act(() => {
+      document.dispatchEvent(new Event('selectionchange'))
+    })
+    expect(editor.selection).toMatchObject({ kind: 'text' })
   })
 
   it('Mod+Shift+arriba sube el bloque, con el caret adentro del texto', async () => {

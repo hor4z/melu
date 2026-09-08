@@ -141,6 +141,14 @@ export function Surface({
   const dragging = useRef<{ id: BlockId; placed: ReturnType<typeof measure> } | null>(null)
   /** El último destino calculado, para el `pointerup` que se registró una sola vez. */
   const latestDrop = useRef<DropTarget | null>(null)
+  /**
+   * Si el caret que el navegador acaba de mover lo pidió alguien apretando el mouse.
+   *
+   * Hace falta porque con bloques elegidos el DOM no tiene selección, y devolverle el foco a la
+   * superficie hace que el navegador ponga un caret al principio por su cuenta. Ese caret no lo
+   * pidió nadie, y si se lo escucha deshace la selección de bloques en el mismo suspiro.
+   */
+  const delPuntero = useRef(false)
 
   useEffect(() => {
     editor.readOnly = readOnly
@@ -156,6 +164,10 @@ export function Surface({
     const container = ref.current
     if (!container) return
     const onChange = () => {
+      // Un caret que aparece solo mientras hay bloques elegidos es del navegador, no de nadie: lo
+      // pone al enfocar. Un click sí cuenta, y por eso se mira quién lo pidió.
+      if (isBlocks(editor.selection) && !delPuntero.current) return
+      delPuntero.current = false
       const range = readSelection(container)
       if (!range) return
       const current = editor.selection
@@ -168,9 +180,16 @@ export function Surface({
   }, [editor])
 
   /**
-   * Y al revés: un rango del modelo que cruza bloques hay que ponerlo en el DOM. Ningún bloque
-   * puede, porque cada punta está en otro. Va por suscripción y no por render: la página no se
-   * vuelve a dibujar porque se movió el caret.
+   * Y al revés: lo que el modelo elige hay que ponerlo en el DOM.
+   *
+   * Dos casos, y los dos son de la superficie porque ningún bloque puede solo. Un rango que cruza,
+   * porque cada punta está en otro bloque. Y una selección de bloques enteros, que en el DOM es la
+   * ausencia de selección: si se le deja el caret viejo puesto, el navegador avisa de ese caret
+   * apenas la página se repinta y el modelo vuelve a decir "texto", con lo cual elegir un bloque
+   * dura lo que tarda un render. Es lo que hacía que insertar un video no lo dejara elegido, que
+   * Escape no hiciera nada y que Backspace borrara una letra en otro lado.
+   *
+   * Va por suscripción y no por render: la página no se vuelve a dibujar porque se movió el caret.
    */
   useEffect(() => {
     const container = ref.current
@@ -178,6 +197,18 @@ export function Surface({
     return editor.subscribe((change) => {
       if (!change.selectionChanged) return
       const sel = editor.selection
+      if (isBlocks(sel)) {
+        const dom = document.getSelection()
+        if (dom && dom.rangeCount > 0 && container.contains(dom.anchorNode)) dom.removeAllRanges()
+        // Y el foco se queda acá. Sacar el rango lo manda al `body`, y desde el `body` las teclas
+        // no llegan a ningún lado: con un bloque elegido, las flechas y Backspace se atienden acá
+        // arriba. No se le roba a nadie: sólo se toma cuando no lo tiene nadie más.
+        const activo = document.activeElement
+        if (!container.contains(activo) && (activo === null || activo === document.body)) {
+          container.focus({ preventScroll: true })
+        }
+        return
+      }
       if (!isText(sel) || !spansBlocks(sel)) return
       // Si el navegador ya lo tiene así (porque lo hizo él), no se lo toca: reescribirlo hace
       // parpadear la selección y vuelve a avisar.
@@ -189,6 +220,8 @@ export function Surface({
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
+      // Lo que el navegador haga con el caret de acá en más sí lo pidió alguien.
+      delPuntero.current = true
       // Un click en el hueco de abajo de la página deja el caret en el último bloque, que es lo
       // que espera cualquiera que quiera seguir escribiendo.
       if (!blockIdOf(e.target as Node) && e.target === ref.current) editor.run('focusEnd')
