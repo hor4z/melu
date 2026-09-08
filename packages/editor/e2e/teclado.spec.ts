@@ -45,7 +45,7 @@ test.describe('Enter y Backspace', () => {
     for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight')
     await page.keyboard.press('Enter')
     await esperarSketch(page, ['paragraph: uno', 'paragraph: dos'])
-    expect(await where(page)).toBe('1:0')
+    await expect.poll(() => where(page)).toBe('1:0')
   })
 
   test('una tecla apretada enseguida de una flecha usa el caret de ahora, no el de antes', async ({ page }) => {
@@ -66,7 +66,9 @@ test.describe('Enter y Backspace', () => {
     await clickEn(page, 1)
     await page.keyboard.press('Backspace')
     await esperarSketch(page, ['paragraph: unodos'])
-    expect(await where(page)).toBe('0:3')
+    // Con `poll` y no de una: el caret lo pone el motor y el navegador lo confirma después, así
+    // que leerlo una sola vez es una carrera contra el repintado.
+    await expect.poll(() => where(page)).toBe('0:3')
   })
 
   test('Backspace en un ítem de lista vacío deja de ser lista', async ({ page }) => {

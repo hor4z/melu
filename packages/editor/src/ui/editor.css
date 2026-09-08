@@ -121,6 +121,14 @@
   /* Absoluto para no ocupar lugar: si no, el bloque vacío mide distinto que el escrito. */
 }
 
+/* Un párrafo vacío dice qué se puede hacer sólo donde está el caret. Una página con cinco párrafos
+   vacíos no necesita decirlo cinco veces, y dicho cinco veces deja de leerse. Los tipos con nombre
+   propio (un título, un ítem de lista, una consigna) sí se anuncian siempre: ahí el texto no es un
+   consejo, es lo que hace distinguible un bloque vacío de otro. */
+.melu-block[data-type="paragraph"]:not([data-active]) .melu-text.melu-empty::before {
+  content: none;
+}
+
 .melu-paragraph {
   font-size: inherit;
 }
@@ -1107,6 +1115,16 @@ body.melu-dragging, body.melu-dragging * { cursor: grabbing !important; user-sel
 }
 
 .melu-surface[data-read-only] .melu-text { caret-color: transparent; }
+
+/* Con bloques enteros elegidos, la selección del navegador se queda donde estaba y no se pinta: lo
+   elegido son los bloques, y dos selecciones dibujadas a la vez no se entienden. Es lo que hace
+   Notion, que tiene la misma regla sobre sus propios bloques. */
+.melu-surface[data-picking] .melu-text { caret-color: transparent; }
+.melu-surface[data-picking] ::selection { background: transparent; }
+
+/* Con bloques enteros elegidos, la selección del navegador sigue donde estaba y no se pinta: lo
+   elegido son los bloques, y dos selecciones dibujadas a la vez no se entienden. Es lo que hace
+   Notion, que tiene la misma regla sobre sus bloques. */
 
 /* En una pantalla angosta la columna usa todo el ancho y el asa se mete adentro. */
 @media (max-width: 820px) {

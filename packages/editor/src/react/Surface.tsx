@@ -142,13 +142,14 @@ export function Surface({
   /** El último destino calculado, para el `pointerup` que se registró una sola vez. */
   const latestDrop = useRef<DropTarget | null>(null)
   /**
-   * Si el caret que el navegador acaba de mover lo pidió alguien apretando el mouse.
+   * Dónde estaba el caret del navegador cuando se pasó a elegir bloques enteros.
    *
-   * Hace falta porque con bloques elegidos el DOM no tiene selección, y devolverle el foco a la
-   * superficie hace que el navegador ponga un caret al principio por su cuenta. Ese caret no lo
-   * pidió nadie, y si se lo escucha deshace la selección de bloques en el mismo suspiro.
+   * Una selección de bloques no se escribe en el DOM: la del navegador se queda quieta y deja de
+   * pintarse. Entonces un aviso que diga *ese mismo* caret no lo pidió nadie, y escucharlo
+   * desharía lo que uno acaba de elegir. Uno que diga otra cosa sí: alguien lo movió, y quiere
+   * volver al texto.
    */
-  const delPuntero = useRef(false)
+  const caretCongelado = useRef<string | null>(null)
 
   useEffect(() => {
     editor.readOnly = readOnly
@@ -164,12 +165,9 @@ export function Surface({
     const container = ref.current
     if (!container) return
     const onChange = () => {
-      // Un caret que aparece solo mientras hay bloques elegidos es del navegador, no de nadie: lo
-      // pone al enfocar. Un click sí cuenta, y por eso se mira quién lo pidió.
-      if (isBlocks(editor.selection) && !delPuntero.current) return
-      delPuntero.current = false
       const range = readSelection(container)
       if (!range) return
+      if (isBlocks(editor.selection) && JSON.stringify(range) === caretCongelado.current) return
       const current = editor.selection
       // Si el modelo ya dice esto, no vale volver a decirlo: sería un ciclo con el DOM.
       if (isText(current) && samePoint(current.anchor, range.anchor) && samePoint(current.head, range.head)) return
@@ -197,23 +195,19 @@ export function Surface({
     return editor.subscribe((change) => {
       if (!change.selectionChanged) return
       const sel = editor.selection
+      // Una selección de bloques no se escribe en el DOM, y tampoco se le saca al navegador lo que
+      // tenga: se deja donde está y se pinta distinto. Es lo que hace Notion, y tiene una razón que
+      // costó encontrar. Sacarle el rango obliga a devolverle el foco, devolverle el foco hace que
+      // el navegador ponga un caret por su cuenta, y ese caret llega tarde y deshace la selección
+      // que uno acaba de hacer. Dejándolo quieto no se dispara ni un aviso.
       if (isBlocks(sel)) {
-        // Y lo que el puntero haya pedido antes ya no vale: el modelo eligió bloques, así que
-        // cualquier caret que aparezca de acá en más lo puso el navegador. Sin esto, un click que
-        // no movía el caret (porque ya estaba ahí) dejaba la bandera prendida, y el caret que el
-        // navegador pone al enfocar se colaba y deshacía la selección en el acto.
-        delPuntero.current = false
-        const dom = document.getSelection()
-        if (dom && dom.rangeCount > 0 && container.contains(dom.anchorNode)) dom.removeAllRanges()
-        // Y el foco se queda acá. Sacar el rango lo manda al `body`, y desde el `body` las teclas
-        // no llegan a ningún lado: con un bloque elegido, las flechas y Backspace se atienden acá
-        // arriba. No se le roba a nadie: sólo se toma cuando no lo tiene nadie más.
-        const activo = document.activeElement
-        if (!container.contains(activo) && (activo === null || activo === document.body)) {
-          container.focus({ preventScroll: true })
-        }
+        container.toggleAttribute('data-picking', true)
+        const quieto = readSelection(container)
+        caretCongelado.current = quieto ? JSON.stringify(quieto) : null
         return
       }
+      container.toggleAttribute('data-picking', false)
+      caretCongelado.current = null
       if (!isText(sel) || !spansBlocks(sel)) return
       // Si el navegador ya lo tiene así (porque lo hizo él), no se lo toca: reescribirlo hace
       // parpadear la selección y vuelve a avisar.
@@ -225,9 +219,6 @@ export function Surface({
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      // Lo que el navegador haga con el caret de acá en más sí lo pidió alguien. Apretar un asa,
-      // un menú o un control no cuenta: eso no es pedir que se mueva el caret.
-      delPuntero.current = !fromWidget(e.target)
       // Un click en el hueco de abajo de la página deja el caret en el último bloque, que es lo
       // que espera cualquiera que quiera seguir escribiendo.
       if (!blockIdOf(e.target as Node) && e.target === ref.current) editor.run('focusEnd')

@@ -8,7 +8,7 @@
  */
 
 import { useMemo, useState } from 'react'
-import { Icon, activeBlock, childrenOf, hasIcon, plain, type BlockId, type Editor } from '../src/index.ts'
+import { Icon, childrenOf, hasIcon, plain, selectedBlocks, type BlockId, type Editor } from '../src/index.ts'
 
 type Fila = { id: BlockId; nivel: number; tipo: string; texto: string }
 
@@ -38,7 +38,12 @@ export function Outline({
   // `version` sube en cada transacción: es lo que hace que el árbol siga al documento sin que el
   // panel se suscriba a cada bloque.
   const todas = useMemo(() => (editor ? filas(editor) : []), [editor, version])
-  const activo = editor ? activeBlock(editor.selection) : null
+  // Todo lo elegido y no sólo el ancla: con tres bloques elegidos, marcar uno solo hace dudar de si
+  // el árbol está mostrando lo que pasa o una parte.
+  const elegidos = useMemo(
+    () => new Set(editor ? selectedBlocks(editor.doc, editor.selection) : []),
+    [editor, version],
+  )
 
   const q = busqueda.trim().toLowerCase()
   const visibles = q ? todas.filter((f) => f.texto.toLowerCase().includes(q) || f.tipo.includes(q)) : todas
@@ -61,7 +66,7 @@ export function Outline({
                 <button
                   type="button"
                   className="taller-fila"
-                  data-activa={f.id === activo}
+                  data-activa={elegidos.has(f.id)}
                   onClick={() => onIr(f.id)}
                   title={`${spec.name} · ${f.tipo}`}
                 >
