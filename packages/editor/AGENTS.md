@@ -196,7 +196,7 @@ lectura `apply` no escribe.
 
 ## Los tests
 
-885 en jsdom y 73 en un navegador, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
+892 en jsdom y 91 en un navegador, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
 no "splitBlock con texto vacío". Cada archivo vive al lado del que prueba, y `src/test/` tiene el
 andamio que comparten (un motor armado, una vista montada).
 
@@ -248,6 +248,13 @@ para decidir dónde va un caso es una sola: jsdom inventa tres cosas, y sólo es
 allá. La **geometría** (todo mide cero), la **composición** (no hay tecla muerta, ni IME, ni
 dictado) y el **portapapeles** (no hay `DataTransfer` de verdad). Todo lo demás va en jsdom, que
 corre en un segundo.
+
+**Y lo que cuesta escribir también se mide.** Con teclas de verdad, en el navegador: una tecla en un
+documento de mil bloques costaba 143 milisegundos y desde los doscientos ya se sentía. No era el
+motor (dibuja lo que cambió y nada más: 10 ms con quinientos bloques), era el árbol del taller
+rearmándose entero. El test que lo cuida no mira milisegundos, que dependen de la máquina: compara
+el costo por tecla con cuarenta bloques contra el mismo con cuatrocientos y pide que no se dispare.
+Un umbral en milisegundos habría sido un test que a veces falla.
 
 Los tests del navegador corren contra el taller y **afirman contra el modelo y no contra el HTML**:
 el taller cuelga de `window.taller` el mismo vocabulario que usan los tests rápidos (`sketch`,

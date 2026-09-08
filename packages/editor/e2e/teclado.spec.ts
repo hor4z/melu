@@ -89,6 +89,36 @@ test.describe('Enter y Backspace', () => {
   })
 })
 
+test.describe('Enter en cada familia de bloque', () => {
+  /**
+   * Que después de Enter se pueda seguir escribiendo, en el bloque nuevo.
+   *
+   * Lo que el modelo hace con Enter está probado tipo por tipo en jsdom. Lo que sólo se puede
+   * probar acá es lo otro: que el caret del navegador haya ido al mismo lugar que el del modelo. Si
+   * se separan, la letra siguiente aparece en el bloque de arriba, que es de los errores más
+   * desconcertantes que puede tener un editor.
+   */
+  for (const [type, nombre] of [
+    ['heading_2', 'un título'],
+    ['bulleted_list', 'un ítem de lista'],
+    ['todo', 'un ítem de checklist'],
+    ['quote', 'una cita'],
+    ['callout', 'un destacado'],
+    ['choice', 'una consigna de pregunta'],
+  ] as const) {
+    test(`en ${nombre}, lo que se escribe después cae en el bloque nuevo`, async ({ page }) => {
+      await abrir(page, 'uno')
+      await page.evaluate((t) => window.melu.run('setBlockType', { type: t, id: window.taller.idAt(0) }), type)
+      await clickEn(page, 0, 'fin')
+      await page.keyboard.press('Enter')
+      await escribir(page, 'dos')
+      await expect.poll(() => textAt(page, 1)).toBe('dos')
+      // Y el de arriba quedó intacto: la letra no se fue a la mitad de la nada.
+      await expect.poll(() => textAt(page, 0)).toBe('uno')
+    })
+  }
+})
+
 test.describe('los atajos de formato', () => {
   test('Mod+B pone negrita sobre lo elegido', async ({ page }) => {
     await abrir(page, 'medir el patio')
