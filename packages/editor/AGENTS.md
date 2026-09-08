@@ -53,10 +53,18 @@ muerta, el dictado y el teclado del celular. Todo lo que cruce un borde, arme o 
 motor. Es la misma línea que traza Lexical, que tiene 2222 líneas de `LexicalEvents.ts` haciendo
 exactamente esto.
 
-De esa lista hay una que hoy se cancela y todavía no tiene comando: **arrastrar un pedazo de texto
-elegido y soltarlo en otro lado**. Notion lo deja hacer y sería lindo tenerlo; mientras no esté, es
-mejor que no pase nada que dejar al navegador mover nodos de un bloque a otro por atrás del modelo,
-que es lo que hacía y dejaba el documento roto sin aviso.
+De esa lista, **arrastrar un pedazo de texto elegido y soltarlo en otro lado** es la que más se nota
+que falta, y es la que mejor muestra la regla: el gesto nativo se cancela y el editor lo hace de
+nuevo con eventos de puntero, igual que el de los bloques. Apretar adentro de lo elegido no decide
+nada todavía; si el puntero se mueve cuatro píxeles es un arrastre, y si no, fue un click y el caret
+va ahí. Mientras dura, una línea del color del acento muestra dónde va a caer, y la posición la da
+el navegador (`caretRectAtPoint`), porque el caret entre dos letras de un renglón partido lo sabe él.
+Al soltar corre un solo comando, `moveSelection`, que saca y pone en una transacción: un deshacer.
+
+Sacar primero y poner después, y no al revés, porque poner primero corre los offsets de lo que queda
+por sacar. Soltarlo adentro de lo mismo que se arrastra no hace nada. De un rango que cruza bloques
+se lleva el pedazo de cada uno, aplanado: lo que se arrastró fue un rango de texto y no una
+estructura, y la sangría de una lista a medio elegir no sobrevive.
 
 **El foco es de la superficie, no de cada bloque,** y de ahí sale una consecuencia que sorprende:
 enfocar el elemento de un bloque manda el foco al editable de arriba, así que **las teclas llegan
@@ -201,7 +209,7 @@ lectura `apply` no escribe.
 
 ## Los tests
 
-892 en jsdom y 94 en un navegador, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
+906 en jsdom y 100 en un navegador, y están escritos como se siente lo que prueban: "un ítem de lista vacío deja de ser lista" y
 no "splitBlock con texto vacío". Cada archivo vive al lado del que prueba, y `src/test/` tiene el
 andamio que comparten (un motor armado, una vista montada).
 
@@ -231,6 +239,7 @@ plugins/media     las direcciones que rompían, y las cinco formas de una de You
 plugins/paste     el orden de los formatos, y que pegar prosa en el medio de una oración no la corte
 plugins/paste.afuera  lo que manda Word, lo que manda Notion, y el HTML hostil
 react/dnd         la aritmética del arrastre: el hueco, el nivel, y soltar donde ya estaba
+core/mover-texto  arrastrar un pedazo de texto: qué se lleva, dónde cae, y qué no se puede soltar
 react/dom         el puente con el DOM: contar hasta el caret, leer el texto de vuelta, poner un
                   rango que cruza bloques
 react/renderers   que cada bloque se dibuje con su rol y sus atributos

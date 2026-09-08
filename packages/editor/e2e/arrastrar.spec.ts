@@ -8,7 +8,7 @@
  */
 
 import { test } from '@playwright/test'
-import { abrir, arrastrarAsa, caja, clickEn, esperarSketch, expect, sketch, where } from './apoyo/taller.ts'
+import { abrir, arrastrarAsa, bloque, caja, clickEn, esperarSketch, expect, sketch, where } from './apoyo/taller.ts'
 
 /** Deja el puntero agarrando el asa de un bloque, con el botón apretado. */
 async function tomarElAsa(page: Parameters<typeof caja>[0], n: number) {
@@ -21,6 +21,117 @@ async function tomarElAsa(page: Parameters<typeof caja>[0], n: number) {
   await page.mouse.down()
   return g
 }
+
+/**
+ * Arrastrar un pedazo de texto elegido y soltarlo en otro lado.
+ *
+ * El navegador hace este gesto solo y hace mal la parte que importa: mueve nodos de un bloque a
+ * otro por atrás del modelo. Así que está cancelado y el editor lo hace con eventos de puntero, que
+ * es lo que sólo se puede probar acá: qué hay bajo el puntero, qué se dibuja mientras dura, y dónde
+ * cayó.
+ */
+test.describe('arrastrar texto', () => {
+  /** Elige una palabra por sus coordenadas de verdad, con doble click. */
+  async function elegirPalabra(page: Parameters<typeof caja>[0], desde: number, hasta: number) {
+    const centro = await page.evaluate(
+      ([a, b]) => {
+        const nodo = document.createTreeWalker(document.querySelectorAll('[data-melu-text]')[0]!, NodeFilter.SHOW_TEXT).nextNode()!
+        const r = document.createRange()
+        r.setStart(nodo, a)
+        r.setEnd(nodo, b)
+        const caja = r.getBoundingClientRect()
+        return { x: caja.left + caja.width / 2, y: caja.top + caja.height / 2 }
+      },
+      [desde, hasta],
+    )
+    await page.mouse.dblclick(centro.x, centro.y)
+    return centro
+  }
+
+  test('una palabra se va de donde estaba y cae donde se suelta', async ({ page }) => {
+    await abrir(page, 'uno dos tres')
+    const centro = await elegirPalabra(page, 4, 7)
+    await expect.poll(() => where(page)).toBe('0:4-0:7')
+    const texto = (await bloque(page, 0).boundingBox())!
+
+    await page.mouse.move(centro.x, centro.y)
+    await page.mouse.down()
+    await page.mouse.move(centro.x + 8, centro.y, { steps: 2 })
+    // Mientras dura se ve dónde va a caer.
+    await expect(page.locator('.melu-drop-caret')).toBeVisible()
+    await page.mouse.move(texto.x + 2, texto.y + texto.height / 2, { steps: 8 })
+    await page.mouse.up()
+
+    await esperarSketch(page, ['paragraph: dosuno  tres'])
+    // Y queda elegido lo que se movió, sin la línea de destino colgada.
+    await expect.poll(() => where(page)).toBe('0:0-0:3')
+    await expect(page.locator('.melu-drop-caret')).toHaveCount(0)
+    expect(await page.evaluate(() => document.body.className)).toBe('')
+  })
+
+  test('un click adentro de lo elegido no arrastra: pone el caret', async ({ page }) => {
+    await abrir(page, 'uno dos tres')
+    const centro = await elegirPalabra(page, 4, 7)
+    await expect.poll(() => where(page)).toBe('0:4-0:7')
+    await page.mouse.click(centro.x, centro.y)
+    // Sin movimiento no hay arrastre, y el caret cae donde se apretó, como en cualquier editor.
+    await expect.poll(() => where(page)).toMatch(/^0:\d+$/)
+    expect(await sketch(page)).toEqual(['paragraph: uno dos tres'])
+  })
+
+  test('soltarlo afuera de la hoja no mueve nada', async ({ page }) => {
+    await abrir(page, 'uno dos tres')
+    const centro = await elegirPalabra(page, 4, 7)
+    const antes = await sketch(page)
+    await page.mouse.move(centro.x, centro.y)
+    await page.mouse.down()
+    await page.mouse.move(centro.x + 10, centro.y, { steps: 2 })
+    await page.mouse.move(4, 4, { steps: 8 })
+    await page.mouse.up()
+    await expect.poll(() => sketch(page)).toEqual(antes)
+    expect(await page.evaluate(() => document.body.className)).toBe('')
+  })
+
+  test('Escape a mitad de camino lo abandona', async ({ page }) => {
+    await abrir(page, 'uno dos tres')
+    const centro = await elegirPalabra(page, 4, 7)
+    const antes = await sketch(page)
+    const texto = (await bloque(page, 0).boundingBox())!
+    await page.mouse.move(centro.x, centro.y)
+    await page.mouse.down()
+    await page.mouse.move(texto.x + 2, texto.y + texto.height / 2, { steps: 8 })
+    await page.keyboard.press('Escape')
+    await page.mouse.up()
+    await expect.poll(() => sketch(page)).toEqual(antes)
+    await expect(page.locator('.melu-drop-caret')).toHaveCount(0)
+  })
+
+  test('se puede llevar a otro bloque', async ({ page }) => {
+    await abrir(page, 'uno dos tres\n\nabajo')
+    const centro = await elegirPalabra(page, 4, 7)
+    await expect.poll(() => where(page)).toBe('0:4-0:7')
+    const otro = (await bloque(page, 1).boundingBox())!
+    await page.mouse.move(centro.x, centro.y)
+    await page.mouse.down()
+    await page.mouse.move(centro.x + 8, centro.y, { steps: 2 })
+    await page.mouse.move(otro.x + otro.width / 2, otro.y + otro.height / 2, { steps: 8 })
+    await page.mouse.up()
+    await esperarSketch(page, ['paragraph: uno  tres', 'paragraph: abajodos'])
+  })
+
+  test('en solo lectura no se arrastra', async ({ page }) => {
+    await abrir(page, 'uno dos tres')
+    const centro = await elegirPalabra(page, 4, 7)
+    await page.evaluate(() => window.taller.soloLectura(true))
+    const antes = await sketch(page)
+    const texto = (await bloque(page, 0).boundingBox())!
+    await page.mouse.move(centro.x, centro.y)
+    await page.mouse.down()
+    await page.mouse.move(texto.x + 2, texto.y + texto.height / 2, { steps: 8 })
+    await page.mouse.up()
+    await expect.poll(() => sketch(page)).toEqual(antes)
+  })
+})
 
 test.describe('el asa', () => {
   test('mueve un bloque abajo de otro', async ({ page }) => {
