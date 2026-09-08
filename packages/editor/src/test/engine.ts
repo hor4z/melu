@@ -1,17 +1,22 @@
 /**
- * Lo que hace legible a un test del motor.
+ * Lo que hace legible a un test del motor, y que sólo tiene sentido corriendo en jsdom.
  *
  * Un test que arma un documento a mano se lee como un documento armado a mano, y el que lo lee
- * después no ve qué se estaba probando. Así que acá viven dos cosas: una forma corta de describir
- * el contenido (`doc('# Título', '- uno', '- dos')`, que es markdown) y una forma corta de leerlo
- * de vuelta (`sketch(editor)`, que devuelve el tipo y el texto de cada bloque).
+ * después no ve qué se estaba probando. Así que acá vive la forma corta de describir el contenido
+ * (`doc('# Título', '- uno', '- dos')`, que es markdown) y de empujar el motor (`type`, `press`).
+ *
+ * La forma corta de leerlo de vuelta (`sketch`, `where`, `at`) está en `vocabulary.ts` y se
+ * re-exporta acá: es la misma que corre en el navegador, y por eso no puede depender de nada de
+ * esto. Para quien escribe un test no cambia nada, sigue importando todo de un solo lugar.
  *
  * Los editores de los tests van en `strict`: un documento inconsistente hace fallar el test que
  * lo produjo, y no uno cualquiera tres archivos más adelante.
  */
 
-import { Editor, fromMarkdown, nameKey, normalizeKey, plain, type BlockInit, type EditorOptions, type Selection } from '../core/index.ts'
+import { Editor, fromMarkdown, nameKey, normalizeKey, type BlockInit, type EditorOptions } from '../core/index.ts'
 import { activityKit, basics } from '../plugins/index.ts'
+
+export * from './vocabulary.ts'
 
 /** Un editor con los plugins de escritura, sin las preguntas. */
 export const makeEditor = (blocks?: readonly BlockInit[], opts: Partial<EditorOptions> = {}) =>
@@ -26,68 +31,6 @@ export const doc = (...lines: string[]): BlockInit[] => fromMarkdown(lines.join(
 
 /** Un editor cuyo contenido se describe en markdown. */
 export const editorWith = (...lines: string[]) => makeEditor(doc(...lines))
-
-/** Los bloques de arriba, como `tipo: texto`. Es lo que se compara en casi todos los tests. */
-export function sketch(editor: Editor, parent = editor.doc.root, depth = 0): string[] {
-  const out: string[] = []
-  for (const id of editor.doc.blocks[parent]?.children ?? []) {
-    const b = editor.doc.blocks[id]!
-    const text = plain(b.text)
-    out.push(`${'  '.repeat(depth)}${b.type}${text ? `: ${text}` : ''}`)
-    out.push(...sketch(editor, id, depth + 1))
-  }
-  return out
-}
-
-/** Los ids de arriba a abajo, para poder nombrar bloques sin guardarlos al crearlos. */
-export function ids(editor: Editor, parent = editor.doc.root): string[] {
-  const out: string[] = []
-  for (const id of editor.doc.blocks[parent]?.children ?? []) {
-    out.push(id, ...ids(editor, id))
-  }
-  return out
-}
-
-/** El id del bloque en la posición `n` del orden de lectura. */
-export const at = (editor: Editor, n: number): string => {
-  const id = ids(editor)[n]
-  if (!id) throw new Error(`no hay bloque en la posición ${n} (hay ${ids(editor).length})`)
-  return id
-}
-
-/** Deja el caret en un bloque y un offset, por posición de lectura. */
-export function caretAt(editor: Editor, n: number, offset = 0): string {
-  const id = at(editor, n)
-  editor.setSelection({ kind: 'text', anchor: { block: id, offset }, head: { block: id, offset } })
-  return id
-}
-
-/** Deja seleccionado un rango de texto, que puede empezar en un bloque y terminar en otro. */
-export function selectRange(editor: Editor, from: [number, number], to: [number, number]): void {
-  editor.setSelection({
-    kind: 'text',
-    anchor: { block: at(editor, from[0]), offset: from[1] },
-    head: { block: at(editor, to[0]), offset: to[1] },
-  })
-}
-
-/** Deja seleccionados bloques enteros, por posición. */
-export function selectBlocks(editor: Editor, ...positions: number[]): void {
-  const chosen = positions.map((n) => at(editor, n))
-  editor.setSelection({ kind: 'blocks', ids: chosen, anchor: chosen[0] ?? '' })
-}
-
-/** Dónde está el caret, como `posición:offset`, para poder afirmarlo en una línea. */
-export function where(editor: Editor): string {
-  const sel: Selection = editor.selection
-  if (!sel) return 'sin selección'
-  const order = ids(editor)
-  if (sel.kind === 'blocks') return `bloques ${sel.ids.map((id) => order.indexOf(id)).join(',')}`
-  const i = order.indexOf(sel.head.block)
-  const anchor = order.indexOf(sel.anchor.block)
-  const head = `${i}:${sel.head.offset}`
-  return anchor === i && sel.anchor.offset === sel.head.offset ? head : `${anchor}:${sel.anchor.offset}-${head}`
-}
 
 /** Escribe texto carácter por carácter, corriendo las reglas de entrada como al tipear. */
 export function type(editor: Editor, text: string): void {
@@ -119,12 +62,3 @@ export function press(editor: Editor, key: string): boolean {
   }
   return editor.handleKey({ ...base, ctrlKey: parts.includes('Mod') || parts.includes('Ctrl'), metaKey: parts.includes('Meta') })
 }
-
-/** El texto de un bloque por posición. */
-export const textAt = (editor: Editor, n: number): string => plain(editor.block(at(editor, n))?.text)
-
-/** Las props de un bloque por posición. */
-export const propsAt = (editor: Editor, n: number) => editor.block(at(editor, n))?.props ?? {}
-
-/** El tipo de un bloque por posición. */
-export const typeAt = (editor: Editor, n: number): string => editor.block(at(editor, n))?.type ?? ''
