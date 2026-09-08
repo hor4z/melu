@@ -198,6 +198,11 @@ export function Surface({
       if (!change.selectionChanged) return
       const sel = editor.selection
       if (isBlocks(sel)) {
+        // Y lo que el puntero haya pedido antes ya no vale: el modelo eligió bloques, así que
+        // cualquier caret que aparezca de acá en más lo puso el navegador. Sin esto, un click que
+        // no movía el caret (porque ya estaba ahí) dejaba la bandera prendida, y el caret que el
+        // navegador pone al enfocar se colaba y deshacía la selección en el acto.
+        delPuntero.current = false
         const dom = document.getSelection()
         if (dom && dom.rangeCount > 0 && container.contains(dom.anchorNode)) dom.removeAllRanges()
         // Y el foco se queda acá. Sacar el rango lo manda al `body`, y desde el `body` las teclas

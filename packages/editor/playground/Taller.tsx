@@ -12,7 +12,7 @@
 
 import { StrictMode, useCallback, useRef, useState, useSyncExternalStore } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BlockEditor, authorMarkdown, type BlockId, type Editor } from '../src/index.ts'
+import { BlockEditor, authorMarkdown, fromMarkdown, type BlockId, type Editor } from '../src/index.ts'
 import '../src/ui/editor.css'
 import './taller.css'
 import { ACTIVIDAD, DEL_AGENTE } from './document.ts'
@@ -46,10 +46,12 @@ function Taller() {
     setNonce((n) => n + 1)
   }, [])
 
+  /** Cambia el documento entero sin recargar. La usa la capa de tests del navegador. */
   const cargar = useCallback((markdown: string) => {
     const editor = editorRef.current
     if (!editor) return
-    editor.run('replaceContent', { text: markdown })
+    editor.run('replaceContent', { blocks: fromMarkdown(markdown) })
+    editor.history.clear()
   }, [])
 
   const agente = useCallback((markdown = DEL_AGENTE) => {
