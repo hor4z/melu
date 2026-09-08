@@ -619,6 +619,12 @@ export const setBlockType: Command<{ type: string; id?: BlockId; props?: Props |
   for (const target of targets) {
     const block = getBlock(tr.doc, target)
     if (!block || block.type === type) continue
+    // Donde está no puede tener eso: una celda no se convierte en lista, porque una fila sólo
+    // tiene celdas. Sin esta guarda la conversión pasaba y el normalizador después sacaba el
+    // bloque de la tabla para que la regla se cumpliera: la celda se iba del documento.
+    const parent = parentOf(tr.doc, target)
+    const parentType = parent === null || parent === tr.doc.root ? 'doc' : getBlock(tr.doc, parent)?.type
+    if (parentType !== undefined && !state.schema.accepts(parentType, type)) continue
     // Los props del tipo nuevo son los suyos: los del viejo no significan nada acá.
     const fresh = props === null ? null : { ...state.schema.defaults(type), ...props }
     tr.setType(target, type, fresh && Object.keys(fresh).length ? fresh : null)
