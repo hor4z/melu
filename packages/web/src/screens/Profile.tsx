@@ -35,7 +35,7 @@ export function Profile({ me }: { me: Me }) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-stack">
       <PageHeader
         title="Mi perfil"
         subtitle="Cómo te ve el resto."

@@ -102,7 +102,7 @@ export function Review() {
   const paso = (cuanto: -1 | 1) => irA(conEntrega[donde + cuanto]?.id)
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-stack">
       <Breadcrumb items={[
         { label: 'Grupos', onClick: () => nav('/groups') },
         { label: a.groupName ?? 'Grupo', onClick: () => nav(`/groups/${a.groupId}`) },

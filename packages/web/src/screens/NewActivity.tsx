@@ -40,7 +40,7 @@ export function NewActivity() {
   const lensPhases = lenses.data?.find((l) => l.key === comp.lens)?.phases ?? []
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-stack">
       <Breadcrumb items={[{ label: 'Actividades', onClick: () => nav('/activities') }, { label: 'Nueva actividad' }]} />
       <PageHeader
         title={step === 0 ? 'Empezá desde una plantilla' : 'Ajustá la composición'}

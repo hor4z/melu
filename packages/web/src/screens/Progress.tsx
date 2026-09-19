@@ -15,7 +15,7 @@ export function Progress() {
   if (!p) return <NoLlego que="tu progreso" error={q.error} onRetry={() => void q.refetch()} />
   const total = p.done + p.inProgress
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-stack">
       <PageHeader title="Lo que hiciste hasta ahora" subtitle="Solo vos y tu docente ven esto. No se compara con nadie." />
 
       {total > 0 && <Bar label="Misiones terminadas" value={p.done} max={total} hint={`${p.done}/${total}`} tone={p.done === total ? 'ok' : 'brand'} />}

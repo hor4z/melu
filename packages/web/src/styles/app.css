@@ -51,9 +51,22 @@
 
   /* El aire entre la barra de arriba y el título de la pantalla. La página del sistema trae 4px,
      que alcanzan cuando no hay una barra pegada encima; acá hay una, y el título le quedaba
-     encima. Es la misma medida que el padding lateral del mueble, no un número nuevo. */
+     contra ella. Los 32 son los que el sistema le da a su propio cuerpo, no un número nuevo. */
   .shell-main {
-    padding-block-start: var(--shell-pad);
+    padding-block-start: 2rem;
+  }
+
+  /* La pila de una pantalla: la cabecera arriba y los bloques abajo, separados siempre igual.
+     El gap es lo único que separa, así que el margen propio del `PageHeader` se apaga: adentro
+     de la pila los dos se sumaban y la cabecera quedaba flotando lejos del cuerpo. */
+  .page-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .page-stack > * {
+    margin-bottom: 0;
   }
 
   @media (max-width: 900px) {

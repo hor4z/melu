@@ -34,7 +34,7 @@ export function Focus() {
   const byKind = p.byKind ?? []
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-stack">
       <PageHeader
         title="Cómo vienen"
         subtitle="Lo que está pasando con tus chicos, en orden de urgencia y con qué hacer en cada caso."

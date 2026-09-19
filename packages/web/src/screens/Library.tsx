@@ -16,7 +16,7 @@ export function Library() {
   const templates = q.data?.mine.filter((a) => a.isRecipe) ?? []
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-stack">
       <PageHeader
         title="Tus actividades y las plantillas"
         subtitle="Una actividad es un documento con fases y bloques. La componés desde una plantilla, la editás como un doc y la asignás a un grupo."

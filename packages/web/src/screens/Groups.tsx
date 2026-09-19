@@ -15,7 +15,7 @@ export function Groups() {
   const groups = useQuery({ queryKey: ['groups', space?.id], queryFn: () => api.get<Group[]>(`/api/groups?space=${space?.id ?? ''}`) })
   const [nuevo, setFresh] = useState(false)
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-stack">
       <PageHeader
         title="Mis grupos"
         subtitle="Gente que aprende junta: un aula, un taller, una sala de refuerzo."

@@ -24,7 +24,7 @@ export function GroupDetail() {
   const { group: g, assignments, learners } = q.data
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-stack">
       <Breadcrumb items={[{ label: 'Grupos', onClick: () => nav('/groups') }, { label: g.name }]} />
 
       {/* Donde estaban las tres cuentas va lo que el grupo es. Los números decían lo que las

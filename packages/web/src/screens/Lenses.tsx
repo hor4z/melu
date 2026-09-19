@@ -5,7 +5,7 @@ import { api, type Lens } from '../lib/api'
 export function Lenses() {
   const lenses = useQuery({ queryKey: ['lenses'], queryFn: () => api.get<Lens[]>('/api/lenses') })
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-stack">
       <PageHeader
         title="Cómo se recorre una actividad"
         subtitle="Una lente es una forma de recorrer una actividad, y trae sus fases. Son datos: sumar un método es cargar una fila."

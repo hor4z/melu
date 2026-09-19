@@ -22,7 +22,7 @@ export function Today({ me }: { me: Me }) {
   const upcoming: Assignment | undefined = pending.find((m) => m.myStatus === 'in_progress') ?? pending[0]
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-stack">
       <PageHeader
         title={`Hola, ${me.person.name.split(' ')[0]}`}
         subtitle={pending.length === 0 ? 'Nada pendiente. Bien hecho.' : pending.length === 1 ? 'Tenés una misión pendiente.' : `Tenés ${pending.length} misiones pendientes.`}

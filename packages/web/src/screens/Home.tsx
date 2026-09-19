@@ -73,7 +73,7 @@ export function Home() {
   }))
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="page-stack">
       <PageHeader
         title="Tu semana"
         subtitle={space ? `Lo que pasa en ${space.name}` : undefined}

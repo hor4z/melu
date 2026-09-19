@@ -136,7 +136,7 @@ export function Submissions() {
   // falla, un error se veía igual que una demora: nada, para siempre.
   if (q.isError) {
     return (
-      <div className="flex min-w-0 flex-col gap-6">
+      <div className="page-stack min-w-0">
         <PageHeader title="Entregas" subtitle="Todo lo que llegó, de todos tus grupos, con lo último arriba." />
         <Alert tone="bad">
           <AlertTitle>No se pudieron traer las entregas</AlertTitle>
@@ -150,7 +150,7 @@ export function Submissions() {
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
+    <div className="page-stack min-w-0">
       <PageHeader title="Entregas" subtitle="Todo lo que llegó, de todos tus grupos, con lo último arriba." />
 
       <FilterBar>
