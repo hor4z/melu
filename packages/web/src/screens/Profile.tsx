@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, School } from 'lucide-react'
-import { Avatar, Button, Card, Field, Heading, Icon, Input, Text } from '@melu/ui'
+import { Avatar, Button, Card, Field, Icon, PageHeader, Row, TextField } from '@milo/ui'
 import { api, type Me } from '../lib/api'
 import { ROLES, SPACE_KINDS } from '../lib/composition'
 
@@ -37,63 +36,58 @@ export function Profile({ me }: { me: Me }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <Heading level={1} size="2xl">Mi perfil</Heading>
-          <Text variant="muted">Cómo te ve el resto.</Text>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {shown === '' && <Text size="sm" variant="danger">Poné al menos un nombre o un apodo.</Text>}
-          {save.isError && <Text size="sm" variant="danger">No se pudo guardar. Probá de nuevo.</Text>}
+      <PageHeader
+        title="Mi perfil"
+        subtitle="Cómo te ve el resto."
+        actions={<>
+          {shown === '' && <span className="text-body text-bad-ink">Poné al menos un nombre o un apodo.</span>}
+          {save.isError && <span className="text-body text-bad-ink">No se pudo guardar. Probá de nuevo.</span>}
           {save.isSuccess && !dirty && (
-            <Text size="sm" className="flex items-center gap-1 text-success"><Icon icon={Check} size="sm" /> Guardado</Text>
+            <span className="flex items-center gap-1 text-body text-ok-ink"><Icon name="check" size={16} /> Guardado</span>
           )}
-          {dirty && <Button variant="ghost" onClick={revert}>Descartar</Button>}
-          <Button onClick={() => save.mutate()} disabled={!canSave} loading={save.isPending}>Guardar</Button>
-        </div>
-      </header>
+          {dirty && <Button size="sm" variant="ghost" onClick={revert}>Descartar</Button>}
+          <Button size="sm" variant="brand" onClick={() => save.mutate()} disabled={!canSave}>
+            {save.isPending ? 'Guardando' : 'Guardar'}
+          </Button>
+        </>}
+      />
 
-      <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="flex flex-col gap-5 lg:sticky lg:top-24 lg:self-start">
-          <Card padding="lg" className="items-center gap-3 text-center">
-            <Avatar name={shown || person.name} src={person.avatarUrl} className="size-28" />
+      <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
+          <Card className="flex flex-col items-center gap-3 p-5 text-center">
+            <Avatar name={shown || person.name} src={person.avatarUrl} size={112} />
             <div className="min-w-0">
-              <Heading level={2} size="lg" className="break-words">{shown || 'Sin nombre'}</Heading>
-              <Text size="sm" variant="muted" className="break-all">{person.email}</Text>
+              <h2 className="break-words text-title">{shown || 'Sin nombre'}</h2>
+              <p className="break-all text-body text-text-muted">{person.email}</p>
             </div>
           </Card>
 
-          <Card padding="lg" className="gap-3">
-            <Heading level={2} size="lg">Dónde estás</Heading>
-            <ul className="flex flex-col gap-2">
-              {me.spaces.map((e) => (
-                <li key={e.id} className="flex items-center gap-3">
-                  <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-lilac"><Icon icon={School} size="lg" /></span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-medium">{e.name}</span>
-                    <span className="block text-xs text-ink-subtle">{rolesOf(e.id).map((r) => ROLES[r] ?? r).join(', ') || SPACE_KINDS[e.kind] || e.kind}</span>
-                  </span>
-                </li>
+          <Card className="flex flex-col gap-3 p-5">
+            <h2 className="text-title">Dónde estás</h2>
+            {me.spaces.length === 0
+              ? <p className="text-body text-text-muted">Todavía no estás en ningún espacio.</p>
+              : me.spaces.map((e) => (
+                <Row key={e.id} label={e.name} hint={rolesOf(e.id).map((r) => ROLES[r] ?? r).join(', ') || SPACE_KINDS[e.kind] || e.kind}>
+                  <Icon name="school" size={20} className="icon-muted" />
+                </Row>
               ))}
-              {me.spaces.length === 0 && <Text size="sm" variant="muted">Todavía no estás en ningún espacio.</Text>}
-            </ul>
           </Card>
         </aside>
 
-        <Card padding="lg" className="gap-4">
+        <Card className="flex flex-col gap-4 p-5">
           <div>
-            <Heading level={2} size="lg">Tu nombre</Heading>
-            <Text variant="muted">
+            <h2 className="text-title">Tu nombre</h2>
+            <p className="text-body text-text-muted">
               El apellido es para el guía que tiene dos Sofías en el mismo grupo. El apodo, si lo ponés, gana: es como te vamos a llamar.
-            </Text>
+            </p>
           </div>
           <div className="flex max-w-lg flex-col gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Nombre"><Input value={first} onChange={(e) => setFirst(e.target.value)} maxLength={60} /></Field>
-              <Field label="Apellido"><Input value={last} onChange={(e) => setLast(e.target.value)} maxLength={60} /></Field>
+              <Field label="Nombre"><TextField value={first} onChange={(e) => setFirst(e.target.value)} maxLength={60} /></Field>
+              <Field label="Apellido"><TextField value={last} onChange={(e) => setLast(e.target.value)} maxLength={60} /></Field>
             </div>
-            <Field label="Apodo" optional>
-              <Input value={nick} onChange={(e) => setNick(e.target.value)} maxLength={60} placeholder={first || 'Cómo te dicen'} />
+            <Field label="Apodo" hint="Opcional.">
+              <TextField value={nick} onChange={(e) => setNick(e.target.value)} maxLength={60} placeholder={first || 'Cómo te dicen'} />
             </Field>
           </div>
         </Card>

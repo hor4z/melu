@@ -7,27 +7,30 @@
 :root {
   /* El default es la tinta misma. Escrito con su respaldo y no como `var(--melu-ink)`, porque
      acá arriba esa variable todavía no existe: la declara la superficie. */
-  --melu-tone-default: var(--text, #1b2624);
-  --melu-tone-gray: #6b7a77;
-  --melu-tone-brown: #8a6a4f;
-  --melu-tone-orange: #c1703a;
+  /* Los tonos cuelgan de la paleta de etiquetas del sistema, que es la que pinta contenido. Los
+     dos que el sistema no tiene, marrón y amarillo, se escriben acá con la misma saturación que
+     los otros: son del documento y no de la interfaz. */
+  --melu-tone-default: var(--text, #2b2b2d);
+  --melu-tone-gray: var(--text-muted, #616264);
+  --melu-tone-brown: #8a5a30;
+  --melu-tone-orange: var(--label-orange, #dc6700);
   --melu-tone-yellow: #a8842a;
-  --melu-tone-green: #3f7d55;
-  --melu-tone-blue: #3a6ea8;
-  --melu-tone-purple: #7255a8;
-  --melu-tone-pink: #b04f83;
-  --melu-tone-red: #c2453c;
+  --melu-tone-green: var(--label-green, #04983b);
+  --melu-tone-blue: var(--label-blue, #1b73e7);
+  --melu-tone-purple: var(--label-purple, #ad5afa);
+  --melu-tone-pink: var(--label-pink, #f9267b);
+  --melu-tone-red: var(--bad, #e81f20);
 
   --melu-wash-default: transparent;
-  --melu-wash-gray: #f1f3f2;
+  --melu-wash-gray: var(--surface-muted, #e9eaec);
   --melu-wash-brown: #f6efe8;
-  --melu-wash-orange: #fdf0e6;
+  --melu-wash-orange: var(--label-orange-soft, #ffece2);
   --melu-wash-yellow: #fdf6e0;
-  --melu-wash-green: #ebf5ee;
-  --melu-wash-blue: #eaf1f9;
-  --melu-wash-purple: #f2eefa;
-  --melu-wash-pink: #fceef5;
-  --melu-wash-red: #fdeeed;
+  --melu-wash-green: var(--label-green-soft, #e0f8e2);
+  --melu-wash-blue: var(--label-blue-soft, #def2ff);
+  --melu-wash-purple: var(--label-purple-soft, #f8e8ff);
+  --melu-wash-pink: var(--label-pink-soft, #ffe2ec);
+  --melu-wash-red: var(--bad-subtle, #fdeaea);
 
   /* ------- colores, con lo de melu si está y algo propio si no ------- */
   /* Van en la raíz por la misma razón que los tonos, y por una más concreta: un menú es un
@@ -36,19 +39,19 @@
      borde y sin sombra: se veía el documento a través de él. Declarados acá los hereda cualquiera,
      y un host que quiera otro color los sigue pudiendo pisar en la superficie, porque una
      propiedad declarada en el elemento le gana a la heredada. */
-  --melu-ink: var(--text, #1b2624);
-  --melu-ink-soft: var(--text-muted, #5c6b68);
-  --melu-ink-faint: var(--text-subtle, #93a19e);
+  --melu-ink: var(--text, #2b2b2d);
+  --melu-ink-soft: var(--text-muted, #616264);
+  --melu-ink-faint: var(--text-placeholder, #68696b);
   --melu-paper: var(--surface, #ffffff);
-  --melu-hover: var(--surface-hover, rgba(34, 47, 45, 0.04));
-  --melu-active: var(--surface-active, rgba(34, 47, 45, 0.08));
-  --melu-edge: var(--border, #dce5e3);
-  --melu-edge-firm: var(--border-strong, #c3d2cf);
-  --melu-accent: var(--brand, #10756e);
-  --melu-accent-wash: var(--accent-subtle, #e6f2f1);
-  --melu-danger: var(--danger, #c2453c);
+  --melu-hover: var(--surface-hover, rgb(43 43 45 / 0.04));
+  --melu-active: var(--surface-active, rgb(43 43 45 / 0.08));
+  --melu-edge: var(--border, #dee0e2);
+  --melu-edge-firm: var(--border-strong, #cfd1d4);
+  --melu-accent: var(--brand, #1b73e7);
+  --melu-accent-wash: var(--brand-soft, #e7f7ff);
+  --melu-danger: var(--bad, #e81f20);
   --melu-pop: var(--popover, #ffffff);
-  --melu-shadow: var(--shadow-card, 0 1px 2px rgba(34, 47, 45, 0.06), 0 12px 28px -14px rgba(34, 47, 45, 0.24));
+  --melu-shadow: var(--relief-card, 0 1px 1px 0 rgb(0 0 0 / 0.05), 0 3px 3px 0 rgb(0 0 0 / 0.03), 0 6px 3px 0 rgb(0 0 0 / 0.02));
 }
 
 .melu-surface {
@@ -1105,7 +1108,7 @@ body.melu-dragging, body.melu-dragging * { cursor: grabbing !important; user-sel
   z-index: 200;
   padding: 5px 10px;
   border-radius: 6px;
-  background: var(--bg-inverted, #1b2624);
+  background: var(--surface-inverted, #2b2b2d);
   color: #fff;
   font-size: 12.5px;
   font-weight: 550;

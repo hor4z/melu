@@ -33,30 +33,46 @@ eje/polo→`axis`/`pole` · franja→`band` (`small`/`medium`/`large`)
 
 ```
 packages/api     Go hexagonal: domain no importa nada, app usa port, adapter implementa port
-packages/ui      el design system: componentes, tokens y el sitio que los documenta
 packages/editor  el motor de bloques con el que se escribe una actividad. Cero dependencias
-packages/web     React 19 + Tailwind + React Router. Consume @melu/ui
+packages/web     React 19 + Tailwind + React Router. Se viste con @milo/ui
 ```
 
 El front escribe su build en `packages/api/internal/web/dist` y el binario lo embebe: un solo
 artefacto. La matemática del perfil vive en Go para que el número sea el mismo lo mire el
 aprendiz o el guía.
 
-**El motor de bloques también es propio**, y por la misma razón: vive en `packages/editor`, no
+**El motor de bloques sí es propio**, y es lo único que lo es: vive en `packages/editor`, no
 depende de nada en runtime (ni ProseMirror, ni Lexical, ni una librería de arrastre) y se prueba
-solo. `make editor` levanta su taller en :5175. El core no sabe qué es un párrafo, todo lo que se
+solo. `make editor` levanta su taller en :5175, que sí se viste con milo (una dependencia de
+desarrollo: el motor sigue sin arrastrar ninguna). El core no sabe qué es un párrafo, todo lo que se
 puede nombrar viene de un plugin, y un agente escribe por la misma puerta que un click. Todavía no
 está integrado en `web`, a propósito. Antes de tocarlo:
 [packages/editor/AGENTS.md](packages/editor/AGENTS.md).
 
-**El design system es propio**, no una librería de terceros. Vive en `packages/ui` y se
-documenta solo: `make ui` levanta el sitio en :5174 con los objetivos, los lineamientos, el
-theme, los iconos y una página por componente. Esas páginas no se escriben a mano: los
-ejemplos salen de `docs/examples/` (el mismo archivo que se rinde es el que se muestra) y las
-props las lee el compilador de las fuentes. Al agregar un componente al barril, el índice
-avisa que falta documentarlo. Los estilos entran a la app con una línea
-(`@import "@melu/ui/theme.css"`) y los componentes desde el barril (`import { Button } from '@melu/ui'`).
-Un hex escrito a mano es un bug: todo color sale de un token semántico.
+**El design system es [`@milo/ui`](https://github.com/hor4z/milo)**, clavado a un tag
+(`github:hor4z/milo#v0.1.0`). Es de afuera y no se edita desde acá: lo que cambia una pieza o un
+token se cambia allá, sale un tag nuevo y acá se sube la versión. El repo es público, así que
+`npm ci` lo instala sin secretos y lo compila en su `prepare`.
+
+El CSS entra en `packages/web/src/index.css` y **el orden no es cosmético**, porque una capa vale
+por dónde se la declara: primero `styles/layers.css`, que no tiene más que la lista
+(`milo.reset, tw.base, milo.components, tw.utilities, melu.app`), después Tailwind, después
+`@milo/ui/theme.css` y `@milo/ui/style.css`, y al final lo de la app.
+
+Dos cosas que se heredaron de atto y no se vuelven a discutir: **el preflight de Tailwind no va**
+(aun con las capas en orden les gana a los botones del sistema y los deja sin fondo, y milo ya
+trae su reset), y **los nombres de token que los dos sistemas usan** (`--radius-*`,
+`--duration-*`, `--font-weight-*`) **no se redeclaran en el `@theme`**: milo los declara sin capa
+y gana siempre, así que `rounded-xl` ya mide 16 y `font-semibold` ya pesa 450.
+
+Tailwind se queda para el layout y la coherencia, y su `@theme` apunta a los roles de milo con
+`var()` en vez de copiarlos: la utilidad se llama como el rol (`text-text-muted`, `bg-surface`,
+`border-border`) y la escala de texto son los siete roles del sistema (`text-meta`, `text-body`,
+`text-reading`, `text-title`, `text-heading`, `text-display`), no `text-sm`.
+
+Un hex escrito a mano es un bug: todo color sale de un rol. Lo sostiene
+`node scripts/sin-rastros.mjs`, que además falla si vuelve un import, un nombre o un token del
+kit viejo. Lo corren `make test` y la CI.
 
 ## Migraciones
 
@@ -79,14 +95,14 @@ npm install              # una vez, desde la raíz: es un workspace
 cp .env.example .env     # cargale las credenciales de Google: son obligatorias
 make db                  # postgres en :5434
 make dev                 # api en :8787 + front en :5173
-make ui                  # el sitio del design system, en :5174
 make editor              # el taller del motor de bloques, en :5175
-make test                # los tests del kit y del motor (vitest + jsdom)
+make test                # el guardián del design system y los tests del motor
 ```
 
 ## Lo que mira CI
 
 `.github/workflows/ci.yml`, en cada push a `main` y en cada pull request. Corre los mismos
-comandos que se corren en local, no otros: tipos, lint y tests del kit y del motor de bloques;
-lint y build del front (que incluye su `tsc -b`); `go vet` y `go build` de la api. Si algo pasa en local y falla ahí,
+comandos que se corren en local, no otros: tipos, lint y tests del motor de bloques; el guardián
+de "sin rastros"; lint y build del front (que incluye su `tsc -b`); `go vet` y `go build` de la
+api. Si algo pasa en local y falla ahí,
 la diferencia es el lockfile: CI instala con `npm ci`, que no improvisa.

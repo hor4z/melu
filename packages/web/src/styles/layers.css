@@ -1,0 +1,5 @@
+/* Una capa vale por dónde se la declara, no por dónde se usa, así que esta línea va primera y
+   sola: milo declara "milo.reset, milo.components, milo.app" y acá se intercalan las de Tailwind.
+   Las utilidades van después de las piezas, que es lo que hace que un "rounded-full" sobre un
+   Button de milo funcione. La capa melu.app va última: es lo que escribe el producto. */
+@layer milo.reset, tw.base, milo.components, tw.utilities, melu.app;

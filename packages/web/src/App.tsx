@@ -1,6 +1,5 @@
-import { useEffect } from 'react'
 import { Navigate, Route, Routes, useParams } from 'react-router'
-import { Spinner } from '@melu/ui'
+import { Spinner } from '@milo/ui'
 import { useMe } from './lib/session'
 import { GuideShell, LearnerShell } from './Shell'
 import { SpaceProvider } from './lib/space'
@@ -29,8 +28,6 @@ function VieneDe({ to }: { to: string }) {
 
 export function App() {
   const me = useMe()
-  const mode = me.data?.mode
-  useEffect(() => { if (mode === 'learner') document.documentElement.dataset.mode = 'learner'; else delete document.documentElement.dataset.mode }, [mode])
 
   if (me.isPending) return <div className="grid min-h-screen place-items-center"><Spinner /></div>
   // Sin sesión, cualquier ruta muestra la entrada. La URL no cambia: después de Google se

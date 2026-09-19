@@ -1,20 +1,28 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArrowRight } from 'lucide-react'
-import { Card, Chip, Eyebrow, Heading, Icon, Text } from '@melu/ui'
+import { Card, Chip, Icon, PageHeader, Tooltip } from '@milo/ui'
 import { api, type Lens } from '../lib/api'
 
 export function Lenses() {
   const lenses = useQuery({ queryKey: ['lenses'], queryFn: () => api.get<Lens[]>('/api/lenses') })
   return (
     <div className="flex flex-col gap-6">
-      <header className="border-b border-line pb-4"><Eyebrow>Lentes</Eyebrow><Heading level={1} size="2xl" className="mt-1">Cómo se recorre una actividad</Heading><Text variant="muted">Una forma de recorrer una actividad. Cada lente trae sus fases. Son datos: sumar un método es cargar una fila.</Text></header>
+      <PageHeader
+        title="Cómo se recorre una actividad"
+        subtitle="Una lente es una forma de recorrer una actividad, y trae sus fases. Son datos: sumar un método es cargar una fila."
+      />
       <div className="grid gap-4 md:grid-cols-2">
         {lenses.data?.map((l) => (
-          <Card key={l.key} padding="md" className="gap-3">
-            <div><div className="font-semibold">{l.name}</div><Text size="sm" variant="muted">{l.description}</Text></div>
-            <ol className="flex flex-wrap items-center gap-1.5 text-sm">
+          <Card key={l.key} className="flex flex-col gap-3 p-4">
+            <div>
+              <div className="text-body font-semibold">{l.name}</div>
+              <p className="text-body text-text-muted">{l.description}</p>
+            </div>
+            <ol className="flex flex-wrap items-center gap-1.5">
               {l.phases.map((f, i) => (
-                <li key={f.key} className="flex items-center gap-1.5"><Chip color="teal" title={f.asks}>{f.name}</Chip>{i < l.phases.length - 1 && <Icon icon={ArrowRight} size="xs" color="subtle" />}</li>
+                <li key={f.key} className="flex items-center gap-1.5">
+                  <Tooltip label={f.asks}><span><Chip color="teal" size="sm">{f.name}</Chip></span></Tooltip>
+                  {i < l.phases.length - 1 && <Icon name="chevron_right" size={14} className="icon-muted" />}
+                </li>
               ))}
             </ol>
           </Card>

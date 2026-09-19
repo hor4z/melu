@@ -1,18 +1,35 @@
-import { DoodleSprout, DoodleLock, DoodleKitchen, DoodleBulb, DoodleBook, DoodleMap, DoodleBridge, DoodleRobot } from '@melu/ui'
+// La portada de una actividad: la marca de color del sistema con un glifo, elegido por el
+// título. No hay fotos, y tampoco ilustración: una marca dice de qué va sin inventar un dibujo.
+import { Icon, labelColors, labelFill, type IconName, type LabelColor } from '@milo/ui'
+import { cn } from '../lib/cn'
 
-// Cover per activity: tint + doodle picked from the title (or a default). No photos until there are any.
-const MAP: Record<string, [string, React.ComponentType<{ size?: number; className?: string }>]> = {
-  'Puente de espagueti': ['bg-yellow', DoodleBridge], 'Cartógrafos del barrio': ['bg-blue', DoodleMap], 'Una pieza para alguien': ['bg-lilac', DoodleBulb],
-  'El robot que cuenta': ['bg-cyan', DoodleRobot], 'Fracciones en la cocina': ['bg-orange', DoodleKitchen], 'Escape del aula': ['bg-lilac', DoodleLock],
-  'Cuento con números': ['bg-teal', DoodleBook], 'La tienda del grupo': ['bg-yellow', DoodleBulb], 'Gallinas y conejos': ['bg-blue', DoodleBulb], '¿Cómo llegaste hoy?': ['bg-green', DoodleSprout],
+const POR_TITULO: Record<string, [LabelColor, IconName]> = {
+  'Puente de espagueti': ['orange', 'handyman'],
+  'Cartógrafos del barrio': ['blue', 'map'],
+  'Una pieza para alguien': ['purple', 'lightbulb'],
+  'El robot que cuenta': ['teal', 'smart_toy'],
+  'Fracciones en la cocina': ['orange', 'calculate'],
+  'Escape del aula': ['purple', 'lock'],
+  'Cuento con números': ['green', 'menu_book'],
+  'La tienda del grupo': ['pink', 'payments'],
+  'Gallinas y conejos': ['blue', 'calculate'],
+  '¿Cómo llegaste hoy?': ['green', 'forum'],
 }
-const TINTS = ['bg-teal', 'bg-yellow', 'bg-blue', 'bg-lilac', 'bg-orange', 'bg-cyan', 'bg-green', 'bg-pink']
-export function coverOf(title: string): [string, React.ComponentType<{ size?: number; className?: string }>] {
-  if (MAP[title]) return MAP[title]
-  let h = 0; for (const ch of title) h = (h * 31 + ch.charCodeAt(0)) >>> 0
-  return [TINTS[h % TINTS.length], DoodleBulb]
+
+/** El par color/glifo de una actividad. Sin entrada propia, sale del título y no cambia nunca. */
+export function coverOf(title: string): [LabelColor, IconName] {
+  const conocida = POR_TITULO[title]
+  if (conocida) return conocida
+  let h = 0
+  for (const ch of title) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  return [labelColors[h % labelColors.length], 'lightbulb']
 }
+
 export function Cover({ title, className = '', size = 88 }: { title: string; className?: string; size?: number }) {
-  const [tint, D] = coverOf(title)
-  return <div className={`grid place-items-center ${tint} ${className}`}><D size={size} className="text-ink" /></div>
+  const [color, icon] = coverOf(title)
+  return (
+    <span className={cn('mark grid place-items-center', labelFill[color], className)}>
+      <Icon name={icon} size={size} weight={300} />
+    </span>
+  )
 }

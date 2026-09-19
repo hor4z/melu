@@ -1,11 +1,10 @@
 // Sumar gente a un grupo, escribiendo emails. Es lo que reemplazó al código de seis letras:
 // en vez de darle algo al chico para que lo tipee, el guía escribe lo único que ya sabe de él.
 //
-// Vive acá y no en @melu/ui porque sabe de grupos y de aprendices, que son conceptos de melu.
+// Vive acá y no en el design system porque sabe de grupos y de aprendices, que son de melu.
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Check, UserPlus } from 'lucide-react'
-import { Alert, Button, Field, Icon, Text, Textarea } from '@melu/ui'
+import { Alert, AlertBody, AlertTitle, Button, Field, Textarea } from '@milo/ui'
 import { api } from '../lib/api'
 
 type Result = { added: string[]; already: string[] }
@@ -33,24 +32,28 @@ export function AddLearners({ groupId, groupName, onDone }: { groupId: string; g
     <form className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); add.mutate() }}>
       <Field
         label={groupName ? `Sumá a los chicos de "${groupName}"` : 'Sumá a los chicos'}
-        description="Un email por línea, o separados por comas. Entran con Google y el grupo ya los está esperando."
+        hint="Un email por línea, o separados por comas. Entran con Google y el grupo ya los está esperando."
       >
-        <Textarea autoGrow rows={4} value={raw} onChange={(e) => setRaw(e.target.value)}
-          placeholder={'sofia@escuela.edu\nbenjamin@escuela.edu'} />
+        <Textarea
+          rows={4} value={raw} onChange={(e) => setRaw(e.target.value)}
+          placeholder={'sofia@escuela.edu\nbenjamin@escuela.edu'}
+        />
       </Field>
 
-      {add.isError && <Text size="sm" variant="danger">No se pudieron sumar. Probá de nuevo.</Text>}
+      {add.isError && <span className="text-body text-bad-ink">No se pudieron sumar. Probá de nuevo.</span>}
 
       {result && (result.added.length > 0 || result.already.length > 0) && (
-        <Alert variant="success" title={`${result.added.length} ${result.added.length === 1 ? 'sumado' : 'sumados'}`}
-          icon={<Icon icon={Check} size="lg" className="mt-px text-success" />}>
-          {result.added.join(', ')}
-          {result.already.length > 0 && <span className="block text-ink-muted">Ya estaban: {result.already.join(', ')}</span>}
+        <Alert tone="ok">
+          <AlertTitle>{result.added.length} {result.added.length === 1 ? 'sumado' : 'sumados'}</AlertTitle>
+          <AlertBody>
+            {result.added.join(', ')}
+            {result.already.length > 0 && <span className="block text-text-muted">Ya estaban: {result.already.join(', ')}</span>}
+          </AlertBody>
         </Alert>
       )}
 
       <div>
-        <Button type="submit" loading={add.isPending} disabled={emails.length === 0} startIcon={<Icon icon={UserPlus} size="sm" />}>
+        <Button type="submit" icon="person_add" disabled={add.isPending || emails.length === 0}>
           {emails.length > 1 ? `Sumar ${emails.length}` : 'Sumar'}
         </Button>
       </div>

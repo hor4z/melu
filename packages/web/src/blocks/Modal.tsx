@@ -1,25 +1,32 @@
 import type { ReactNode } from 'react'
-import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, EmptyState } from '@melu/ui'
+import { EmptyState, Modal as MiloModal, ModalBody, ModalFooter, ModalHint, ModalTitle, type IconName } from '@milo/ui'
 
-/** Thin wrapper over the kit's Dialog, for the app's controlled modals. */
+/** El modal de la app sobre el de milo: título, bajada y pie, que es como se usan acá. */
 export function Modal({ isOpen, onClose, title, description, children, footer, boxWidth = 480 }: {
-  isOpen: boolean; onClose: () => void; title: string; description?: string; children: ReactNode; footer?: ReactNode; boxWidth?: number
+  isOpen: boolean
+  onClose: () => void
+  title: string
+  description?: string
+  children: ReactNode
+  footer?: ReactNode
+  boxWidth?: number
 }) {
-  const size = boxWidth >= 640 ? 'lg' : boxWidth >= 520 ? 'md' : 'sm'
   return (
-    <Dialog open={isOpen} onOpenChange={(o) => !o && onClose()} purpose="form">
-      <DialogContent size={size}>
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
-        </DialogHeader>
-        <DialogBody>{children}</DialogBody>
-        {footer && <DialogFooter>{footer}</DialogFooter>}
-      </DialogContent>
-    </Dialog>
+    <MiloModal open={isOpen} onClose={onClose} width={boxWidth} label={title}>
+      <ModalTitle>{title}</ModalTitle>
+      {description && <ModalHint>{description}</ModalHint>}
+      <ModalBody>{children}</ModalBody>
+      {footer && <ModalFooter>{footer}</ModalFooter>}
+    </MiloModal>
   )
 }
 
-export function Empty({ title, text, action }: { title: string; text?: string; action?: ReactNode }) {
-  return <EmptyState title={title} description={text} actions={action} />
+/** Un vacío que dice qué falta y qué se puede hacer. Sin ilustración: un icono y dos líneas. */
+export function Empty({ title, text, action, icon = 'inbox' }: {
+  title: string
+  text?: string
+  action?: ReactNode
+  icon?: IconName
+}) {
+  return <EmptyState icon={icon} title={title} body={text ?? ''} action={action} bordered />
 }

@@ -300,8 +300,10 @@ condición.
 No está integrado todavía, a propósito: el package es autónomo y la integración es un cambio en
 `packages/web` que se hace aparte. Lo que hace falta:
 
-1. `import '@melu/editor/editor.css'` una vez. Los colores del editor son tokens con fallback
-   (`var(--text, #1b2624)`), así que montado adentro de la app toma el theme de melu solo.
+1. `import '@melu/editor/editor.css'` una vez. Los colores del editor son tokens con respaldo
+   (`var(--text, #2b2b2d)`) y los nombres son los roles de `@milo/ui`, así que montado adentro de
+   la app toma el theme solo. Los tonos del documento cuelgan de la paleta de etiquetas del
+   sistema, con su respaldo al lado.
 2. En `screens/Editor.tsx`, reemplazar la lista de bloques por `<BlockEditor value={...}
    onChange={...} />`. El formato de `document.phases[].blocks` es el mismo árbol que
    `toJSON`/`docFromJSON`, con una diferencia: la plataforma tiene un tipo `heading` con nivel y acá

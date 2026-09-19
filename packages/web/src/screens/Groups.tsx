@@ -1,47 +1,48 @@
 import { useState } from 'react'
-import { Link } from 'react-router'
+import { useNavigate } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Plus, Users } from 'lucide-react'
-import { AvatarGroup, Button, Card, cn, Field, Heading, Icon, Input, Text, Textarea } from '@melu/ui'
+import { Button, Field, PageHeader, TextField, Textarea, Folder } from '@milo/ui'
 import { api, type Group } from '../lib/api'
 import { useSpace } from '../lib/space'
 import { Modal, Empty } from '../blocks/Modal'
 
-const TINTS = ['bg-teal', 'bg-yellow', 'bg-lilac', 'bg-blue']
+const COLORS = ['var(--space-green)', 'var(--space-blue)', 'var(--space-purple)', 'var(--space-orange)', 'var(--space-pink)']
 
 export function Groups() {
   const qc = useQueryClient()
+  const nav = useNavigate()
   const { space } = useSpace()
   const groups = useQuery({ queryKey: ['groups', space?.id], queryFn: () => api.get<Group[]>(`/api/groups?space=${space?.id ?? ''}`) })
   const [nuevo, setFresh] = useState(false)
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
-        <div><Heading level={1} size="xl">Mis grupos</Heading><Text variant="muted">Gente que aprende junta: un aula, un taller, una sala de refuerzo.</Text></div>
-        <Button onClick={() => setFresh(true)} startIcon={<Icon icon={Plus} />}>Nuevo grupo</Button>
-      </header>
+      <PageHeader
+        title="Mis grupos"
+        subtitle="Gente que aprende junta: un aula, un taller, una sala de refuerzo."
+        actions={<Button size="sm" variant="brand" icon="add" onClick={() => setFresh(true)}>Nuevo grupo</Button>}
+      />
 
-      {groups.data?.length === 0 && <Empty title="Todavía no hay grupos" text="Creá el primero. Vas a recibir un código para que los chicos se unan." action={<Button onClick={() => setFresh(true)}>Crear grupo</Button>} />}
+      {groups.data?.length === 0 && (
+        <Empty
+          icon="group" title="Todavía no hay grupos"
+          text="Creá el primero y sumá a los chicos por email."
+          action={<Button variant="brand" onClick={() => setFresh(true)}>Crear grupo</Button>}
+        />
+      )}
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {/* Una carpeta por grupo, como en el panel: el mismo objeto se ve igual en las dos
+          pantallas, así que no hay que volver a aprender qué es cada cosa. */}
+      <div className="flex flex-wrap gap-6">
         {groups.data?.map((g, i) => (
-          <Card key={g.id} asChild interactive className="h-full">
-            {/* Sin la franja de color de 96 px: era casi todo vacío, y en una sola columna cada
-                grupo era un bloque de color más alto que su propio contenido. El tinte queda en
-                el mosaico, que es el mismo gesto que usa el selector de espacios. */}
-            <Link to={`/groups/${g.id}`} className="flex flex-col gap-3 p-4">
-              <div className="flex items-start justify-between gap-3">
-                <span className={cn('grid size-9 shrink-0 place-items-center rounded-md', TINTS[i % TINTS.length])}>
-                  <Icon icon={Users} size="lg" />
-                </span>
-                {g.names.length > 0 && <AvatarGroup names={g.names} max={4} size="xs" />}
-              </div>
-              <div className="min-w-0">
-                <div className="font-semibold">{g.name}</div>
-                {g.description && <Text size="sm" variant="muted" className="mt-0.5 line-clamp-2">{g.description}</Text>}
-              </div>
-            </Link>
-          </Card>
+          <Folder
+            key={g.id}
+            size={128}
+            label={g.name}
+            meta={g.description || `${g.learners} ${g.learners === 1 ? 'aprendiz' : 'aprendices'}`}
+            color={COLORS[i % COLORS.length]}
+            avatars={(g.names ?? []).slice(0, 4).map((name) => ({ name }))}
+            onClick={() => nav(`/groups/${g.id}`)}
+          />
         ))}
       </div>
 
@@ -63,21 +64,29 @@ function NewGroup({ isOpen, onClose, onReady }: { isOpen: boolean; onClose: () =
   // nada más: cuánto escribir lo decide quien escribe.
   const listo = name.trim() !== '' && description.trim() !== ''
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Nuevo grupo" description="Vas a recibir un código para que los chicos se unan."
-      footer={<><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button form="new-group" type="submit" loading={create.isPending} disabled={!listo}>Crear</Button></>}>
+    <Modal
+      isOpen={isOpen} onClose={onClose} title="Nuevo grupo"
+      description="Después sumás a los chicos por email: entran con Google y el grupo ya los espera."
+      footer={<>
+        <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+        <Button variant="brand" form="new-group" type="submit" disabled={!listo || create.isPending}>
+          {create.isPending ? 'Creando' : 'Crear'}
+        </Button>
+      </>}
+    >
       <form id="new-group" className="flex flex-col gap-4" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
-        <Field label="Nombre" required description={space ? `Se crea en "${space.name}".` : undefined}>
-          <Input placeholder="Robótica de los sábados" value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
+        <Field label="Nombre" required hint={space ? `Se crea en "${space.name}".` : undefined}>
+          <TextField placeholder="Robótica de los sábados" value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
         </Field>
         {/* La ayuda y el ejemplo empujan a contar en palabras lo que la pantalla ya cuenta en
             números. Acá va lo que no se puede contar: de qué se trata y con qué acuerdo. */}
-        <Field label="Descripción" required description="De qué se trata y con qué acuerdo. Las cantidades ya están en la pantalla: esto es lo que no se puede contar.">
+        <Field label="Descripción" required hint="De qué se trata y con qué acuerdo. Las cantidades ya están en la pantalla: esto es lo que no se puede contar.">
           <Textarea
             placeholder="Contraturno de los sábados, para quien se quiera anotar. Trabajamos en equipo."
-            value={description} onChange={(e) => setDescription(e.target.value)} rows={3} autoGrow required
+            value={description} onChange={(e) => setDescription(e.target.value)} rows={3} required
           />
         </Field>
-        {create.isError && <Text size="sm" variant="danger">No se pudo crear el grupo.</Text>}
+        {create.isError && <span className="text-body text-bad-ink">No se pudo crear el grupo.</span>}
       </form>
     </Modal>
   )

@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
-import { Clock, Flame, Target, Trophy } from 'lucide-react'
-import { Button, Card, Chip, DoodleSprout, Eyebrow, Heading, Icon, ProgressRing, Text } from '@melu/ui'
-import { StatTile } from '../blocks/Product'
+import { Button, Card, Chip, Divider, PageHeader, Progress as Bar, count } from '@milo/ui'
+import { Stat } from '../blocks/Product'
 import { api, type Progress as P } from '../lib/api'
 import { EXPERIENCES } from '../lib/composition'
 import { Cargando, NoLlego } from '../blocks/Estado'
+import { Empty } from '../blocks/Modal'
 
 export function Progress() {
   const nav = useNavigate()
@@ -15,37 +15,56 @@ export function Progress() {
   if (!p) return <NoLlego que="tu progreso" error={q.error} onRetry={() => void q.refetch()} />
   const total = p.done + p.inProgress
   return (
-    <div className="flex flex-col gap-8">
-      <header className="flex items-center gap-5">
-        <ProgressRing value={total ? p.done / total : 0} size={84}>{p.done}/{total || 0}</ProgressRing>
-        <div><Eyebrow>Mi progreso</Eyebrow><Heading level={1} size="2xl" className="mt-1">Lo que hiciste hasta ahora</Heading><Text variant="muted">Solo vos y tu docente ven esto. No se compara con nadie.</Text></div>
-      </header>
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Misiones hechas" value={p.done} tint="bg-orange" icon={<Icon icon={Trophy} size="lg" />} />
-        <StatTile label="Racha" value={p.streak} unit={p.streak === 1 ? 'día' : 'días'} hint="días seguidos entregando" tint="bg-yellow" icon={<Icon icon={Flame} size="lg" />} />
-        <StatTile label="Tiempo" value={p.minutes} unit="min" hint="en total, trabajando" tint="bg-blue" icon={<Icon icon={Clock} size="lg" />} />
-        <StatTile label="Aciertos" value={p.accuracy >= 0 ? Math.round(p.accuracy * 100) : '-'} unit={p.accuracy >= 0 ? '%' : undefined} hint="en los chequeos" tint="bg-lilac" icon={<Icon icon={Target} size="lg" />} />
-      </section>
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Lo que hiciste hasta ahora" subtitle="Solo vos y tu docente ven esto. No se compara con nadie." />
+
+      {total > 0 && <Bar label="Misiones terminadas" value={p.done} max={total} hint={`${p.done}/${total}`} tone={p.done === total ? 'ok' : 'brand'} />}
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Stat label="Misiones hechas" value={count(p.done)} icon="workspace_premium" />
+        <Stat label="Racha" value={`${p.streak} ${p.streak === 1 ? 'día' : 'días'}`} icon="bolt" hint="seguidos entregando" />
+        <Stat label="Tiempo" value={`${count(p.minutes)} min`} icon="schedule" hint="en total, trabajando" />
+        <Stat label="Aciertos" value={p.accuracy >= 0 ? `${Math.round(p.accuracy * 100)}%` : '-'} icon="target" hint="en los chequeos" />
+      </div>
+
       {Object.keys(p.experiences).length > 0 && (
-        <Card padding="lg"><Eyebrow>Qué tipo de cosas hiciste</Eyebrow><div className="mt-3 flex flex-wrap gap-2">{Object.entries(p.experiences).map(([k, n]) => <Chip key={k}>{EXPERIENCES[k] ?? k} <span className="ml-0.5 font-bold tabular-nums">{n}</span></Chip>)}</div></Card>
-      )}
-      <Card padding="lg">
-        <Eyebrow>Misiones</Eyebrow>
-        {p.missions.length === 0 ? <div className="flex flex-col items-center gap-3 py-8 text-center"><DoodleSprout size={90} className="text-ink" /><Text variant="muted">Todavía no hiciste ninguna. Cuando empieces, acá queda tu historia.</Text></div> : (
-          <ul className="mt-3 divide-y divide-line">
-            {p.missions.map((m) => (
-              <li key={m.submissionId} className="flex flex-wrap items-center gap-3 py-3">
-                <div className="min-w-0 flex-1"><div className="font-medium">{m.title}</div><Text size="xs" variant="muted" className="flex flex-wrap items-center gap-x-3">
-                  <span>{m.group}</span>
-                  {m.minutes > 0 && <span className="text-ink-subtle">{m.minutes} min</span>}
-                  {m.accuracy >= 0 && <span className="text-ink-subtle">{Math.round(m.accuracy * 100)}% aciertos</span>}
-                </Text></div>
-                <Chip size="sm" color={m.status === 'graded' ? 'success' : m.status === 'submitted' ? 'default' : 'warning'}>{m.status === 'graded' ? 'Con devolución' : m.status === 'submitted' ? 'Entregada' : 'En curso'}</Chip>
-                <Button size="sm" variant="ghost" onClick={() => nav(`/missions/${m.assignmentId}`)}>Abrir</Button>
-              </li>
+        <Card className="flex flex-col gap-3 p-5">
+          <h2 className="text-title">Qué tipo de cosas hiciste</h2>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(p.experiences).map(([k, n]) => (
+              <Chip key={k}>{EXPERIENCES[k] ?? k} <span className="tabular font-semibold">{n}</span></Chip>
             ))}
-          </ul>
-        )}
+          </div>
+        </Card>
+      )}
+
+      <Card className="flex flex-col gap-3 p-5">
+        <h2 className="text-title">Misiones</h2>
+        {p.missions.length === 0
+          ? <Empty icon="rocket_launch" title="Todavía no hiciste ninguna" text="Cuando empieces, acá queda tu historia." />
+          : (
+            <ul className="flex flex-col">
+              {p.missions.map((m, i) => (
+                <li key={m.submissionId}>
+                  {i > 0 && <Divider />}
+                  <div className="flex flex-wrap items-center gap-3 py-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-body font-semibold">{m.title}</div>
+                      <div className="flex flex-wrap items-center gap-x-3 text-meta text-text-muted">
+                        <span>{m.group}</span>
+                        {m.minutes > 0 && <span>{m.minutes} min</span>}
+                        {m.accuracy >= 0 && <span>{Math.round(m.accuracy * 100)}% aciertos</span>}
+                      </div>
+                    </div>
+                    <Chip size="sm" color={m.status === 'graded' ? 'ok' : m.status === 'submitted' ? undefined : 'warn'}>
+                      {m.status === 'graded' ? 'Con devolución' : m.status === 'submitted' ? 'Entregada' : 'En curso'}
+                    </Chip>
+                    <Button size="sm" variant="ghost" onClick={() => nav(`/missions/${m.assignmentId}`)}>Abrir</Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
       </Card>
     </div>
   )

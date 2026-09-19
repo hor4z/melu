@@ -17,6 +17,10 @@
 import { StrictMode, useCallback, useRef, useState, useSyncExternalStore } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BlockEditor, authorMarkdown, focusSurface, fromMarkdown, type Editor } from '../src/index.ts'
+// El sistema primero: `theme.css` declara el orden de las capas, y una capa vale por dónde se la
+// declara. Después el CSS de las piezas, el del motor y el del cascarón.
+import '@milo/ui/theme.css'
+import '@milo/ui/style.css'
 import '../src/ui/editor.css'
 import './taller.css'
 import { ACTIVIDAD, DEL_AGENTE } from './document.ts'

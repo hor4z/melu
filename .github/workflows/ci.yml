@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   kit:
-    name: Kit, motor y front
+    name: Motor y front
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -28,15 +28,6 @@ jobs:
       # y el package.json no se están diciendo lo mismo.
       - run: npm ci
 
-      - name: Tipos del kit
-        run: npm run typecheck -w @melu/ui
-
-      - name: Lint del kit
-        run: npm run lint -w @melu/ui
-
-      - name: Tests del kit
-        run: npm test -w @melu/ui
-
       - name: Tipos del motor de bloques
         run: npm run typecheck -w @melu/editor
 
@@ -45,6 +36,11 @@ jobs:
 
       - name: Tests del motor de bloques
         run: npm test -w @melu/editor
+
+      # Ni un rastro del design system viejo: ni un import, ni un nombre, ni un token, ni un
+      # hex escrito a mano. El front no tiene tests, así que esta es la red.
+      - name: Sin rastros del kit viejo
+        run: node scripts/sin-rastros.mjs
 
       - name: Lint del front
         run: npm run lint -w @melu/web

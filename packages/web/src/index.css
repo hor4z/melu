@@ -1,1 +1,7 @@
-@import "@melu/ui/theme.css";
+/* El orden no es cosmético: una capa vale por dónde se la declara, así que layers.css va
+   primero, después Tailwind y el sistema, y al final lo que escribe la app. */
+@import "./styles/layers.css";
+@import "./styles/tailwind.css";
+@import "@milo/ui/theme.css";
+@import "@milo/ui/style.css";
+@import "./styles/app.css";
