@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Chip, Icon, IconButton, TextField, Textarea, type IconName } from '@milo/ui'
+import { Callout, Chip, Icon, IconButton, TextField, Textarea, type IconName } from '@milo/ui'
 import type { Block, AnswerValue } from '../lib/api'
 import { cn } from '../lib/cn'
 import { GameBlock, gameScore } from './Games'
@@ -69,10 +69,22 @@ export function hasValue(v: AnswerValue | undefined): boolean {
 /** Los bloques que solo se leen. */
 export function ReadingBlock({ b }: { b: Block }) {
   switch (b.type) {
-    case 'heading': return <h2 className="text-title">{b.text}</h2>
-    case 'list': return <ul className="list-disc space-y-1.5 pl-6 text-reading">{b.text.split('\n').filter(Boolean).map((l, i) => <li key={i}>{l}</li>)}</ul>
-    case 'callout': return <div className="rounded-[var(--radius-xl)] border-l-4 border-brand bg-brand-soft px-5 py-4"><p className="text-reading font-semibold">{b.text}</p></div>
-    default: return <p className="text-reading">{b.text}</p>
+    case 'heading':
+      return <h2 className="text-title font-semibold">{b.text}</h2>
+    case 'list':
+      return <ul className="list-disc space-y-1.5 pl-6 text-reading">{b.text.split('\n').filter(Boolean).map((l, i) => <li key={i}>{l}</li>)}</ul>
+    case 'callout': {
+      // La primera línea es el título del destacado y el resto el cuerpo, que es como se escribe
+      // un aviso: "Antes de subir al primer piso" y abajo qué hacer. Sin salto, es solo el cuerpo.
+      const [primera, ...resto] = b.text.split('\n')
+      return (
+        <Callout icon="lightbulb" color="orange" title={resto.length > 0 ? primera : undefined}>
+          {resto.length > 0 ? resto.join('\n') : primera}
+        </Callout>
+      )
+    }
+    default:
+      return <p className="text-reading">{b.text}</p>
   }
 }
 

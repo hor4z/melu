@@ -2,11 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
-  Breadcrumb, Button, Card, Chip, Icon, IconButton, Kbd, Popover, Segmented, Tab, TabList, Tabs,
-  TextField, Textarea,
+  Breadcrumb, Button, Card, Chip, Divider, Icon, IconButton, Kbd, Popover, Segmented, Tab,
+  TabList, Tabs, TextField, Textarea, Toolbar, ToolbarButton, type IconName,
 } from '@milo/ui'
 import { api, newId, type Activity, type Block, type Criterion, type ManipulativeFigure, type Group, type Lens, type GameEngine, type BlockType } from '../lib/api'
 import { IS_INTERACTIVE, SETTINGS, EXPERIENCES, FIGURES, GAMES, SOCIAL, BLOCK_TYPES, EVIDENCE_MEDIA } from '../lib/composition'
+import { useSpace } from '../lib/space'
 import { CompositionChips } from '../blocks/Chips'
 import { InteractiveBlock, ReadingBlock, splitBlanks } from '../blocks/Interactive'
 import { Modal } from '../blocks/Modal'
@@ -40,6 +41,7 @@ function EditorLoaded({ initial }: { initial: Activity }) {
   const [assign, setAssign] = useState(false)
   const [preview, setPreview] = useState(false)
   const [focusRef, setFocusRef] = useState<string | null>(null)
+  const { space } = useSpace()
   const timer = useRef<number | undefined>(undefined)
   const lenses = useQuery({ queryKey: ['lenses'], queryFn: () => api.get<Lens[]>('/api/lenses'), staleTime: Infinity })
 
@@ -81,76 +83,103 @@ function EditorLoaded({ initial }: { initial: Activity }) {
   return (
     <div className="grid w-full gap-8 lg:grid-cols-[minmax(0,1fr)_300px]">
       <div className="flex flex-col gap-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <Breadcrumb items={[{ label: 'Actividades', onClick: () => nav('/activities') }, { label: a.title || 'Sin título' }]} />
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-x-3 text-meta text-text-muted">
-              {a.description.trim() === ''
-                ? <span className="font-semibold text-bad-ink">Falta la descripción</span>
-                : <span>{{ saved: 'Guardado', editing: 'Editando', saving: 'Guardando' }[status]}</span>}
-              <span>{totalBlocks} bloques</span>
-            </span>
+        <Breadcrumb items={[{ label: 'Actividades', onClick: () => nav('/activities') }, { label: a.title || 'Sin título' }]} />
+
+        {/* La portada del documento: arriba el rótulo que dice dónde vive y cómo está, el título
+            grande, y a la derecha lo que se hace con la actividad. Sin la banda de color de 144:
+            adentro del documento era un bloque de color y nada más, y la portada sigue estando
+            donde sirve, que es en la lista. */}
+        <header className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <Cover title={a.title} className="mt-1.5 size-10 shrink-0 rounded-[var(--radius-md)]" size={22} />
+            <div className="min-w-0 flex-1">
+              <span className="flex flex-wrap items-center gap-x-2 text-meta text-text-muted">
+                {space?.name && <><span>{space.name}</span><span>·</span></>}
+                {a.description.trim() === ''
+                  ? <span className="font-semibold text-bad-ink">Falta la descripción</span>
+                  : <span>{{ saved: 'Guardado', editing: 'Editando', saving: 'Guardando' }[status]}</span>}
+                <span>·</span>
+                <span>{totalBlocks} bloques</span>
+              </span>
+              <input
+                value={a.title} onChange={(e) => change((x) => ({ ...x, title: e.target.value }), false)}
+                aria-label="Título" placeholder="Sin título" readOnly={preview}
+                className="w-full bg-transparent text-display font-bold outline-none placeholder:text-text-placeholder"
+              />
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
             <Button size="sm" variant="ghost" icon={preview ? 'visibility_off' : 'visibility'} onClick={() => setPreview((v) => !v)}>
               {preview ? 'Editar' : 'Ver como aprendiz'}
             </Button>
+            <Button size="sm" variant="brand" icon="send" onClick={() => setAssign(true)}>Asignar</Button>
           </div>
+        </header>
+
+        {/* La bajada y los ejes, en la columna de lectura: es lo que se lee de la actividad en la
+            biblioteca y en el grupo, así que se escribe acá y no en un formulario aparte. */}
+        <div className="flex w-full max-w-[732px] flex-col gap-4 pl-[52px]">
+          <textarea
+            value={a.description}
+            onChange={(e) => { e.target.style.height = '0'; e.target.style.height = `${e.target.scrollHeight}px`; change((x) => ({ ...x, description: e.target.value }), false) }}
+            aria-label="Descripción" placeholder="Contá de qué se trata, para reconocerla sin abrirla" readOnly={preview} rows={1}
+            ref={(el) => { if (el) { el.style.height = '0'; el.style.height = `${el.scrollHeight}px` } }}
+            className="w-full resize-none bg-transparent text-reading text-text-muted outline-none placeholder:text-text-placeholder"
+          />
+          {preview
+            ? <CompositionChips c={a.composition} />
+            : (
+              <div className="grid gap-y-1 text-body sm:grid-cols-[130px_1fr]">
+                <Prop name="Experiencia"><Picker options={EXPERIENCES} value={a.composition.experience} onPick={(v) => setComp({ experience: v })} disabled={preview} /></Prop>
+                <Prop name="Lente"><Picker options={Object.fromEntries((lenses.data ?? []).map((l) => [l.key, l.name]))} value={a.composition.lens} onPick={(v) => setComp({ lens: v })} disabled={preview} /></Prop>
+                <Prop name="Escenario"><Picker multi options={SETTINGS} values={a.composition.setting ?? []} onToggle={(v) => setComp({ setting: (a.composition.setting ?? []).includes(v) ? (a.composition.setting ?? []).filter((x) => x !== v) : [...(a.composition.setting ?? []), v] })} disabled={preview} /></Prop>
+                <Prop name="Social"><Picker options={SOCIAL} value={a.composition.social} onPick={(v) => setComp({ social: v })} disabled={preview} /></Prop>
+                <Prop name="Disciplinas">
+                  <input
+                    value={(a.composition.disciplines ?? []).join(', ')}
+                    onChange={(e) => setComp({ disciplines: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })}
+                    readOnly={preview} placeholder="Matemática · medida, Física · fuerzas"
+                    className="w-full rounded-[var(--radius-sm)] px-1.5 py-0.5 hover:bg-surface-muted focus:bg-surface-muted focus:outline-none"
+                  />
+                </Prop>
+              </div>
+            )}
         </div>
 
-        <Card className="flex flex-col gap-4 p-0">
-          <Cover title={a.title} className="h-36 w-full rounded-t-[var(--radius-xl)]" size={64} />
-          <div className="flex flex-col gap-4 p-6 sm:p-8">
-            <input
-              value={a.title} onChange={(e) => change((x) => ({ ...x, title: e.target.value }), false)}
-              aria-label="Título" placeholder="Sin título" readOnly={preview}
-              className="w-full bg-transparent text-display outline-none placeholder:text-text-placeholder"
-            />
-            {/* Debajo del título, como en una página: es lo que se lee de la actividad en la
-                biblioteca y en el grupo, así que se escribe acá y no en un formulario aparte. */}
-            <textarea
-              value={a.description}
-              onChange={(e) => { e.target.style.height = '0'; e.target.style.height = `${e.target.scrollHeight}px`; change((x) => ({ ...x, description: e.target.value }), false) }}
-              aria-label="Descripción" placeholder="Contá de qué se trata, para reconocerla sin abrirla" readOnly={preview} rows={1}
-              ref={(el) => { if (el) { el.style.height = '0'; el.style.height = `${el.scrollHeight}px` } }}
-              className="w-full resize-none bg-transparent text-reading text-text-muted outline-none placeholder:text-text-placeholder"
-            />
-            {/* Las propiedades, como en una página: cada una es un menú en la misma fila. */}
-            <div className="grid gap-y-1 text-body sm:grid-cols-[130px_1fr]">
-              <Prop name="Experiencia"><Picker options={EXPERIENCES} value={a.composition.experience} onPick={(v) => setComp({ experience: v })} disabled={preview} /></Prop>
-              <Prop name="Lente"><Picker options={Object.fromEntries((lenses.data ?? []).map((l) => [l.key, l.name]))} value={a.composition.lens} onPick={(v) => setComp({ lens: v })} disabled={preview} /></Prop>
-              <Prop name="Escenario"><Picker multi options={SETTINGS} values={a.composition.setting ?? []} onToggle={(v) => setComp({ setting: (a.composition.setting ?? []).includes(v) ? (a.composition.setting ?? []).filter((x) => x !== v) : [...(a.composition.setting ?? []), v] })} disabled={preview} /></Prop>
-              <Prop name="Social"><Picker options={SOCIAL} value={a.composition.social} onPick={(v) => setComp({ social: v })} disabled={preview} /></Prop>
-              <Prop name="Disciplinas">
-                <input
-                  value={(a.composition.disciplines ?? []).join(', ')}
-                  onChange={(e) => setComp({ disciplines: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })}
-                  readOnly={preview} placeholder="Matemática · medida, Física · fuerzas"
-                  className="w-full rounded-[var(--radius-sm)] px-1.5 py-0.5 hover:bg-surface-muted focus:bg-surface-muted focus:outline-none"
-                />
-              </Prop>
-            </div>
-            {preview && <CompositionChips c={a.composition} />}
+        {/* El documento va sobre la página y no adentro de una tarjeta: lo que se mira es lo
+            que se escribió. Arriba, las fases y la barra de insertar; abajo, la columna de
+            lectura, que es la que fija el ancho del texto. */}
+        <div className="flex flex-col gap-4 pl-[52px]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <Tabs value={String(phase)} onValueChange={(v) => setPhase(Number(v))}>
+              <TabList label="Fases">
+                {a.document.phases.map((ff, i) => (
+                  <Tab key={ff.key} value={String(i)}>
+                    {i === phase && !preview
+                      ? <input value={ff.name} onChange={(e) => renamePhase(i, e.target.value)} onClick={(e) => e.stopPropagation()} className="w-28 bg-transparent outline-none" aria-label="Nombre de la fase" />
+                      : ff.name}
+                  </Tab>
+                ))}
+              </TabList>
+            </Tabs>
+            {!preview && <Button size="sm" variant="ghost" icon="add" onClick={addPhase}>fase</Button>}
           </div>
-        </Card>
 
-        <Card className="flex flex-col p-0">
-          <Tabs value={String(phase)} onValueChange={(v) => setPhase(Number(v))}>
-            <TabList label="Fases">
-              {a.document.phases.map((ff, i) => (
-                <Tab key={ff.key} value={String(i)}>
-                  {i === phase && !preview
-                    ? <input value={ff.name} onChange={(e) => renamePhase(i, e.target.value)} onClick={(e) => e.stopPropagation()} className="w-28 bg-transparent outline-none" aria-label="Nombre de la fase" />
-                    : ff.name}
-                </Tab>
-              ))}
-            </TabList>
-          </Tabs>
+          {/* La barra de insertar: los bloques que más se usan a un click, y el resto por "/".
+              No es una barra de formato porque acá no hay formato: hay bloques. */}
           {!preview && (
-            <div className="px-5 pt-3">
-              <Button size="sm" variant="ghost" icon="add" onClick={addPhase}>fase</Button>
-            </div>
+            <Toolbar label="Insertar un bloque" className="w-fit">
+              {INSERTAR.map(([type, icon, label]) => (
+                <ToolbarButton key={type} icon={icon} label={label} onClick={() => insert(f?.blocks.length ?? 0, type)} />
+              ))}
+            </Toolbar>
           )}
-          <div className="p-5 sm:p-8">
-            {f?.asks && !preview && <p className="mb-4 text-body text-text-muted">Esta fase pide: {f.asks}</p>}
+
+          <Divider />
+
+          {f?.asks && !preview && <p className="text-body text-text-muted">Esta fase pide: {f.asks}</p>}
+
+          <div className="w-full max-w-[680px]">
             {preview
               ? (
                 <div className="flex flex-col gap-5">
@@ -182,12 +211,11 @@ function EditorLoaded({ initial }: { initial: Activity }) {
                 </div>
               )}
           </div>
-        </Card>
+        </div>
       </div>
 
       <aside className="flex flex-col gap-5 lg:sticky lg:top-24 lg:self-start">
         <Card className="flex flex-col gap-2 p-3">
-          <Button block variant="brand" icon="send" onClick={() => setAssign(true)}>Asignar a un grupo</Button>
           <Button block variant="muted" icon="widgets" disabled={template.isPending} onClick={() => template.mutate()}>
             {template.isSuccess ? 'Guardada como plantilla' : 'Guardar como plantilla'}
           </Button>
@@ -296,6 +324,16 @@ function DropZone({ idx, onDropAt }: { idx: number; onDropAt: (id: string, targe
   )
 }
 
+/** Lo que la barra de arriba inserta de un click. El resto sale por "/". */
+const INSERTAR: [BlockType, IconName, string][] = [
+  ['heading', 'format_h2', 'Título'],
+  ['list', 'format_list_bulleted', 'Lista'],
+  ['callout', 'lightbulb', 'Destacado'],
+  ['choice', 'checklist', 'Opciones'],
+  ['question', 'help', 'Pregunta abierta'],
+  ['evidence', 'image', 'Evidencia'],
+]
+
 const CATEGORIES: [string, BlockType[]][] = [
   ['Texto', ['paragraph', 'heading', 'list', 'callout']],
   ['Se corrige solo', ['choice', 'multi', 'number', 'fill_in', 'order', 'match']],
@@ -335,20 +373,20 @@ function BlockEditor({ b, idx, focused, isFirst, isLast, onChange, onEnter, onRe
   const pick = (type: BlockType) => { setMenu(null); onChange({ ...newBlock(type), id: b.id }, true); ref.current?.focus() }
   const query = (menu ?? '').toLowerCase()
   const t = BLOCK_TYPES[b.type]
-  const classes: Partial<Record<BlockType, string>> = { heading: 'text-title', callout: 'text-reading font-semibold text-brand-ink' }
+  const classes: Partial<Record<BlockType, string>> = { heading: 'text-title font-semibold', callout: 'text-reading' }
   const frameCls = t.semantic
     ? 'rounded-[var(--radius-xl)] border border-border bg-canvas p-3'
-    : b.type === 'callout' ? 'rounded-[var(--radius-md)] border-l-4 border-brand bg-brand-soft px-4 py-2' : ''
+    : b.type === 'callout' ? 'rounded-[var(--radius-xl)] border-l-4 border-warn bg-warn-subtle px-4 py-3' : ''
 
   return (
     <div
-      className={cn('group relative -mx-2 flex gap-1 rounded-[var(--radius-lg)] px-2 py-0.5', over && 'shadow-[inset_0_2px_0_0_var(--brand)]')}
+      className={cn('group relative rounded-[var(--radius-lg)] py-0.5', over && 'shadow-[inset_0_2px_0_0_var(--brand)]')}
       onFocus={onFocusIn}
       onDragOver={(e) => { e.preventDefault(); setOver(true) }}
       onDragLeave={() => setOver(false)}
       onDrop={(e) => { e.preventDefault(); setOver(false); const id = e.dataTransfer.getData('text/bloque'); if (id && id !== b.id) onDrop(idx) }}
     >
-      <div className="flex w-16 shrink-0 items-start justify-end gap-0.5 pt-1.5 opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100">
+      <div className="absolute right-full top-0 flex items-start pt-1.5 opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100">
         <IconButton size="sm" variant="ghost" label="Cambiar tipo" title={t.name} onClick={() => setMenu(menu === null ? '' : null)} icon="add" />
         <span
           draggable
