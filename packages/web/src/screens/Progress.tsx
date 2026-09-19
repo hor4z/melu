@@ -22,9 +22,9 @@ export function Progress() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Misiones hechas" value={count(p.done)} icon="workspace_premium" />
-        <Stat label="Racha" value={`${p.streak} ${p.streak === 1 ? 'día' : 'días'}`} icon="bolt" hint="seguidos entregando" />
-        <Stat label="Tiempo" value={`${count(p.minutes)} min`} icon="schedule" hint="en total, trabajando" />
-        <Stat label="Aciertos" value={p.accuracy >= 0 ? `${Math.round(p.accuracy * 100)}%` : '-'} icon="target" hint="en los chequeos" />
+        <Stat label="Racha" value={`${p.streak} ${p.streak === 1 ? 'día' : 'días'}`} icon="bolt" />
+        <Stat label="Tiempo" value={`${count(p.minutes)} min`} icon="schedule" />
+        <Stat label="Aciertos" value={p.accuracy >= 0 ? `${Math.round(p.accuracy * 100)}%` : '-'} icon="target" />
       </div>
 
       {Object.keys(p.experiences).length > 0 && (

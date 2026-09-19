@@ -3,27 +3,26 @@
 import { Avatar, Card, Dropdown, Icon, Steps, type IconName } from '@milo/ui'
 import { cn } from '../lib/cn'
 
-/** La métrica del panel: el rótulo arriba, el número grande y cuánto se movió. */
-export function Stat({ label, value, delta, icon, hint, tone = 'up' }: {
+/** La métrica del panel: el rótulo arriba con su glifo, y el número grande abajo. Las medidas
+ *  son las del dashboard del sistema: 20 de padding, 12 de aire, el número en display. */
+export function Stat({ label, value, aside, icon, tone = 'up' }: {
   label: string
   value: string | number
-  /** Ya formateado, con su signo: lo arma `delta()` de milo. */
-  delta?: string
+  /** Lo que va al lado del número, chico: una cuenta que lo apoya. */
+  aside?: string
   icon: IconName
-  hint?: string
   tone?: 'up' | 'down'
 }) {
   return (
-    <Card className="flex flex-col gap-2 p-4">
+    <Card className="flex flex-col gap-3 p-5">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-label text-text-muted">{label}</span>
+        <span className="text-body text-text-muted">{label}</span>
         <Icon name={icon} size={16} className="icon-muted" />
       </div>
       <div className="flex items-baseline gap-2">
-        <span className="tabular text-heading">{value}</span>
-        {delta && <span className={cn('text-label', tone === 'up' ? 'text-ok-ink' : 'text-bad-ink')}>{delta}</span>}
+        <span className="tabular text-display font-bold">{value}</span>
+        {aside && <span className={cn('text-meta font-semibold', tone === 'up' ? 'text-ok-ink' : 'text-warn-ink')}>{aside}</span>}
       </div>
-      {hint && <span className="text-meta text-text-muted">{hint}</span>}
     </Card>
   )
 }
