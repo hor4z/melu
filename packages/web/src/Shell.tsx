@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { NavLink } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  Button, Dropdown, Field, Icon, IconButton, NavItemBody, Page, RadioGroup, Row, TextField, Tooltip,
+  Button, Dropdown, Field, Icon, IconButton, NavItemBody, Page, RadioGroup, TextField, Tooltip,
   navItemClass, usePrefs, type IconName,
 } from '@milo/ui'
 import { Logo, Logomark } from './brand/logo'
@@ -110,9 +110,7 @@ function NewSpace({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
 
 export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
   const signOut = useSignOut()
-  const { space, spaces, change } = useSpace()
   const { prefs, set } = usePrefs()
-  const [changing, setChanging] = useState(false)
   const [creating, setCreating] = useState(false)
   const [ajustes, setAjustes] = useState(false)
   const collapsed = prefs.sidebarCollapsed
@@ -151,7 +149,6 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
             <UserMenu
               name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
               onSettings={() => setAjustes(true)}
-              onChangeSpace={spaces.length > 1 ? () => setChanging(true) : undefined}
               onSignOut={signOut}
             />
           </div>
@@ -160,23 +157,8 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
       </div>
 
       <NewSpace isOpen={creating} onClose={() => setCreating(false)} />
-      <SettingsDialog open={ajustes} onClose={() => setAjustes(false)} me={me} onSignOut={signOut} />
+      <SettingsDialog open={ajustes} onClose={() => setAjustes(false)} me={me} />
 
-      <Modal
-        isOpen={changing} onClose={() => setChanging(false)} title="Cambiar de espacio"
-        description="Los grupos, las actividades y el panel se filtran por el espacio elegido."
-        footer={<Button variant="ghost" onClick={() => setChanging(false)}>Cerrar</Button>}
-      >
-        <div className="flex flex-col gap-2">
-          {spaces.map((e) => (
-            <Row key={e.id} label={e.name} hint={SPACE_KINDS[e.kind] ?? e.kind}>
-              {e.id === space?.id
-                ? <span className="text-label text-brand-ink">Acá estás</span>
-                : <Button size="sm" variant="muted" onClick={() => { change(e.id); setChanging(false) }}>Ir</Button>}
-            </Row>
-          ))}
-        </div>
-      </Modal>
     </div>
   )
 }
@@ -209,7 +191,7 @@ export function LearnerShell({ me, children }: { me: Me; children: ReactNode }) 
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-5 py-8">{children}</main>
-      <SettingsDialog open={ajustes} onClose={() => setAjustes(false)} me={me} onSignOut={signOut} />
+      <SettingsDialog open={ajustes} onClose={() => setAjustes(false)} me={me} />
     </div>
   )
 }

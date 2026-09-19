@@ -1,7 +1,13 @@
 // Los ajustes en un modal y no en una página, con el mueble del sistema: un riel con las
-// secciones a la izquierda y filas a la derecha. Las medidas son las de milo (riel 180, cabecera
-// y pie de 56, filas de 56 con su padding de 16/24) y el alto es fijo, así que cambiar de
-// sección no mueve la caja.
+// secciones a la izquierda y filas a la derecha.
+//
+// Acá adentro va lo que se ajusta y nada más. Salir vive en el menú de la cuenta, el riel se
+// dobla desde el riel y el espacio se cambia desde el selector de arriba: una acción que ya
+// tiene su lugar no se repite en un modal, porque después hay que acordarse de cuál de los dos
+// es el que anda. Y un dato que no se toca tampoco entra: lo que se mira está en la pantalla.
+//
+// Las medidas son las de milo (riel 180, cabecera y pie de 56, filas de 56 con su padding de
+// 16/24) y el alto es fijo, así que cambiar de sección no mueve la caja.
 //
 // La pieza `SettingsModal` de milo no se usa tal cual a propósito: trae secciones que melu
 // todavía no puede honrar (cerrar otras sesiones, descargar el registro de accesos, borrar la
@@ -16,12 +22,11 @@ import {
 import { api, type Me } from '../lib/api'
 import { ROLES, SPACE_KINDS } from '../lib/composition'
 
-type Seccion = 'general' | 'perfil' | 'cuenta'
+type Seccion = 'general' | 'perfil'
 
 const SECCIONES: { id: Seccion; label: string; icon: IconName }[] = [
   { id: 'general', label: 'General', icon: 'tune' },
   { id: 'perfil', label: 'Perfil', icon: 'person' },
-  { id: 'cuenta', label: 'Cuenta', icon: 'verified_user' },
 ]
 
 function splitName(full: string): [string, string] {
@@ -34,11 +39,10 @@ function RowField(props: React.ComponentProps<typeof TextField>) {
   return <span className="w-48 shrink-0"><TextField size="sm" {...props} /></span>
 }
 
-export function SettingsDialog({ open, onClose, me, onSignOut }: {
+export function SettingsDialog({ open, onClose, me }: {
   open: boolean
   onClose: () => void
   me: Me
-  onSignOut: () => void
 }) {
   const qc = useQueryClient()
   const { prefs, set } = usePrefs()
@@ -122,9 +126,6 @@ export function SettingsDialog({ open, onClose, me, onSignOut }: {
                 <Row label="Cómo te llamamos" hint="Si lo dejás vacío, usamos tu nombre.">
                   <RowField value={nick} onChange={(e) => setNick(e.target.value)} maxLength={60} placeholder={first || 'Cómo te dicen'} aria-label="Cómo te llamamos" />
                 </Row>
-                <Row label="Así te ven">
-                  <span className="text-body font-semibold">{shown || 'Sin nombre'}</span>
-                </Row>
                 <Row label="Rol" hint="Lo define quien coordina el espacio.">
                   <span className="flex flex-wrap justify-end gap-1.5">
                     {roles.length === 0
@@ -142,25 +143,6 @@ export function SettingsDialog({ open, onClose, me, onSignOut }: {
               </>
             )}
 
-            {seccion === 'cuenta' && (
-              <>
-                <Row label="Ingreso" hint="Se entra con Google y con nada más.">
-                  <Chip size="sm" color="blue">Google</Chip>
-                </Row>
-                <Row label="El riel del costado" hint="Doblado deja los iconos y nada más.">
-                  <Segmented
-                    size="sm"
-                    label="El riel del costado"
-                    value={prefs.sidebarCollapsed ? 'doblado' : 'abierto'}
-                    onChange={(v) => set('sidebarCollapsed', v === 'doblado')}
-                    options={[{ value: 'abierto', label: 'Abierto' }, { value: 'doblado', label: 'Doblado' }]}
-                  />
-                </Row>
-                <Row label="Salir de melu" hint="En esta computadora, y nada más.">
-                  <Button size="sm" variant="muted" icon="logout" onClick={() => void onSignOut()}>Salir</Button>
-                </Row>
-              </>
-            )}
           </div>
 
           <footer className="flex h-14 shrink-0 items-center justify-end gap-2 border-t border-border px-6">
