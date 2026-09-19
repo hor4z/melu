@@ -34,11 +34,11 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
 }
 
 /** El avatar que abre el menú de la cuenta. */
-export function UserMenu({ name, email, avatar, onProfile, onChangeSpace, onSignOut }: {
+export function UserMenu({ name, email, avatar, onSettings, onChangeSpace, onSignOut }: {
   name: string
   email?: string
   avatar?: string
-  onProfile?: () => void
+  onSettings?: () => void
   onChangeSpace?: () => void
   onSignOut: () => void
 }) {
@@ -60,7 +60,7 @@ export function UserMenu({ name, email, avatar, onProfile, onChangeSpace, onSign
         </button>
       )}
       items={[
-        ...(onProfile ? [{ label: 'Mi perfil', icon: 'person' as const, onSelect: onProfile }] : []),
+        ...(onSettings ? [{ label: 'Ajustes', icon: 'settings' as const, onSelect: onSettings }] : []),
         ...(onChangeSpace ? [{ label: 'Cambiar de espacio', icon: 'sync' as const, onSelect: onChangeSpace }] : []),
         { label: 'Salir', icon: 'logout' as const, danger: true, onSelect: () => void onSignOut() },
       ]}

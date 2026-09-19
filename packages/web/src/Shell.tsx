@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { NavLink, useNavigate } from 'react-router'
+import { NavLink } from 'react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Button, Dropdown, Field, Icon, IconButton, NavItemBody, Page, RadioGroup, Row, TextField, Tooltip,
@@ -12,6 +12,7 @@ import { useSpace } from './lib/space'
 import { api, type Space, type SpaceKind, type Me } from './lib/api'
 import { SPACE_KINDS } from './lib/composition'
 import { Modal } from './blocks/Modal'
+import { SettingsDialog } from './blocks/Settings'
 
 // Los destinos del docente, en el orden en que se visitan: primero qué pasa, después el
 // trabajo del día, después la gente y el material.
@@ -108,12 +109,12 @@ function NewSpace({ isOpen, onClose }: { isOpen: boolean; onClose: () => void })
 }
 
 export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
-  const nav = useNavigate()
   const signOut = useSignOut()
   const { space, spaces, change } = useSpace()
   const { prefs, set } = usePrefs()
   const [changing, setChanging] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [ajustes, setAjustes] = useState(false)
   const collapsed = prefs.sidebarCollapsed
 
   return (
@@ -149,7 +150,7 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
           <div className="ml-auto flex items-center gap-2">
             <UserMenu
               name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
-              onProfile={() => nav('/profile')}
+              onSettings={() => setAjustes(true)}
               onChangeSpace={spaces.length > 1 ? () => setChanging(true) : undefined}
               onSignOut={signOut}
             />
@@ -159,6 +160,7 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
       </div>
 
       <NewSpace isOpen={creating} onClose={() => setCreating(false)} />
+      <SettingsDialog open={ajustes} onClose={() => setAjustes(false)} me={me} onSignOut={signOut} />
 
       <Modal
         isOpen={changing} onClose={() => setChanging(false)} title="Cambiar de espacio"
@@ -180,8 +182,8 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
 }
 
 export function LearnerShell({ me, children }: { me: Me; children: ReactNode }) {
-  const nav = useNavigate()
   const signOut = useSignOut()
+  const [ajustes, setAjustes] = useState(false)
   return (
     <div className="shell">
       <header className="sticky top-0 z-20 border-b border-border bg-surface">
@@ -202,11 +204,12 @@ export function LearnerShell({ me, children }: { me: Me; children: ReactNode }) 
           </div>
           <UserMenu
             name={me.person.name} email={me.person.email} avatar={me.person.avatarUrl}
-            onProfile={() => nav('/profile')} onSignOut={signOut}
+            onSettings={() => setAjustes(true)} onSignOut={signOut}
           />
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-5 py-8">{children}</main>
+      <SettingsDialog open={ajustes} onClose={() => setAjustes(false)} me={me} onSignOut={signOut} />
     </div>
   )
 }
