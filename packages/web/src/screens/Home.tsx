@@ -7,9 +7,10 @@ import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import {
   BarChart, Button, Card, Divider, Folder, Icon, Link, List, ListItem, PageHeader, Progress,
-  SectionLabel, Steps, count, markColors, type BarDatum, type MarkColor,
+  SectionLabel, Steps, count, type BarDatum, type LabelColor, type MarkColor,
 } from '@milo/ui'
 import { Stat } from '../blocks/Product'
+import { coverOf } from '../blocks/Cover'
 import { api, type Dashboard, type Group } from '../lib/api'
 import { useSpace, useSpaceId } from '../lib/space'
 import { labelOf, EXPERIENCES } from '../lib/composition'
@@ -25,8 +26,11 @@ function hash(name: string) {
 function colorOf(name: string) {
   return SPACE_COLORS[hash(name) % SPACE_COLORS.length]
 }
-function colorDe(name: string): MarkColor {
-  return markColors[hash(name) % markColors.length]
+
+/** La marca de una fila es la de la portada de esa actividad: el mismo objeto, la misma cara.
+ *  Las marcas son cinco y las etiquetas seis, así que la que sobra cae en la más cercana. */
+function marcaDe(color: LabelColor): MarkColor {
+  return color === 'teal' ? 'green' : color
 }
 
 const PASOS: [string, string, string, string][] = [
@@ -144,7 +148,7 @@ export function Home() {
             queda nada para corregir se llevaba también la única forma de ir a las entregas. */}
         <Card surface="muted" className="flex flex-col gap-4 p-5">
           <div className="flex items-baseline justify-between gap-3">
-            <h2 className="text-title">Lo que espera tu devolución</h2>
+            <h2 className="text-title">Para corregir</h2>
             <Link href="/submissions" onClick={(e) => { e.preventDefault(); nav('/submissions') }}>Ver todas</Link>
           </div>
 
@@ -163,11 +167,13 @@ export function Home() {
             ? <p className="text-body text-text-muted">Nada espera tu devolución.</p>
             : (
               <List>
-                {esperando.map((e) => (
+                {esperando.map((e) => {
+                  const [color, icon] = coverOf(e.title)
+                  return (
                   <ListItem
                     key={e.submissionId}
-                    icon="edit"
-                    color={colorDe(e.learner ?? '')}
+                    icon={icon}
+                    color={marcaDe(color)}
                     title={e.learner ?? 'Alguien'}
                     // Solo la actividad: el grupo trae un "·" adentro de su nombre ("4° A ·
                     // Matemática") y la fecha se cortaba a la mitad. Las dos están en Entregas,
@@ -176,7 +182,8 @@ export function Home() {
                     onClick={() => nav(`/groups/${e.groupId}/missions/${e.assignmentId}/submissions/${e.submissionId}`)}
                     trailing={<Icon name="chevron_right" size={18} className="icon-muted" />}
                   />
-                ))}
+                  )
+                })}
               </List>
             )}
         </Card>

@@ -170,10 +170,10 @@ func (s *Services) PanelDocente(ctx context.Context, p domain.Person, spaceID st
 			}
 		}
 		byLearner[h.LearnerID] = append(byLearner[h.LearnerID], h)
-		// Cinco y no más, y el corte vive acá: la tarjeta del panel es para saber si hay algo
+		// Cuatro y no más, y el corte vive acá: la tarjeta del panel es para saber si hay algo
 		// esperando y entrar a lo primero, no para corregir desde ahí. Mandar ocho para mostrar
-		// cinco es mandar tres de gusto.
-		if h.Status == "submitted" && len(out.AwaitingReview) < 5 {
+		// cuatro es mandar cuatro de gusto.
+		if h.Status == "submitted" && len(out.AwaitingReview) < 4 {
 			cu := h.UpdatedAt
 			if h.SubmittedAt != nil {
 				cu = *h.SubmittedAt

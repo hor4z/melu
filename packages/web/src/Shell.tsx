@@ -155,7 +155,7 @@ export function GuideShell({ me, children }: { me: Me; children: ReactNode }) {
             />
           </div>
         </header>
-        <Page wide>{children}</Page>
+        <main className="shell-main"><Page wide>{children}</Page></main>
       </div>
 
       <NewSpace isOpen={creating} onClose={() => setCreating(false)} />

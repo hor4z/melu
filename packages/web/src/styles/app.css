@@ -49,6 +49,13 @@
     padding-inline: var(--shell-pad);
   }
 
+  /* El aire entre la barra de arriba y el título de la pantalla. La página del sistema trae 4px,
+     que alcanzan cuando no hay una barra pegada encima; acá hay una, y el título le quedaba
+     encima. Es la misma medida que el padding lateral del mueble, no un número nuevo. */
+  .shell-main {
+    padding-block-start: var(--shell-pad);
+  }
+
   @media (max-width: 900px) {
     .shell-rail { display: none; }
     .shell-body, .shell-body[data-collapsed="true"] { margin-left: 0; }
