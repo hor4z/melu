@@ -1,0 +1,81 @@
+/* Tailwind acá es layout y coherencia, no identidad: los valores los pone milo.
+   Sin preflight, a propósito: aun con el orden de capas correcto le gana a las piezas de milo y
+   las deja sin fondo, y milo ya trae su reset. */
+@import "tailwindcss/theme.css" layer(tw.base);
+@import "tailwindcss/utilities.css" layer(tw.utilities);
+
+@source "../";
+
+@theme {
+  /* La paleta de Tailwind se borra entera: acá no existe un bg-red-500. Lo que queda son los
+     roles de milo, apuntados con var() y nunca copiados, para que sean el mismo color. */
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-inverted: var(--surface-inverted);
+  --color-popover: var(--popover);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-placeholder: var(--text-placeholder);
+  --color-text-inverted: var(--text-inverted);
+
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
+  --color-on-brand: var(--on-brand);
+
+  --color-ok: var(--ok);
+  --color-ok-ink: var(--ok-ink);
+  --color-ok-subtle: var(--ok-subtle);
+  --color-warn: var(--warn);
+  --color-warn-ink: var(--warn-ink);
+  --color-warn-subtle: var(--warn-subtle);
+  --color-bad: var(--bad);
+  --color-bad-ink: var(--bad-ink);
+  --color-bad-subtle: var(--bad-subtle);
+
+  --color-space-green: var(--space-green);
+  --color-space-blue: var(--space-blue);
+  --color-space-purple: var(--space-purple);
+  --color-space-orange: var(--space-orange);
+  --color-space-pink: var(--space-pink);
+
+  /* La escala de texto se llama como los siete roles de milo, y cada uno carga tamaño,
+     interlineado y tracking juntos: no existe un text-sm suelto. */
+  --text-*: initial;
+  --text-meta: var(--type-meta);
+  --text-meta--line-height: var(--type-meta-lh);
+  --text-meta--letter-spacing: var(--type-meta-ls);
+  --text-label: var(--type-label);
+  --text-label--line-height: var(--type-label-lh);
+  --text-label--letter-spacing: var(--type-label-ls);
+  --text-body: var(--type-body);
+  --text-body--line-height: var(--type-body-lh);
+  --text-body--letter-spacing: var(--type-body-ls);
+  --text-reading: var(--type-reading);
+  --text-reading--line-height: var(--type-reading-lh);
+  --text-reading--letter-spacing: var(--type-reading-ls);
+  --text-title: var(--type-title);
+  --text-title--line-height: var(--type-title-lh);
+  --text-title--letter-spacing: var(--type-title-ls);
+  --text-heading: var(--type-heading);
+  --text-heading--line-height: var(--type-heading-lh);
+  --text-heading--letter-spacing: var(--type-heading-ls);
+  --text-display: var(--type-display);
+  --text-display--line-height: var(--type-display-lh);
+  --text-display--letter-spacing: var(--type-display-ls);
+}
+
+/* Lo que no está en el @theme y sin embargo sale de milo: los radios, los pesos y la familia.
+   Tailwind los declara en su capa y milo los declara sin capa, así que ganan los de milo y
+   "rounded-xl" ya mide 16 y "font-semibold" ya pesa 450. Por eso no se redeclaran acá: dos
+   escrituras del mismo número es la forma más barata de que un día digan cosas distintas. */

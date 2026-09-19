@@ -2,25 +2,25 @@
    Lo que se mira es el editor, así que esto es sobrio. Pero no pobre: un taller donde no se puede
    juzgar cómo se siente algo no sirve para juzgar cómo se siente algo. */
 
-/* Los tokens de melu, que es de lo que `editor.css` ya cuelga con `var(--text, …)`. El taller hace
-   de plataforma: montado acá adentro el editor se ve con el theme de verdad y no con sus respaldos,
-   que es exactamente lo que se quiere mirar. Ruta relativa y sólo desde el taller, que no se
-   publica: el package sigue sin depender de nada. */
-@import "../../ui/src/tokens/index.css";
+/* Los tokens salen de `@milo/ui`, que es de lo que `editor.css` ya cuelga con `var(--text, …)`.
+   El theme entra en `Taller.tsx`, que es el que puede importarlo desde el paquete. El taller hace
+   de plataforma: montado acá adentro el editor se ve con el sistema de verdad y no con sus
+   respaldos, que es exactamente lo que se quiere mirar. Es una dependencia de desarrollo y sólo
+   del taller, que no se publica: el motor sigue sin depender de nada en runtime. */
 
 :root {
   /* ------- superficies ------- */
-  --taller-canvas: var(--surface-muted, #f1f4f3);
+  --taller-canvas: var(--surface-muted, #e9eaec);
   --taller-card: var(--surface, #fff);
-  --taller-line: var(--border, #dce5e3);
-  --taller-ink: var(--text, #1b2624);
-  --taller-ink-soft: var(--text-muted, #5c6b68);
-  --taller-ink-faint: var(--text-subtle, #93a19e);
-  --taller-accent: var(--brand, #10756e);
-  --taller-wash: var(--accent-subtle, #e6f2f1);
-  --taller-hover: var(--surface-hover, rgba(34, 47, 45, 0.04));
-  --taller-solid: var(--solid, #1b2624);
-  --taller-solid-ink: var(--solid-foreground, #fff);
+  --taller-line: var(--border, #dee0e2);
+  --taller-ink: var(--text, #2b2b2d);
+  --taller-ink-soft: var(--text-muted, #616264);
+  --taller-ink-faint: var(--text-placeholder, #68696b);
+  --taller-accent: var(--brand, #1b73e7);
+  --taller-wash: var(--brand-soft, #e7f7ff);
+  --taller-hover: var(--surface-hover, rgb(43 43 45 / 0.04));
+  --taller-solid: var(--surface-inverted, #2b2b2d);
+  --taller-solid-ink: var(--text-inverted, #fff);
 
   /* ------- el marco ------- */
   --taller-der: 300px;
@@ -38,9 +38,9 @@
   --taller-r-muestra: 6px;
 
   /* ------- sombras: difusas y de poca opacidad ------- */
-  --taller-sombra-panel: 0 12px 32px -8px rgba(27, 38, 36, 0.16), 0 2px 8px -2px rgba(27, 38, 36, 0.06);
-  --taller-sombra-flota: 0 4px 14px -3px rgba(27, 38, 36, 0.12), 0 1px 3px rgba(27, 38, 36, 0.05);
-  --taller-sombra-adentro: inset 0 0 0 1px rgba(27, 38, 36, 0.05), 0 1px 2px rgba(27, 38, 36, 0.06);
+  --taller-sombra-panel: var(--relief-popover, 0 10px 21px 0 rgb(0 0 0 / 0.07), 0 38px 38px 0 rgb(0 0 0 / 0.06));
+  --taller-sombra-flota: var(--relief-toolbar, 0 1px 4px -4px rgb(0 0 0 / 0.08), 0 8px 16px -12px rgb(0 0 0 / 0.13));
+  --taller-sombra-adentro: var(--relief-card, 0 1px 1px 0 rgb(0 0 0 / 0.05), 0 3px 3px 0 rgb(0 0 0 / 0.03));
 
   /* ------- tipografía del cromo: chica, y gris para lo secundario ------- */
   --taller-texto: 13px;
@@ -298,9 +298,9 @@ body {
   color: var(--taller-accent);
 }
 
-.taller-insignia[data-grupo="Medios"] { background: var(--tint-blue, #eaf1f9); color: var(--info, #3a6ea8); }
-.taller-insignia[data-grupo="Estructura"] { background: var(--tint-orange, #fdf0e6); color: #c1703a; }
-.taller-insignia[data-grupo="Preguntas"] { background: var(--tint-lilac, #f2eefa); color: #7255a8; }
+.taller-insignia[data-grupo="Medios"] { background: var(--label-blue-soft, #def2ff); color: var(--label-blue-ink, #0067db); }
+.taller-insignia[data-grupo="Estructura"] { background: var(--label-orange-soft, #ffece2); color: var(--label-orange-ink, #ad4f00); }
+.taller-insignia[data-grupo="Preguntas"] { background: var(--label-purple-soft, #f8e8ff); color: var(--label-purple-ink, #923cdc); }
 
 .taller-cabecera-nombre { font-weight: 600; }
 .taller-cabecera-hint { color: var(--taller-ink-soft); font-size: var(--taller-texto-sm); line-height: 1.5; }
@@ -361,7 +361,7 @@ body {
 
 .taller-input:focus { border-color: var(--taller-accent); }
 .taller-input[data-numero="true"] { flex: 0 0 64px; width: 64px; text-align: right; font-variant-numeric: tabular-nums; }
-.taller-input[data-mal="true"] { border-color: var(--danger, #c2453c); }
+.taller-input[data-mal="true"] { border-color: var(--bad, #e81f20); }
 
 textarea.taller-input {
   height: auto;

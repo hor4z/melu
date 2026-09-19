@@ -1,0 +1,76 @@
+@layer melu.app {
+  /* El mueble del guía: riel fijo a la izquierda y el resto corrido por su ancho. Las medidas
+     son las del sistema (--sidebar-w, --topbar-h, --shell-pad) y no números nuevos. */
+  .shell {
+    min-height: 100dvh;
+    background: var(--canvas);
+  }
+
+  .shell-rail {
+    position: fixed;
+    inset-block: 0;
+    left: 0;
+    z-index: 30;
+    display: flex;
+    width: var(--sidebar-w);
+    flex-direction: column;
+    gap: 1rem;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+    padding: var(--shell-pad);
+    transition: width var(--duration-normal) var(--ease-out);
+  }
+
+  .shell-rail[data-collapsed="true"] {
+    width: var(--sidebar-w-collapsed);
+    padding-inline: 12px;
+  }
+
+  .shell-body {
+    min-width: 0;
+    margin-left: var(--sidebar-w);
+    transition: margin var(--duration-normal) var(--ease-out);
+  }
+
+  .shell-body[data-collapsed="true"] {
+    margin-left: var(--sidebar-w-collapsed);
+  }
+
+  .shell-top {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    height: var(--topbar-h);
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding-inline: var(--shell-pad);
+  }
+
+  /* El aire entre la barra de arriba y el título de la pantalla. La página del sistema trae 4px,
+     que alcanzan cuando no hay una barra pegada encima; acá hay una, y el título le quedaba
+     contra ella. Los 32 son los que el sistema le da a su propio cuerpo, no un número nuevo. */
+  .shell-main {
+    padding-block-start: 2rem;
+  }
+
+  /* La pila de una pantalla: la cabecera arriba y los bloques abajo, separados siempre igual.
+     El gap es lo único que separa, así que el margen propio del `PageHeader` se apaga: adentro
+     de la pila los dos se sumaban y la cabecera quedaba flotando lejos del cuerpo. */
+  .page-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .page-stack > * {
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 900px) {
+    .shell-rail { display: none; }
+    .shell-body, .shell-body[data-collapsed="true"] { margin-left: 0; }
+  }
+}

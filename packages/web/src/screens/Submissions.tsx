@@ -2,25 +2,22 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Avatar, Button, Card, Chip, FilterBar, FilterSearch, FilterSet, Heading, Icon, Text,
-  Alert, DataList, DataListActions, DataListHead, DataListItem, DataListMedia, DataListMeta, DataListSkeleton, DataListText, DataListTitle,
-  Pagination, PaginationNext, PaginationPrev, PaginationStatus,
-  Table, TableBody, TableCell, TableEmpty, TableHead, TableHeader, TableRow, TableSkeleton,
-  facets, useDevice,
-} from '@melu/ui'
-import { CircleDot, School, User } from 'lucide-react'
+  Alert, AlertActions, AlertBody, AlertTitle, Avatar, Button, Card, Chip, Divider, Filter,
+  FilterBar, FilterReset, Icon, PageHeader, Pagination, PaginationNext, PaginationPrev,
+  PaginationStatus, Search, Skeleton, Table, TableBody, TableCell, TableEmpty, TableHead,
+  TableHeader, TableRow, facets, timeAgo, type ChipColor,
+} from '@milo/ui'
 import { Empty } from '../blocks/Modal'
 import { api, type SubmissionSummary } from '../lib/api'
 import { useSpaceId } from '../lib/space'
-import { ago } from '../lib/time'
+import { useDevice } from '../lib/device'
 
-const ESTADOS = {
-  submitted: { label: 'Para mirar', color: 'warning' },
-  graded: { label: 'Corregida', color: 'success' },
-  in_progress: { label: 'Sin terminar', color: 'default' },
-} as const
+const ESTADOS: Record<string, { label: string; color?: ChipColor }> = {
+  submitted: { label: 'Para mirar', color: 'warn' },
+  graded: { label: 'Corregida', color: 'ok' },
+  in_progress: { label: 'Sin terminar' },
+}
 
-type Estado = keyof typeof ESTADOS
 type Por = 'learner' | 'when'
 
 // El orden de entrada, y el que se recupera cuando no hay cabecera que explique otro.
@@ -32,29 +29,26 @@ const TRAMO = 15
 export function Submissions() {
   const nav = useNavigate()
   const spaceId = useSpaceId()
-  // La tabla es de la pantalla ancha y de ninguna otra. Con la barra lateral puesta, una tablet
-  // deja menos de 500 px para las filas: ahí la tabla ya se arrastra de costado, y una tabla que
-  // se arrastra de costado no la mira nadie. Abajo de `lg` las mismas filas se rinden como lista,
-  // que se recorre para abajo como todo lo demás.
+  // La tabla es de la pantalla ancha y de ninguna otra. Con el riel puesto, una tablet deja
+  // menos de 500 px para las filas: ahí la tabla ya se arrastra de costado, y una tabla que se
+  // arrastra de costado no la mira nadie. Abajo de eso, las mismas filas se rinden como lista.
   const device = useDevice()
   const conTabla = device === 'desktop'
   const q = useQuery({ queryKey: ['submissions', spaceId], queryFn: () => api.get<SubmissionSummary[]>(`/api/submissions?space=${spaceId}`) })
 
   const [texto, setTexto] = useState('')
-  // Un solo objeto: la clave que está es el filtro que está puesto en la barra, y su arreglo es
-  // lo que tiene elegido. Que un filtro esté puesto y vacío es un estado válido, y es el que
-  // queda cuando alguien lo agrega y todavía no eligió nada.
+  // Un solo objeto: la clave que está es el filtro que está puesto, y su arreglo es lo que tiene
+  // elegido. Que un filtro esté puesto y vacío es un estado válido.
   const [filtros, setFiltros] = useState<Record<string, string[]>>({})
   const [orden, setOrden] = useState<{ por: Por; dir: 'asc' | 'desc' }>(ULTIMO)
   const [pagina, setPagina] = useState(0)
   // Cambiar lo que se está mirando devuelve a la primera página. Sin esto, buscar desde la
-  // página tres saltaba directo al resultado 31 de una lista nueva: los treinta primeros
-  // pasaban de largo sin que nada lo dijera.
+  // página tres saltaba directo al resultado 31 de una lista nueva.
   const filtrar = <T,>(set: (v: T) => void) => (v: T) => { set(v); setPagina(0) }
+  const ponerFiltro = (clave: string) => (v: string[]) => { setFiltros((f) => ({ ...f, [clave]: v })); setPagina(0) }
 
   // Cambiar de espacio no desmonta la pantalla, así que lo que había filtrado se quedaba puesto
-  // sobre datos de otro lado: un grupo del espacio anterior dejando la tabla en cero. Se
-  // reacomoda durante el render, que es como React pide hacer esto y no con un efecto.
+  // sobre datos de otro lado. Se reacomoda durante el render, que es como React pide hacer esto.
   const [espacioPrevio, setEspacioPrevio] = useState(spaceId)
   if (espacioPrevio !== spaceId) {
     setEspacioPrevio(spaceId)
@@ -82,23 +76,8 @@ export function Submissions() {
   const porPersona = facets(todas.filter((e) => pasa(e, 'persona')), (e) => e.learner)
 
   const alfabetico = (a: string, b: string) => a.localeCompare(b, 'es')
-  const disponibles = [
-    {
-      name: 'estado', label: 'Estado', icon: <Icon icon={CircleDot} size="sm" />,
-      options: (Object.keys(ESTADOS) as Estado[]).map((k) => ({ value: k, label: ESTADOS[k].label, color: ESTADOS[k].color, count: porEstado[k] ?? 0 })),
-    },
-    {
-      name: 'grupo', label: 'Grupo', icon: <Icon icon={School} size="sm" />,
-      options: [...new Set(todas.map((e) => e.group))].sort(alfabetico).map((g) => ({ value: g, label: g, count: porGrupo[g] ?? 0 })),
-    },
-    {
-      name: 'persona', label: 'Aprendiz', icon: <Icon icon={User} size="sm" />,
-      options: [...new Set(todas.map((e) => e.learner).filter((n): n is string => !!n))].sort(alfabetico)
-        .map((n) => ({ value: n, label: n, avatar: true, count: porPersona[n] ?? 0 })),
-    },
-    // Con una sola opción no vale la pena ofrecerlo, salvo que ya esté puesto: un filtro que
-    // filtra y no está en la barra es una tabla vacía sin nada que explique por qué.
-  ].filter((f) => f.options.length > 1 || filtros[f.name] !== undefined)
+  const grupos = [...new Set(todas.map((e) => e.group))].sort(alfabetico)
+  const personas = [...new Set(todas.map((e) => e.learner).filter((n): n is string => !!n))].sort(alfabetico)
 
   // El orden se lee de una cabecera: en el celular no hay cabecera, así que la lista va como
   // promete el título, con lo último arriba. Se guarda igual, así que volver a la tabla lo devuelve.
@@ -108,10 +87,6 @@ export function Submissions() {
   const lista = todas.filter((e) => pasa(e))
     .sort((a, b) => (orden_.dir === 'asc' ? 1 : -1) * valor(a).localeCompare(valor(b), 'es'))
 
-  // `trim`, como filtra `pasa`: un espacio solo no filtra nada y no tiene que decir que sí.
-  // Lo que se ve es un tramo de lo que quedó filtrado. El día que el back entregue de a pedazos,
-  // lo que cambia es de dónde salen las filas y no esta línea.
-  //
   // La página se acomoda si el filtro dejó menos de las que hacían falta para llegar hasta acá:
   // sin esto, filtrar estando en la tres dejaba una tabla vacía y sin nada que tocar.
   const ultima = Math.max(0, Math.ceil(lista.length / TRAMO) - 1)
@@ -131,23 +106,28 @@ export function Submissions() {
       ? { por, dir: orden_.dir === 'asc' ? 'desc' : 'asc' }
       : { por, dir: por === 'learner' ? 'asc' : 'desc' })
   }
-  const sentido = (por: Por) => (orden_.por === por ? orden_.dir : false)
+
+  /** La cabecera que ordena: dice por qué columna está ordenada y en qué sentido. */
+  const ordenar = (por: Por, label: string) => (
+    <button type="button" onClick={() => ordenarPor(por)} className="inline-flex items-center gap-1">
+      {label}
+      {orden_.por === por && <Icon name={orden_.dir === 'asc' ? 'arrow_upward' : 'arrow_downward'} size={14} className="icon-muted" />}
+    </button>
+  )
 
   // La fila que se toca es la que se abre: la dirección lleva la entrega y no solo la misión.
   const abrir = (e: SubmissionSummary) => nav(`/groups/${e.groupId}/missions/${e.assignmentId}/submissions/${e.submissionId}`)
   const accion = (e: SubmissionSummary) => (
-    <Button
-      size="sm" variant={e.status === 'submitted' ? 'primary' : 'ghost'}
-      onClick={(ev) => { ev.stopPropagation(); abrir(e) }}
-    >
+    <Button size="sm" variant={e.status === 'submitted' ? 'brand' : 'ghost'} onClick={() => abrir(e)}>
       {e.status === 'submitted' ? 'Corregir' : 'Ver'}
     </Button>
   )
   const vacio = (
     <Empty
+      icon="inbox"
       title="Nada acá"
       text={filtrando ? 'Con estos filtros no queda ninguna entrega.' : 'Todavía no llegó ninguna entrega.'}
-      action={filtrando ? <Button variant="secondary" onClick={limpiar}>Limpiar los filtros</Button> : undefined}
+      action={filtrando ? <Button variant="muted" onClick={limpiar}>Limpiar los filtros</Button> : undefined}
     />
   )
 
@@ -156,94 +136,91 @@ export function Submissions() {
   // falla, un error se veía igual que una demora: nada, para siempre.
   if (q.isError) {
     return (
-      <div className="flex min-w-0 flex-col gap-6">
-        <header className="max-w-2xl border-b border-line pb-4">
-          <Heading level={1} size="2xl">Entregas</Heading>
-          <Text variant="muted">Todo lo que llegó, de todos tus grupos, con lo último arriba.</Text>
-        </header>
-        <Alert
-          variant="danger" title="No se pudieron traer las entregas"
-          actions={<Button size="sm" variant="secondary" loading={q.isFetching} onClick={() => void q.refetch()}>Reintentar</Button>}
-        >
-          Puede ser la conexión. Lo que ya estaba corregido sigue estando.
+      <div className="page-stack min-w-0">
+        <PageHeader title="Entregas" subtitle="Todo lo que llegó, de todos tus grupos, con lo último arriba." />
+        <Alert tone="bad">
+          <AlertTitle>No se pudieron traer las entregas</AlertTitle>
+          <AlertBody>Puede ser la conexión. Lo que ya estaba corregido sigue estando.</AlertBody>
+          <AlertActions>
+            <Button size="sm" variant="muted" disabled={q.isFetching} onClick={() => void q.refetch()}>Reintentar</Button>
+          </AlertActions>
         </Alert>
       </div>
     )
   }
 
   return (
-    <div className="flex min-w-0 flex-col gap-6">
-      <header className="max-w-2xl border-b border-line pb-4">
-        <Heading level={1} size="2xl">Entregas</Heading>
-        <Text variant="muted">Todo lo que llegó, de todos tus grupos, con lo último arriba.</Text>
-      </header>
+    <div className="page-stack min-w-0">
+      <PageHeader title="Entregas" subtitle="Todo lo que llegó, de todos tus grupos, con lo último arriba." />
 
       <FilterBar>
-        <FilterSearch value={texto} onValueChange={filtrar(setTexto)} placeholder="Buscar por nombre o actividad" />
-        <FilterSet filters={disponibles} value={filtros} onValueChange={filtrar(setFiltros)} onReset={limpiar} />
+        <Search value={texto} onValueChange={filtrar(setTexto)} placeholder="Buscar por nombre o actividad" size="sm" />
+        <Filter
+          label="Estado" value={puesto('estado')} onValueChange={ponerFiltro('estado')}
+          options={Object.keys(ESTADOS).map((k) => ({ value: k, label: ESTADOS[k].label, count: porEstado[k] ?? 0 }))}
+        />
+        {grupos.length > 1 && (
+          <Filter
+            label="Grupo" value={puesto('grupo')} onValueChange={ponerFiltro('grupo')}
+            options={grupos.map((g) => ({ value: g, label: g, count: porGrupo[g] ?? 0 }))}
+          />
+        )}
+        {personas.length > 1 && (
+          <Filter
+            label="Aprendiz" value={puesto('persona')} onValueChange={ponerFiltro('persona')}
+            options={personas.map((n) => ({ value: n, label: n, count: porPersona[n] ?? 0, person: { name: n } }))}
+          />
+        )}
+        {filtrando && <FilterReset onClick={limpiar} />}
       </FilterBar>
 
-      <Card className="overflow-hidden">
-        {q.isPending
-          ? (
-            <>
-              <span role="status" className="sr-only">Cargando las entregas</span>
-              {conTabla
-                ? (
-              <Table aria-busy="true">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Aprendiz</TableHead>
-                    <TableHead>Actividad</TableHead>
-                    <TableHead>Grupo</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead>Cuándo</TableHead>
-                    <TableHead align="end"><span className="sr-only">Acciones</span></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableSkeleton columns={6} />
-              </Table>
-                )
-                : <DataListSkeleton />}
-            </>
-          )
-          : !conTabla
+      {q.isPending
+        ? (
+          <Card className="flex flex-col gap-3 p-4">
+            <span role="status" className="sr-only">Cargando las entregas</span>
+            {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="block h-10 rounded-[var(--radius-md)]" />)}
+          </Card>
+        )
+        : !conTabla
           ? (lista.length === 0
-            ? <div className="px-4 py-10">{vacio}</div>
+            ? vacio
             : (
-              <>
-                <DataList>
-                  {alaVista.map((e) => {
-                    const st = ESTADOS[e.status]
-                    return (
-                      <DataListItem key={e.submissionId} interactive onClick={() => abrir(e)}>
-                        <DataListMedia><Avatar aria-hidden="true" name={e.learner ?? '?'} /></DataListMedia>
-                        <DataListHead>
-                          <DataListTitle>{e.learner}</DataListTitle>
-                          <Chip size="sm" color={st.color}>{st.label}</Chip>
-                        </DataListHead>
-                        <DataListText>{e.title}</DataListText>
-                        <DataListMeta>
-                          <span>{e.group}</span>
-                          <span>{ago(e.when)}</span>
-                        </DataListMeta>
-                        <DataListActions>{accion(e)}</DataListActions>
-                      </DataListItem>
-                    )
-                  })}
-                </DataList>
-              </>
+              <Card className="flex flex-col p-0">
+                {alaVista.map((e, i) => {
+                  const st = ESTADOS[e.status]
+                  return (
+                    <div key={e.submissionId}>
+                      {i > 0 && <Divider />}
+                      <div className="flex items-center gap-3 p-3">
+                        <Avatar name={e.learner ?? '?'} size={32} />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate text-body font-semibold">{e.learner}</span>
+                            <Chip size="sm" color={st.color}>{st.label}</Chip>
+                          </div>
+                          <div className="truncate text-body text-text-muted">{e.title}</div>
+                          <div className="flex flex-wrap gap-x-3 text-meta text-text-muted">
+                            <span>{e.group}</span>
+                            <span>{timeAgo(e.when)}</span>
+                          </div>
+                        </div>
+                        {accion(e)}
+                      </div>
+                    </div>
+                  )
+                })}
+              </Card>
             ))
           : (
-            <Table>
+            <Table label="Entregas" minWidth={860}>
               <TableHeader>
                 <TableRow>
-                  <TableHead sort={sentido('learner')} onSort={() => ordenarPor('learner')}>Aprendiz</TableHead>
+                  <TableHead>{ordenar('learner', 'Aprendiz')}</TableHead>
                   <TableHead>Actividad</TableHead>
                   <TableHead>Grupo</TableHead>
                   <TableHead>Estado</TableHead>
-                  <TableHead sort={sentido('when')} onSort={() => ordenarPor('when')}>Cuándo</TableHead>
-                  <TableHead align="end"><span className="sr-only">Acciones</span></TableHead>
+                  <TableHead>{ordenar('when', 'Cuándo')}</TableHead>
+                  <TableHead align="right"><span className="sr-only">Acciones</span></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -252,18 +229,18 @@ export function Submissions() {
                   : alaVista.map((e) => {
                     const st = ESTADOS[e.status]
                     return (
-                      <TableRow key={e.submissionId} interactive onClick={() => abrir(e)}>
+                      <TableRow key={e.submissionId} onClick={() => abrir(e)}>
                         <TableCell>
                           <span className="flex items-center gap-2.5">
-                            <Avatar aria-hidden="true" name={e.learner ?? '?'} size="sm" />
-                            <span className="font-medium">{e.learner}</span>
+                            <Avatar name={e.learner ?? '?'} size={26} />
+                            <span className="font-semibold">{e.learner}</span>
                           </span>
                         </TableCell>
                         <TableCell><span className="block max-w-64 truncate">{e.title}</span></TableCell>
-                        <TableCell className="text-ink-muted">{e.group}</TableCell>
+                        <TableCell className="text-text-muted">{e.group}</TableCell>
                         <TableCell><Chip size="sm" color={st.color}>{st.label}</Chip></TableCell>
-                        <TableCell className="whitespace-nowrap text-ink-muted">{ago(e.when)}</TableCell>
-                        <TableCell align="end">{accion(e)}</TableCell>
+                        <TableCell className="whitespace-nowrap text-text-muted">{timeAgo(e.when)}</TableCell>
+                        <TableCell align="right" fit>{accion(e)}</TableCell>
                       </TableRow>
                     )
                   })}
@@ -271,14 +248,13 @@ export function Submissions() {
             </Table>
           )}
 
-        {!q.isPending && lista.length > 0 && (
-          <Pagination>
-            <PaginationStatus from={desde + 1} to={desde + alaVista.length} total={lista.length} noun="entregas" />
-            <PaginationPrev disabled={desde === 0} onClick={() => setPagina((p) => p - 1)} />
-            <PaginationNext disabled={!hayMas} onClick={() => setPagina((p) => p + 1)} />
-          </Pagination>
-        )}
-      </Card>
+      {!q.isPending && lista.length > 0 && (
+        <Pagination>
+          <PaginationStatus from={desde + 1} to={desde + alaVista.length} total={lista.length} noun="entregas" />
+          <PaginationPrev disabled={desde === 0} onClick={() => setPagina((p) => p - 1)} />
+          <PaginationNext disabled={!hayMas} onClick={() => setPagina((p) => p + 1)} />
+        </Pagination>
+      )}
     </div>
   )
 }

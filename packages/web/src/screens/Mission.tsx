@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowRight, Check, ChevronLeft, Lightbulb, X } from 'lucide-react'
-import { Button, Chip, cn, Eyebrow, Heading, Icon, ProgressRing, Text } from '@melu/ui'
+import { Button, Callout, Card, Chip, Divider, Icon, Progress } from '@milo/ui'
 import { api, type Block, type Submission, type PhaseDoc, type Mission, type Steps, type Answers, type AnswerValue } from '../lib/api'
 import { SELF_GRADED, IS_INTERACTIVE } from '../lib/composition'
 import { InteractiveBlock, ReadingBlock, evaluate, hasValue, type StepState } from '../blocks/Interactive'
 import { gameScore } from '../blocks/Games'
 import { Cover } from '../blocks/Cover'
+import { cn } from '../lib/cn'
 import { Cargando, NoLlego } from '../blocks/Estado'
 
-/** One screen: either an interactive block, or a stretch of reading. */
+/** Una pantalla: o un bloque interactivo, o un tramo de lectura. */
 type StepView = { phase: number; phaseName: string; reading: Block[]; block?: Block }
 
-/** Groups consecutive reading blocks and gives each interactive block a screen of its own. */
+/** Junta la lectura seguida y le da una pantalla propia a cada bloque interactivo. */
 function buildSteps(phases: PhaseDoc[]): StepView[] {
   const out: StepView[] = []
   phases.forEach((f, fi) => {
@@ -98,39 +98,50 @@ function Runner({ m }: { m: Mission }) {
   const rubric = m.assignment.rubric ?? []
   const scores = m.submission.scores ?? []
 
-  // ---- closing screen ----
+  // ---- la pantalla de cierre ----
   if (finished) {
     const graded = m.submission.status === 'graded'
     return (
-      <div className="ui-rise mx-auto flex max-w-lg flex-col items-center gap-6 py-12 text-center">
-        <ProgressRing value={answered.length ? accuracy / answered.length : 1} size={120}>
-          {answered.length ? `${accuracy}/${answered.length}` : '✓'}
-        </ProgressRing>
+      <div className="mx-auto flex max-w-lg flex-col items-center gap-6 px-5 py-12 text-center">
+        <span className="mark grid size-24 place-items-center rounded-full">
+          <Icon name={graded ? 'star' : 'check'} size={44} />
+        </span>
         <div>
-          <Eyebrow>{graded ? 'Con devolución' : 'Entregada'}</Eyebrow>
-          <Heading level={1} size="2xl" className="mt-1">{graded ? 'Ya la miró tu guía' : '¡Listo!'}</Heading>
-          <Text variant="muted" className="mt-1">
+          <span className="text-meta text-text-muted">{graded ? 'Con devolución' : 'Entregada'}</span>
+          <h1 className="text-heading">{graded ? 'Ya la miró tu guía' : 'Listo'}</h1>
+          <p className="text-body text-text-muted">
             {graded ? 'Abajo está lo que te dejó.' : 'Tu guía la va a mirar. Cuando tenga devolución, te aparece acá y en "Mi progreso".'}
-          </Text>
+          </p>
         </div>
         {answered.length > 0 && (
-          <div className="flex gap-2">
-            <Chip color="success" size="lg">{accuracy} bien</Chip>
-            {answered.length - accuracy > 0 && <Chip color="warning" size="lg">{answered.length - accuracy} para repasar</Chip>}
-          </div>
+          <>
+            <div className="w-full">
+              <Progress label="Bien contestadas" value={accuracy} max={answered.length} hint={`${accuracy}/${answered.length}`} tone={accuracy === answered.length ? 'ok' : 'brand'} />
+            </div>
+            <div className="flex gap-2">
+              <Chip color="ok">{accuracy} bien</Chip>
+              {answered.length - accuracy > 0 && <Chip color="warn">{answered.length - accuracy} para repasar</Chip>}
+            </div>
+          </>
         )}
         {graded && rubric.length > 0 && (
-          <div className="w-full rounded-xl border border-line bg-surface p-5 text-left">
-            <Eyebrow>Tu devolución</Eyebrow>
+          <Card className="w-full p-5 text-left">
+            <span className="text-meta text-text-muted">Tu devolución</span>
             <ul className="mt-2 flex flex-col gap-2">
-              {rubric.map((c) => { const p = scores.find((x) => x.id === c.id); return (
-                <li key={c.id} className="flex flex-wrap items-baseline justify-between gap-2 text-sm"><span>{c.label}</span><span className="font-semibold">{p ? c.levels[p.level] : '-'}</span></li>
-              )})}
+              {rubric.map((c) => {
+                const p = scores.find((x) => x.id === c.id)
+                return (
+                  <li key={c.id} className="flex flex-wrap items-baseline justify-between gap-2 text-body">
+                    <span>{c.label}</span>
+                    <span className="font-semibold">{p ? c.levels[p.level] : '-'}</span>
+                  </li>
+                )
+              })}
             </ul>
-          </div>
+          </Card>
         )}
         <div className="flex gap-2">
-          <Button onClick={() => nav('/today')}>Volver a Hoy</Button>
+          <Button variant="brand" onClick={() => nav('/today')}>Volver a Hoy</Button>
           <Button variant="ghost" onClick={() => { setFinished(false); setI(0) }}>Repasar lo que hice</Button>
         </div>
       </div>
@@ -138,53 +149,62 @@ function Runner({ m }: { m: Mission }) {
   }
 
   if (!current) return null
-  // A game can only be checked once it has been played through.
+  // Un juego solo se puede comprobar cuando se jugó entero.
   const played = b?.type === 'game' ? (() => { const { ok, total } = gameScore(b, value); return total > 0 && (b.engine === 'memory' ? ok === total : ((value as number[])?.filter((x) => x !== undefined && x >= -1).length ?? 0) >= total) })() : true
   const ready = b?.type === 'game' ? played : b?.type === 'manipulative' ? typeof value === 'number' : grades ? hasValue(value) : true
   const revealed = status !== 'editing'
-  // A first mistake does not give away the answer: they still have one try left.
+  // Un primer error no regala la respuesta: todavía queda un intento.
   const reveal = status === 'right' || status === 'review' || (status === 'wrong' && attempts >= 2)
   const explanation = b?.explanation
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-canvas">
+    <div className="flex h-dvh flex-col overflow-hidden bg-canvas">
       <header className="z-10 flex shrink-0 items-center gap-4 bg-canvas px-5 py-4">
-        <button type="button" onClick={() => (i === 0 ? nav('/today') : setI(i - 1))} aria-label={i === 0 ? 'Salir' : 'Anterior'}
-          className="grid size-9 shrink-0 place-items-center rounded-full hover:bg-hover"><Icon icon={i === 0 ? X : ChevronLeft} size="lg" /></button>
+        <button
+          type="button" onClick={() => (i === 0 ? nav('/today') : setI(i - 1))} aria-label={i === 0 ? 'Salir' : 'Anterior'}
+          className="touch-target grid size-9 shrink-0 place-items-center rounded-full hover:bg-surface-muted"
+        >
+          <Icon name={i === 0 ? 'close' : 'chevron_left'} size={22} />
+        </button>
         <div className="flex flex-1 gap-1.5" aria-label={`Paso ${i + 1} de ${steps.length}`}>
           {phases.map((f, fi) => {
             const total = steps.filter((p) => p.phase === fi).length
             const facts = steps.filter((p, k) => p.phase === fi && k < i).length + (current.phase === fi ? 0.35 : 0)
-            return <span key={f.key} className="h-2 flex-1 overflow-hidden rounded-full bg-muted" title={f.name}>
-              <span className="block h-full rounded-full bg-accent transition-[width] duration-300" style={{ width: `${Math.min(100, (facts / Math.max(1, total)) * 100)}%` }} />
-            </span>
+            return (
+              <span key={f.key} className="h-2 flex-1 overflow-hidden rounded-full bg-surface-muted" title={f.name}>
+                <span className="block h-full rounded-full bg-brand transition-[width] duration-300" style={{ width: `${Math.min(100, (facts / Math.max(1, total)) * 100)}%` }} />
+              </span>
+            )
           })}
         </div>
-        <Text size="sm" variant="subtle" mono className="shrink-0">{i + 1}/{steps.length}</Text>
+        <span className="tabular shrink-0 text-meta text-text-muted">{i + 1}/{steps.length}</span>
       </header>
 
-      {/* The content scrolls in here, not the page: that way the footer with the main action
-          nunca se va abajo del pliegue, que es justo lo que hay que tener a mano. */}
+      {/* El contenido corre acá adentro y no la página: así el pie con la acción principal nunca
+          se va abajo del pliegue, que es justo lo que hay que tener a mano. */}
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div key={i} className="ui-reveal mx-auto flex w-full max-w-2xl flex-col gap-6 px-5 pb-10 pt-4">
+        <div key={i} className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-5 pb-10 pt-4">
           {i === 0 && (
-            <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-4">
-              <Cover title={m.assignment.title} className="size-16 shrink-0 rounded-xl" size={40} />
-              <div><Eyebrow>{m.assignment.groupName}</Eyebrow><Heading level={1} size="lg">{m.assignment.title}</Heading></div>
-            </div>
+            <Card className="flex items-center gap-4 p-4">
+              <Cover title={m.assignment.title} className="size-16 shrink-0 rounded-[var(--radius-xl)]" size={34} />
+              <div>
+                <span className="text-meta text-text-muted">{m.assignment.groupName}</span>
+                <h1 className="text-title">{m.assignment.title}</h1>
+              </div>
+            </Card>
           )}
-          {phases.length > 1 && <Eyebrow>{current.phaseName}</Eyebrow>}
+          {phases.length > 1 && <span className="text-meta text-text-muted">{current.phaseName}</span>}
 
           {current.reading.map((lb) => <ReadingBlock key={lb.id} b={lb} />)}
 
           {b && (
-            <div className={cn('flex flex-col gap-5', status === 'wrong' && 'ui-error')}>
-              {b.type !== 'fill_in' && <p className="font-display text-2xl font-semibold leading-snug tracking-tight text-balance">{b.text}</p>}
+            <div className="flex flex-col gap-5">
+              {b.type !== 'fill_in' && <p className="text-balance text-heading">{b.text}</p>}
               <InteractiveBlock b={b} value={value} onChange={setVal} status={status} reveal={reveal} />
               {b.hint && !revealed && (
                 hintVisible
-                  ? <div className="flex items-start gap-2 rounded-xl bg-yellow px-4 py-3"><Icon icon={Lightbulb} className="mt-0.5" /><p className="text-sm">{b.hint}</p></div>
-                  : <button type="button" onClick={() => setHintVisible(true)} className="self-start text-sm font-semibold text-accent underline underline-offset-4">Ver una pista</button>
+                  ? <Callout icon="lightbulb" color="orange">{b.hint}</Callout>
+                  : <button type="button" onClick={() => setHintVisible(true)} className="self-start text-body font-semibold text-brand-ink underline underline-offset-4">Ver una pista</button>
               )}
             </div>
           )}
@@ -192,36 +212,44 @@ function Runner({ m }: { m: Mission }) {
       </div>
 
       <footer className={cn('shrink-0 border-t transition-colors',
-        status === 'right' ? 'border-success/30 bg-success-subtle' : status === 'wrong' ? 'border-danger/30 bg-danger-subtle' : status === 'review' ? 'border-line bg-muted' : 'border-line bg-surface')}>
+        status === 'right' ? 'border-border bg-ok-subtle' : status === 'wrong' ? 'border-border bg-bad-subtle' : status === 'review' ? 'border-border bg-surface-muted' : 'border-border bg-surface')}>
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-3 px-5 py-4">
           {revealed && (status !== 'review' || explanation) && (
             <div className="flex items-start gap-3">
               {status !== 'review' && (
-                <span className={cn('grid size-9 shrink-0 place-items-center rounded-full', status === 'right' ? 'bg-success text-white' : 'bg-danger text-white')}>
-                  <Icon icon={status === 'right' ? Check : X} size="lg" />
+                <span className={cn('grid size-9 shrink-0 place-items-center rounded-full', status === 'right' ? 'bg-ok text-text' : 'bg-bad text-text-inverted')}>
+                  <Icon name={status === 'right' ? 'check' : 'close'} size={22} />
                 </span>
               )}
               <div className="min-w-0">
-                {status !== 'review' && <p className={cn('font-display text-lg font-semibold', status === 'right' ? 'text-success' : 'text-danger')}>{status === 'right' ? '¡Bien!' : attempts >= 2 ? 'Todavía no' : 'Casi'}</p>}
-                {explanation && <p className="text-sm leading-relaxed text-ink-muted">{explanation}</p>}
+                {status !== 'review' && (
+                  <p className={cn('text-title', status === 'right' ? 'text-ok-ink' : 'text-bad-ink')}>
+                    {status === 'right' ? 'Bien' : attempts >= 2 ? 'Todavía no' : 'Casi'}
+                  </p>
+                )}
+                {explanation && <p className="text-body text-text-muted">{explanation}</p>}
               </div>
             </div>
           )}
+          <Divider />
           <div className="flex items-center gap-2">
             {status === 'wrong' && attempts < 2 && (
               <>
-                <Button size="lg" className="flex-1" onClick={retryIt}>Volver a intentar</Button>
+                <Button size="lg" variant="brand" className="flex-1" onClick={retryIt}>Volver a intentar</Button>
                 <Button size="lg" variant="ghost" onClick={giveUp}>Ver la respuesta</Button>
               </>
             )}
             {status === 'editing' && (
-              <Button size="lg" block disabled={!ready}
-                onClick={() => (grades ? verify() : (register(null), advance()))} endIcon={grades ? undefined : <Icon icon={ArrowRight} size="sm" />}>
+              <Button
+                size="lg" block variant="brand" disabled={!ready}
+                iconEnd={grades ? undefined : 'arrow_forward'}
+                onClick={() => (grades ? verify() : (register(null), advance()))}
+              >
                 {grades ? 'Comprobar' : i === steps.length - 1 ? 'Entregar' : 'Continuar'}
               </Button>
             )}
             {(status === 'right' || status === 'review' || (status === 'wrong' && attempts >= 2)) && (
-              <Button size="lg" block onClick={advance} endIcon={<Icon icon={ArrowRight} size="sm" />}>
+              <Button size="lg" block variant="brand" iconEnd="arrow_forward" onClick={advance}>
                 {i === steps.length - 1 ? 'Entregar' : 'Continuar'}
               </Button>
             )}

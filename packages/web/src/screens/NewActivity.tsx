@@ -1,8 +1,7 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { FilePlus2 } from 'lucide-react'
-import { Breadcrumb, BreadcrumbItem, BreadcrumbPage, Button, Card, CardContent, CardMedia, Chip, Field, FormActions, Eyebrow, Heading, Icon, Input, Text, Textarea, Toggle, ToggleGroup, ToggleGroupItem } from '@melu/ui'
+import { Breadcrumb, Button, Card, Chip, Field, Icon, PageHeader, TextField, Textarea } from '@milo/ui'
 import { Stepper } from '../blocks/Product'
 import { api, type Activity, type Composition, type Lens } from '../lib/api'
 import { useSpaceId } from '../lib/space'
@@ -10,7 +9,7 @@ import { CompositionChips } from '../blocks/Chips'
 import { SETTINGS, EXPERIENCES, SOCIAL } from '../lib/composition'
 import { Cover } from '../blocks/Cover'
 
-// Wizard: template → adjust → editor. Never a blank form to start with.
+// El asistente: plantilla, ajustar, editor. Nunca un formulario en blanco para arrancar.
 export function NewActivity() {
   const nav = useNavigate()
   const spaceId = useSpaceId()
@@ -41,44 +40,47 @@ export function NewActivity() {
   const lensPhases = lenses.data?.find((l) => l.key === comp.lens)?.phases ?? []
 
   return (
-    <div className="flex flex-col gap-6">
-      <Breadcrumb>
-        <BreadcrumbItem asChild><Link to="/activities">Actividades</Link></BreadcrumbItem>
-        <BreadcrumbPage>Nueva actividad</BreadcrumbPage>
-      </Breadcrumb>
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div><Eyebrow>Nueva actividad</Eyebrow><Heading level={1} size="2xl" className="mt-1">{step === 0 ? 'Empezá desde una plantilla' : 'Ajustá la composición'}</Heading><Text variant="muted">{step === 0 ? 'Cada plantilla es una combinación que funciona: qué hacen, cómo se recorre, dónde, con quién. La copiás y la hacés tuya.' : 'Seis decisiones. Lo que elijas acá define las fases y qué evidencia vuelve. Todo se puede cambiar después.'}</Text></div>
-        <Stepper steps={['Plantilla', 'Ajustar', 'Editar']} current={step} />
-      </header>
+    <div className="page-stack">
+      <Breadcrumb items={[{ label: 'Actividades', onClick: () => nav('/activities') }, { label: 'Nueva actividad' }]} />
+      <PageHeader
+        title={step === 0 ? 'Empezá desde una plantilla' : 'Ajustá la composición'}
+        subtitle={step === 0
+          ? 'Cada plantilla es una combinación que funciona: qué hacen, cómo se recorre, dónde, con quién. La copiás y la hacés tuya.'
+          : 'Seis decisiones. Lo que elijas acá define las fases y qué evidencia vuelve. Todo se puede cambiar después.'}
+        actions={<Stepper steps={['Plantilla', 'Ajustar', 'Editar']} current={step} />}
+      />
 
       {step === 0 && (
         <>
           <div className="flex flex-wrap items-center gap-2">
-            <Toggle pressed={!query} onPressedChange={() => setQuery('')} variant="outline" size="sm">Todas</Toggle>
+            <Chip active={!query} onClick={() => setQuery('')}>Todas</Chip>
             {Object.entries(EXPERIENCES).filter(([k]) => everyOne.some((r) => r.composition.experience === k)).map(([k, l]) => (
-              <Toggle key={k} pressed={query === k} onPressedChange={() => setQuery(query === k ? '' : k)} variant="outline" size="sm">{l}</Toggle>
+              <Chip key={k} active={query === k} onClick={() => setQuery(query === k ? '' : k)}>{l}</Chip>
             ))}
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Card asChild interactive variant="dashed">
-              <button type="button" onClick={() => pick(null)} className="min-h-64 items-center justify-center gap-3 p-6 text-center">
-                <span className="grid size-12 place-items-center rounded-xl bg-muted"><Icon icon={FilePlus2} size="xl" /></span>
-                <span className="font-semibold">En blanco</span><span className="text-sm text-ink-muted">Elegís los ejes y escribís todo vos.</span>
+            <Card interactive className="p-0">
+              <button type="button" onClick={() => pick(null)} className="flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center">
+                <span className="grid size-12 place-items-center rounded-[var(--radius-xl)] bg-surface-muted">
+                  <Icon name="note_add" size={26} className="icon-muted" />
+                </span>
+                <span className="text-body font-semibold">En blanco</span>
+                <span className="text-body text-text-muted">Elegís los ejes y escribís todo vos.</span>
               </button>
             </Card>
             {shown.map((r) => (
-              <Card key={r.id} asChild interactive>
-                <button type="button" onClick={() => pick(r)} className="text-left">
-                  <CardMedia><Cover title={r.title} className="h-32 w-full" /></CardMedia>
-                  <CardContent className="flex flex-1 flex-col gap-2 p-4">
-                    <div className="flex items-start justify-between gap-2"><span className="font-semibold leading-snug">{r.title}</span>{r.spaceId && <Chip size="sm" color="lilac">Mía</Chip>}</div>
+              <Card key={r.id} interactive className="p-0">
+                <button type="button" onClick={() => pick(r)} className="flex w-full gap-3 p-3 text-left">
+                  <Cover title={r.title} className="size-16 shrink-0 rounded-[var(--radius-lg)]" size={34} />
+                  <span className="flex min-w-0 flex-col gap-2">
+                    <span className="flex items-start justify-between gap-2">
+                      <span className="text-body font-semibold">{r.title}</span>
+                      {r.spaceId && <Chip size="sm" color="purple">Mía</Chip>}
+                    </span>
                     <CompositionChips c={r.composition} compact />
-                    <p className="line-clamp-2 text-sm text-ink-muted">{r.description}</p>
-                    <Text size="xs" variant="muted" className="flex flex-wrap items-center gap-x-3">
-                      <span>{r.document.phases.length} fases</span>
-                      <span className="text-ink-subtle">{r.document.phases.map((f) => f.name).join(' → ')}</span>
-                    </Text>
-                  </CardContent>
+                    <span className="line-clamp-2 text-body text-text-muted">{r.description}</span>
+                    <span className="text-meta text-text-muted">{r.document.phases.map((f) => f.name).join(' → ')}</span>
+                  </span>
                 </button>
               </Card>
             ))}
@@ -87,30 +89,48 @@ export function NewActivity() {
       )}
 
       {step === 1 && (
-        <form className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[1fr_320px]" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
-          <Card padding="lg" className="gap-6">
-            <Field label="Título"><Input placeholder="Puente de espagueti" value={title} onChange={(e) => setTitle(e.target.value)} required autoFocus /></Field>
-            <Field label="Descripción" required description="De qué se trata, para reconocerla en la lista sin abrirla.">
-              <Textarea placeholder="Construir un puente que aguante un libro, con lo que haya en el aula." value={description} onChange={(e) => setDescription(e.target.value)} rows={2} autoGrow />
+        <form className="grid w-full gap-6 lg:grid-cols-[minmax(0,1fr)_320px]" onSubmit={(e) => { e.preventDefault(); create.mutate() }}>
+          <Card className="flex flex-col gap-6 p-5">
+            <Field label="Título">
+              <TextField placeholder="Puente de espagueti" value={title} onChange={(e) => setTitle(e.target.value)} required autoFocus />
+            </Field>
+            <Field label="Descripción" required hint="De qué se trata, para reconocerla en la lista sin abrirla.">
+              <Textarea placeholder="Construir un puente que aguante un libro, con lo que haya en el aula." value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
             </Field>
             <AxisRow title="Experiencia" hint="qué van a hacer" options={EXPERIENCES} value={[comp.experience ?? '']} onPick={(v) => set('experience', v)} />
             <AxisRow title="Lente" hint="cómo se recorre; trae las fases" options={Object.fromEntries((lenses.data ?? []).map((l) => [l.key, l.name]))} value={[comp.lens ?? '']} onPick={(v) => set('lens', v)} />
-            {lensPhases.length > 1 && <div className="-mt-3 flex flex-wrap items-center gap-1.5 text-xs text-ink-muted">Fases: {lensPhases.map((f, i) => <span key={f.key} className="flex items-center gap-1.5"><span className="rounded-sm bg-teal px-1.5 py-0.5 font-medium text-brand-text">{f.name}</span>{i < lensPhases.length - 1 && '→'}</span>)}</div>}
+            {lensPhases.length > 1 && (
+              <div className="-mt-3 flex flex-wrap items-center gap-1.5 text-meta text-text-muted">
+                Fases:
+                {lensPhases.map((f, i) => (
+                  <span key={f.key} className="flex items-center gap-1.5">
+                    <Chip size="sm" color="teal">{f.name}</Chip>
+                    {i < lensPhases.length - 1 && <Icon name="chevron_right" size={14} className="icon-muted" />}
+                  </span>
+                ))}
+              </div>
+            )}
             <AxisRow title="Escenario" hint="dónde ocurre; puede ser más de uno" options={SETTINGS} value={comp.setting ?? []} onPick={toggleEsc} />
             <AxisRow title="Social" hint="con quién" options={SOCIAL} value={[comp.social ?? '']} onPick={(v) => set('social', v)} />
-            <Field label="Disciplinas" description="Separadas por coma; todas las que toque." optional>
-              <Input placeholder="Matemática · medida, Física · fuerzas" value={disc} onChange={(e) => setDisc(e.target.value)} />
+            <Field label="Disciplinas" hint="Separadas por coma; todas las que toque. Opcional.">
+              <TextField placeholder="Matemática · medida, Física · fuerzas" value={disc} onChange={(e) => setDisc(e.target.value)} />
             </Field>
-            {create.isError && <Text size="sm" variant="danger">No se pudo crear.</Text>}
-            <FormActions><Button type="submit" loading={create.isPending} disabled={title.trim() === '' || description.trim() === ''}>Abrir en el editor</Button><Button variant="ghost" onClick={() => setStep(0)}>Volver a plantillas</Button></FormActions>
+            {create.isError && <span className="text-body text-bad-ink">No se pudo crear.</span>}
+            <div className="flex flex-wrap gap-2">
+              <Button variant="brand" type="submit" disabled={create.isPending || title.trim() === '' || description.trim() === ''}>
+                {create.isPending ? 'Creando' : 'Abrir en el editor'}
+              </Button>
+              <Button variant="ghost" onClick={() => setStep(0)}>Volver a plantillas</Button>
+            </div>
           </Card>
-          <Card padding="md" asChild><aside className="gap-4 self-start">
-            <Eyebrow>Vista previa</Eyebrow>
-            <Cover title={title || base?.title || 'Sin título'} className="h-28 rounded-xl" />
-            <div className="font-display text-xl font-semibold">{title || 'Sin título'}</div>
+
+          <Card surface="muted" className="flex h-fit flex-col gap-4 p-4">
+            <span className="text-meta text-text-muted">Vista previa</span>
+            <Cover title={title || base?.title || 'Sin título'} className="h-28 w-full rounded-[var(--radius-xl)]" size={56} />
+            <div className="text-title">{title || 'Sin título'}</div>
             <CompositionChips c={{ ...comp, disciplines: disc.split(',').map((s) => s.trim()).filter(Boolean) }} />
-            {base && <Text size="xs" variant="muted">Basada en "{base.title}": {base.document.phases.reduce((n, f) => n + f.blocks.length, 0)} bloques listos para editar.</Text>}
-          </aside></Card>
+            {base && <p className="text-meta text-text-muted">Basada en "{base.title}": {base.document.phases.reduce((n, f) => n + f.blocks.length, 0)} bloques listos para editar.</p>}
+          </Card>
         </form>
       )}
     </div>
@@ -120,14 +140,12 @@ export function NewActivity() {
 function AxisRow({ title, hint, options, value, onPick }: { title: string; hint: string; options: Record<string, string>; value: string[]; onPick: (v: string) => void }) {
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-1 text-sm font-semibold">{title} <span className="ml-1 font-normal text-ink-subtle">{hint}</span></legend>
-      <ToggleGroup type="multiple" variant="outline" value={value} onValueChange={(next) => {
-        // El grupo devuelve la selección entera; la pantalla razona de a una opción.
-        const changed = next.filter((k) => !value.includes(k)).concat(value.filter((k) => !next.includes(k)))
-        for (const k of changed) onPick(k)
-      }}>
-        {Object.entries(options).map(([k, l]) => <ToggleGroupItem key={k} value={k}>{l}</ToggleGroupItem>)}
-      </ToggleGroup>
+      <legend className="mb-1 text-body font-semibold">{title} <span className="font-normal text-text-muted">{hint}</span></legend>
+      <div className="flex flex-wrap gap-1.5">
+        {Object.entries(options).map(([k, l]) => (
+          <Chip key={k} active={value.includes(k)} onClick={() => onPick(k)}>{l}</Chip>
+        ))}
+      </div>
     </fieldset>
   )
 }

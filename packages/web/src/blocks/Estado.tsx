@@ -5,7 +5,7 @@
 // siempre. Las dos cosas se leen igual (nada) y ninguna de las dos dice nada. Acá viven las
 // dos formas, para que ninguna pantalla tenga que decidirlo de nuevo.
 import type { ReactNode } from 'react'
-import { Alert, Button, Skeleton } from '@melu/ui'
+import { Alert, AlertActions, AlertBody, AlertTitle, Button, Skeleton } from '@milo/ui'
 import { ApiError } from '../lib/api'
 
 /**
@@ -16,10 +16,10 @@ export function Cargando({ bloques = 2 }: { bloques?: number }) {
   return (
     <div className="flex flex-col gap-6" role="status" aria-label="Cargando">
       <div className="flex flex-col gap-2">
-        <Skeleton className="h-7 w-64" />
-        <Skeleton className="h-4 w-full max-w-md" />
+        <Skeleton className="block h-7 w-64" />
+        <Skeleton className="block h-4 w-full max-w-md" />
       </div>
-      {Array.from({ length: bloques }, (_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
+      {Array.from({ length: bloques }, (_, i) => <Skeleton key={i} className="block h-28 rounded-[var(--radius-xl)]" />)}
     </div>
   )
 }
@@ -35,20 +35,27 @@ export function NoLlego({ que, error, onRetry, children }: { que: string; error?
   // y una frase que dependa del género y del número se rompe en la mitad de las pantallas.
   if (status === 404) {
     return (
-      <Alert variant="warning" title={`No encontramos ${que}`}>
-        Revisá el enlace: puede estar mal escrito, o apuntar a algo que ya no está.
+      <Alert tone="warn">
+        <AlertTitle>No encontramos {que}</AlertTitle>
+        <AlertBody>Revisá el enlace: puede estar mal escrito, o apuntar a algo que ya no está.</AlertBody>
       </Alert>
     )
   }
   if (status === 403) {
-    return <Alert variant="warning" title="No tenés acceso">Esto es de otro espacio. Pedile acceso a quien lo creó.</Alert>
+    return (
+      <Alert tone="warn">
+        <AlertTitle>No tenés acceso</AlertTitle>
+        <AlertBody>Esto es de otro espacio. Pedile acceso a quien lo creó.</AlertBody>
+      </Alert>
+    )
   }
   return (
-    <Alert
-      variant="danger" title={`No pudimos traer ${que}`}
-      actions={<Button size="sm" variant="secondary" onClick={onRetry}>Probar de nuevo</Button>}
-    >
-      {children ?? 'Puede ser la conexión. Los datos están, no se perdió nada.'}
+    <Alert tone="bad">
+      <AlertTitle>No pudimos traer {que}</AlertTitle>
+      <AlertBody>{children ?? 'Puede ser la conexión. Los datos están, no se perdió nada.'}</AlertBody>
+      <AlertActions>
+        <Button size="sm" variant="muted" onClick={onRetry}>Probar de nuevo</Button>
+      </AlertActions>
     </Alert>
   )
 }

@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Plus } from 'lucide-react'
-import { Button, Card, CardContent, CardMedia, EmptyState, Eyebrow, Heading, Icon, Text } from '@melu/ui'
+import { Button, Card, PageHeader, SectionLabel } from '@milo/ui'
 import { api, type Activity } from '../lib/api'
 import { useSpaceId } from '../lib/space'
 import { CompositionChips } from '../blocks/Chips'
 import { Cover } from '../blocks/Cover'
+import { Empty } from '../blocks/Modal'
 
 export function Library() {
   const nav = useNavigate()
@@ -16,47 +16,61 @@ export function Library() {
   const templates = q.data?.mine.filter((a) => a.isRecipe) ?? []
 
   return (
-    <div className="flex flex-col gap-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        {/* El `max-w-2xl` es lo que mantiene el botón en la misma línea: sin tope, la bajada
-            ocupaba todo el ancho y lo empujaba abajo del título. */}
-        <div className="max-w-2xl"><Eyebrow>Actividades</Eyebrow><Heading level={1} size="2xl" className="mt-1">Tus actividades y las plantillas</Heading><Text variant="muted">Una actividad es un documento con fases y bloques. La componés desde una plantilla, la editás como un doc y la asignás a un grupo.</Text></div>
-        <Button onClick={() => nav('/activities/new')} startIcon={<Icon icon={Plus} />}>Nueva actividad</Button>
-      </header>
+    <div className="page-stack">
+      <PageHeader
+        title="Tus actividades y las plantillas"
+        subtitle="Una actividad es un documento con fases y bloques. La componés desde una plantilla, la editás como un doc y la asignás a un grupo."
+        actions={<Button size="sm" variant="brand" icon="add" onClick={() => nav('/activities/new')}>Nueva actividad</Button>}
+      />
 
       <section className="flex flex-col gap-3">
-        <div className="flex items-baseline justify-between"><Heading size="xl">Mías</Heading><Text size="xs" variant="muted">{mine.length} {mine.length === 1 ? 'actividad' : 'actividades'}</Text></div>
-        {mine.length === 0 ? (
-          <EmptyState title="Todavía no armaste ninguna" description="Empezá desde una plantilla: en dos clics tenés algo para asignar."
-            actions={<Button onClick={() => nav('/activities/new')} startIcon={<Icon icon={Plus} />}>Nueva actividad</Button>} />
-        ) : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {mine.map((a) => (
-              <Card key={a.id} asChild interactive>
-                <button type="button" onClick={() => nav(`/activities/${a.id}`)} className="text-left">
-                  <CardMedia><Cover title={a.title} className="h-28 w-full" size={72} /></CardMedia>
-                  <CardContent className="flex flex-col gap-2 p-4"><span className="font-semibold">{a.title}</span><CompositionChips c={a.composition} compact /><p className="line-clamp-2 text-sm text-ink-muted">{a.description}</p><Text size="xs" variant="muted" className="flex flex-wrap items-center gap-x-3">
-                    <span>{a.document.phases.length} fases</span>
-                    <span>{a.document.phases.reduce((n, f) => n + f.blocks.length, 0)} bloques</span>
-                    <span className="text-ink-subtle">editada {new Date(a.updatedAt).toLocaleDateString('es-AR')}</span>
-                  </Text></CardContent>
-                </button>
-              </Card>
-            ))}
-          </div>
-        )}
+        <SectionLabel count={mine.length}>Mías</SectionLabel>
+        {mine.length === 0
+          ? (
+            <Empty
+              icon="draft" title="Todavía no armaste ninguna"
+              text="Empezá desde una plantilla: en dos clics tenés algo para asignar."
+              action={<Button variant="brand" icon="add" onClick={() => nav('/activities/new')}>Nueva actividad</Button>}
+            />
+          )
+          : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {mine.map((a) => (
+                <Card key={a.id} interactive className="p-0">
+                  <button type="button" onClick={() => nav(`/activities/${a.id}`)} className="flex w-full gap-3 p-3 text-left">
+                    <Cover title={a.title} className="size-16 shrink-0 rounded-[var(--radius-lg)]" size={34} />
+                    <div className="flex min-w-0 flex-col gap-2">
+                      <span className="text-body font-semibold">{a.title}</span>
+                      <CompositionChips c={a.composition} compact />
+                      <p className="line-clamp-2 text-body text-text-muted">{a.description}</p>
+                      <div className="flex flex-wrap items-center gap-x-3 text-meta text-text-muted">
+                        <span>{a.document.phases.length} fases</span>
+                        <span>{a.document.phases.reduce((n, f) => n + f.blocks.length, 0)} bloques</span>
+                        <span>editada {new Date(a.updatedAt).toLocaleDateString('es-AR')}</span>
+                      </div>
+                    </div>
+                  </button>
+                </Card>
+              ))}
+            </div>
+          )}
       </section>
 
       {templates.length > 0 && (
         <section className="flex flex-col gap-3">
-          <div><Heading size="xl">Plantillas de tu espacio</Heading><Text size="sm" variant="muted">Las guardaste vos o alguien de tu espacio desde el editor.</Text></div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{templates.map((r) => <RecipeCard key={r.id} r={r} onUse={() => useIt.mutate(r.id)} isLoading={useIt.isPending && useIt.variables === r.id} />)}</div>
+          <SectionLabel count={templates.length}>Plantillas de tu espacio</SectionLabel>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {templates.map((r) => <RecipeCard key={r.id} r={r} onUse={() => useIt.mutate(r.id)} isLoading={useIt.isPending && useIt.variables === r.id} />)}
+          </div>
         </section>
       )}
 
       <section className="flex flex-col gap-3">
-        <div><Heading size="xl">Plantillas de melu</Heading><Text size="sm" variant="muted">Combinaciones que funcionan. "Usar" te hace una copia para editar y asignar.</Text></div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{q.data?.recipes.map((r) => <RecipeCard key={r.id} r={r} onUse={() => useIt.mutate(r.id)} isLoading={useIt.isPending && useIt.variables === r.id} />)}</div>
+        <SectionLabel count={q.data?.recipes.length}>Plantillas de melu</SectionLabel>
+        <p className="text-body text-text-muted">Combinaciones que funcionan. "Usar" te hace una copia para editar y asignar.</p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {q.data?.recipes.map((r) => <RecipeCard key={r.id} r={r} onUse={() => useIt.mutate(r.id)} isLoading={useIt.isPending && useIt.variables === r.id} />)}
+        </div>
       </section>
     </div>
   )
@@ -64,15 +78,21 @@ export function Library() {
 
 function RecipeCard({ r, onUse, isLoading }: { r: Activity; onUse: () => void; isLoading: boolean }) {
   return (
-    <Card className="overflow-hidden">
-      <CardMedia><Cover title={r.title} className="h-32 w-full" /></CardMedia>
-      <CardContent className="flex flex-1 flex-col gap-3 p-4">
-        <span className="font-semibold leading-snug">{r.title}</span>
-        <CompositionChips c={r.composition} compact />
-        <p className="line-clamp-3 text-sm text-ink-muted">{r.description}</p>
-        <Text size="xs" variant="muted">{r.document.phases.map((f) => f.name).join(' → ')}</Text>
-        <div className="mt-auto pt-1"><Button size="sm" variant="secondary" block onClick={onUse} loading={isLoading}>Usar esta plantilla</Button></div>
-      </CardContent>
+    <Card className="flex flex-col gap-3 p-4">
+      <div className="flex gap-3">
+        <Cover title={r.title} className="size-16 shrink-0 rounded-[var(--radius-lg)]" size={34} />
+        <div className="min-w-0">
+          <span className="text-body font-semibold">{r.title}</span>
+          <p className="line-clamp-3 text-body text-text-muted">{r.description}</p>
+        </div>
+      </div>
+      <CompositionChips c={r.composition} compact />
+      <p className="text-meta text-text-muted">{r.document.phases.map((f) => f.name).join(' → ')}</p>
+      <div className="mt-auto">
+        <Button size="sm" variant="muted" block onClick={onUse} disabled={isLoading}>
+          {isLoading ? 'Copiando' : 'Usar esta plantilla'}
+        </Button>
+      </div>
     </Card>
   )
 }

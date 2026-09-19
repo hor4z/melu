@@ -1,73 +1,68 @@
-// Piezas de melu armadas sobre el design system. Codifican decisiones de producto (la
-// unidad del panel, el copy del menú de cuenta) así que viven acá y no en @melu/ui.
-import type { ReactNode } from 'react'
-import { LogOut, RefreshCw, User } from 'lucide-react'
-import { Avatar, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Icon, MenuButton, Sparkline, cn } from '@melu/ui'
+// Piezas de melu armadas sobre milo. Codifican decisiones de producto (la unidad del panel, el
+// copy del menú de cuenta) así que viven acá y no en el design system.
+import { Avatar, Card, Dropdown, Icon, Steps, type IconName } from '@milo/ui'
+import { cn } from '../lib/cn'
 
-/** Metric with a tint, a big number and a trend. The dashboard's unit. */
-export function StatTile({ label, value, unit, delta, series, tint = 'bg-teal', icon, hint }: {
-  label: string; value: string | number; unit?: string; delta?: number; series?: number[]; tint?: string; icon?: ReactNode; hint?: string
+/** La métrica del panel: el rótulo arriba con su glifo, y el número grande abajo. Las medidas
+ *  son las del dashboard del sistema: 20 de padding, 12 de aire, el número en display. */
+export function Stat({ label, value, aside, icon, tone = 'up' }: {
+  label: string
+  value: string | number
+  /** Lo que va al lado del número, chico: una cuenta que lo apoya. */
+  aside?: string
+  icon: IconName
+  tone?: 'up' | 'down'
 }) {
   return (
-    <div className={cn('flex flex-col gap-3 overflow-hidden rounded-xl p-5', tint)}>
-      <div className="flex items-start justify-between">
-        <span className="text-ink">{icon}</span>
-        {typeof delta === 'number' && (
-          <span className={cn('rounded-md bg-white/70 px-1.5 py-0.5 text-xs font-semibold tabular-nums', delta >= 0 ? 'text-success' : 'text-danger')}>
-            {delta >= 0 ? '↗' : '↘'} {Math.abs(delta)}%
-          </span>
-        )}
+    <Card className="flex flex-col gap-3 p-5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-body text-text-muted">{label}</span>
+        <Icon name={icon} size={16} className="icon-muted" />
       </div>
-      <div className="flex items-end justify-between gap-2">
-        <div>
-          <div className="text-sm font-medium text-ink-muted">{label}</div>
-          <div className="font-display text-3xl font-semibold tracking-tight text-ink tabular-nums">
-            {value}{unit && <span className="ml-1 text-base font-medium text-ink-muted">{unit}</span>}
-          </div>
-          {hint && <div className="mt-0.5 text-xs text-ink-subtle">{hint}</div>}
-        </div>
-        {series && <Sparkline data={series} className="text-ink/70" />}
+      <div className="flex items-baseline gap-2">
+        <span className="tabular text-display font-bold">{value}</span>
+        {aside && <span className={cn('text-meta font-semibold', tone === 'up' ? 'text-ok-ink' : 'text-warn-ink')}>{aside}</span>}
       </div>
-    </div>
+    </Card>
   )
 }
+
+/** Los pasos de un alta, en orden. */
 export function Stepper({ steps, current }: { steps: string[]; current: number }) {
-  return (
-    <ol className="flex flex-wrap items-center gap-2" aria-label="Pasos">
-      {steps.map((p, i) => (
-        <li key={p} className="flex items-center gap-2">
-          <span className={cn('grid size-7 place-items-center rounded-full text-xs font-bold',
-            i < current ? 'bg-accent text-white' : i === current ? 'bg-solid text-on-solid' : 'border-2 border-line text-ink-subtle')}>
-            {i < current ? '✓' : i + 1}
-          </span>
-          <span className={cn('text-sm', i === current ? 'font-semibold' : 'text-ink-muted')}>{p}</span>
-          {i < steps.length - 1 && <span className="mx-1 h-px w-8 bg-line" />}
-        </li>
-      ))}
-    </ol>
-  )
+  return <Steps label="Pasos" current={current} steps={steps.map((label) => ({ label }))} />
 }
-/** Avatar that opens the account menu. */
-export function UserMenu({ name, email, avatar, onProfile, onChangeSpace, onSignOut }: {
-  name: string; email?: string; avatar?: string
-  onProfile?: () => void; onChangeSpace?: () => void; onSignOut: () => void
+
+/** El avatar que abre el menú de la cuenta. */
+export function UserMenu({ name, email, avatar, onSettings, onChangeSpace, onSignOut }: {
+  name: string
+  email?: string
+  avatar?: string
+  onSettings?: () => void
+  onChangeSpace?: () => void
+  onSignOut: () => void
 }) {
   return (
-    <DropdownMenu placement="bottom-end">
-      <DropdownMenuTrigger>
-        <MenuButton chevron={false} aria-label="Menú de la cuenta" leading={<Avatar name={name} src={avatar} size="md" />} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent minWidth={230}>
-        <DropdownMenuLabel>
-          <span className="block text-sm font-semibold normal-case tracking-normal text-ink">{name}</span>
-          {email && <span className="block text-xs font-normal normal-case tracking-normal text-ink-subtle">{email}</span>}
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {onProfile && <DropdownMenuItem icon={<Icon icon={User} size="sm" />} onClick={onProfile}>Mi perfil</DropdownMenuItem>}
-        {onChangeSpace && <DropdownMenuItem icon={<Icon icon={RefreshCw} size="sm" />} onClick={onChangeSpace}>Cambiar de espacio</DropdownMenuItem>}
-        {(onProfile || onChangeSpace) && <DropdownMenuSeparator />}
-        <DropdownMenuItem icon={<Icon icon={LogOut} size="sm" />} onClick={onSignOut}>Salir</DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Dropdown
+      align="end"
+      width={230}
+      label={email ? `${name} · ${email}` : name}
+      trigger={({ onClick, ref, 'aria-expanded': expanded }) => (
+        <button
+          ref={ref}
+          type="button"
+          onClick={onClick}
+          aria-expanded={expanded}
+          aria-label={`Cuenta de ${name}`}
+          className="touch-target rounded-full"
+        >
+          <Avatar name={name} src={avatar} size={34} />
+        </button>
+      )}
+      items={[
+        ...(onSettings ? [{ label: 'Ajustes', icon: 'settings' as const, onSelect: onSettings }] : []),
+        ...(onChangeSpace ? [{ label: 'Cambiar de espacio', icon: 'sync' as const, onSelect: onChangeSpace }] : []),
+        { label: 'Salir', icon: 'logout' as const, danger: true, onSelect: () => void onSignOut() },
+      ]}
+    />
   )
 }
